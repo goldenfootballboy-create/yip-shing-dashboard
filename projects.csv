@@ -1,11 +1,11 @@
-﻿Project_Type,Project_Name,Description,Year,Lead_Time,Parts_Arrival_Date,Installation_Complete_Date,Testing_Date,Cleaning,Delivery_Date,Remarks
+Project_Type,Project_Name,Description,Year,Lead_Time,Parts_Arrival_Date,Installation_Complete_Date,Testing_Date,Cleaning,Delivery_Date,Remarks
 Enclosure,TP172/24,"GenDiesel KTA50-G3 41386336 
 S6L1M-H41
 X25C131723",2024,30/3/2025,11/7/2025,16/7/2025,22/7/2025,YES,,未有LC
 Open Set,TP25/075,"Energen KTA50-G3  41383279/41383278
 S7L1D-C41   X24C1341716/X24C1341716",2025,30/8/2025,25/7/2025,25/7/2025,28/7/2025,YES,6/8/2025,
 Enclosure,TP044/25,GenDiesel KTA50GS8 x2,2025,30/7/2025,5/6/2025,9/5/2025,8/7/2025,YES,14/7/2025,
-Scania,TP026/25,GE DC13x2,2025,30/7/2025,6/1/2025,12/6/2025,26/6/2025,YES,7/7/2025,
+Scania,TP026/25,GE DC13x2,2025,30/7/2025,6/1/2025,12/6/2025,26/6/2025,,7/7/2025,
 ,,,,,,,,,,
 ,,,,,,,,,,
 ,,,,,,,,,,
