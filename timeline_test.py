@@ -119,7 +119,6 @@ selected_year = st.sidebar.selectbox(
 )
 
 # Load CSV data
-@st.cache_data
 def load_data():
     """Load data from CSV file"""
     csv_file = "projects.csv"
