@@ -4,6 +4,11 @@ import os
 from datetime import datetime
 import streamlit.components.v1 as components
 import math
+import streamlit as st
+
+if st.button("Clear Cache"):
+    st.cache_data.clear()
+    st.experimental_rerun()
 
 # 動態設置工作目錄為腳本所在目錄
 script_dir = os.path.dirname(os.path.abspath(__file__))
