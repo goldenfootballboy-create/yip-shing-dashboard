@@ -260,7 +260,7 @@ else:
                 display_df[col] = display_df[col].dt.strftime('%Y-%m-%d')
 
         # Calculate progress for each project
-        current_date = datetime.now()  # Current date
+        current_date = datetime(2025, 10, 19)  # Fixed date as per your change
         for index, row in display_df.iterrows():
             progress = 0
             # Diagnostic output for debugging
