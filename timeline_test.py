@@ -56,20 +56,20 @@ st.markdown("""
     .progress-container {
         margin: 10px 0;
         display: flex;
-        align-items: flex-start; /* 對齊頂部 */
-        justify-content: flex-end; /* 進度條移到右側 */
+        align-items: flex-start;
+        justify-content: flex-end;
         width: 100%;
         max-width: 600px;
     }
     .project-name {
         font-weight: bold;
-        margin-right: 10px; /* 減少與進度條的間距 */
+        margin-right: 10px;
         flex-shrink: 0;
-        padding-top: 5px; /* 向下調整少許 */
+        padding-top: 5px;
     }
     .progress-wrapper {
         flex-grow: 1;
-        text-align: right; /* 確保進度條靠右 */
+        text-align: right;
     }
     .reminder-section {
         background-color: #fff3cd;
@@ -94,8 +94,8 @@ st.markdown("""
         background-color: #e0e0e0;
         border-radius: 10px;
         overflow: hidden;
-        display: inline-block; /* 確保寬度根據內容調整 */
-        vertical-align: middle; /* 垂直對齊 */
+        display: block; /* 改為 block 確保可見 */
+        width: 200px; /* 固定寬度以確保顯示 */
     }
     .custom-progress-fill {
         height: 100%;
@@ -321,7 +321,7 @@ else:
                 progress = 100
             progress = min(progress, 100)
 
-            # 渲染自定義進度條，移到右側並向下調整
+            # 渲染自定義進度條
             progress_value = progress / 100
             color = '#2ecc71' if progress == 100 else '#1f77b4'
             progress_html = f'''
@@ -331,7 +331,7 @@ else:
                     <div class="custom-progress">
                         <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
                     </div>
-                    <div style="text-align: center; margin-top: 5px;">{progress}%</div>
+                    <div style="text-align: center; margin-top: 5px; display: inline-block;">{progress}%</div>
                 </div>
             </div>
             '''
