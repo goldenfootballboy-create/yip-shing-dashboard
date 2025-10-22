@@ -57,7 +57,7 @@ st.markdown("""
         margin: 10px 0;
         display: flex;
         align-items: flex-start;
-        justify-content: flex-end; /* 強制右側對齊 */
+        justify-content: flex-start; /* 強制右側對齊 */
         width: 100%;
     }
     .project-name {
@@ -67,7 +67,7 @@ st.markdown("""
         padding-top: 5px;
     }
     .progress-wrapper {
-        text-align: right; /* 進度條和百分比右對齊 */
+        text-align: left; /* 進度條和百分比右對齊 */
         flex-grow: 0; /* 防止過度擴展 */
     }
     .reminder-section {
