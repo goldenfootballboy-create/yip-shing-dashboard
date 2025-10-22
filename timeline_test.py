@@ -55,20 +55,26 @@ st.markdown("""
     }
     .progress-container {
         margin: 10px 0;
-        display: flex;
-        align-items: flex-start;
-        justify-content: flex-start; /* 強制右側對齊 */
+        display: table;
         width: 100%;
+        table-layout: fixed; /* 固定表格佈局 */
+    }
+    .progress-row {
+        display: table-row;
     }
     .project-name {
         font-weight: bold;
-        margin-right: 20px; /* 增加間距以分隔名稱和進度條 */
-        flex-shrink: 0;
+        display: table-cell;
+        width: 300px; /* 固定 Project Name 列寬度 */
+        padding-right: 20px;
+        vertical-align: top;
         padding-top: 5px;
+        word-wrap: break-word; /* 長名稱換行 */
     }
     .progress-wrapper {
-        text-align: left; /* 進度條和百分比右對齊 */
-        flex-grow: 0; /* 防止過度擴展 */
+        display: table-cell;
+        text-align: left; /* 進度條左對齊 */
+        vertical-align: top;
     }
     .reminder-section {
         background-color: #fff3cd;
@@ -321,17 +327,19 @@ else:
                 progress = 100
             progress = min(progress, 100)
 
-            # 渲染自定義進度條，移到右側
+            # 渲染自定義進度條，統一對齊
             progress_value = progress / 100
             color = '#2ecc71' if progress == 100 else '#1f77b4'
             progress_html = f'''
             <div class="progress-container">
-                <div class="project-name">{row['Project_Name']}</div>
-                <div class="progress-wrapper">
-                    <div class="custom-progress">
-                        <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
+                <div class="progress-row">
+                    <div class="project-name">{row['Project_Name']}</div>
+                    <div class="progress-wrapper">
+                        <div class="custom-progress">
+                            <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
+                        </div>
+                        <div style="text-align: center; margin-top: 5px; display: inline-block;">{progress}%</div>
                     </div>
-                    <div style="text-align: center; margin-top: 5px; display: inline-block;">{progress}%</div>
                 </div>
             </div>
             '''
