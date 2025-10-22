@@ -260,11 +260,9 @@ else:
                 display_df[col] = display_df[col].dt.strftime('%Y-%m-%d')
 
         # Calculate progress for each project
-        current_date = datetime(2025, 10, 19)  # Fixed date as per your change
+        current_date = datetime.now()  # Use current date
         for index, row in display_df.iterrows():
             progress = 0
-            # Diagnostic output for debugging
-            st.write(f"Processing project: {row['Project_Name']}")
 
             # Check Parts_Arrival_Date (30%)
             parts_arrival_met = False
@@ -275,8 +273,7 @@ else:
                     if parts_arrival_met:
                         progress += 30
                 except ValueError:
-                    st.write(f"Warning: Invalid Parts_Arrival_Date for {row['Project_Name']}: {row['Parts_Arrival_Date']}")
-            st.write(f"Parts_Arrival_Date met: {parts_arrival_met}, Progress: {progress}%")
+                    pass  # Ignore invalid dates silently
 
             # Check Installation_Complete_Date (40%)
             install_met = False
@@ -287,8 +284,7 @@ else:
                     if install_met:
                         progress += 40
                 except ValueError:
-                    st.write(f"Warning: Invalid Installation_Complete_Date for {row['Project_Name']}: {row['Installation_Complete_Date']}")
-            st.write(f"Installation_Complete_Date met: {install_met}, Progress: {progress}%")
+                    pass  # Ignore invalid dates silently
 
             # Check Testing_Date (10%)
             testing_met = False
@@ -299,14 +295,12 @@ else:
                     if testing_met:
                         progress += 10
                 except ValueError:
-                    st.write(f"Warning: Invalid Testing_Date for {row['Project_Name']}: {row['Testing_Date']}")
-            st.write(f"Testing_Date met: {testing_met}, Progress: {progress}%")
+                    pass  # Ignore invalid dates silently
 
             # Check Cleaning (10%)
             cleaning_met = row['Cleaning'] == 'YES' if pd.notna(row['Cleaning']) else False
             if cleaning_met:
                 progress += 10
-            st.write(f"Cleaning met: {cleaning_met}, Progress: {progress}%")
 
             # Check Delivery_Date (10%, and set to 100% if all other conditions met)
             delivery_met = False
@@ -317,8 +311,7 @@ else:
                     if delivery_met:
                         progress += 10
                 except ValueError:
-                    st.write(f"Warning: Invalid Delivery_Date for {row['Project_Name']}: {row['Delivery_Date']}")
-            st.write(f"Delivery_Date met: {delivery_met}, Progress: {progress}%")
+                    pass  # Ignore invalid dates silently
 
             # Ensure 100% if all milestones are met (including Delivery_Date)
             all_milestones_met = parts_arrival_met and install_met and testing_met and cleaning_met and delivery_met
