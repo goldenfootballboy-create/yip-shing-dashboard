@@ -57,7 +57,7 @@ st.markdown("""
         margin: 10px 0;
         display: flex;
         align-items: flex-start;
-        justify-content: flex-end;
+        justify-content: flex-end; /* 確保容器右對齊 */
         width: 100%;
         max-width: 600px;
     }
@@ -68,8 +68,8 @@ st.markdown("""
         padding-top: 5px;
     }
     .progress-wrapper {
-        flex-grow: 1;
-        text-align: right;
+        text-align: right; /* 進度條和百分比右對齊 */
+        width: 200px; /* 固定進度條區域寬度 */
     }
     .reminder-section {
         background-color: #fff3cd;
@@ -94,8 +94,8 @@ st.markdown("""
         background-color: #e0e0e0;
         border-radius: 10px;
         overflow: hidden;
-        display: block; /* 改為 block 確保可見 */
-        width: 200px; /* 固定寬度以確保顯示 */
+        display: inline-block; /* 確保與百分比在同一行 */
+        vertical-align: middle;
     }
     .custom-progress-fill {
         height: 100%;
@@ -321,7 +321,7 @@ else:
                 progress = 100
             progress = min(progress, 100)
 
-            # 渲染自定義進度條
+            # 渲染自定義進度條，移到右側
             progress_value = progress / 100
             color = '#2ecc71' if progress == 100 else '#1f77b4'
             progress_html = f'''
