@@ -31,10 +31,10 @@ Open Set,TP25/173(ALM),"KTA38-G5 x2
 (41394099/41394100)/
 要拉線 參考TP003/25
 ",2025,6/10/2025,24/9/2025,29/9/2025,29/9/2025,YES,,Customer request amend
-Open Set,TP25/187(MGK),"KTA50-G3 x1
+Open Set,TP25/187(MGK),"KTA50-G3 x1 (41395422)
 /TCU428E. NO PMG
 /No Control Panel. No Wiring",2025,15/11/2025,7/11/2025,,,,,
-Open Set,TP25/188(Energen),"KTA50G3
+Open Set,TP25/188(Energen),"KTA50G3 (41395423)
 /EVOTECT TCU428E with PMG
 /有箱 有車身線 有HEATER 有水箱/Panel 在左",2025,30/11/2025,7/11/2025,,,,,
 Marine,TP25/166(Diesel Motoren) ,"KTA19-M600 x 5
@@ -48,3 +48,4 @@ Enclosure,YS25/093(Keyway),"QSB3.9-G2 x 1
 QSK19-G4 x 1
 ",2025,15/12/2025,,,,,,
 Enclosure,TP057/25(GenDiesel),FIEO/KTA50G3/S6L1M-H41/No ACB/7320MK2,2025,30/12/2025,,,,,,
+K50G3,HK租機,,,,,,,,,
