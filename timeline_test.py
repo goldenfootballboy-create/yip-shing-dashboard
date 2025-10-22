@@ -89,6 +89,15 @@ st.markdown("""
         text-align: left;
         border-bottom: 1px solid #ddd;
     }
+    /* progress bar */
+    .stProgress > div > div > div > {
+    background-color: #1f77b4;
+    }
+    /* 當進度為 100% 時變為綠色 */
+    .stProgress[data-value="1"] > div > div > div > div > {
+    background-color: #2ecc71; !important; /* green */
+    transition: background-color 0.3s ease; /* smooth effect */
+    } 
 </style>
 """, unsafe_allow_html=True)
 
