@@ -261,7 +261,7 @@ else:
                 display_df[col] = display_df[col].dt.strftime('%Y-%m-%d')
 
         # Calculate progress for each project
-        current_date = datetime(2025, 10, 19)  # Current date
+        current_date = datetime.now() # Current date
         for index, row in display_df.iterrows():
             progress = 0
             parts_arrival_met = pd.notna(row['Parts_Arrival_Date']) and pd.to_datetime(row['Parts_Arrival_Date']).date() <= current_date.date()
