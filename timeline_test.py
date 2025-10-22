@@ -5,7 +5,6 @@ from datetime import datetime
 import streamlit.components.v1 as components
 import math
 
-
 # 動態設置工作目錄為腳本所在目錄
 script_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(script_dir)
@@ -261,25 +260,70 @@ else:
                 display_df[col] = display_df[col].dt.strftime('%Y-%m-%d')
 
         # Calculate progress for each project
-        current_date = datetime.now() # Current date
+        current_date = datetime.now()  # Current date
         for index, row in display_df.iterrows():
             progress = 0
-            parts_arrival_met = pd.notna(row['Parts_Arrival_Date']) and pd.to_datetime(row['Parts_Arrival_Date']).date() <= current_date.date()
-            install_met = pd.notna(row['Installation_Complete_Date']) and pd.to_datetime(row['Installation_Complete_Date']).date() <= current_date.date()
-            testing_met = pd.notna(row['Testing_Date']) and pd.to_datetime(row['Testing_Date']).date() <= current_date.date()
-            delivery_met = pd.notna(row['Delivery_Date']) and pd.to_datetime(row['Delivery_Date']).date() <= current_date.date()
-            cleaning_met = row['Cleaning'] == 'YES'
+            # Diagnostic output for debugging
+            st.write(f"Processing project: {row['Project_Name']}")
 
-            if parts_arrival_met:
-                progress += 30
-            if install_met:
-                progress += 40
-            if testing_met:
-                progress += 10
+            # Check Parts_Arrival_Date (30%)
+            parts_arrival_met = False
+            if pd.notna(row['Parts_Arrival_Date']):
+                try:
+                    parts_arrival_date = pd.to_datetime(row['Parts_Arrival_Date'], dayfirst=True).date()
+                    parts_arrival_met = parts_arrival_date <= current_date.date()
+                    if parts_arrival_met:
+                        progress += 30
+                except ValueError:
+                    st.write(f"Warning: Invalid Parts_Arrival_Date for {row['Project_Name']}: {row['Parts_Arrival_Date']}")
+            st.write(f"Parts_Arrival_Date met: {parts_arrival_met}, Progress: {progress}%")
+
+            # Check Installation_Complete_Date (40%)
+            install_met = False
+            if pd.notna(row['Installation_Complete_Date']):
+                try:
+                    install_date = pd.to_datetime(row['Installation_Complete_Date'], dayfirst=True).date()
+                    install_met = install_date <= current_date.date()
+                    if install_met:
+                        progress += 40
+                except ValueError:
+                    st.write(f"Warning: Invalid Installation_Complete_Date for {row['Project_Name']}: {row['Installation_Complete_Date']}")
+            st.write(f"Installation_Complete_Date met: {install_met}, Progress: {progress}%")
+
+            # Check Testing_Date (10%)
+            testing_met = False
+            if pd.notna(row['Testing_Date']):
+                try:
+                    testing_date = pd.to_datetime(row['Testing_Date'], dayfirst=True).date()
+                    testing_met = testing_date <= current_date.date()
+                    if testing_met:
+                        progress += 10
+                except ValueError:
+                    st.write(f"Warning: Invalid Testing_Date for {row['Project_Name']}: {row['Testing_Date']}")
+            st.write(f"Testing_Date met: {testing_met}, Progress: {progress}%")
+
+            # Check Cleaning (10%)
+            cleaning_met = row['Cleaning'] == 'YES' if pd.notna(row['Cleaning']) else False
             if cleaning_met:
                 progress += 10
-            if delivery_met:
-                progress += 10
+            st.write(f"Cleaning met: {cleaning_met}, Progress: {progress}%")
+
+            # Check Delivery_Date (10%, and set to 100% if all other conditions met)
+            delivery_met = False
+            if pd.notna(row['Delivery_Date']):
+                try:
+                    delivery_date = pd.to_datetime(row['Delivery_Date'], dayfirst=True).date()
+                    delivery_met = delivery_date <= current_date.date()
+                    if delivery_met:
+                        progress += 10
+                except ValueError:
+                    st.write(f"Warning: Invalid Delivery_Date for {row['Project_Name']}: {row['Delivery_Date']}")
+            st.write(f"Delivery_Date met: {delivery_met}, Progress: {progress}%")
+
+            # Ensure 100% if all milestones are met (including Delivery_Date)
+            all_milestones_met = parts_arrival_met and install_met and testing_met and cleaning_met and delivery_met
+            if all_milestones_met:
+                progress = 100
             progress = min(progress, 100)  # Cap at 100%
 
             # Use columns to align project name and progress bar
