@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-import streamlit.components.v1 as components
-import math
 
 # 動態設置工作目錄為腳本所在目錄
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -22,8 +20,8 @@ st.markdown("""
     .main-header {
         font-size: 3rem;
         color: #1fb429;
-        margin-bottom: 1rem; /* 減少下方的留白 */
-        margin-top: -4rem; /* 向上移動標題 */
+        margin-bottom: 1rem;
+        margin-top: -4rem;
         font-weight: bold;
         display: flex;
         justify-content: center;
@@ -89,35 +87,18 @@ st.markdown("""
         text-align: left;
         border-bottom: 1px solid #ddd;
     }
-    /* 預設進度條樣式 */
-    .stProgress > div > div > div > div {
-        background-color: #1f77b4; /* 預設藍色 */
-        transition: background-color 0.3s ease; /* 平滑過渡效果 */
+    .custom-progress {
+        height: 20px;
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .custom-progress-fill {
+        height: 100%;
+        transition: width 0.3s ease;
     }
 </style>
 """, unsafe_allow_html=True)
-
-# 注入 JavaScript 動態更改進度條顏色
-components.html("""
-<script>
-    function updateProgressColors() {
-        const progressBars = document.querySelectorAll('.stProgress');
-        progressBars.forEach(bar => {
-            const value = bar.getAttribute('data-value');
-            const progressFill = bar.querySelector('div > div > div > div');
-            if (value === '1') {
-                progressFill.style.backgroundColor = '#2ecc71'; // 綠色
-            } else {
-                progressFill.style.backgroundColor = '#1f77b4'; // 藍色
-            }
-        });
-    }
-    // 監聽 DOM 變化並更新顏色
-    new MutationObserver(updateProgressColors).observe(document.body, { childList: true, subtree: true });
-    // 初始運行
-    updateProgressColors();
-</script>
-""", height=0)
 
 # 標題（標題居中）
 st.markdown('<div class="main-header"><div class="title">YIP SHING Project Status Dashboard</div></div>',
@@ -141,7 +122,7 @@ years = ["2024", "2025", "2026"]
 selected_year = st.sidebar.selectbox(
     "Select Year:",
     years,
-    index=years.index("2025"),  # Default to current year 2025
+    index=years.index("2025"),
     help="Select the year to view"
 )
 
@@ -157,7 +138,6 @@ def load_data():
         return None
 
     try:
-        # 嘗試使用 UTF-8 讀取，並支援日/月/年格式
         data_df = pd.read_csv(csv_file, encoding='utf-8', sep=',', dayfirst=True)
         required_columns = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
         missing_columns = [col for col in required_columns if col not in data_df.columns]
@@ -177,17 +157,14 @@ def load_data():
         return data_df
     except UnicodeDecodeError:
         st.error("Failed to read CSV file with UTF-8 encoding. Ensure the file uses UTF-8 encoding.")
-        st.info("Suggestion: Save the file as 'CSV UTF-8' in Excel or use a text editor to ensure UTF-8 encoding.")
         return None
     except pd.errors.ParserError:
         st.error("CSV file format error, possibly due to incorrect delimiter (should be comma). Check the file content.")
-        st.info("Suggestion: Verify the CSV uses comma separation or try a different delimiter (e.g., semicolon).")
         return None
 
 # Load data
 df = load_data()
 
-# 檢查 df 是否為 None，並顯示錯誤訊息
 if df is None:
     st.error("Failed to load data. Please check the console or previous messages for details.")
 else:
@@ -205,13 +182,10 @@ else:
         if 'Year' in df.columns and 'Lead_Time' in df.columns:
             filtered_df = df[df['Year'] == int(selected_year)].copy()
             if selected_month != "--":
-                # 從 Lead_Time 提取月份並與 selected_month 匹配
                 if pd.api.types.is_datetime64_any_dtype(filtered_df['Lead_Time']):
-                    month_index = month_options.index(selected_month)  # 獲取 selected_month 的索引（0-12）
-                    if month_index == 0:  # "--" 不篩選
-                        filtered_df = filtered_df
-                    else:
-                        filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_index]  # 直接比較月份
+                    month_index = month_options.index(selected_month)
+                    if month_index != 0:
+                        filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_index]
                 else:
                     st.warning("Lead_Time column is not in datetime format. Skipping month filter.")
         else:
@@ -223,11 +197,9 @@ else:
             filtered_df = filtered_df[filtered_df['Year'] == int(selected_year)].copy()
             if selected_month != "--":
                 if pd.api.types.is_datetime64_any_dtype(filtered_df['Lead_Time']):
-                    month_index = month_options.index(selected_month)  # 獲取 selected_month 的索引（0-12）
-                    if month_index == 0:  # "--" 不篩選
-                        filtered_df = filtered_df
-                    else:
-                        filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_index]  # 直接比較月份
+                    month_index = month_options.index(selected_month)
+                    if month_index != 0:
+                        filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_index]
                 else:
                     st.warning("Lead_Time column is not in datetime format. Skipping month filter.")
         else:
@@ -250,7 +222,6 @@ else:
         else:
             st.markdown(f"### {selected_project_type} - {selected_year} {selected_month} Project Count")
 
-    # Use columns for horizontal layout
     col1, col2, *other_cols = st.columns([1] + [1] * (len(project_counts) + 1))
     with col1:
         st.write(f"Total Projects: {total_projects}")
@@ -282,12 +253,12 @@ else:
         display_df = filtered_df[available_columns].copy()
 
         # Format date columns
-        for col in available_columns[1:]:  # Skip Project_Name
+        for col in available_columns[1:]:
             if pd.api.types.is_datetime64_any_dtype(display_df[col]):
                 display_df[col] = display_df[col].dt.strftime('%Y-%m-%d')
 
         # Calculate progress for each project
-        current_date = datetime.now()  # Use current date
+        current_date = datetime.now()
         for index, row in display_df.iterrows():
             progress = 0
 
@@ -300,7 +271,7 @@ else:
                     if parts_arrival_met:
                         progress += 30
                 except ValueError:
-                    pass  # Ignore invalid dates silently
+                    pass
 
             # Check Installation_Complete_Date (40%)
             install_met = False
@@ -311,7 +282,7 @@ else:
                     if install_met:
                         progress += 40
                 except ValueError:
-                    pass  # Ignore invalid dates silently
+                    pass
 
             # Check Testing_Date (10%)
             testing_met = False
@@ -322,7 +293,7 @@ else:
                     if testing_met:
                         progress += 10
                 except ValueError:
-                    pass  # Ignore invalid dates silently
+                    pass
 
             # Check Cleaning (10%)
             cleaning_met = row['Cleaning'] == 'YES' if pd.notna(row['Cleaning']) else False
@@ -338,20 +309,29 @@ else:
                     if delivery_met:
                         progress += 10
                 except ValueError:
-                    pass  # Ignore invalid dates silently
+                    pass
 
-            # Ensure 100% if all milestones are met (including Delivery_Date)
+            # Ensure 100% if all milestones are met
             all_milestones_met = parts_arrival_met and install_met and testing_met and cleaning_met and delivery_met
             if all_milestones_met:
                 progress = 100
-            progress = min(progress, 100)  # Cap at 100%
+            progress = min(progress, 100)
 
-            # Use columns to align project name and progress bar
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                st.write(row['Project_Name'])
-            with col2:
-                st.progress(progress / 100, text=f"{progress}%")
+            # 渲染自定義進度條
+            progress_value = progress / 100
+            color = '#2ecc71' if progress == 100 else '#1f77b4'
+            progress_html = f'''
+            <div class="progress-container">
+                <div class="project-name">{row['Project_Name']}</div>
+                <div class="progress-wrapper">
+                    <div class="custom-progress">
+                        <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 5px;">{progress}%</div>
+                </div>
+            </div>
+            '''
+            st.markdown(progress_html, unsafe_allow_html=True)
 
         # Display table with styling
         st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
@@ -364,16 +344,14 @@ else:
     else:
         st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
-    # Reminder section for Delivery_Date issues (across all data, not filtered by year/month)
+    # Reminder section for Delivery_Date issues
     if 'Delivery_Date' in df.columns and 'Lead_Time' in df.columns:
         reminder_df = df[
             (df['Delivery_Date'].isna()) |
             (df['Delivery_Date'] > df['Lead_Time'])
         ].copy()
-        # 移除無效行並重置索引，僅保留指定列
         reminder_df = reminder_df[['Project_Name', 'Lead_Time', 'Delivery_Date', 'Remarks']].dropna(how='all').reset_index(drop=True)
         if not reminder_df.empty:
-            # 使用 HTML 創建獨立滾動容器
             reminder_html = f"""
             <div class="reminder-section">
                 <h3>Reminder: Delivery Date Issues</h3>
