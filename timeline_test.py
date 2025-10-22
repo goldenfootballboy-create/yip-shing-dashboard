@@ -57,19 +57,18 @@ st.markdown("""
         margin: 10px 0;
         display: flex;
         align-items: flex-start;
-        justify-content: flex-end; /* 確保容器右對齊 */
+        justify-content: flex-end; /* 強制右側對齊 */
         width: 100%;
-        max-width: 600px;
     }
     .project-name {
         font-weight: bold;
-        margin-right: 10px;
+        margin-right: 20px; /* 增加間距以分隔名稱和進度條 */
         flex-shrink: 0;
         padding-top: 5px;
     }
     .progress-wrapper {
         text-align: right; /* 進度條和百分比右對齊 */
-        width: 200px; /* 固定進度條區域寬度 */
+        flex-grow: 0; /* 防止過度擴展 */
     }
     .reminder-section {
         background-color: #fff3cd;
@@ -94,8 +93,9 @@ st.markdown("""
         background-color: #e0e0e0;
         border-radius: 10px;
         overflow: hidden;
-        display: inline-block; /* 確保與百分比在同一行 */
+        display: inline-block;
         vertical-align: middle;
+        width: 200px; /* 固定進度條寬度 */
     }
     .custom-progress-fill {
         height: 100%;
