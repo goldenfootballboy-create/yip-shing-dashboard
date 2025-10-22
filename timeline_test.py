@@ -89,17 +89,35 @@ st.markdown("""
         text-align: left;
         border-bottom: 1px solid #ddd;
     }
-    /* 進度條樣式 */
+    /* 預設進度條樣式 */
     .stProgress > div > div > div > div {
         background-color: #1f77b4; /* 預設藍色 */
-    }
-    /* 當進度為 100% 時變為綠色 */
-    .stProgress[data-value="1"] > div > div > div > div {
-        background-color: #2ecc71 !important; /* 綠色 */
         transition: background-color 0.3s ease; /* 平滑過渡效果 */
     }
 </style>
 """, unsafe_allow_html=True)
+
+# 注入 JavaScript 動態更改進度條顏色
+components.html("""
+<script>
+    function updateProgressColors() {
+        const progressBars = document.querySelectorAll('.stProgress');
+        progressBars.forEach(bar => {
+            const value = bar.getAttribute('data-value');
+            const progressFill = bar.querySelector('div > div > div > div');
+            if (value === '1') {
+                progressFill.style.backgroundColor = '#2ecc71'; // 綠色
+            } else {
+                progressFill.style.backgroundColor = '#1f77b4'; // 藍色
+            }
+        });
+    }
+    // 監聽 DOM 變化並更新顏色
+    new MutationObserver(updateProgressColors).observe(document.body, { childList: true, subtree: true });
+    // 初始運行
+    updateProgressColors();
+</script>
+""", height=0)
 
 # 標題（標題居中）
 st.markdown('<div class="main-header"><div class="title">YIP SHING Project Status Dashboard</div></div>',
