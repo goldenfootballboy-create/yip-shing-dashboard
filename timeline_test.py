@@ -107,6 +107,13 @@ st.markdown("""
         height: 100%;
         transition: width 0.3s ease;
     }
+    .kta38-icon {
+        width: 20px;
+        height: 20px;
+        margin-left: 5px;
+        vertical-align: middle;
+        display: inline-block;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -363,7 +370,12 @@ else:
             else:
                 color = '#0000ff'  # 100% 藍
 
-            # 渲染自定義進度條，統一對齊並優化顏色
+            # 檢查 Description 是否包含 KTA38，決定是否添加圖片
+            description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
+            has_kta38 = 'KTA38' in description_text.upper()
+            icon_html = f'<img src="https://i.imgur.com/4hXPhiu.jpeg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
+
+            # 渲染自定義進度條，統一對齊並優化顏色，添加圖片
             progress_value = progress / 100
             progress_html = f'''
             <div class="progress-container">
@@ -374,6 +386,7 @@ else:
                             <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
                         </div>
                         <div style="text-align: center; margin-top: 5px; display: inline-block;">{progress}%</div>
+                        {icon_html}
                     </div>
                 </div>
             </div>
