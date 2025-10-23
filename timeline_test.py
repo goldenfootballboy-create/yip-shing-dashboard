@@ -375,7 +375,7 @@ else:
             has_kta38 = 'KTA38' in description_text.upper()
             icon_html = f'<img src="https://i.imgur.com/4hXPhiu.jpeg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
 
-            # 渲染自定義進度條，統一對齊並優化顏色，添加圖片
+            # 渲染自定義進度條，確保 HTML 結構完整
             progress_value = progress / 100
             progress_html = f'''
             <div class="progress-container">
