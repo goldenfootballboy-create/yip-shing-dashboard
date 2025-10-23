@@ -70,7 +70,7 @@ st.markdown("""
     .progress-wrapper {
         display: flex;
         align-items: center;
-        flex-grow: 1;
+        flex-grow: 0.5;
         padding-left: 2px; /* 收窄與圖片的間距 */
     }
     .custom-progress {
