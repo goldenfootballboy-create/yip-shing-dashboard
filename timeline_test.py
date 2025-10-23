@@ -57,6 +57,7 @@ st.markdown("""
         margin: 10px 0;
         display: flex;
         width: 100%;
+        align-items: center;
     }
     .project-name {
         font-weight: bold;
@@ -69,7 +70,8 @@ st.markdown("""
     .progress-wrapper {
         text-align: left;
         vertical-align: top;
-        flex-grow: 1;
+        display: flex;
+        align-items: center;
     }
     .reminder-section {
         background-color: #fff3cd;
@@ -370,16 +372,14 @@ else:
             has_kta38 = 'KTA38' in description_text.upper()
             icon_html = f'<img src="https://i.imgur.com/4hXPhiu.jpeg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
 
-            # 渲染自定義進度條，使用 flex 布局避免 table 問題
+            # 渲染自定義進度條，使用簡化結構
             progress_value = progress / 100
             progress_html = f'''
             <div class="progress-container">
                 <div class="project-name">{row['Project_Name']}</div>
                 <div class="progress-wrapper">
-                    <div class="custom-progress">
-                        <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
-                    </div>
-                    <div style="text-align: center; margin-top: 5px; display: inline-block; vertical-align: middle;">{progress}%</div>
+                    <div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>
+                    <span style="text-align: center; margin-left: 10px; vertical-align: middle;">{progress}%</span>
                     {icon_html}
                 </div>
             </div>
