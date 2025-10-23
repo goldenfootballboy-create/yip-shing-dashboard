@@ -111,7 +111,15 @@ st.markdown("""
         font-size: 12px;
         color: #333;
         margin-top: 5px;
-        display: block;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .kta38-icon {
+        width: 20px;
+        height: 20px;
+        margin-left: 5px;
+        vertical-align: middle;
+        display: inline-block;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -312,8 +320,9 @@ else:
                     pass
 
             # Check Cleaning (10%)
-            cleaning_met = row['Cleaning'] == 'YES' if pd.notna(row['Cleaning']) else False
-            if cleaning_met:
+            cleaning_met = False
+            if pd.notna(row['Cleaning']) and row['Cleaning'] == 'YES':
+                cleaning_met = True
                 progress += 10
 
             # Check Delivery_Date (10%, and set to 100% if all other conditions met)
@@ -335,7 +344,7 @@ else:
 
             # 動態計算進度條顏色（根據 0%、30%、70%、80%、90%、100% 設置）
             if progress == 0:
-                color = '#e0e0e0'  # 0% 無色（灰色，與背景接近）
+                color = '#e0e0e0'  # 0% 無色（灰色）
             elif progress < 30:
                 # 0% 到 30%：從 #e0e0e0 漸變到橙紅 #ff4500
                 r = int(224 + (255 - 224) * (progress / 30))
@@ -385,7 +394,11 @@ else:
             else:
                 explanation_text = f"{progress}% Progress"  # 中間進度顯示百分比
 
-            # 渲染自定義進度條，統一對齊並添加進度解釋
+            # 檢查 Description 是否包含 KTA38，決定是否添加圖片
+            has_kta38 = pd.notna(row['Description']) and 'KTA38' in str(row['Description']).upper()
+            icon_html = f'<img src="kta38-icon.jpg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
+
+            # 渲染自定義進度條，統一對齊並添加進度解釋和圖片
             progress_value = progress / 100
             progress_html = f'''
             <div class="progress-container">
@@ -395,8 +408,11 @@ else:
                         <div class="custom-progress">
                             <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
                         </div>
-                        <div style="text-align: center; margin-top: 5px; display: inline-block;">{progress}%</div>
+                        <div style="text-align: center; margin-top: 5px; display: inline-block; vertical-align: middle;">
+                            {progress}%
+                        </div>
                         <div class="progress-explanation">{explanation_text}</div>
+                        {icon_html}
                     </div>
                 </div>
             </div>
