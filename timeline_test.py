@@ -378,7 +378,7 @@ else:
                 st.write(row['Project_Name'], unsafe_allow_html=False)
             with col2:
                 if has_kta38:
-                    st.image("https://i.imgur.com/4hXPhiu.jpeg", width=20)
+                    st.image("https://imgur.com/koGZmUz", width=20)
             with col3:
                 progress_value = progress / 100
                 st.markdown(
