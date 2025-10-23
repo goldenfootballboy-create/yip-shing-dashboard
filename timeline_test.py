@@ -57,7 +57,7 @@ st.markdown("""
         margin: 10px 0;
         display: table;
         width: 100%;
-        table-layout: fixed;
+        table-layout: fixed; /* 固定表格佈局 */
     }
     .progress-row {
         display: table-row;
@@ -65,15 +65,15 @@ st.markdown("""
     .project-name {
         font-weight: bold;
         display: table-cell;
-        width: 300px;
+        width: 300px; /* 固定 Project Name 列寬度 */
         padding-right: 20px;
         vertical-align: top;
         padding-top: 5px;
-        word-wrap: break-word;
+        word-wrap: break-word; /* 長名稱換行 */
     }
     .progress-wrapper {
         display: table-cell;
-        text-align: left;
+        text-align: left; /* 進度條左對齊 */
         vertical-align: top;
     }
     .reminder-section {
@@ -101,25 +101,11 @@ st.markdown("""
         overflow: hidden;
         display: inline-block;
         vertical-align: middle;
-        width: 200px;
+        width: 200px; /* 固定進度條寬度 */
     }
     .custom-progress-fill {
         height: 100%;
         transition: width 0.3s ease;
-    }
-    .progress-explanation {
-        font-size: 12px;
-        color: #333;
-        margin-top: 5px;
-        display: inline-block;
-        vertical-align: middle;
-    }
-    .kta38-icon {
-        width: 20px;
-        height: 20px;
-        margin-left: 5px;
-        vertical-align: middle;
-        display: inline-block;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -320,9 +306,8 @@ else:
                     pass
 
             # Check Cleaning (10%)
-            cleaning_met = False
-            if pd.notna(row['Cleaning']) and row['Cleaning'] == 'YES':
-                cleaning_met = True
+            cleaning_met = row['Cleaning'] == 'YES' if pd.notna(row['Cleaning']) else False
+            if cleaning_met:
                 progress += 10
 
             # Check Delivery_Date (10%, and set to 100% if all other conditions met)
@@ -342,60 +327,43 @@ else:
                 progress = 100
             progress = min(progress, 100)
 
-            # 動態計算進度條顏色
+            # 動態計算進度條顏色（根據 0%、30%、70%、80%、90%、100% 設置）
             if progress == 0:
-                color = '#e0e0e0'
+                color = '#e0e0e0'  # 0% 無色（灰色，與背景接近）
             elif progress < 30:
+                # 0% 到 30%：從 #e0e0e0 漸變到橙紅 #ff4500
                 r = int(224 + (255 - 224) * (progress / 30))
                 g = int(224 + (69 - 224) * (progress / 30))
                 b = int(224 + (0 - 224) * (progress / 30))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 70:
+                # 30% 到 70%：從橙紅 #ff4500 漸變到黃 #ffff00
                 r = 255
                 g = int(69 + (255 - 69) * ((progress - 30) / 40))
                 b = int(0 + (0 - 0) * ((progress - 30) / 40))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 80:
+                # 70% 到 80%：從黃 #ffff00 漸變到黃綠 #9acd32
                 r = int(255 + (154 - 255) * ((progress - 70) / 10))
                 g = 255
                 b = int(0 + (50 - 0) * ((progress - 70) / 10))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 90:
+                # 80% 到 90%：從黃綠 #9acd32 漸變到綠 #00ff00
                 r = int(154 + (0 - 154) * ((progress - 80) / 10))
                 g = int(205 + (255 - 205) * ((progress - 80) / 10))
                 b = int(50 + (0 - 50) * ((progress - 80) / 10))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 100:
+                # 90% 到 100%：從綠 #00ff00 漸變到藍 #0000ff
                 r = int(0 + (0 - 0) * ((progress - 90) / 10))
                 g = int(255 + (0 - 255) * ((progress - 90) / 10))
                 b = int(0 + (255 - 0) * ((progress - 90) / 10))
                 color = f'rgb({r}, {g}, {b})'
             else:
-                color = '#0000ff'
+                color = '#0000ff'  # 100% 藍
 
-            # 固定生成進度解釋
-            if progress == 0:
-                explanation_text = "Not Start"
-            elif progress == 30:
-                explanation_text = "Parts Arrived"
-            elif progress == 70:
-                explanation_text = "Installation Completed"
-            elif progress == 80:
-                explanation_text = "Testing Completed"
-            elif progress == 90:
-                explanation_text = "Cleaning Completed"
-            elif progress == 100:
-                explanation_text = "Project Completed"
-            else:
-                explanation_text = f"{progress}% Progress"
-
-            # 檢查 Description 是否包含 KTA38，決定是否添加圖片
-            description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
-            has_kta38 = 'KTA38' in description_text.upper()
-            st.write(f"Debug: Description='{description_text}', has_kta38={has_kta38}")  # 臨時調試
-            icon_html = f'<img src="https://i.imgur.com/4hXPhiu.jpeg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
-
-            # 渲染自定義進度條
+            # 渲染自定義進度條，統一對齊並優化顏色
             progress_value = progress / 100
             progress_html = f'''
             <div class="progress-container">
@@ -405,11 +373,7 @@ else:
                         <div class="custom-progress">
                             <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
                         </div>
-                        <div style="text-align: center; margin-top: 5px; display: inline-block; vertical-align: middle;">
-                            {progress}%
-                        </div>
-                        <div class="progress-explanation">{explanation_text}</div>
-                        {icon_html}
+                        <div style="text-align: center; margin-top: 5px; display: inline-block;">{progress}%</div>
                     </div>
                 </div>
             </div>
