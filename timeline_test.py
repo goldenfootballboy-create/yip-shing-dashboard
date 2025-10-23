@@ -62,7 +62,7 @@ st.markdown("""
     .project-name {
         font-weight: bold;
         width: 300px;
-        padding-right: 5px; /* 收窄與圖片的間距 */
+        padding-right: 2px; /* 收窄與圖片的間距 */
         vertical-align: top;
         padding-top: 5px;
         word-wrap: break-word;
