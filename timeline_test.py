@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-icon_html = f'<img src="kta38-icon.jpg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
-if not os.path.exists('kta38-icon.jpg') and has_kta38:
-    st.warning("kta38-icon.jpg not found in the directory!")
 
 # 動態設置工作目錄為腳本所在目錄
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -60,7 +57,7 @@ st.markdown("""
         margin: 10px 0;
         display: table;
         width: 100%;
-        table-layout: fixed; /* 固定表格佈局 */
+        table-layout: fixed;
     }
     .progress-row {
         display: table-row;
@@ -68,15 +65,15 @@ st.markdown("""
     .project-name {
         font-weight: bold;
         display: table-cell;
-        width: 300px; /* 固定 Project Name 列寬度 */
+        width: 300px;
         padding-right: 20px;
         vertical-align: top;
         padding-top: 5px;
-        word-wrap: break-word; /* 長名稱換行 */
+        word-wrap: break-word;
     }
     .progress-wrapper {
         display: table-cell;
-        text-align: left; /* 進度條左對齊 */
+        text-align: left;
         vertical-align: top;
     }
     .reminder-section {
@@ -104,7 +101,7 @@ st.markdown("""
         overflow: hidden;
         display: inline-block;
         vertical-align: middle;
-        width: 200px; /* 固定進度條寬度 */
+        width: 200px;
     }
     .custom-progress-fill {
         height: 100%;
