@@ -61,7 +61,8 @@ st.markdown("""
     }
     .project-name {
         font-weight: bold;
-        padding-right: 0px; /* 移除與圖片的間距 */
+        width: 300px;
+        padding-right: 2px; /* 保持收窄的間距 */
         vertical-align: top;
         padding-top: 5px;
         word-wrap: break-word;
@@ -70,7 +71,7 @@ st.markdown("""
         display: flex;
         align-items: center;
         flex-grow: 1;
-        padding-left: 0px; /* 移除與圖片的間距 */
+        padding-left: 2px; /* 保持收窄的間距 */
     }
     .custom-progress {
         height: 20px;
@@ -84,15 +85,16 @@ st.markdown("""
         height: 100%;
         transition: width 0.3s ease;
         border-radius: 10px; /* 與外框一致 */
+        background-color: #ff4500; /* 示例顏色，根據動態計算 */
     }
     .progress-text {
         margin-left: 10px; /* 保持進度百分比與進度條的間距 */
         vertical-align: middle;
     }
     .kta38-icon {
-        width: 40px; /* 保持放大後的圖片大小 */
-        height: auto; /* 自動調整高度以保持比例 */
-        margin-right: 2px; /* 減小與 Project Name 之間的間距 */
+        width: 20px;
+        height: 20px;
+        margin: 0 10px; /* 保持圖片左右間距 */
         vertical-align: middle;
     }
     .reminder-section {
@@ -373,22 +375,20 @@ else:
             description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
             has_kta38 = 'KTA38' in description_text.upper()
 
-            # 使用 Streamlit 原生組件渲染進度條，圖片放在 Project Name 左側
-            col1, col2 = st.columns([0.5, 9])  # 調整列寬比例，使進度條靠近
+            # 使用 Streamlit 原生組件渲染進度條，圖片放在中間
+            col1, col2, col3 = st.columns([3, 0.5, 6.5])  # 保持列寬比例
             with col1:
-                if has_kta38:
-                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=40)  # 圖片在左側
+                st.write(row['Project_Name'], unsafe_allow_html=False)
             with col2:
-                col_name, col_progress = st.columns([3, 6])  # 內部分為 Project Name 和進度條
-                with col_name:
-                    st.write(row['Project_Name'], unsafe_allow_html=False)
-                with col_progress:
-                    progress_value = progress / 100
-                    st.markdown(
-                        f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
-                        unsafe_allow_html=True
-                    )
-                    st.write(f"{progress}%", unsafe_allow_html=False)
+                if has_kta38:
+                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)  # 使用新圖片 URL
+            with col3:
+                progress_value = progress / 100
+                st.markdown(
+                    f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
+                    unsafe_allow_html=True
+                )
+                st.write(f"{progress}%", unsafe_allow_html=False)
 
         # Display table with styling
         st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
