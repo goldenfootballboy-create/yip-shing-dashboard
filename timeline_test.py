@@ -71,7 +71,7 @@ st.markdown("""
         display: flex;
         align-items: center;
         flex-grow: 1;
-        padding-left: 5px; /* 收窄與圖片的間距 */
+        padding-left: 2px; /* 收窄與圖片的間距 */
     }
     .custom-progress {
         height: 20px;
