@@ -119,7 +119,7 @@ st.markdown("---")
 # 側邊欄設置
 st.sidebar.title("📊 Dashboard Controls")
 st.sidebar.markdown("### Project Type Selection")
-project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
+project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3", "Essential"]
 selected_project_type = st.sidebar.selectbox(
     "Select Project Type:",
     project_types,
