@@ -62,7 +62,7 @@ st.markdown("""
     .project-name {
         font-weight: bold;
         width: 300px;
-        padding-right: 2px; /* 收窄與圖片的間距 */
+        padding-right: 2px; /* 保持收窄的間距 */
         vertical-align: top;
         padding-top: 5px;
         word-wrap: break-word;
@@ -70,8 +70,8 @@ st.markdown("""
     .progress-wrapper {
         display: flex;
         align-items: center;
-        flex-grow: 2;
-        padding-left: 2px; /* 收窄與圖片的間距 */
+        flex-grow: 1;
+        padding-left: 2px; /* 保持收窄的間距 */
     }
     .custom-progress {
         height: 20px;
@@ -79,10 +79,13 @@ st.markdown("""
         border-radius: 10px;
         overflow: hidden;
         width: 200px;
+        padding: 0; /* 移除內部填充 */
     }
     .custom-progress-fill {
         height: 100%;
         transition: width 0.3s ease;
+        border-radius: 10px; /* 與外框一致 */
+        background-color: #ff4500; /* 示例顏色，根據動態計算 */
     }
     .progress-text {
         margin-left: 10px; /* 保持進度百分比與進度條的間距 */
@@ -91,7 +94,7 @@ st.markdown("""
     .kta38-icon {
         width: 20px;
         height: 20px;
-        margin: 0 10px; /* 優化左右間距 */
+        margin: 0 10px; /* 保持圖片左右間距 */
         vertical-align: middle;
     }
     .reminder-section {
@@ -373,12 +376,12 @@ else:
             has_kta38 = 'KTA38' in description_text.upper()
 
             # 使用 Streamlit 原生組件渲染進度條，圖片放在中間
-            col1, col2, col3 = st.columns([3, 0.5, 6.5])  # 微調列寬比例
+            col1, col2, col3 = st.columns([3, 0.5, 6.5])  # 保持列寬比例
             with col1:
                 st.write(row['Project_Name'], unsafe_allow_html=False)
             with col2:
                 if has_kta38:
-                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=20)  # 更新為新圖片 URL
+                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=20)  # 使用新圖片 URL
             with col3:
                 progress_value = progress / 100
                 st.markdown(
