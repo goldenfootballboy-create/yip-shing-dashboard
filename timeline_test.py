@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+icon_html = f'<img src="kta38-icon.jpg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
+if not os.path.exists('kta38-icon.jpg') and has_kta38:
+    st.warning("kta38-icon.jpg not found in the directory!")
 
 # 動態設置工作目錄為腳本所在目錄
 script_dir = os.path.dirname(os.path.abspath(__file__))
