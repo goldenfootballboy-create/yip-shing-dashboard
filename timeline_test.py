@@ -370,18 +370,26 @@ else:
                 color = '#0000ff'  # 100% 藍
 
             # 動態生成進度解釋
-            explanation = []
-            if parts_arrival_met:
-                explanation.append("Parts Arrived")
-            if install_met:
-                explanation.append("Installation Complete")
-            if testing_met:
-                explanation.append("Testing Complete")
-            if cleaning_met:
-                explanation.append("Cleaning Done")
-            if delivery_met:
-                explanation.append("Delivery Complete")
-            explanation_text = ", ".join(explanation) if explanation else "Not Started"
+            if progress == 0 or not any([parts_arrival_met, install_met, testing_met, cleaning_met, delivery_met]):
+                explanation_text = "Not Started"
+            elif progress == 30 and parts_arrival_met:
+                explanation_text = "Parts Arrived"
+            elif progress == 70 and install_met:
+                explanation_text = "Installation Complete"
+            elif progress == 80 and testing_met:
+                explanation_text = "Testing Complete"
+            elif progress == 90 and cleaning_met:
+                explanation_text = "Cleaning Complete"
+            elif progress == 100:
+                explanation = []
+                if parts_arrival_met: explanation.append("Parts Arrived")
+                if install_met: explanation.append("Installation Complete")
+                if testing_met: explanation.append("Testing Complete")
+                if cleaning_met: explanation.append("Cleaning Complete")
+                if delivery_met: explanation.append("Delivery Complete")
+                explanation_text = ", ".join(explanation)
+            else:
+                explanation_text = f"{progress}% Progress"  # 中間進度顯示百分比
 
             # 渲染自定義進度條，統一對齊並添加進度解釋
             progress_value = progress / 100
