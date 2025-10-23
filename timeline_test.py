@@ -381,7 +381,7 @@ else:
                 st.write(row['Project_Name'], unsafe_allow_html=False)
             with col2:
                 if has_kta38:
-                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=35)  # 使用新圖片 URL
+                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)  # 使用新圖片 URL
             with col3:
                 progress_value = progress / 100
                 st.markdown(
