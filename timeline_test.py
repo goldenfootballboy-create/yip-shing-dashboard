@@ -119,7 +119,7 @@ st.markdown("---")
 # 側邊欄設置
 st.sidebar.title("📊 Dashboard Controls")
 st.sidebar.markdown("### Project Type Selection")
-project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3", "Essential"]
+project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
 selected_project_type = st.sidebar.selectbox(
     "Select Project Type:",
     project_types,
@@ -327,9 +327,44 @@ else:
                 progress = 100
             progress = min(progress, 100)
 
-            # 渲染自定義進度條，統一對齊
+            # 動態計算進度條顏色（根據 0%、30%、70%、80%、90%、100% 設置）
+            if progress == 0:
+                color = '#e0e0e0'  # 0% 無色（灰色，與背景接近）
+            elif progress < 30:
+                # 0% 到 30%：從 #e0e0e0 漸變到橙紅 #ff4500
+                r = int(224 + (255 - 224) * (progress / 30))
+                g = int(224 + (69 - 224) * (progress / 30))
+                b = int(224 + (0 - 224) * (progress / 30))
+                color = f'rgb({r}, {g}, {b})'
+            elif progress < 70:
+                # 30% 到 70%：從橙紅 #ff4500 漸變到黃 #ffff00
+                r = 255
+                g = int(69 + (255 - 69) * ((progress - 30) / 40))
+                b = int(0 + (0 - 0) * ((progress - 30) / 40))
+                color = f'rgb({r}, {g}, {b})'
+            elif progress < 80:
+                # 70% 到 80%：從黃 #ffff00 漸變到黃綠 #9acd32
+                r = int(255 + (154 - 255) * ((progress - 70) / 10))
+                g = 255
+                b = int(0 + (50 - 0) * ((progress - 70) / 10))
+                color = f'rgb({r}, {g}, {b})'
+            elif progress < 90:
+                # 80% 到 90%：從黃綠 #9acd32 漸變到綠 #00ff00
+                r = int(154 + (0 - 154) * ((progress - 80) / 10))
+                g = int(205 + (255 - 205) * ((progress - 80) / 10))
+                b = int(50 + (0 - 50) * ((progress - 80) / 10))
+                color = f'rgb({r}, {g}, {b})'
+            elif progress < 100:
+                # 90% 到 100%：從綠 #00ff00 漸變到藍 #0000ff
+                r = int(0 + (0 - 0) * ((progress - 90) / 10))
+                g = int(255 + (0 - 255) * ((progress - 90) / 10))
+                b = int(0 + (255 - 0) * ((progress - 90) / 10))
+                color = f'rgb({r}, {g}, {b})'
+            else:
+                color = '#0000ff'  # 100% 藍
+
+            # 渲染自定義進度條，統一對齊並優化顏色
             progress_value = progress / 100
-            color = '#2ecc71' if progress == 100 else '#1f77b4'
             progress_html = f'''
             <div class="progress-container">
                 <div class="progress-row">
