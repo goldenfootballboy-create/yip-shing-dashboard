@@ -107,6 +107,12 @@ st.markdown("""
         height: 100%;
         transition: width 0.3s ease;
     }
+    .progress-explanation {
+        font-size: 12px;
+        color: #333;
+        margin-top: 5px;
+        display: block;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -363,7 +369,21 @@ else:
             else:
                 color = '#0000ff'  # 100% 藍
 
-            # 渲染自定義進度條，統一對齊並優化顏色
+            # 動態生成進度解釋
+            explanation = []
+            if parts_arrival_met:
+                explanation.append("Parts Arrived")
+            if install_met:
+                explanation.append("Installation Complete")
+            if testing_met:
+                explanation.append("Testing Complete")
+            if cleaning_met:
+                explanation.append("Cleaning Done")
+            if delivery_met:
+                explanation.append("Delivery Complete")
+            explanation_text = ", ".join(explanation) if explanation else "Not Started"
+
+            # 渲染自定義進度條，統一對齊並添加進度解釋
             progress_value = progress / 100
             progress_html = f'''
             <div class="progress-container">
@@ -374,6 +394,7 @@ else:
                             <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
                         </div>
                         <div style="text-align: center; margin-top: 5px; display: inline-block;">{progress}%</div>
+                        <div class="progress-explanation">{explanation_text}</div>
                     </div>
                 </div>
             </div>
