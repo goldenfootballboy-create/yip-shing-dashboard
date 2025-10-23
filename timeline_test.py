@@ -55,26 +55,21 @@ st.markdown("""
     }
     .progress-container {
         margin: 10px 0;
-        display: table;
+        display: flex;
         width: 100%;
-        table-layout: fixed; /* 固定表格佈局 */
-    }
-    .progress-row {
-        display: table-row;
     }
     .project-name {
         font-weight: bold;
-        display: table-cell;
-        width: 300px; /* 固定 Project Name 列寬度 */
+        width: 300px;
         padding-right: 20px;
         vertical-align: top;
         padding-top: 5px;
-        word-wrap: break-word; /* 長名稱換行 */
+        word-wrap: break-word;
     }
     .progress-wrapper {
-        display: table-cell;
-        text-align: left; /* 進度條左對齊 */
+        text-align: left;
         vertical-align: top;
+        flex-grow: 1;
     }
     .reminder-section {
         background-color: #fff3cd;
@@ -101,7 +96,7 @@ st.markdown("""
         overflow: hidden;
         display: inline-block;
         vertical-align: middle;
-        width: 200px; /* 固定進度條寬度 */
+        width: 200px;
     }
     .custom-progress-fill {
         height: 100%;
@@ -375,22 +370,20 @@ else:
             has_kta38 = 'KTA38' in description_text.upper()
             icon_html = f'<img src="https://i.imgur.com/4hXPhiu.jpeg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
 
-            # 渲染自定義進度條，確保 HTML 結構完整
+            # 渲染自定義進度條，使用 flex 布局避免 table 問題
             progress_value = progress / 100
             progress_html = f'''
             <div class="progress-container">
-                <div class="progress-row">
-                    <div class="project-name">{row['Project_Name']}</div>
-                    <div class="progress-wrapper">
-                        <div class="custom-progress">
-                            <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
-                        </div>
-                        <div style="text-align: center; margin-top: 5px; display: inline-block; vertical-align: middle;">{progress}%</div>
-                        {icon_html}
+                <div class="project-name">{row['Project_Name']}</div>
+                <div class="progress-wrapper">
+                    <div class="custom-progress">
+                        <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
                     </div>
+                    <div style="text-align: center; margin-top: 5px; display: inline-block; vertical-align: middle;">{progress}%</div>
+                    {icon_html}
                 </div>
             </div>
-            '''.strip()  # 移除可能的尾部空白或多餘換行
+            '''.strip()
             st.markdown(progress_html, unsafe_allow_html=True)
 
         # Display table with styling
