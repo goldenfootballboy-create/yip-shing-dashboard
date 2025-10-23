@@ -342,9 +342,9 @@ else:
                 progress = 100
             progress = min(progress, 100)
 
-            # 動態計算進度條顏色（根據 0%、30%、70%、80%、90%、100% 設置）
+            # 動態計算進度條顏色
             if progress == 0:
-                color = '#e0e0e0'  # 0% 無色（灰色）
+                color = '#e0e0e0'
             elif progress < 30:
                 r = int(224 + (255 - 224) * (progress / 30))
                 g = int(224 + (69 - 224) * (progress / 30))
@@ -371,7 +371,7 @@ else:
                 b = int(0 + (255 - 0) * ((progress - 90) / 10))
                 color = f'rgb({r}, {g}, {b})'
             else:
-                color = '#0000ff'  # 100% 藍
+                color = '#0000ff'
 
             # 固定生成進度解釋
             if progress == 0:
@@ -390,12 +390,13 @@ else:
                 explanation_text = f"{progress}% Progress"
 
             # 檢查 Description 是否包含 KTA38，決定是否添加圖片
-            has_kta38 = pd.notna(row['Description']) and 'KTA38' in str(row['Description']).upper()
+            description_text = str(row['Description']).strip() if pd.notna(row['Description']) else ""
+            has_kta38 = 'KTA38' in description_text.upper()
             icon_html = f'<img src="kta38-icon.jpg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
-            if not os.path.exists('kta38-icon.jpg') and has_kta38:
-                st.warning("kta38-icon.jpg not found in the directory!")
+            if has_kta38 and not os.path.exists('kta38-icon.jpg'):
+                st.warning(f"kta38-icon.jpg not found in {os.getcwd()}")
 
-            # 渲染自定義進度條，確保 HTML 結構完整
+            # 渲染自定義進度條
             progress_value = progress / 100
             progress_html = f'''
             <div class="progress-container">
