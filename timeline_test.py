@@ -68,10 +68,30 @@ st.markdown("""
         word-wrap: break-word;
     }
     .progress-wrapper {
-        text-align: left;
-        vertical-align: top;
         display: flex;
         align-items: center;
+        flex-grow: 1;
+    }
+    .custom-progress {
+        height: 20px;
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        width: 200px;
+    }
+    .custom-progress-fill {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    .progress-text {
+        margin-left: 10px;
+        vertical-align: middle;
+    }
+    .kta38-icon {
+        width: 20px;
+        height: 20px;
+        margin-left: 5px;
+        vertical-align: middle;
     }
     .reminder-section {
         background-color: #fff3cd;
@@ -90,26 +110,6 @@ st.markdown("""
         padding: 8px;
         text-align: left;
         border-bottom: 1px solid #ddd;
-    }
-    .custom-progress {
-        height: 20px;
-        background-color: #e0e0e0;
-        border-radius: 10px;
-        overflow: hidden;
-        display: inline-block;
-        vertical-align: middle;
-        width: 200px;
-    }
-    .custom-progress-fill {
-        height: 100%;
-        transition: width 0.3s ease;
-    }
-    .kta38-icon {
-        width: 20px;
-        height: 20px;
-        margin-left: 5px;
-        vertical-align: middle;
-        display: inline-block;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -370,21 +370,20 @@ else:
             # 檢查 Description 是否包含 KTA38，決定是否添加圖片
             description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
             has_kta38 = 'KTA38' in description_text.upper()
-            icon_html = f'<img src="https://i.imgur.com/4hXPhiu.jpeg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
 
-            # 渲染自定義進度條，使用簡化結構
-            progress_value = progress / 100
-            progress_html = f'''
-            <div class="progress-container">
-                <div class="project-name">{row['Project_Name']}</div>
-                <div class="progress-wrapper">
-                    <div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>
-                    <span style="text-align: center; margin-left: 10px; vertical-align: middle;">{progress}%</span>
-                    {icon_html}
-                </div>
-            </div>
-            '''.strip()
-            st.markdown(progress_html, unsafe_allow_html=True)
+            # 使用 Streamlit 原生組件渲染進度條
+            col1, col2 = st.columns([3, 7])
+            with col1:
+                st.write(row['Project_Name'], unsafe_allow_html=False)
+            with col2:
+                progress_value = progress / 100
+                st.markdown(
+                    f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
+                    unsafe_allow_html=True
+                )
+                st.write(f"{progress}%", unsafe_allow_html=False)
+                if has_kta38:
+                    st.image("https://i.imgur.com/4hXPhiu.jpeg", width=20)
 
         # Display table with styling
         st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
