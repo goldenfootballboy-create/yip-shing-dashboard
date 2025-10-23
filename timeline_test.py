@@ -113,6 +113,12 @@ st.markdown("""
         margin-top: 5px;
         display: block;
     }
+    .kta38-icon {
+        width: 20px;
+        height: 20px;
+        margin-left: 5px;
+        vertical-align: middle;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -312,8 +318,9 @@ else:
                     pass
 
             # Check Cleaning (10%)
-            cleaning_met = row['Cleaning'] == 'YES' if pd.notna(row['Cleaning']) else False
-            if cleaning_met:
+            cleaning_met = False
+            if pd.notna(row['Cleaning']) and row['Cleaning'] == 'YES':
+                cleaning_met = True
                 progress += 10
 
             # Check Delivery_Date (10%, and set to 100% if all other conditions met)
@@ -335,7 +342,7 @@ else:
 
             # 動態計算進度條顏色（根據 0%、30%、70%、80%、90%、100% 設置）
             if progress == 0:
-                color = '#e0e0e0'  # 0% 無色（灰色，與背景接近）
+                color = '#e0e0e0'  # 0% 無色（灰色）
             elif progress < 30:
                 # 0% 到 30%：從 #e0e0e0 漸變到橙紅 #ff4500
                 r = int(224 + (255 - 224) * (progress / 30))
@@ -429,7 +436,7 @@ else:
                 {reminder_df.to_html(index=False)}
             </div>
             """
-            st.markdown(reminder_html, unsafe_allow_html=True)
+            st.markdown(reminder_df, unsafe_allow_html=True)
 
 # Footer information
 st.markdown("---")
