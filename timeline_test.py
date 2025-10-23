@@ -346,31 +346,26 @@ else:
             if progress == 0:
                 color = '#e0e0e0'  # 0% 無色（灰色）
             elif progress < 30:
-                # 0% 到 30%：從 #e0e0e0 漸變到橙紅 #ff4500
                 r = int(224 + (255 - 224) * (progress / 30))
                 g = int(224 + (69 - 224) * (progress / 30))
                 b = int(224 + (0 - 224) * (progress / 30))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 70:
-                # 30% 到 70%：從橙紅 #ff4500 漸變到黃 #ffff00
                 r = 255
                 g = int(69 + (255 - 69) * ((progress - 30) / 40))
                 b = int(0 + (0 - 0) * ((progress - 30) / 40))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 80:
-                # 70% 到 80%：從黃 #ffff00 漸變到黃綠 #9acd32
                 r = int(255 + (154 - 255) * ((progress - 70) / 10))
                 g = 255
                 b = int(0 + (50 - 0) * ((progress - 70) / 10))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 90:
-                # 80% 到 90%：從黃綠 #9acd32 漸變到綠 #00ff00
                 r = int(154 + (0 - 154) * ((progress - 80) / 10))
                 g = int(205 + (255 - 205) * ((progress - 80) / 10))
                 b = int(50 + (0 - 50) * ((progress - 80) / 10))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 100:
-                # 90% 到 100%：從綠 #00ff00 漸變到藍 #0000ff
                 r = int(0 + (0 - 0) * ((progress - 90) / 10))
                 g = int(255 + (0 - 255) * ((progress - 90) / 10))
                 b = int(0 + (255 - 0) * ((progress - 90) / 10))
@@ -392,13 +387,15 @@ else:
             elif progress == 100:
                 explanation_text = "Project Completed"
             else:
-                explanation_text = f"{progress}% Progress"  # 中間進度顯示百分比
+                explanation_text = f"{progress}% Progress"
 
             # 檢查 Description 是否包含 KTA38，決定是否添加圖片
             has_kta38 = pd.notna(row['Description']) and 'KTA38' in str(row['Description']).upper()
             icon_html = f'<img src="kta38-icon.jpg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
+            if not os.path.exists('kta38-icon.jpg') and has_kta38:
+                st.warning("kta38-icon.jpg not found in the directory!")
 
-            # 渲染自定義進度條，統一對齊並添加進度解釋和圖片
+            # 渲染自定義進度條，確保 HTML 結構完整
             progress_value = progress / 100
             progress_html = f'''
             <div class="progress-container">
