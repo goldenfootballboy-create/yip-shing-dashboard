@@ -62,7 +62,7 @@ st.markdown("""
     .project-name {
         font-weight: bold;
         width: 300px;
-        padding-right: 20px;
+        padding-right: 10px;
         vertical-align: top;
         padding-top: 5px;
         word-wrap: break-word;
@@ -90,7 +90,7 @@ st.markdown("""
     .kta38-icon {
         width: 20px;
         height: 20px;
-        margin-left: 5px;
+        margin: 0 10px;
         vertical-align: middle;
     }
     .reminder-section {
@@ -371,19 +371,20 @@ else:
             description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
             has_kta38 = 'KTA38' in description_text.upper()
 
-            # 使用 Streamlit 原生組件渲染進度條
-            col1, col2 = st.columns([3, 7])
+            # 使用 Streamlit 原生組件渲染進度條，圖片放在中間
+            col1, col2, col3 = st.columns([3, 1, 6])
             with col1:
                 st.write(row['Project_Name'], unsafe_allow_html=False)
             with col2:
+                if has_kta38:
+                    st.image("https://i.imgur.com/4hXPhiu.jpeg", width=20)
+            with col3:
                 progress_value = progress / 100
                 st.markdown(
                     f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
                     unsafe_allow_html=True
                 )
                 st.write(f"{progress}%", unsafe_allow_html=False)
-                if has_kta38:
-                    st.image("https://i.imgur.com/4hXPhiu.jpeg", width=20)
 
         # Display table with styling
         st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
