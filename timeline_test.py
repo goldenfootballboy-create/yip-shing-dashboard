@@ -390,11 +390,10 @@ else:
                 explanation_text = f"{progress}% Progress"
 
             # 檢查 Description 是否包含 KTA38，決定是否添加圖片
-            description_text = str(row['Description']).strip() if pd.notna(row['Description']) else ""
+            description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
             has_kta38 = 'KTA38' in description_text.upper()
-            icon_html = f'<img src="kta38-icon.jpg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
-            if has_kta38 and not os.path.exists('kta38-icon.jpg'):
-                st.warning(f"kta38-icon.jpg not found in {os.getcwd()}")
+            st.write(f"Debug: Description='{description_text}', has_kta38={has_kta38}")  # 臨時調試
+            icon_html = f'<img src="https://i.imgur.com/4hXPhiu.jpeg" class="kta38-icon" alt="KTA38 Icon">' if has_kta38 else ''
 
             # 渲染自定義進度條
             progress_value = progress / 100
