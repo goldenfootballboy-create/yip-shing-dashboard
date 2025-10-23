@@ -61,16 +61,16 @@ st.markdown("""
     }
     .project-name {
         font-weight: bold;
-        padding-right: 0px; /* 保持收窄的間距 */
+        padding-right: 5px;
         vertical-align: top;
         padding-top: 5px;
         word-wrap: break-word;
     }
     .progress-wrapper {
         display: flex;
-        align-items: center;
+        flex-direction: column; /* 垂直排列進度條和說明 */
+        align-items: flex-start;
         flex-grow: 1;
-        padding-left: 0px; /* 保持收窄的間距 */
     }
     .custom-progress {
         height: 20px;
@@ -78,27 +78,27 @@ st.markdown("""
         border-radius: 10px;
         overflow: hidden;
         width: 200px;
-        padding: 0; /* 移除內部填充 */
+        padding: 0;
     }
     .custom-progress-fill {
         height: 100%;
         transition: width 0.3s ease;
-        border-radius: 10px; /* 與外框一致 */
+        border-radius: 10px;
     }
     .progress-text {
-        margin-left: 10px; /* 保持進度百分比與進度條的間距 */
+        margin-top: 5px; /* 百分比與進度條的間距 */
         vertical-align: middle;
     }
     .progress-explanation {
-        margin-left: 5px; /* 進度說明與百分比的間距 */
+        margin-top: 5px; /* 說明與百分比的間距 */
         vertical-align: middle;
         font-size: 12px;
         color: #333;
     }
     .kta38-icon {
-        width: 40px; /* 保持放大後的圖片大小 */
-        height: auto; /* 自動調整高度以保持比例 */
-        margin-right: 2px; /* 減小與 Project Name 之間的間距 */
+        width: 40px;
+        height: auto;
+        margin-right: 5px;
         vertical-align: middle;
     }
     .reminder-section {
@@ -411,11 +411,8 @@ else:
                         f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
                         unsafe_allow_html=True
                     )
-                    col_text, col_explain = st.columns([1, 2])  # 分隔百分比和說明
-                    with col_text:
-                        st.write(f"{progress}%", unsafe_allow_html=False)
-                    with col_explain:
-                        st.write(explanation, unsafe_allow_html=False)
+                    st.write(f"{progress}%", unsafe_allow_html=False)
+                    st.write(explanation, unsafe_allow_html=False)  # 說明放在下方
 
         # Display table with styling
         st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
