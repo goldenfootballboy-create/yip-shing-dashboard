@@ -61,8 +61,7 @@ st.markdown("""
     }
     .project-name {
         font-weight: bold;
-        width: 300px;
-        padding-right: 2px; /* 保持收窄的間距 */
+        padding-right: 0px; /* 保持收窄的間距 */
         vertical-align: top;
         padding-top: 5px;
         word-wrap: break-word;
@@ -71,7 +70,7 @@ st.markdown("""
         display: flex;
         align-items: center;
         flex-grow: 1;
-        padding-left: 2px; /* 保持收窄的間距 */
+        padding-left: 0px; /* 保持收窄的間距 */
     }
     .custom-progress {
         height: 20px;
@@ -85,16 +84,21 @@ st.markdown("""
         height: 100%;
         transition: width 0.3s ease;
         border-radius: 10px; /* 與外框一致 */
-        background-color: #ff4500; /* 示例顏色，根據動態計算 */
     }
     .progress-text {
         margin-left: 10px; /* 保持進度百分比與進度條的間距 */
         vertical-align: middle;
     }
+    .progress-explanation {
+        margin-left: 5px; /* 進度說明與百分比的間距 */
+        vertical-align: middle;
+        font-size: 12px;
+        color: #333;
+    }
     .kta38-icon {
-        width: 20px;
-        height: 20px;
-        margin: 0 10px; /* 保持圖片左右間距 */
+        width: 40px; /* 保持放大後的圖片大小 */
+        height: auto; /* 自動調整高度以保持比例 */
+        margin-right: 2px; /* 減小與 Project Name 之間的間距 */
         vertical-align: middle;
     }
     .reminder-section {
@@ -371,24 +375,47 @@ else:
             else:
                 color = '#0000ff'  # 100% 藍
 
+            # 設置固定進度說明
+            explanation = ""
+            if progress == 0:
+                explanation = "Not Start"
+            elif progress == 30:
+                explanation = "Parts Arrived"
+            elif progress == 70:
+                explanation = "Installation Completed"
+            elif progress == 80:
+                explanation = "Testing Completed"
+            elif progress == 90:
+                explanation = "Cleaning Completed"
+            elif progress == 100:
+                explanation = "Project Completed"
+            else:
+                explanation = f"{progress}% Progress"
+
             # 檢查 Description 是否包含 KTA38，決定是否添加圖片
             description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
             has_kta38 = 'KTA38' in description_text.upper()
 
-            # 使用 Streamlit 原生組件渲染進度條，圖片放在中間
-            col1, col2, col3 = st.columns([3, 0.5, 6.5])  # 保持列寬比例
+            # 使用 Streamlit 原生組件渲染進度條，圖片放在 Project Name 左側
+            col1, col2 = st.columns([0.5, 9])  # 保持列寬比例
             with col1:
-                st.write(row['Project_Name'], unsafe_allow_html=False)
-            with col2:
                 if has_kta38:
-                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)  # 使用新圖片 URL
-            with col3:
-                progress_value = progress / 100
-                st.markdown(
-                    f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
-                    unsafe_allow_html=True
-                )
-                st.write(f"{progress}%", unsafe_allow_html=False)
+                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=40)  # 圖片在左側
+            with col2:
+                col_name, col_progress = st.columns([3, 6])  # 內部分為 Project Name 和進度條
+                with col_name:
+                    st.write(row['Project_Name'], unsafe_allow_html=False)
+                with col_progress:
+                    progress_value = progress / 100
+                    st.markdown(
+                        f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
+                        unsafe_allow_html=True
+                    )
+                    col_text, col_explain = st.columns([1, 2])  # 分隔百分比和說明
+                    with col_text:
+                        st.write(f"{progress}%", unsafe_allow_html=False)
+                    with col_explain:
+                        st.write(explanation, unsafe_allow_html=False)
 
         # Display table with styling
         st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
