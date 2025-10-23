@@ -385,12 +385,12 @@ else:
                         <div class="custom-progress">
                             <div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div>
                         </div>
-                        <div style="text-align: center; margin-top: 5px; display: inline-block;">{progress}%</div>
+                        <div style="text-align: center; margin-top: 5px; display: inline-block; vertical-align: middle;">{progress}%</div>
                         {icon_html}
                     </div>
                 </div>
             </div>
-            '''
+            '''.strip()  # 移除可能的尾部空白或多餘換行
             st.markdown(progress_html, unsafe_allow_html=True)
 
         # Display table with styling
