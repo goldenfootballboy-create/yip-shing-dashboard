@@ -395,6 +395,7 @@ else:
             # 檢查 Description 是否包含 KTA38，決定是否添加圖片
             description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
             has_kta38 = 'KTA38' in description_text.upper()
+            has_kta50 = 'KTA50' in description_text.upper()
 
             # 使用 Streamlit 原生組件渲染進度條，圖片放在中間
             col1, col2, col3 = st.columns([1, 0.2, 6])  # 收窄整體寬度比例
@@ -403,6 +404,8 @@ else:
             with col2:
                 if has_kta38:
                     st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)  # 圖片在中間
+                elif has_kta50:
+                    st.image("https://imgur.com/a/bCkOuXa", width=30)  # 圖片在中間
             with col3:
                 progress_value = progress / 100
                 st.markdown(
