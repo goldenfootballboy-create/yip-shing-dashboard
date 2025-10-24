@@ -77,7 +77,7 @@ st.markdown("""
         background-color: #e0e0e0;
         border-radius: 10px;
         overflow: hidden;
-        width: 120px; /* 進一步收窄進度條 */
+        width: 150px; /* 進一步收窄進度條 */
         padding: 0; /* 移除內部填充 */
     }
     .custom-progress-fill {
@@ -96,7 +96,7 @@ st.markdown("""
         color: #333;
     }
     .kta38-icon {
-        width: 40px; /* 保持圖片大小 */
+        width: 30px; /* 保持圖片大小 */
         height: auto; /* 自動調整高度以保持比例 */
         margin: 0 2px; /* 減小與 Project Name 和進度條的間距 */
         vertical-align: middle;
