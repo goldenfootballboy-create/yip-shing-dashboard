@@ -61,7 +61,7 @@ st.markdown("""
     }
     .project-name {
         font-weight: bold;
-        padding-right: 0px; /* 減小與圖片的間距 */
+        padding-right: 0px; /* 移除與進度條的間距 */
         vertical-align: top;
         padding-top: 5px;
         word-wrap: break-word;
@@ -77,7 +77,7 @@ st.markdown("""
         background-color: #e0e0e0;
         border-radius: 10px;
         overflow: hidden;
-        width: 150px; /* 進一步收窄進度條 */
+        width: 120px; /* 保持收窄的進度條 */
         padding: 0; /* 移除內部填充 */
     }
     .custom-progress-fill {
@@ -96,9 +96,9 @@ st.markdown("""
         color: #333;
     }
     .kta38-icon {
-        width: 30px; /* 保持圖片大小 */
+        width: 40px; /* 保持圖片大小 */
         height: auto; /* 自動調整高度以保持比例 */
-        margin: 0 2px; /* 減小與 Project Name 和進度條的間距 */
+        margin: 0 5px; /* 與進度條和說明的間距 */
         vertical-align: middle;
     }
     .reminder-section {
@@ -396,21 +396,23 @@ else:
             description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
             has_kta38 = 'KTA38' in description_text.upper()
 
-            # 使用 Streamlit 原生組件渲染進度條，圖片放在中間
-            col1, col2, col3 = st.columns([1, 0.2, 6])  # 收窄整體寬度比例
+            # 使用 Streamlit 原生組件渲染進度條，圖片與說明和百分比平排
+            col1, col2 = st.columns([2, 5])  # 調整列寬比例
             with col1:
                 st.write(row['Project_Name'], unsafe_allow_html=False)
             with col2:
                 if has_kta38:
-                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=40)  # 圖片在中間
-            with col3:
-                progress_value = progress / 100
-                st.markdown(
-                    f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
-                    unsafe_allow_html=True
-                )
-                st.write(f"{progress}%", unsafe_allow_html=False)
-                st.write(explanation, unsafe_allow_html=False)  # 說明放在下方
+                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=40)  # 圖片與說明和百分比平排
+                col_progress, col_explain = st.columns([3, 2])  # 分隔進度條和說明
+                with col_progress:
+                    progress_value = progress / 100
+                    st.markdown(
+                        f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
+                        unsafe_allow_html=True
+                    )
+                    st.write(f"{progress}%", unsafe_allow_html=False)
+                with col_explain:
+                    st.write(explanation, unsafe_allow_html=False)
 
         # Display table with styling
         st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
