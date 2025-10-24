@@ -77,7 +77,7 @@ st.markdown("""
         background-color: #e0e0e0;
         border-radius: 10px;
         overflow: hidden;
-        width: 150px; /* 進一步收窄進度條 */
+        width: 150px; /* 保持收窄的進度條 */
         padding: 0; /* 移除內部填充 */
     }
     .custom-progress-fill {
@@ -90,7 +90,7 @@ st.markdown("""
         vertical-align: middle;
     }
     .progress-explanation {
-        margin-top: 5px; /* 說明與百分比的間距 */
+        margin-left: 5px; /* 說明與百分比的間距 */
         vertical-align: middle;
         font-size: 12px;
         color: #333;
@@ -402,15 +402,18 @@ else:
                 st.write(row['Project_Name'], unsafe_allow_html=False)
             with col2:
                 if has_kta38:
-                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=40)  # 圖片在中間
+                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)  # 圖片在中間
             with col3:
                 progress_value = progress / 100
                 st.markdown(
                     f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
                     unsafe_allow_html=True
                 )
-                st.write(f"{progress}%", unsafe_allow_html=False)
-                st.write(explanation, unsafe_allow_html=False)  # 說明放在下方
+                col_percent, col_explain = st.columns([1, 2])  # 百分比和說明平排
+                with col_percent:
+                    st.write(f"{progress}%", unsafe_allow_html=False)
+                with col_explain:
+                    st.write(explanation, unsafe_allow_html=False)
 
         # Display table with styling
         st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
