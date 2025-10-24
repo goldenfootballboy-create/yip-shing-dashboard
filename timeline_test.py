@@ -90,7 +90,7 @@ st.markdown("""
         vertical-align: middle;
     }
     .progress-explanation {
-        margin-left: 5px; /* 說明與百分比的間距 */
+        margin-left: 1px; /* 說明與百分比的間距 */
         vertical-align: middle;
         font-size: 12px;
         color: #333;
