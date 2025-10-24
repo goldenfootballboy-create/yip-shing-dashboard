@@ -397,7 +397,7 @@ else:
             has_kta38 = 'KTA38' in description_text.upper()
 
             # 使用 Streamlit 原生組件渲染進度條，圖片與說明和百分比平排
-            col1, col2 = st.columns([2, 5])  # 調整列寬比例
+            col1, col2 = st.columns([1, 1])  # 調整列寬比例
             with col1:
                 st.write(row['Project_Name'], unsafe_allow_html=False)
             with col2:
