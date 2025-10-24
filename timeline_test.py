@@ -61,7 +61,7 @@ st.markdown("""
     }
     .project-name {
         font-weight: bold;
-        padding-right: 2px; /* 減小與圖片的間距 */
+        padding-right: 0px; /* 減小與圖片的間距 */
         vertical-align: top;
         padding-top: 5px;
         word-wrap: break-word;
