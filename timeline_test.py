@@ -61,7 +61,7 @@ st.markdown("""
     }
     .project-name {
         font-weight: bold;
-        padding-right: 5px; /* 與圖片的間距 */
+        padding-right: 2px; /* 減小與圖片的間距 */
         vertical-align: top;
         padding-top: 5px;
         word-wrap: break-word;
@@ -77,7 +77,7 @@ st.markdown("""
         background-color: #e0e0e0;
         border-radius: 10px;
         overflow: hidden;
-        width: 200px;
+        width: 120px; /* 進一步收窄進度條 */
         padding: 0; /* 移除內部填充 */
     }
     .custom-progress-fill {
@@ -96,9 +96,9 @@ st.markdown("""
         color: #333;
     }
     .kta38-icon {
-        width: 40px; /* 保持放大後的圖片大小 */
+        width: 40px; /* 保持圖片大小 */
         height: auto; /* 自動調整高度以保持比例 */
-        margin: 0 5px; /* 與 Project Name 和進度條的間距 */
+        margin: 0 2px; /* 減小與 Project Name 和進度條的間距 */
         vertical-align: middle;
     }
     .reminder-section {
@@ -397,7 +397,7 @@ else:
             has_kta38 = 'KTA38' in description_text.upper()
 
             # 使用 Streamlit 原生組件渲染進度條，圖片放在中間
-            col1, col2, col3 = st.columns([3, 1, 6])  # 調整列寬比例
+            col1, col2, col3 = st.columns([2, 0.5, 4])  # 收窄整體寬度比例
             with col1:
                 st.write(row['Project_Name'], unsafe_allow_html=False)
             with col2:
