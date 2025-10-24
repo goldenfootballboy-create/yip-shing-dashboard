@@ -101,12 +101,6 @@ st.markdown("""
         margin: 0 2px; /* 減小與 Project Name 和進度條的間距 */
         vertical-align: middle;
     }
-    .kta50-icon {
-        width: 30px; /* 保持圖片大小 */
-        height: auto; /* 自動調整高度以保持比例 */
-        margin: 0 2px; /* 減小與 Project Name 和進度條的間距 */
-        vertical-align: middle;
-    }
     .reminder-section {
         background-color: #fff3cd;
         padding: 1rem;
@@ -166,7 +160,7 @@ def load_data():
         return None
 
     try:
-        data_df = pd.read_csv(csv_file, encoding='utf-8', sep=',')  # 移除 dayfirst=True
+        data_df = pd.read_csv(csv_file, encoding='utf-8', sep=',', dayfirst=True)
         required_columns = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
         missing_columns = [col for col in required_columns if col not in data_df.columns]
         if missing_columns:
@@ -177,7 +171,7 @@ def load_data():
         date_columns = ['Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
         for col in date_columns:
             if col in data_df.columns:
-                data_df[col] = pd.to_datetime(data_df[col], errors='coerce')  # 移除 dayfirst=True
+                data_df[col] = pd.to_datetime(data_df[col], errors='coerce', dayfirst=True)
                 if data_df[col].isna().all():
                     st.warning(f"Column {col} contains no valid dates and may be ignored.")
             else:
@@ -294,7 +288,7 @@ else:
             parts_arrival_met = False
             if pd.notna(row['Parts_Arrival_Date']):
                 try:
-                    parts_arrival_date = pd.to_datetime(row['Parts_Arrival_Date']).date()
+                    parts_arrival_date = pd.to_datetime(row['Parts_Arrival_Date'], dayfirst=True).date()
                     parts_arrival_met = parts_arrival_date <= current_date.date()
                     if parts_arrival_met:
                         progress += 30
@@ -305,7 +299,7 @@ else:
             install_met = False
             if pd.notna(row['Installation_Complete_Date']):
                 try:
-                    install_date = pd.to_datetime(row['Installation_Complete_Date']).date()
+                    install_date = pd.to_datetime(row['Installation_Complete_Date'], dayfirst=True).date()
                     install_met = install_date <= current_date.date()
                     if install_met:
                         progress += 40
@@ -316,7 +310,7 @@ else:
             testing_met = False
             if pd.notna(row['Testing_Date']):
                 try:
-                    testing_date = pd.to_datetime(row['Testing_Date']).date()
+                    testing_date = pd.to_datetime(row['Testing_Date'], dayfirst=True).date()
                     testing_met = testing_date <= current_date.date()
                     if testing_met:
                         progress += 10
@@ -332,7 +326,7 @@ else:
             delivery_met = False
             if pd.notna(row['Delivery_Date']):
                 try:
-                    delivery_date = pd.to_datetime(row['Delivery_Date']).date()
+                    delivery_date = pd.to_datetime(row['Delivery_Date'], dayfirst=True).date()
                     delivery_met = delivery_date <= current_date.date()
                     if delivery_met:
                         progress += 10
@@ -398,7 +392,7 @@ else:
             else:
                 explanation = f"{progress}% Progress"
 
-            # 檢查 Description 是否包含 KTA38 或 KTA50，決定是否添加圖片
+            # 檢查 Description 是否包含 KTA38，決定是否添加圖片
             description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
             has_kta38 = 'KTA38' in description_text.upper()
             has_kta50 = 'KTA50' in description_text.upper()
@@ -409,9 +403,9 @@ else:
                 st.write(row['Project_Name'], unsafe_allow_html=False)
             with col2:
                 if has_kta38:
-                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)  # KTA38 圖片
+                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)  # 圖片在中間
                 elif has_kta50:
-                    st.image("https://i.imgur.com/oJNLgDG.png", width=30)  # KTA50 圖片 (從相冊提取)
+                    st.image("https://i.imgur.com/oJNLgDG.png", width=30)  # 圖片在中間
             with col3:
                 progress_value = progress / 100
                 st.markdown(
