@@ -405,7 +405,7 @@ else:
                 if has_kta38:
                     st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)  # 圖片在中間
                 elif has_kta50:
-                    st.image("https://i.imgur.com/2DlFnMr.png", width=30)  # 圖片在中間
+                    st.image("https://i.imgur.com/3Cb2Nqj.png", width=30)  # 圖片在中間
             with col3:
                 progress_value = progress / 100
                 st.markdown(
