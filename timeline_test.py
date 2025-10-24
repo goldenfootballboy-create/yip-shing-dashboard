@@ -409,7 +409,7 @@ else:
                     f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
                     unsafe_allow_html=True
                 )
-                col_percent, col_explain = st.columns([1, 7])  # 百分比和說明平排
+                col_percent, col_explain = st.columns([1, 10])  # 百分比和說明平排
                 with col_percent:
                     st.write(f"{progress}%", unsafe_allow_html=False)
                 with col_explain:
