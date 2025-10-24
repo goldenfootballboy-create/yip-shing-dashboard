@@ -77,7 +77,7 @@ st.markdown("""
         background-color: #e0e0e0;
         border-radius: 10px;
         overflow: hidden;
-        width: 200px;
+        width: 150px;
         padding: 0; /* 移除內部填充 */
     }
     .custom-progress-fill {
