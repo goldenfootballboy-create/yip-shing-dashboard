@@ -212,7 +212,7 @@ if total_projects > 0:
         parts_arrival_met = False
         if pd.notna(row['Parts_Arrival_Date']):
             try:
-                parts_date = pd.to_datetime(row['Parts_Arrival_Date']).date()  # 移除 dayfirst
+                parts_date = pd.to_datetime(row['Parts_Arrival_Date']).date()
                 parts_arrival_met = parts_date <= current_date
                 if parts_arrival_met:
                     progress += 30
@@ -263,7 +263,38 @@ if total_projects > 0:
             progress = 100
         progress = min(progress, 100)
 
-        # Explanation
+        # 動態計算進度條顏色（移到 progress 之後）
+        if progress == 0:
+            color = '#e0e0e0'
+        elif progress < 30:
+            r = int(224 + (255 - 224) * (progress / 30))
+            g = int(224 + (69 - 224) * (progress / 30))
+            b = int(224 + (0 - 224) * (progress / 30))
+            color = f'rgb({r}, {g}, {b})'
+        elif progress < 70:
+            r = 255
+            g = int(69 + (255 - 69) * ((progress - 30) / 40))
+            b = 0
+            color = f'rgb({r}, {g}, {b})'
+        elif progress < 80:
+            r = int(255 + (154 - 255) * ((progress - 70) / 10))
+            g = 255
+            b = int(0 + (50 - 0) * ((progress - 70) / 10))
+            color = f'rgb({r}, {g}, {b})'
+        elif progress < 90:
+            r = int(154 + (0 - 154) * ((progress - 80) / 10))
+            g = int(205 + (255 - 205) * ((progress - 80) / 10))
+            b = int(50 + (0 - 50) * ((progress - 80) / 10))
+            color = f'rgb({r}, {g}, {b})'
+        elif progress < 100:
+            r = 0
+            g = int(255 + (0 - 255) * ((progress - 90) / 10))
+            b = int(0 + (255 - 0) * ((progress - 90) / 10))
+            color = f'rgb({r}, {g}, {b})'
+        else:
+            color = '#0000ff'
+
+        # 設置說明
         if progress == 0:
             explanation = "Not Start"
         elif progress == 30:
