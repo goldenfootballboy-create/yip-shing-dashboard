@@ -43,7 +43,7 @@ def load_data():
         date_cols = ['Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
         for col in date_cols:
             if col in df.columns:
-                df[col] = pd.to_datetime(df[col], errors='coerce')  # 移除 dayfirst
+                df[col] = pd.to_datetime(df[col], errors='coerce')
         return df
     except Exception as e:
         st.error(f"Error: {e}")
@@ -58,16 +58,20 @@ filtered_df = df[df['Year'] == int(selected_year)].copy()
 if selected_project_type != "All":
     filtered_df = filtered_df[filtered_df['Project_Type'] == selected_project_type]
 
-# Count
+# Project count
 total = len(filtered_df)
 counts = filtered_df['Project_Type'].value_counts().to_dict()
-st.markdown(f"### {selected_project_type} - {selected_year} Project Count")
-c1, c2, *rest = st.columns([1] + [1]*len(counts))
-with c1: st.write(f"Total: {total}")
-for i, (k, v) in enumerate(counts.items()):
-    with rest[i]: st.write(f"{k}: {v}")
 
-# Details
+# Display count（修正 IndexError）
+st.markdown(f"### {selected_project_type} - {selected_year} Project Count")
+count_cols = st.columns([1] + [1] * len(counts))  # 1 + len(counts)
+with count_cols[0]:
+    st.write(f"Total: {total}")
+for i, (k, v) in enumerate(counts.items()):
+    with count_cols[i + 1]:
+        st.write(f"{k}: {v}")
+
+# Project details
 if total > 0:
     st.markdown(f"### {selected_year} Project Details")
     cols = ['Project_Name', 'Description', 'Parts_Arrival_Date', 'Installation_Complete_Date',
@@ -104,7 +108,7 @@ if total > 0:
             met['testing'] = d <= now
             if met['testing']: progress += 10
 
-        # Cleaning (10%) - 加強判斷
+        # Cleaning (10%)
         cleaning_str = str(row['Cleaning']).strip()
         met['cleaning'] = cleaning_str.upper() == 'YES' if cleaning_str else False
         if met['cleaning']: progress += 10
