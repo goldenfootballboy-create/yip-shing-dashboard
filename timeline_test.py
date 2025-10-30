@@ -150,38 +150,28 @@ selected_year = st.sidebar.selectbox(
 
 # Load CSV data
 def load_data():
-    """Load data from CSV file"""
     csv_file = "projects.csv"
     if not os.path.exists(csv_file):
         st.error(f"Cannot find {csv_file}! Ensure the file is located in: {script_dir}")
-        st.info(f"Current working directory: {os.getcwd()}")
-        st.info(
-            "Suggestions: 1. Verify projects.csv exists in the same directory as app.py. 2. Check filename (including case and extension). 3. Ensure the file has read permissions.")
         return None
 
     try:
-        data_df = pd.read_csv(csv_file, encoding='utf-8', sep=',', dayfirst=True)
+        data_df = pd.read_csv(csv_file, encoding='utf-8', sep=',')  # 移除 dayfirst=True
         required_columns = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
         missing_columns = [col for col in required_columns if col not in data_df.columns]
         if missing_columns:
-            st.error(f"CSV file is missing the following required columns: {', '.join(missing_columns)}")
-            st.info("Ensure the CSV file contains: Project_Type, Project_Name, Year, Lead_Time")
+            st.error(f"CSV file is missing required columns: {', '.join(missing_columns)}")
             return None
 
         date_columns = ['Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
         for col in date_columns:
             if col in data_df.columns:
-                data_df[col] = pd.to_datetime(data_df[col], errors='coerce', dayfirst=True)
-                if data_df[col].isna().all():
-                    st.warning(f"Column {col} contains no valid dates and may be ignored.")
+                data_df[col] = pd.to_datetime(data_df[col], errors='coerce')  # 移除 dayfirst=True
             else:
-                st.warning(f"Column {col} is missing in the CSV file.")
+                st.warning(f"Column {col} is missing.")
         return data_df
-    except UnicodeDecodeError:
-        st.error("Failed to read CSV file with UTF-8 encoding. Ensure the file uses UTF-8 encoding.")
-        return None
-    except pd.errors.ParserError:
-        st.error("CSV file format error, possibly due to incorrect delimiter (should be comma). Check the file content.")
+    except Exception as e:
+        st.error(f"Error loading CSV: {e}")
         return None
 
 # Load data
