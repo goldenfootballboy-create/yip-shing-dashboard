@@ -160,7 +160,7 @@ if df is None:
     st.stop()
 
 # -------------------------------------------------
-# 6. 篩選
+# 6. 篩選（僅影響左側）
 # -------------------------------------------------
 filtered_df = df[df['Year'] == int(selected_year)].copy()
 
@@ -187,7 +187,7 @@ for i, (pt, cnt) in enumerate(project_counts.items()):
     with rest[i]: st.write(f"**{pt}: {cnt}**")
 
 # -------------------------------------------------
-# 8. 主畫面：左側進度 + 右側延誤進度條
+# 8. 主畫面：左側 + 右側延誤進度條（全局）
 # -------------------------------------------------
 if total_projects > 0:
     col_left, col_right = st.columns([3, 1])
@@ -209,7 +209,6 @@ if total_projects > 0:
         # 左側：原始進度條
         for _, row in filtered_df.iterrows():
             progress = 0
-
             if 'Parts_Arrival_Date' in filtered_df.columns and pd.notna(row['Parts_Arrival_Date']):
                 if row['Parts_Arrival_Date'].date() < current_date.date():
                     progress += 30
@@ -262,39 +261,44 @@ if total_projects > 0:
         st.dataframe(display_df, use_container_width=True, hide_index=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 右側：延誤專案進度條
+    # -------------------------------------------------
+    # 右側：延誤提醒（全局，不受篩選限制）
+    # -------------------------------------------------
     with col_right:
         st.markdown("### Delivery Delay Alert")
         delay_projects = []
 
-        for _, row in filtered_df.iterrows():
+        # 使用原始 df（不受篩選限制）
+        for _, row in df.iterrows():
             prog = 0
-            if 'Parts_Arrival_Date' in filtered_df.columns and pd.notna(row['Parts_Arrival_Date']):
+            if 'Parts_Arrival_Date' in df.columns and pd.notna(row['Parts_Arrival_Date']):
                 if row['Parts_Arrival_Date'].date() < current_date.date():
                     prog += 30
-            if 'Installation_Complete_Date' in filtered_df.columns and pd.notna(row['Installation_Complete_Date']):
+            if 'Installation_Complete_Date' in df.columns and pd.notna(row['Installation_Complete_Date']):
                 if row['Installation_Complete_Date'].date() < current_date.date():
                     prog += 40
-            if 'Testing_Date' in filtered_df.columns and pd.notna(row['Testing_Date']):
+            if 'Testing_Date' in df.columns and pd.notna(row['Testing_Date']):
                 if row['Testing_Date'].date() < current_date.date():
                     prog += 10
-            if 'Cleaning' in filtered_df.columns and str(row.get('Cleaning','')).strip().upper() == 'YES':
+            if 'Cleaning' in df.columns and str(row.get('Cleaning','')).strip().upper() == 'YES':
                 prog += 10
-            if 'Delivery_Date' in filtered_df.columns and pd.notna(row['Delivery_Date']):
+            if 'Delivery_Date' in df.columns and pd.notna(row['Delivery_Date']):
                 if row['Delivery_Date'].date() < current_date.date():
                     prog += 10
             prog = min(prog, 100)
 
-            if 'Delivery_Date' in filtered_df.columns and 'Lead_Time' in filtered_df.columns:
+            # 檢查延誤
+            if 'Delivery_Date' in df.columns and 'Lead_Time' in df.columns:
                 delivery = row['Delivery_Date']
                 lead = row['Lead_Time']
                 if pd.isna(delivery) or (pd.notna(delivery) and pd.notna(lead) and delivery > lead):
                     if prog < 100:
-                        delay_days = "Blank" if pd.isna(delivery) else f"{(delivery - lead).days} days late"
+                        delay_days = "Delivery Date Missing" if pd.isna(delivery) else f"{(delivery - lead).days} days late"
                         delay_projects.append({
                             'name': row['Project_Name'],
                             'progress': prog,
-                            'delay': delay_days
+                            'delay': delay_days,
+                            'explanation': exp_map.get(prog, f"{prog}% In Progress")
                         })
 
         if delay_projects:
@@ -306,7 +310,7 @@ if total_projects > 0:
                 b = 0
                 color = f'rgb({r},{g},{b})'
 
-                c1, c2, c3 = st.columns([4, 0.2, 6])
+                c1, c2, c3 = st.columns([1.2, 0.1, 6])
                 with c1:
                     st.write(f"**{item['name']}**")
                 with c2:
@@ -318,7 +322,9 @@ if total_projects > 0:
                     )
                     pc1, pc2 = st.columns([1, 20])
                     with pc1: st.write(f"{item['progress']}%")
-                    with pc2: st.markdown(f"<span style='color:red; font-weight:bold; font-size:13px;'>{item['delay']}</span>", unsafe_allow_html=True)
+                    with pc2:
+                        st.markdown(f"<span style='color:red; font-weight:bold; font-size:13px;'>{item['delay']}</span>", unsafe_allow_html=True)
+                        st.markdown(f"<span style='color:#555; font-size:12px;'>{item['explanation']}</span>", unsafe_allow_html=True)
         else:
             st.success("No delays!")
 
