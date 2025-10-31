@@ -1,55 +1,55 @@
 ﻿Project_Type,Project_Name,Description,Year,Lead_Time,Parts_Arrival_Date,Installation_Complete_Date,Testing_Date,Cleaning,,Remarks
 Enclosure,TP172/24(GenDiesel ),"KTA50-G3 41386336 
 S6L1M-H41
-X25C131723",2024,30/3/2025,11/7/2025,16/7/2025,22/7/2025,YES,24/10/2025,
+X25C131723",2024,2025-03-30,2025-07-11,2025-07-16,2025-07-22,YES,2025-10-24,
 Open Set,TP25/131(MKG),"QST30-G4          (37294506/37294508)/
 
 S6L1D-F41 (X25C131724/X25C131725)
 
 
-NO PANEL; NO WIRING；No Radiator",2025,30/9/2025,4/1/1900,3/9/2025,4/9/2025,YES,,Waiting LC
-Marine,YS25/164 (CHK),CHK x2,2025,21/10/2025,27/9/2025,21/10/2025,6/11/2025,,,星期五10:00試第二部
+NO PANEL; NO WIRING；No Radiator",2025,2025-09-30,2025-08-29,2025-09-03,2025-09-04,YES,,Waiting LC
+Marine,YS25/164 (CHK),CHK x2,2025,2025-10-21,2025-09-27,2025-10-21,2025-11-06,,,星期五10:00試第二部
 Enclosure,YS25/086 (SF),"QSB3.9-G2      x2/
 
-Leroy Somer TALA42H+AREP.        X2",2025,29/9/2025,25/9/2025,13/10/2025,17/10/2025,YES,22/10/2025,Vendor delivery late
-Enclosure,TP065/25(GenDiesel),KTA50-G3                x2/S6L1D-H41   x2,2025,30/9/2025,8/9/2025,15/9/2025,4/11/2025,,,4/11 Test with Customer 
+Leroy Somer TALA42H+AREP.        X2",2025,2025-09-29,2025-09-25,2025-10-13,2025-10-17,YES,2025-10-22,Vendor delivery late
+Enclosure,TP065/25(GenDiesel),KTA50-G3                x2/S6L1D-H41   x2,2025,2025-09-30,2025-09-08,2025-09-15,2025-11-04,,,4/11 Test with Customer 
 Enclosure,YS25/100(AEL),"QSNT-G3
-/HCI534C",2025,30/10/2025,2/9/2025,15/9/2025,2/10/2025,YES,22/10/2025,
+/HCI534C",2025,2025-10-30,2025-09-02,2025-09-15,2025-10-02,YES,2025-10-22,
 Open Set,TP25/101(Energen),"KTA50-G3               
-(41386331/41386334/41386335)/Evotect TCU428E",2025,31/10/2025,2/10/2025,10/10/2025,15/10/2025,YES,21/10/2025,
-Open Set,TP25/114(MGK),NTA855-G2 /S4l1s-d41,2025,30/10/2025,17/9/2025,19/10/2025,22/10/2025,YES,,Wating LC
+(41386331/41386334/41386335)/Evotect TCU428E",2025,2025-10-31,2025-10-02,2025-10-10,2025-10-15,YES,2025-10-21,
+Open Set,TP25/114(MGK),NTA855-G2 /S4l1s-d41,2025,2025-10-30,2025-09-17,2025-10-19,2025-10-22,YES,,Wating LC
 Open Set,TP25/126(Energen),"KTA38G4
-(41392313)/EVOTECT",2025,30/10/2025,30/9/2025,10/10/2025,15/10/2025,YES,21/10/2025,
+(41392313)/EVOTECT",2025,2025-10-30,2025-09-30,2025-10-10,2025-10-15,YES,2025-10-21,
 Open Set,TP25/139B(Zenith),"
 KTA50-G3
-(41386627/41386629/41386626)/Wuxi S9M1D-A4 ",2025,30/10/2025,2/10/2025,9/10/2025,3/10/2025,YES,23/10/2025,
+(41386627/41386629/41386626)/Wuxi S9M1D-A4 ",2025,2025-10-30,2025-10-02,2025-10-09,2025-10-03,YES,2025-10-23,
 Open Set,TP25/169(MGK),"KTA50-G3  (41386630)
 /TCU428E NO PMG (FR5109)
 /40度水箱
-/NO control panel. No wiring",2025,15/10/2025,23/10/2025,30/10/2025,,,,Delay
+/NO control panel. No wiring",2025,2025-10-15,2025-10-23,2025-10-30,,,,Delay
 Open Set,TP25/173(ALM),"KTA38-G5 x2
 (41394099/41394100)/
 要拉線 參考TP003/25
-",2025,6/10/2025,24/9/2025,29/9/2025,29/9/2025,YES,,Customer request amend
+",2025,2025-10-06,2025-09-24,2025-09-29,2025-09-29,YES,,Customer request amend
 ,,,,,,,,,,
 Open Set,TP25/187(MGK),"KTA50-G3 x1 (41395422)
 /TCU428E. NO PMG
-/No Control Panel. No Wiring",2025,15/11/2025,22/11/2025,,,,,
+/No Control Panel. No Wiring",2025,2025-11-15,2025-11-22,,,,,
 Open Set,TP25/188(Energen),"KTA50G3 (41395423)
 /EVOTECT TCU428E with PMG
-/有箱 有車身線 有HEATER 有水箱/Panel 在左",2025,30/11/2025,7/11/2025,,,,,
+/有箱 有車身線 有HEATER 有水箱/Panel 在左",2025,2025-11-30,2025-11-07,,,,,
 Marine,TP25/166(Diesel Motoren) ,"KTA19-M600 x 5
-/要安裝panel & 車身線   參考TP24/24",2025,30/11/2025,18/10/2025,,,,,
+/要安裝panel & 車身線   參考TP24/24",2025,2025-11-30,2025-10-18,,,,,
 Open Set,TP25/170(MGK),"KTA38G4 (41394499)
 /TCU428C. NO PMG (FR5108)
-/No Control Panel. No Wiring",2025,30/11/2025,7/11/2025,,,,,
-Enclosure,TP25/192(DPX),FIEO/ KTA50GS8/ S7L1D-D41/ DEFI/ 2500A ACB/ 3P heater/ Smartgen 8A/ ,2025,30/11/2025,,,,,,
+/No Control Panel. No Wiring",2025,2025-11-30,2025-11-07,,,,,
+Enclosure,TP25/192(DPX),FIEO/ KTA50GS8/ S7L1D-D41/ DEFI/ 2500A ACB/ 3P heater/ Smartgen 8A/ ,2025,2025-11-30,,,,,,
 Enclosure,YS25/093(Keyway),"QSB3.9-G2 x 1
 / QSL8.9-G4 x 2/ 
 QSK19-G4 x 1
-",2025,15/12/2025,,,,,,
-Enclosure,TP057/25(GenDiesel),FIEO/KTA50G3/S6L1M-H41/No ACB/7320MK2,2025,30/12/2025,,,,,,
-K50G3,#3465 HK租機,K50G3/Filter Suppy standard/香港裝大線，控制面版,2025,30/11/2025,27/11/2025,,,,,
-K50G3,K50G3 Per Install,K50G3/Filter Suppy standard,2025,30/11/2025,27/11/2025,,,,,
-Essential,YS25/137(Essential),CCEC NTA855-G2A + Leroy Smoer LSA47.3S4 +50 Degree Hero Radiator without Fuel Cooler x2/CCEC NTA855-G2A + Leroy Smoer LSA47.3M7 +50 Degree Hero Radiator without Fuel Cooler,2025,30/11/2025,16/10/2025,,,,,Delivery date depends on site condition
-Essential,YS25/138(Essential),CCEC KTAA19-G7 + Leroy Smoer LSA47.3M8 +50 Degreee Hero Radiator without Fuel Cooler x2 / CCEC NTA855-G2A+ Leroy Smoer LSA47.3S4 +5 DegreeHero Radiator without Fuel Cooler,2025,15/11/2025,17/10/2025,25/10/2025,31/10/2025,,,Delivery date depends on site condition
+",2025,2025-12-15,,,,,,
+Enclosure,TP057/25(GenDiesel),FIEO/KTA50G3/S6L1M-H41/No ACB/7320MK2,2025,2025-12-30,,,,,,
+K50G3,#3465 HK租機,K50G3/Filter Suppy standard/香港裝大線，控制面版,2025,2025-11-30,2025-11-27,,,,,
+K50G3,K50G3 Per Install,K50G3/Filter Suppy standard,2025,2025-11-30,2025-11-27,,,,,
+Essential,YS25/137(Essential),CCEC NTA855-G2A + Leroy Smoer LSA47.3S4 +50 Degree Hero Radiator without Fuel Cooler x2/CCEC NTA855-G2A + Leroy Smoer LSA47.3M7 +50 Degree Hero Radiator without Fuel Cooler,2025,2025-11-30,2025-10-16,,,,,Delivery date depends on site condition
+Essential,YS25/138(Essential),CCEC KTAA19-G7 + Leroy Smoer LSA47.3M8 +50 Degreee Hero Radiator without Fuel Cooler x2 / CCEC NTA855-G2A+ Leroy Smoer LSA47.3S4 +5 DegreeHero Radiator without Fuel Cooler,2025,2025-11-15,2025-10-17,2025-10-25,2025-10-31,,,Delivery date depends on site condition
