@@ -301,7 +301,7 @@ if total_projects > 0:
                     elif k50: st.image("https://i.imgur.com/oJNLgDG.png", width=30)
                 with c3:
                     st.markdown(f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>', unsafe_allow_html=True)
-                    pc1, pc2 = st.columns([1, 10])
+                    pc1, pc2 = st.columns([0.5, 10])
                     with pc1: st.write(f"{progress}%")
                     with pc2: st.write(explanation)
 
@@ -318,7 +318,7 @@ if total_projects > 0:
                 b = 0
                 color = f'rgb({r},{g},{b})'
 
-                c1, c2, c3 = st.columns([4, 6, 10])
+                c1, c2, c3 = st.columns([4, 5, 10])
                 with c1:
                     st.write(f"**{item['name']}**")
                 with c2:
