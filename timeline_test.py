@@ -358,19 +358,34 @@ else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
 # -------------------------------------------------
-# 9. 提醒
+# 9. 提醒（全局，顯示所有超期專案）
 # -------------------------------------------------
 if 'Delivery_Date' in df.columns and 'Lead_Time' in df.columns:
-    reminder_df = df[
-        (df['Delivery_Date'].isna()) |
-        (df['Delivery_Date'] > df['Lead_Time'])
-    ][['Project_Name', 'Lead_Time', 'Delivery_Date', 'Remarks']].dropna(how='all').reset_index(drop=True)
+    # 複製一份避免影響原始 df
+    df_remind = df.copy()
+    df_remind['Delivery_Date'] = pd.to_datetime(df_remind['Delivery_Date'], errors='coerce')
+    df_remind['Lead_Time'] = pd.to_datetime(df_remind['Lead_Time'], errors='coerce')
+
+    reminder_df = df_remind[
+        (df_remind['Delivery_Date'].isna()) |
+        (df_remind['Delivery_Date'] > df_remind['Lead_Time'])
+    ].copy()
+
     if not reminder_df.empty:
+        # 只選需要的欄位
+        cols = ['Project_Name', 'Lead_Time', 'Delivery_Date', 'Remarks']
+        reminder_df = reminder_df[[c for c in cols if c in reminder_df.columns]].dropna(how='all').reset_index(drop=True)
+
+        # 格式化日期
+        for c in ['Lead_Time', 'Delivery_Date']:
+            if c in reminder_df.columns:
+                reminder_df[c] = pd.to_datetime(reminder_df[c], errors='coerce').dt.strftime('%Y-%m-%d')
+
         st.markdown(f"""
         <div class="reminder-section">
             <h3>Reminder: Delivery Date Issues</h3>
             <p>The following projects have Delivery Date either blank or later than Lead Time:</p>
-            {reminder_df.to_html(index=False)}
+            {reminder_df.to_html(index=False, escape=False)}
         </div>
         """, unsafe_allow_html=True)
 
