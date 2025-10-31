@@ -287,18 +287,21 @@ if total_projects > 0:
                     prog += 10
             prog = min(prog, 100)
 
-            # 新條件：(Delivery 晚於 Lead) OR (未100% 且 今天 > Lead)
+            # 條件 1: Delivery > Lead_Time
             condition1 = ('Delivery_Date' in df.columns and 'Lead_Time' in df.columns and
                          pd.notna(row['Delivery_Date']) and pd.notna(row['Lead_Time']) and
                          row['Delivery_Date'] > row['Lead_Time'])
 
+            # 條件 2: 進度未100% 且 今天 > Lead_Time
             condition2 = (prog < 100 and 'Lead_Time' in df.columns and pd.notna(row['Lead_Time']) and
                          datetime.now().date() > row['Lead_Time'].date())
 
             if condition1 or condition2:
-                delay_msg = ("Delivery Date Missing" if pd.isna(row.get('Delivery_Date'))
-                            else f"{(row['Delivery_Date'] - row['Lead_Time']).days} days late" if condition1
-                            else "Overdue (Not Completed)")
+                if condition1:
+                    days_late = (row['Delivery_Date'] - row['Lead_Time']).days
+                    delay_msg = f"{days_late} days late"
+                else:
+                    delay_msg = "Overdue"
 
                 delay_projects.append({
                     'name': row['Project_Name'],
