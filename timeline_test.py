@@ -319,7 +319,7 @@ if total_projects > 0:
                 b = 0
                 color = f'rgb({r},{g},{b})'
 
-                c1, c2, c3 = st.columns([0.1, 2, 6])
+                c1, c2, c3 = st.columns([0.2, 2, 6])
                 with c1:
                     st.write(f"**{item['name']}**")
                 with c2:
