@@ -294,7 +294,7 @@ if total_projects > 0:
                 k38 = 'KTA38' in desc
                 k50 = 'KTA50' in desc
 
-                c1, c2, c3 = st.columns([4, 3, 10])
+                c1, c2, c3 = st.columns([4, 3, 8])
                 with c1: st.write(row['Project_Name'])
                 with c2:
                     if k38: st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)
