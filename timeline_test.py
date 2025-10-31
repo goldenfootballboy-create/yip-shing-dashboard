@@ -127,6 +127,112 @@ selected_month = st.sidebar.selectbox(
 )
 
 # -------------------------------------------------
+# 9. 右側可收合 Weekly Remarks 面板
+# -------------------------------------------------
+st.markdown("---")
+
+# 右側浮動可收合面板（使用 CSS + expander 模擬右側 sidebar）
+st.markdown("""
+<style>
+    .right-panel {
+        position: fixed;
+        right: 0;
+        top: 0;
+        height: 100%;
+        width: 400px;
+        background-color: white;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        z-index: 999;
+        padding: 1rem;
+        overflow-y: auto;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    }
+    .right-panel.open {
+        transform: translateX(0);
+    }
+    .toggle-btn {
+        position: fixed;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%) rotate(180deg);
+        background: #1fb429;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        transition: right 0.3s ease, transform 0.3s ease;
+    }
+    .toggle-btn.open {
+        right: 390px;
+        transform: translateY(-50%) rotate(0deg);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# 檢查是否有 Weekly_Remarks 欄位
+has_weekly_remarks = 'Weekly_Remarks' in df.columns and df['Weekly_Remarks'].notna().any()
+
+# 建立右側面板內容
+remarks_data = []
+if has_weekly_remarks:
+    for _, row in df.iterrows():
+        remark = row.get('Weekly_Remarks', '')
+        if pd.notna(remark) and str(remark).strip():
+            remarks_data.append({
+                'Project': row['Project_Name'],
+                'Remark': str(remark).strip()
+            })
+
+# 使用 session_state 控制面板開關
+if 'right_panel_open' not in st.session_state:
+    st.session_state.right_panel_open = False
+
+# 切換按鈕
+if st.button("→", key="toggle_right_panel", help="Toggle Weekly Remarks Panel"):
+    st.session_state.right_panel_open = not st.session_state.right_panel_open
+
+# 注入 HTML + JS 控制面板
+panel_class = "right-panel open" if st.session_state.right_panel_open else "right-panel"
+btn_class = "toggle-btn open" if st.session_state.right_panel_open else "toggle-btn"
+
+panel_html = f"""
+<div id="rightPanel" class="{panel_class}">
+    <h3 style="color:#1fb429; margin-top:0;">Weekly Remarks</h3>
+    <button onclick="togglePanel()" style="position:absolute; top:10px; right:10px; background:none; border:none; font-size:20px; cursor:pointer;">×</button>
+"""
+if remarks_data:
+    panel_html += '<table style="width:100%; font-size:14px; border-collapse:collapse;">'
+    panel_html += '<tr><th style="text-align:left; border-bottom:2px solid #ddd; padding:8px;">Project</th><th style="text-align:left; border-bottom:2px solid #ddd; padding:8px;">Remark</th></tr>'
+    for item in remarks_data:
+        panel_html += f'<tr><td style="padding:8px; border-bottom:1px solid #eee; vertical-align:top;"><strong>{item["Project"]}</strong></td><td style="padding:8px; border-bottom:1px solid #eee;">{item["Remark"]}</td></tr>'
+    panel_html += '</table>'
+else:
+    panel_html += "<p style='color:#666; font-style:italic;'>No weekly remarks available.</p>"
+
+panel_html += """
+</div>
+<button id="toggleBtn" class="{btn_class}" onclick="togglePanel()">←</button>
+
+<script>
+    function togglePanel() {
+        const panel = document.getElementById('rightPanel');
+        const btn = document.getElementById('toggleBtn');
+        panel.classList.toggle('open');
+        btn.classList.toggle('open');
+        btn.innerHTML = panel.classList.contains('open') ? '→' : '←';
+    }
+</script>
+""".format(panel_class=panel_class, btn_class=btn_class)
+
+st.markdown(panel_html, unsafe_allow_html=True)
+
+# -------------------------------------------------
 # 5. 讀取 CSV（支援 YYYY-MM-DD）
 # -------------------------------------------------
 def load_data():
