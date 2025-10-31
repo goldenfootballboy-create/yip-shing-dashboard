@@ -328,7 +328,7 @@ if total_projects > 0:
                     )
                     pc1, pc2 = st.columns([1, 10])
                     with pc1: st.write(f"{item['progress']}%")
-
+                    with pc2: st.write(explanation)
 
     # 表格（左側下方）
     st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
