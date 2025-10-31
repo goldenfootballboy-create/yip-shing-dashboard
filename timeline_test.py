@@ -180,18 +180,25 @@ def load_data():
             st.error(f"CSV missing required columns: {', '.join(missing)}")
             return None
 
-        # 轉型
+        # 轉型 Year
         df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
 
-        # 日期欄位（自動解析 yyyy-mm-dd）
-        date_cols = ['Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
-        for col in date_cols:
+        # 必要日期欄位
+        must_date = ['Lead_Time']
+        for col in must_date:
             if col in df.columns:
-                df[col] = pd.to_datetime(df[col], errors='coerce')  # 支援 2025-11-07
-                if df[col].isna().all():
-                    st.warning(f"All values in '{col}' are invalid dates.")
+                df[col] = pd.to_datetime(df[col], errors='coerce')
             else:
-                st.warning(f"Column '{col}' is missing in the CSV file.")
+                st.error(f"Required date column '{col}' is missing.")
+                return None
+
+        # 可選日期欄位（不報錯）
+        optional_date = ['Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
+        for col in optional_date:
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col], errors='coerce')
+            else:
+                st.info(f"Optional column '{col}' is missing. It will be ignored.")
 
         return df
     except Exception as e:
@@ -203,18 +210,13 @@ if df is None:
     st.stop()
 
 # -------------------------------------------------
-# 6. 篩選（簡潔版）
+# 6. 篩選
 # -------------------------------------------------
-filtered_df = df.copy()
+filtered_df = df[df['Year'] == int(selected_year)].copy()
 
-# Year
-filtered_df = filtered_df[filtered_df['Year'] == int(selected_year)]
-
-# Project Type
 if selected_project_type != "All":
     filtered_df = filtered_df[filtered_df['Project_Type'] == selected_project_type]
 
-# Lead Time Month
 if selected_month != "--" and 'Lead_Time' in filtered_df.columns:
     if pd.api.types.is_datetime64_any_dtype(filtered_df['Lead_Time']):
         month_idx = month_options.index(selected_month)
@@ -227,11 +229,8 @@ if selected_month != "--" and 'Lead_Time' in filtered_df.columns:
 total_projects = len(filtered_df)
 project_counts = filtered_df['Project_Type'].value_counts().to_dict()
 
-if selected_project_type == "All":
-    title = f"### All - {selected_year} {selected_month if selected_month != '--' else 'All Months'} Project Count"
-else:
-    title = f"### {selected_project_type} - {selected_year} {selected_month if selected_month != '--' else 'All Months'} Project Count"
-st.markdown(title)
+month_str = selected_month if selected_month != "--" else "All Months"
+st.markdown(f"### {selected_project_type} - {selected_year} {month_str} Project Count")
 
 col1, col2, *other_cols = st.columns([1] + [1] * (len(project_counts) + 1))
 with col1:
@@ -246,7 +245,7 @@ for pt, cnt in project_counts.items():
 # 8. 主畫面
 # -------------------------------------------------
 if total_projects > 0:
-    st.markdown(f"### {selected_year} {selected_month if selected_month != '--' else 'All Months'} {selected_project_type} Project Details")
+    st.markdown(f"### {selected_year} {month_str} {selected_project_type} Project Details")
 
     # 顯示用 DataFrame
     milestone_cols = [
@@ -261,7 +260,6 @@ if total_projects > 0:
 
     current_date = datetime.now()
 
-    # 進度條（用原始 filtered_df）
     for _, row in filtered_df.iterrows():
         progress = 0
 
@@ -291,7 +289,7 @@ if total_projects > 0:
 
         progress = min(progress, 100)
 
-        # 顏色
+        # 顏色漸層
         if progress == 0:
             color = '#e0e0e0'
         elif progress < 30:
@@ -327,12 +325,12 @@ if total_projects > 0:
                    80:"Testing Completed",90:"Cleaning Completed",100:"Project Completed"}
         explanation = exp_map.get(progress, f"{progress}% Progress")
 
-        # 圖示
+        # KTA 圖示
         desc = str(row.get('Description', '')).upper()
         has_kta38 = 'KTA38' in desc
         has_kta50 = 'KTA50' in desc
 
-        # 顯示
+        # 進度條
         col1, col2, col3 = st.columns([1, 0.2, 6])
         with col1:
             st.write(row['Project_Name'], unsafe_allow_html=False)
@@ -358,28 +356,20 @@ else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
 # -------------------------------------------------
-# 9. 提醒（全局，顯示所有超期專案）
+# 9. 提醒區塊（全局，僅在欄位存在時）
 # -------------------------------------------------
 if 'Delivery_Date' in df.columns and 'Lead_Time' in df.columns:
-    # 複製一份避免影響原始 df
-    df_remind = df.copy()
+    df_remind = df[['Project_Name', 'Lead_Time', 'Delivery_Date', 'Remarks']].copy()
     df_remind['Delivery_Date'] = pd.to_datetime(df_remind['Delivery_Date'], errors='coerce')
     df_remind['Lead_Time'] = pd.to_datetime(df_remind['Lead_Time'], errors='coerce')
 
-    reminder_df = df_remind[
-        (df_remind['Delivery_Date'].isna()) |
-        (df_remind['Delivery_Date'] > df_remind['Lead_Time'])
-    ].copy()
+    mask = df_remind['Delivery_Date'].isna() | (df_remind['Delivery_Date'] > df_remind['Lead_Time'])
+    reminder_df = df_remind[mask].dropna(how='all', subset=['Project_Name']).reset_index(drop=True)
 
     if not reminder_df.empty:
-        # 只選需要的欄位
-        cols = ['Project_Name', 'Lead_Time', 'Delivery_Date', 'Remarks']
-        reminder_df = reminder_df[[c for c in cols if c in reminder_df.columns]].dropna(how='all').reset_index(drop=True)
-
-        # 格式化日期
-        for c in ['Lead_Time', 'Delivery_Date']:
-            if c in reminder_df.columns:
-                reminder_df[c] = pd.to_datetime(reminder_df[c], errors='coerce').dt.strftime('%Y-%m-%d')
+        for col in ['Lead_Time', 'Delivery_Date']:
+            if col in reminder_df.columns:
+                reminder_df[col] = pd.to_datetime(reminder_df[col], errors='coerce').dt.strftime('%Y-%m-%d')
 
         st.markdown(f"""
         <div class="reminder-section">
@@ -388,6 +378,8 @@ if 'Delivery_Date' in df.columns and 'Lead_Time' in df.columns:
             {reminder_df.to_html(index=False, escape=False)}
         </div>
         """, unsafe_allow_html=True)
+else:
+    st.info("No Delivery_Date column found. Reminder section is disabled.")
 
 # -------------------------------------------------
 # 10. Footer
