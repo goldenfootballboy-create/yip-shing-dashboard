@@ -87,14 +87,6 @@ st.markdown("""
         text-align: left;
         border-bottom: 1px solid #ddd;
     }
-    .delay-alert {
-        background-color: #f8d7da;
-        color: #721c24;
-        padding: 1rem;
-        border-radius: 8px;
-        border: 1px solid #f5c6cb;
-        margin-top: 1rem;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -195,7 +187,7 @@ for i, (pt, cnt) in enumerate(project_counts.items()):
     with rest[i]: st.write(f"**{pt}: {cnt}**")
 
 # -------------------------------------------------
-# 8. 主畫面：左側進度 + 右側延誤提醒
+# 8. 主畫面：左側進度 + 右側延誤進度條
 # -------------------------------------------------
 if total_projects > 0:
     col_left, col_right = st.columns([3, 1])
@@ -214,7 +206,7 @@ if total_projects > 0:
 
         current_date = datetime.now()
 
-        # 進度條
+        # 左側：原始進度條
         for _, row in filtered_df.iterrows():
             progress = 0
 
@@ -270,9 +262,7 @@ if total_projects > 0:
         st.dataframe(display_df, use_container_width=True, hide_index=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # -------------------------------------------------
-    # 右側：延誤提醒
-    # -------------------------------------------------
+    # 右側：延誤專案進度條
     with col_right:
         st.markdown("### Delivery Delay Alert")
         delay_projects = []
@@ -300,17 +290,35 @@ if total_projects > 0:
                 lead = row['Lead_Time']
                 if pd.isna(delivery) or (pd.notna(delivery) and pd.notna(lead) and delivery > lead):
                     if prog < 100:
-                        delay_days = "Blank" if pd.isna(delivery) else f"{(delivery - lead).days} days"
+                        delay_days = "Blank" if pd.isna(delivery) else f"{(delivery - lead).days} days late"
                         delay_projects.append({
-                            'Project': row['Project_Name'],
-                            'Delay': delay_days,
-                            'Progress': f"{prog}%"
+                            'name': row['Project_Name'],
+                            'progress': prog,
+                            'delay': delay_days
                         })
 
         if delay_projects:
-            delay_df = pd.DataFrame(delay_projects)
-            st.markdown(f'<div class="delay-alert"><strong>{len(delay_projects)} delayed!</strong></div>', unsafe_allow_html=True)
-            st.table(delay_df)
+            st.markdown(f'<div style="color:#721c24; font-weight:bold; margin-bottom:0.5rem;">{len(delay_projects)} delayed!</div>', unsafe_allow_html=True)
+            for item in delay_projects:
+                # 紅色漸層
+                r = 255
+                g = int(69 * (1 - item['progress']/100))
+                b = 0
+                color = f'rgb({r},{g},{b})'
+
+                c1, c2, c3 = st.columns([1.2, 0.1, 6])
+                with c1:
+                    st.write(f"**{item['name']}**")
+                with c2:
+                    pass
+                with c3:
+                    st.markdown(
+                        f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{item["progress"]}%;background:{color};"></div></div>',
+                        unsafe_allow_html=True
+                    )
+                    pc1, pc2 = st.columns([1, 20])
+                    with pc1: st.write(f"{item['progress']}%")
+                    with pc2: st.markdown(f"<span style='color:red; font-weight:bold; font-size:13px;'>{item['delay']}</span>", unsafe_allow_html=True)
         else:
             st.success("No delays!")
 
