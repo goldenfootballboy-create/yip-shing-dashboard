@@ -326,7 +326,7 @@ if total_projects > 0:
                         f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{item["progress"]}%;background:{color};"></div></div>',
                         unsafe_allow_html=True
                     )
-                    pc1, pc2 = st.columns([0.2, 10])
+                    pc1, pc2 = st.columns([1, 10])
                     with pc1: st.write(f"{item['progress']}%")
                     with pc2:
                         st.markdown(f"<span style='color:red; font-weight:bold; font-size:13px;'>{item['delay']}</span>", unsafe_allow_html=True)
