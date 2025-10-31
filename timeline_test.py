@@ -75,8 +75,9 @@ st.markdown("""
         border: 1px solid #ffeeba;
         border-radius: 5px;
         color: #856404;
-        max-height: 200px;
+        max-height: 300px;
         overflow-y: auto;
+        white-space: pre-wrap;
     }
     .reminder-section table {
         width: 100%;
@@ -159,10 +160,12 @@ def load_data():
 df = load_data()
 
 # -------------------------------------------------
-# 6. 右側側邊欄：Weekly Remarks（預設收合）- 必須在 df 之後
+# 6. 側邊欄：Weekly Remarks + Memo Pad（預設收合）
 # -------------------------------------------------
 with st.sidebar:
     st.markdown("<br>", unsafe_allow_html=True)  # 留點空間
+
+    # Weekly Remarks
     with st.expander("Weekly Remarks", expanded=False):
         if df is not None and 'Weekly_Remarks' in df.columns:
             remarks = df[['Project_Name', 'Weekly_Remarks']].dropna(subset=['Weekly_Remarks'])
@@ -181,6 +184,62 @@ with st.sidebar:
                 st.info("No weekly remarks.")
         else:
             st.info("`Weekly_Remarks` column not found in CSV.")
+
+    # Memo Pad（新功能）
+    with st.expander("Memo Pad", expanded=False):
+        # 載入/儲存 Memo 的函數
+        memo_file = "memo.txt"
+        def load_memo():
+            if os.path.exists(memo_file):
+                with open(memo_file, "r", encoding="utf-8") as f:
+                    return f.read()
+            return ""
+
+        def save_memo(content):
+            with open(memo_file, "w", encoding="utf-8") as f:
+                f.write(content)
+
+        # 載入目前 Memo
+        current_memo = load_memo()
+
+        # 使用 session_state 避免刷新丟失（輸入時暫存）
+        if 'memo_content' not in st.session_state:
+            st.session_state.memo_content = current_memo
+
+        # 文字輸入區
+        st.markdown("**Edit your global memo here:**")
+        new_memo = st.text_area(
+            label="Memo Input",
+            value=st.session_state.memo_content,
+            height=250,
+            placeholder="Type your notes, reminders, or to-do list...",
+            key="memo_input"
+        )
+        st.session_state.memo_content = new_memo
+
+        # 儲存按鈕
+        col_save, col_clear = st.columns([1, 1])
+        with col_save:
+            if st.button("Save Memo", key="save_memo"):
+                save_memo(new_memo)
+                st.session_state.memo_content = new_memo
+                st.success("Memo saved to `memo.txt`!")
+
+        with col_clear:
+            if st.button("Clear Memo", key="clear_memo"):
+                save_memo("")
+                st.session_state.memo_content = ""
+                st.warning("Memo cleared!")
+
+        # 顯示目前 Memo（黃色提醒框）
+        st.markdown("### Current Memo")
+        if st.session_state.memo_content.strip():
+            st.markdown(
+                f'<div class="reminder-section">{st.session_state.memo_content.replace(chr(10), "<br>")}</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.info("No memo yet. Start writing above!")
 
 # -------------------------------------------------
 # 7. 停止執行（如果 df 讀取失敗）
