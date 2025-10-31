@@ -308,7 +308,7 @@ if total_projects > 0:
         # 右側：延誤專案
         if i == 0 and delay_projects:
             with col_right:
-                st.markdown("### Delivery Delay Alert")
+                st.markdown("### Delay Projects")
 
         if i < len(delay_projects):
             item = delay_projects[i]
