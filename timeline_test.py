@@ -297,11 +297,11 @@ if total_projects > 0:
                 c1, c2, c3 = st.columns([5, 4, 8])
                 with c1: st.write(row['Project_Name'])
                 with c2:
-                    if k38: st.image("https://i.imgur.com/koGZmUz.jpeg", width=40)
-                    elif k50: st.image("https://i.imgur.com/oJNLgDG.png", width=40)
+                    if k38: st.image("https://i.imgur.com/koGZmUz.jpeg", width=35)
+                    elif k50: st.image("https://i.imgur.com/oJNLgDG.png", width=35)
                 with c3:
                     st.markdown(f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>', unsafe_allow_html=True)
-                    pc1, pc2 = st.columns([1.5, 10])
+                    pc1, pc2 = st.columns([1, 10])
                     with pc1: st.write(f"{progress}%")
                     with pc2: st.write(explanation)
 
