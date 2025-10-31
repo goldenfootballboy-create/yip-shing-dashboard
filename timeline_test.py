@@ -126,7 +126,35 @@ selected_month = st.sidebar.selectbox(
     help="Select the lead time to view or '--' for all lead times"
 )
 
+# -------------------------------------------------
+# 4.5 右側側邊欄：Weekly Remarks（預設收合）
+# -------------------------------------------------
+with st.sidebar:
+    # 先留空一行，讓左側篩選器在上方
+    st.markdown("<br>", unsafe_allow_html=True)
 
+    # 使用 expander 模擬「右側收合面板」
+    with st.expander("Weekly Remarks", expanded=False):
+        if df is not None and 'Weekly_Remarks' in df.columns:
+            # 過濾有內容的 remarks
+            remarks = df[['Project_Name', 'Weekly_Remarks']].dropna(subset=['Weekly_Remarks'])
+            remarks = remarks[remarks['Weekly_Remarks'].str.strip() != '']
+
+            if not remarks.empty:
+                # 顯示成簡單表格
+                st.table(
+                    remarks.rename(columns={
+                        'Project_Name': 'Project',
+                        'Weekly_Remarks': 'Remark'
+                    }).style.set_properties(**{
+                        'text-align': 'left',
+                        'white-space': 'pre-wrap'
+                    })
+                )
+            else:
+                st.info("No weekly remarks.")
+        else:
+            st.info("`Weekly_Remarks` column not found in CSV.")
 
 # -------------------------------------------------
 # 5. 讀取 CSV（支援 YYYY-MM-DD）
