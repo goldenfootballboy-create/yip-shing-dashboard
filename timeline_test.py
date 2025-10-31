@@ -256,7 +256,6 @@ if total_projects > 0:
     # 建立左側 + 右側進度條（平排）
     left_rows = filtered_df.to_dict('records')
     right_rows = delay_projects
-
     max_rows = max(len(left_rows), len(right_rows)) if right_rows else len(left_rows)
 
     for i in range(max_rows):
@@ -360,10 +359,10 @@ else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
 # -------------------------------------------------
-# 10.5 Memo Pad（移到主頁下方，寬敞空間）
+# 10.5 Memo Pad（主頁下方，寬敞空間，預設展開）
 # -------------------------------------------------
 st.markdown("---")
-with st.expander("📝 Memo Pad", expanded=True):
+with st.expander("Memo Pad", expanded=True):
     # 載入/儲存 Memo 的函數
     memo_file = "memo.txt"
 
@@ -401,17 +400,17 @@ with st.expander("📝 Memo Pad", expanded=True):
     # 儲存按鈕
     col_save, col_clear = st.columns([1, 1])
     with col_save:
-        if st.button("💾 Save Memo", use_container_width=True, key="save_memo"):
+        if st.button("Save Memo", use_container_width=True, key="save_memo"):
             save_memo(new_memo)
             st.session_state.memo_content = new_memo
             st.success("Memo saved to `memo.txt`!")
-            st.rerun()
+            st.rerun()  # 即時刷新
     with col_clear:
-        if st.button("🗑️ Clear Memo", use_container_width=True, key="clear_memo"):
+        if st.button("Clear Memo", use_container_width=True, key="clear_memo"):
             save_memo("")
             st.session_state.memo_content = ""
             st.warning("Memo cleared!")
-            st.rerun()
+            st.rerun()  # 即時刷新
 
     # 顯示目前 Memo（黃色提醒框）
     st.markdown("### Current Memo")
