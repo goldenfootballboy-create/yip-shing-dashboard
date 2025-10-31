@@ -113,9 +113,10 @@ selected_year = st.sidebar.selectbox(
     help="Select the year to view"
 )
 
+
 # Load CSV data
 def load_data():
-    """Load data from CSV file with explicit MM/DD/YYYY format"""
+    """Load data from CSV file with explicit MM/DD/YYYY format, only parse existing columns"""
     csv_file = "projects.csv"
     if not os.path.exists(csv_file):
         st.error(f"Cannot find {csv_file}! Ensure the file is located in: {script_dir}")
@@ -125,36 +126,41 @@ def load_data():
         return None
 
     try:
-        # 定義所有日期欄位
-        date_columns = [
+        # 先讀取一次，取得欄位
+        data_df = pd.read_csv(csv_file, encoding='utf-8', sep=',')
+
+        # 定義可能存在的日期欄位
+        possible_date_columns = [
             'Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date',
             'Testing_Date', 'Delivery_Date'
         ]
 
-        # 讀取 CSV，強制使用 MM/DD/YYYY 格式解析日期
-        data_df = pd.read_csv(
-            csv_file,
-            encoding='utf-8',
-            sep=',',
-            parse_dates=date_columns,
-            date_format='%m/%d/%Y',  # 關鍵：明確指定美式格式
-            dayfirst=False
-        )
+        # 只對存在的欄位解析
+        existing_date_columns = [col for col in possible_date_columns if col in data_df.columns]
 
+        if existing_date_columns:
+            data_df = pd.read_csv(
+                csv_file,
+                encoding='utf-8',
+                sep=',',
+                parse_dates=existing_date_columns,
+                date_format='%m/%d/%Y',
+                dayfirst=False
+            )
+            st.info(f"Parsed date columns: {', '.join(existing_date_columns)}")
+        else:
+            st.warning("No date columns found. Proceeding without date parsing.")
+
+        # 必要欄位檢查
         required_columns = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
-        missing_columns = [col for col in required_columns if col not in data_df.columns]
-        if missing_columns:
-            st.error(f"CSV file is missing the following required columns: {', '.join(missing_columns)}")
+        missing_required = [col for col in required_columns if col not in data_df.columns]
+        if missing_required:
+            st.error(f"Missing required columns: {', '.join(missing_required)}")
             return None
 
-        # 除錯：顯示解析後的日期樣本
-        for col in date_columns:
-            if col in data_df.columns:
-                sample = data_df[col].dropna()
-                if not sample.empty:
-                    st.info(f"{col} parsed as: {sample.iloc[0]} (type: {type(sample.iloc[0])})")
-                else:
-                    st.warning(f"Column {col} has no valid dates.")
+        # 補救 Lead_Time
+        if 'Lead_Time' in data_df.columns and not pd.api.types.is_datetime64_any_dtype(data_df['Lead_Time']):
+            data_df['Lead_Time'] = pd.to_datetime(data_df['Lead_Time'], errors='coerce', format='%m/%d/%Y')
 
         return data_df
 
