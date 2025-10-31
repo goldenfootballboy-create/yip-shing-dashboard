@@ -252,7 +252,7 @@ if total_projects > 0:
     max_rows = max(len(left_rows), len(right_rows)) if right_rows else len(left_rows)
 
     for i in range(max_rows):
-        col_left, col_right = st.columns([3, 1])
+        col_left, col_right = st.columns([3, 2])
 
         # 左側：正常專案
         if i < len(left_rows):
