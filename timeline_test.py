@@ -320,8 +320,6 @@ if total_projects > 0:
                 with c1:
                     st.write(f"**{item['name']}**")
                 with c2:
-                    pass
-                with c3:
                     st.markdown(
                         f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{item["progress"]}%;background:{color};"></div></div>',
                         unsafe_allow_html=True
@@ -329,6 +327,8 @@ if total_projects > 0:
                     pc1, pc2 = st.columns([1, 10])
                     with pc1: st.write(f"{item['progress']}%")
                     with pc2: st.write(explanation)
+                with c3: pass
+                    
 
     # 表格（左側下方）
     st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
