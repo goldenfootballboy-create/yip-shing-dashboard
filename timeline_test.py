@@ -262,7 +262,7 @@ if total_projects > 0:
         st.markdown('</div>', unsafe_allow_html=True)
 
     # -------------------------------------------------
-    # 右側：延誤提醒（全局）
+    # 右側：延誤提醒（全局）—— 進度 100% 不顯示
     # -------------------------------------------------
     with col_right:
         st.markdown("### Delivery Delay Alert")
