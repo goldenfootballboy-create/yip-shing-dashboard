@@ -157,6 +157,57 @@ with st.sidebar:
             st.info("`Weekly_Remarks` column not found in CSV.")
 
 # -------------------------------------------------
+# 6. 以下所有程式碼都必須在 df 存在時才執行
+# -------------------------------------------------
+if df is not None:
+    # -------------------------------------------------
+    # 6. 篩選（僅影響左側）
+    # -------------------------------------------------
+    filtered_df = df[df['Year'] == int(selected_year)].copy()
+    # ...（你原本的篩選邏輯）...
+
+    # -------------------------------------------------
+    # 7. 統計
+    # -------------------------------------------------
+    total_projects = len(filtered_df)
+    # ...（統計顯示）...
+
+    # -------------------------------------------------
+    # 8. 主畫面：左側正常 + 右側延誤
+    # -------------------------------------------------
+    if total_projects > 0:
+        # ...（你原本的主畫面邏輯）...
+        pass
+    else:
+        st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
+
+    # -------------------------------------------------
+    # 9. 右側側邊欄：Weekly Remarks（預設收合）
+    # -------------------------------------------------
+    with st.sidebar:
+        st.markdown("<br>", unsafe_allow_html=True)  # 留點空間
+        with st.expander("Weekly Remarks", expanded=False):
+            if 'Weekly_Remarks' in df.columns:
+                remarks = df[['Project_Name', 'Weekly_Remarks']].dropna(subset=['Weekly_Remarks'])
+                remarks = remarks[remarks['Weekly_Remarks'].str.strip() != '']
+                if not remarks.empty:
+                    st.table(
+                        remarks.rename(columns={
+                            'Project_Name': 'Project',
+                            'Weekly_Remarks': 'Remark'
+                        }).style.set_properties(**{'text-align': 'left'})
+                    )
+                else:
+                    st.info("No weekly remarks.")
+            else:
+                st.info("`Weekly_Remarks` column not found in CSV.")
+
+else:
+    # df is None → 除了 st.stop() 之外，什麼都不做
+    pass
+
+
+# -------------------------------------------------
 # 5. 讀取 CSV（支援 YYYY-MM-DD）
 # -------------------------------------------------
 def load_data():
