@@ -190,7 +190,7 @@ for i, (pt, cnt) in enumerate(project_counts.items()):
 # 8. 主畫面：左側 + 右側延誤進度條（全局）
 # -------------------------------------------------
 if total_projects > 0:
-    col_left, col_right = st.columns([3, 1])
+    col_left, col_right = st.columns([3, 3])
 
     with col_left:
         st.markdown(f"### {selected_year} {month_str} {selected_project_type} Project Details")
