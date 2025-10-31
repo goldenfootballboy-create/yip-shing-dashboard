@@ -284,12 +284,12 @@ else:
         for index, row in display_df.iterrows():
             progress = 0
 
-            # Check Parts_Arrival_Date (30%) - 必須早於今天
+            # Check Parts_Arrival_Date (30%)
             parts_arrival_met = False
             if pd.notna(row['Parts_Arrival_Date']):
                 try:
                     parts_arrival_date = pd.to_datetime(row['Parts_Arrival_Date'], dayfirst=True).date()
-                    parts_arrival_met = parts_arrival_date < current_date.date()
+                    parts_arrival_met = parts_arrival_date <= current_date.date()
                     if parts_arrival_met:
                         progress += 30
                 except ValueError:
@@ -300,7 +300,7 @@ else:
             if pd.notna(row['Installation_Complete_Date']):
                 try:
                     install_date = pd.to_datetime(row['Installation_Complete_Date'], dayfirst=True).date()
-                    install_met = install_date < current_date.date()
+                    install_met = install_date <= current_date.date()
                     if install_met:
                         progress += 40
                 except ValueError:
@@ -311,7 +311,7 @@ else:
             if pd.notna(row['Testing_Date']):
                 try:
                     testing_date = pd.to_datetime(row['Testing_Date'], dayfirst=True).date()
-                    testing_met = testing_date < current_date.date()
+                    testing_met = testing_date <= current_date.date()
                     if testing_met:
                         progress += 10
                 except ValueError:
@@ -322,18 +322,18 @@ else:
             if cleaning_met:
                 progress += 10
 
-            # Check Delivery_Date (10%)
+            # Check Delivery_Date (10%, and set to 100% if all other conditions met)
             delivery_met = False
             if pd.notna(row['Delivery_Date']):
                 try:
                     delivery_date = pd.to_datetime(row['Delivery_Date'], dayfirst=True).date()
-                    delivery_met = delivery_date < current_date.date()
+                    delivery_met = delivery_date <= current_date.date()
                     if delivery_met:
                         progress += 10
                 except ValueError:
                     pass
 
-            # Force 100% if all met
+            # Ensure 100% if all milestones are met
             all_milestones_met = parts_arrival_met and install_met and testing_met and cleaning_met and delivery_met
             if all_milestones_met:
                 progress = 100
@@ -449,3 +449,4 @@ else:
 # Footer information
 st.markdown("---")
 st.markdown("**YIP SHING Project Management System** | Real-time Project Status Monitoring")
+
