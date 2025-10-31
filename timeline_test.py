@@ -261,54 +261,54 @@ if total_projects > 0:
         st.dataframe(display_df, use_container_width=True, hide_index=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # -------------------------------------------------
-    # 右側：延誤提醒（全局）—— 進度 100% 不顯示
-    # -------------------------------------------------
-    with col_right:
-        st.markdown("### Delivery Delay Alert")
-        delay_projects = []
+        # -------------------------------------------------
+        # 右側：延誤提醒（全局）—— 進度 100% 不顯示
+        # -------------------------------------------------
+        with col_right:
+            st.markdown("### Delivery Delay Alert")
+            delay_projects = []
 
-        # 使用原始 df（不受篩選限制）
-        for _, row in df.iterrows():
-            prog = 0
-            if 'Parts_Arrival_Date' in df.columns and pd.notna(row['Parts_Arrival_Date']):
-                if row['Parts_Arrival_Date'].date() < datetime.now().date():
-                    prog += 30
-            if 'Installation_Complete_Date' in df.columns and pd.notna(row['Installation_Complete_Date']):
-                if row['Installation_Complete_Date'].date() < datetime.now().date():
-                    prog += 40
-            if 'Testing_Date' in df.columns and pd.notna(row['Testing_Date']):
-                if row['Testing_Date'].date() < datetime.now().date():
+            for _, row in df.iterrows():
+                prog = 0
+                if 'Parts_Arrival_Date' in df.columns and pd.notna(row['Parts_Arrival_Date']):
+                    if row['Parts_Arrival_Date'].date() < datetime.now().date():
+                        prog += 30
+                if 'Installation_Complete_Date' in df.columns and pd.notna(row['Installation_Complete_Date']):
+                    if row['Installation_Complete_Date'].date() < datetime.now().date():
+                        prog += 40
+                if 'Testing_Date' in df.columns and pd.notna(row['Testing_Date']):
+                    if row['Testing_Date'].date() < datetime.now().date():
+                        prog += 10
+                if 'Cleaning' in df.columns and str(row.get('Cleaning', '')).strip().upper() == 'YES':
                     prog += 10
-            if 'Cleaning' in df.columns and str(row.get('Cleaning','')).strip().upper() == 'YES':
-                prog += 10
-            if 'Delivery_Date' in df.columns and pd.notna(row['Delivery_Date']):
-                if row['Delivery_Date'].date() < datetime.now().date():
-                    prog += 10
-            prog = min(prog, 100)
+                if 'Delivery_Date' in df.columns and pd.notna(row['Delivery_Date']):
+                    if row['Delivery_Date'].date() < datetime.now().date():
+                        prog += 10
+                prog = min(prog, 100)
 
-            # 條件 1: Delivery > Lead_Time
-            condition1 = ('Delivery_Date' in df.columns and 'Lead_Time' in df.columns and
-                         pd.notna(row['Delivery_Date']) and pd.notna(row['Lead_Time']) and
-                         row['Delivery_Date'] > row['Lead_Time'])
+                # 條件 1: Delivery > Lead_Time
+                condition1 = ('Delivery_Date' in df.columns and 'Lead_Time' in df.columns and
+                              pd.notna(row['Delivery_Date']) and pd.notna(row['Lead_Time']) and
+                              row['Delivery_Date'] > row['Lead_Time'])
 
-            # 條件 2: 進度未100% 且 今天 > Lead_Time
-            condition2 = (prog < 100 and 'Lead_Time' in df.columns and pd.notna(row['Lead_Time']) and
-                         datetime.now().date() > row['Lead_Time'].date())
+                # 條件 2: 進度未100% 且 今天 > Lead_Time
+                condition2 = (prog < 100 and 'Lead_Time' in df.columns and pd.notna(row['Lead_Time']) and
+                              datetime.now().date() > row['Lead_Time'].date())
 
-            if condition1 or condition2:
-                if condition1:
-                    days_late = (row['Delivery_Date'] - row['Lead_Time']).days
-                    delay_msg = f"{days_late} days late"
-                else:
-                    delay_msg = "Overdue"
+                # 關鍵修正：必須 prog < 100 才顯示
+                if (condition1 or condition2) and prog < 100:
+                    if condition1:
+                        days_late = (row['Delivery_Date'] - row['Lead_Time']).days
+                        delay_msg = f"{days_late} days late"
+                    else:
+                        delay_msg = "Overdue"
 
-                delay_projects.append({
-                    'name': row['Project_Name'],
-                    'progress': prog,
-                    'delay': delay_msg,
-                    'explanation': exp_map.get(prog, f"{prog}% In Progress")
-                })
+                    delay_projects.append({
+                        'name': row['Project_Name'],
+                        'progress': prog,
+                        'delay': delay_msg,
+                        'explanation': exp_map.get(prog, f"{prog}% In Progress")
+                    })
 
         if delay_projects:
             st.markdown(f'<div style="color:#721c24; font-weight:bold; margin-bottom:0.5rem;">{len(delay_projects)} delayed!</div>', unsafe_allow_html=True)
