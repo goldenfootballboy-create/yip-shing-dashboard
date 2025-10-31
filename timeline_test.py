@@ -340,32 +340,6 @@ if total_projects > 0:
 else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
-# -------------------------------------------------
-# 9. 全局提醒（Delivery > Lead_Time）
-# -------------------------------------------------
-if 'Delivery_Date' in df.columns and 'Lead_Time' in df.columns:
-    df_remind = df[['Project_Name', 'Lead_Time', 'Delivery_Date', 'Remarks']].copy()
-    df_remind['Delivery_Date'] = pd.to_datetime(df_remind['Delivery_Date'], errors='coerce')
-    df_remind['Lead_Time'] = pd.to_datetime(df_remind['Lead_Time'], errors='coerce')
-
-    reminder_df = df_remind[
-        (df_remind['Delivery_Date'].isna()) |
-        (df_remind['Delivery_Date'] > df_remind['Lead_Time'])
-    ].copy()
-
-    if not reminder_df.empty:
-        reminder_df = reminder_df.dropna(how='all').reset_index(drop=True)
-        for col in ['Lead_Time', 'Delivery_Date']:
-            if col in reminder_df.columns:
-                reminder_df[col] = pd.to_datetime(reminder_df[col], errors='coerce').dt.strftime('%Y-%m-%d')
-
-        st.markdown(f"""
-        <div class="reminder-section">
-            <h3>Reminder: Delivery Date Issues</h3>
-            <p>The following projects have Delivery Date either blank or later than Lead Time:</p>
-            {reminder_df.to_html(index=False, escape=False)}
-        </div>
-        """, unsafe_allow_html=True)
 
 # -------------------------------------------------
 # 10. Footer
