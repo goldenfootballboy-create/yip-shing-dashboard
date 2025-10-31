@@ -307,7 +307,6 @@ if total_projects > 0:
         if i == 0 and delay_projects:
             with col_right:
                 st.markdown("### Delivery Delay Alert")
-                st.markdown(f'<div style="color:#721c24; font-weight:bold; margin-bottom:0.5rem;">{len(delay_projects)} delayed!</div>', unsafe_allow_html=True)
 
         if i < len(delay_projects):
             item = delay_projects[i]
