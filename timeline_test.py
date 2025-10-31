@@ -329,7 +329,7 @@ if total_projects > 0:
                     pc1, pc2 = st.columns([1, 10])
                     with pc1: st.write(f"{item['progress']}%")
                     with pc2: st.write(explanation)
-                with c3: st.write(f"**{item['Remarks']}**")
+                    with c3: st.markdown(f"<div style='font-size:12px; color:#d00;'><strong>{item['remarks']}</strong></div>", unsafe_allow_html=True)
 
 
     # 表格（左側下方）
