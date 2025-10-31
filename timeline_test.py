@@ -286,55 +286,64 @@ else:
 
             # Check Parts_Arrival_Date (30%)
             parts_arrival_met = False
-            if pd.notna(row['Parts_Arrival_Date']):
+            if 'Parts_Arrival_Date' in display_df.columns and pd.notna(row['Parts_Arrival_Date']):
                 try:
                     parts_arrival_date = pd.to_datetime(row['Parts_Arrival_Date'], dayfirst=True).date()
-                    parts_arrival_met = parts_arrival_date <= current_date.date()
+                    parts_arrival_met = parts_arrival_date < current_date.date()
                     if parts_arrival_met:
                         progress += 30
-                except ValueError:
+                except (ValueError, TypeError):
                     pass
 
             # Check Installation_Complete_Date (40%)
             install_met = False
-            if pd.notna(row['Installation_Complete_Date']):
+            if 'Installation_Complete_Date' in display_df.columns and pd.notna(row['Installation_Complete_Date']):
                 try:
                     install_date = pd.to_datetime(row['Installation_Complete_Date'], dayfirst=True).date()
-                    install_met = install_date <= current_date.date()
+                    install_met = install_date < current_date.date()
                     if install_met:
                         progress += 40
-                except ValueError:
+                except (ValueError, TypeError):
                     pass
 
             # Check Testing_Date (10%)
             testing_met = False
-            if pd.notna(row['Testing_Date']):
+            if 'Testing_Date' in display_df.columns and pd.notna(row['Testing_Date']):
                 try:
                     testing_date = pd.to_datetime(row['Testing_Date'], dayfirst=True).date()
-                    testing_met = testing_date <= current_date.date()
+                    testing_met = testing_date < current_date.date()
                     if testing_met:
                         progress += 10
-                except ValueError:
+                except (ValueError, TypeError):
                     pass
 
             # Check Cleaning (10%)
-            cleaning_met = row['Cleaning'] == 'YES' if pd.notna(row['Cleaning']) else False
-            if cleaning_met:
-                progress += 10
+            cleaning_met = False
+            if 'Cleaning' in display_df.columns:
+                cleaning_met = str(row['Cleaning']).strip().upper() == 'YES'
+                if cleaning_met:
+                    progress += 10
 
-            # Check Delivery_Date (10%, and set to 100% if all other conditions met)
+            # Check Delivery_Date (10%)
             delivery_met = False
-            if pd.notna(row['Delivery_Date']):
+            if 'Delivery_Date' in display_df.columns and pd.notna(row['Delivery_Date']):
                 try:
                     delivery_date = pd.to_datetime(row['Delivery_Date'], dayfirst=True).date()
-                    delivery_met = delivery_date <= current_date.date()
+                    delivery_met = delivery_date < current_date.date()
                     if delivery_met:
                         progress += 10
-                except ValueError:
+                except (ValueError, TypeError):
                     pass
 
-            # Ensure 100% if all milestones are met
-            all_milestones_met = parts_arrival_met and install_met and testing_met and cleaning_met and delivery_met
+            # Force 100% if all met
+            all_met_conditions = []
+            if 'Parts_Arrival_Date' in display_df.columns: all_met_conditions.append(parts_arrival_met)
+            if 'Installation_Complete_Date' in display_df.columns: all_met_conditions.append(install_met)
+            if 'Testing_Date' in display_df.columns: all_met_conditions.append(testing_met)
+            if 'Cleaning' in display_df.columns: all_met_conditions.append(cleaning_met)
+            if 'Delivery_Date' in display_df.columns: all_met_conditions.append(delivery_met)
+
+            all_milestones_met = all(all_met_conditions) if all_met_conditions else False
             if all_milestones_met:
                 progress = 100
             progress = min(progress, 100)
@@ -375,27 +384,28 @@ else:
             else:
                 color = '#0000ff'  # 100% 藍
 
-            # 設置固定進度說明
-            explanation = ""
-            if progress == 0:
-                explanation = "Not Start"
-            elif progress == 30:
+            # 動態說明文字
+            explanation = "Not Start"
+            if parts_arrival_met:
                 explanation = "Parts Arrived"
-            elif progress == 70:
+            if install_met:
                 explanation = "Installation Completed"
-            elif progress == 80:
+            if testing_met:
                 explanation = "Testing Completed"
-            elif progress == 90:
+            if cleaning_met:
                 explanation = "Cleaning Completed"
-            elif progress == 100:
+            if delivery_met:
                 explanation = "Project Completed"
-            else:
-                explanation = f"{progress}% Progress"
+            elif progress > 0:
+                explanation = f"{progress}% In Progress"
 
             # 檢查 Description 是否包含 KTA38，決定是否添加圖片
-            description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
-            has_kta38 = 'KTA38' in description_text.upper()
-            has_kta50 = 'KTA50' in description_text.upper()
+            has_kta38 = False
+            has_kta50 = False
+            if 'Description' in display_df.columns:
+                description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
+                has_kta38 = 'KTA38' in description_text.upper()
+                has_kta50 = 'KTA50' in description_text.upper()
 
             # 使用 Streamlit 原生組件渲染進度條，圖片放在中間
             col1, col2, col3 = st.columns([1, 0.2, 6])  # 收窄整體寬度比例
@@ -449,4 +459,3 @@ else:
 # Footer information
 st.markdown("---")
 st.markdown("**YIP SHING Project Management System** | Real-time Project Status Monitoring")
-
