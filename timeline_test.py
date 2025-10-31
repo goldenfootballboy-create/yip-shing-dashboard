@@ -389,7 +389,7 @@ with st.expander("📝 Memo Pad", expanded=True):
         st.session_state.memo_content = current_memo
 
     # 文字輸入區
-    st.markdown("**Edit your global memo here:**")
+    st.markdown("**Edit your memo here:**")
     new_memo = st.text_area(
         label="Memo Input",
         value=st.session_state.memo_content,
