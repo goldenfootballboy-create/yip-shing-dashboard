@@ -317,7 +317,7 @@ if total_projects > 0:
                 b = 0
                 color = f'rgb({r},{g},{b})'
 
-                c1, c2, c3 = st.columns([3, 0.2, 6])
+                c1, c2, c3 = st.columns([2, 0.2, 8])
                 with c1:
                     st.write(f"**{item['name']}**")
                 with c2:
@@ -327,7 +327,7 @@ if total_projects > 0:
                         f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{item["progress"]}%;background:{color};"></div></div>',
                         unsafe_allow_html=True
                     )
-                    pc1, pc2 = st.columns([1, 20])
+                    pc1, pc2 = st.columns([1.2, 20])
                     with pc1: st.write(f"{item['progress']}%")
                     with pc2:
                         st.markdown(f"<span style='color:red; font-weight:bold; font-size:13px;'>{item['delay']}</span>", unsafe_allow_html=True)
