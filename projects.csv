@@ -1,4 +1,4 @@
-﻿Project_Type,Project_Name,Description,Year,Lead_Time,Parts_Arrival_Date,Installation_Complete_Date,Testing_Date,Cleaning,Delivery_Date,Remarks
+﻿Project_Type,Project_Name,Description,Year,Lead_Time,Parts_Arrival_Date,Installation_Complete_Date,Testing_Date,Cleaning,,Remarks
 Enclosure,TP172/24(GenDiesel ),"KTA50-G3 41386336 
 S6L1M-H41
 X25C131723",2024,30/3/2025,11/7/2025,16/7/2025,22/7/2025,YES,24/10/2025,
@@ -26,7 +26,7 @@ KTA50-G3
 Open Set,TP25/169(MGK),"KTA50-G3  (41386630)
 /TCU428E NO PMG (FR5109)
 /40度水箱
-/NO control panel. No wiring",2025,15/10/2025,23/10/2025,30/10/2025,6/11/2025,,,Delay
+/NO control panel. No wiring",2025,15/10/2025,23/10/2025,30/10/2025,,,,Delay
 Open Set,TP25/173(ALM),"KTA38-G5 x2
 (41394099/41394100)/
 要拉線 參考TP003/25
@@ -34,7 +34,7 @@ Open Set,TP25/173(ALM),"KTA38-G5 x2
 ,,,,,,,,,,
 Open Set,TP25/187(MGK),"KTA50-G3 x1 (41395422)
 /TCU428E. NO PMG
-/No Control Panel. No Wiring",2025,15/11/2025,7/11/2025,,,,,
+/No Control Panel. No Wiring",2025,15/11/2025,22/11/2025,,,,,
 Open Set,TP25/188(Energen),"KTA50G3 (41395423)
 /EVOTECT TCU428E with PMG
 /有箱 有車身線 有HEATER 有水箱/Panel 在左",2025,30/11/2025,7/11/2025,,,,,
