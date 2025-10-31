@@ -98,7 +98,7 @@ st.markdown('<div class="main-header"><div class="title">YIP SHING Project Statu
 st.markdown("---")
 
 # -------------------------------------------------
-# 4. 側邊欄
+# 4. 側邊欄（左側篩選）
 # -------------------------------------------------
 st.sidebar.title("Dashboard Controls")
 st.sidebar.markdown("### Project Type Selection")
@@ -127,99 +127,19 @@ selected_month = st.sidebar.selectbox(
 )
 
 # -------------------------------------------------
-# 4.5 右側側邊欄：Weekly Remarks（預設收合）
-# -------------------------------------------------
-with st.sidebar:
-    # 先留空一行，讓左側篩選器在上方
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # 使用 expander 模擬「右側收合面板」
-    with st.expander("Weekly Remarks", expanded=False):
-        if df is not None and 'Weekly_Remarks' in df.columns:
-            # 過濾有內容的 remarks
-            remarks = df[['Project_Name', 'Weekly_Remarks']].dropna(subset=['Weekly_Remarks'])
-            remarks = remarks[remarks['Weekly_Remarks'].str.strip() != '']
-
-            if not remarks.empty:
-                # 顯示成簡單表格
-                st.table(
-                    remarks.rename(columns={
-                        'Project_Name': 'Project',
-                        'Weekly_Remarks': 'Remark'
-                    }).style.set_properties(**{
-                        'text-align': 'left',
-                        'white-space': 'pre-wrap'
-                    })
-                )
-            else:
-                st.info("No weekly remarks.")
-        else:
-            st.info("`Weekly_Remarks` column not found in CSV.")
-
-# -------------------------------------------------
-# 6. 以下所有程式碼都必須在 df 存在時才執行
-# -------------------------------------------------
-if df is not None:
-    # -------------------------------------------------
-    # 6. 篩選（僅影響左側）
-    # -------------------------------------------------
-    filtered_df = df[df['Year'] == int(selected_year)].copy()
-    # ...（你原本的篩選邏輯）...
-
-    # -------------------------------------------------
-    # 7. 統計
-    # -------------------------------------------------
-    total_projects = len(filtered_df)
-    # ...（統計顯示）...
-
-    # -------------------------------------------------
-    # 8. 主畫面：左側正常 + 右側延誤
-    # -------------------------------------------------
-    if total_projects > 0:
-        # ...（你原本的主畫面邏輯）...
-        pass
-    else:
-        st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
-
-    # -------------------------------------------------
-    # 9. 右側側邊欄：Weekly Remarks（預設收合）
-    # -------------------------------------------------
-    with st.sidebar:
-        st.markdown("<br>", unsafe_allow_html=True)  # 留點空間
-        with st.expander("Weekly Remarks", expanded=False):
-            if 'Weekly_Remarks' in df.columns:
-                remarks = df[['Project_Name', 'Weekly_Remarks']].dropna(subset=['Weekly_Remarks'])
-                remarks = remarks[remarks['Weekly_Remarks'].str.strip() != '']
-                if not remarks.empty:
-                    st.table(
-                        remarks.rename(columns={
-                            'Project_Name': 'Project',
-                            'Weekly_Remarks': 'Remark'
-                        }).style.set_properties(**{'text-align': 'left'})
-                    )
-                else:
-                    st.info("No weekly remarks.")
-            else:
-                st.info("`Weekly_Remarks` column not found in CSV.")
-
-else:
-    # df is None → 除了 st.stop() 之外，什麼都不做
-    pass
-
-
-# -------------------------------------------------
 # 5. 讀取 CSV（支援 YYYY-MM-DD）
 # -------------------------------------------------
 def load_data():
     csv_file = "projects.csv"
     if not os.path.exists(csv_file):
-        st.error(f"Cannot find {csv_file}! Ensure it's in the same directory.")
+        st.error(f"Cannot find `{csv_file}`! Please upload it to the app folder.")
         return None
     try:
         df = pd.read_csv(csv_file, encoding='utf-8', sep=',')
         required = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
         if not all(col in df.columns for col in required):
-            st.error(f"Missing required columns: {', '.join([c for c in required if c not in df.columns])}")
+            missing = [c for c in required if c not in df.columns]
+            st.error(f"Missing required columns: {', '.join(missing)}")
             return None
 
         df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
@@ -237,11 +157,39 @@ def load_data():
         return None
 
 df = load_data()
+
+# -------------------------------------------------
+# 6. 右側側邊欄：Weekly Remarks（預設收合）- 必須在 df 之後
+# -------------------------------------------------
+with st.sidebar:
+    st.markdown("<br>", unsafe_allow_html=True)  # 留點空間
+    with st.expander("Weekly Remarks", expanded=False):
+        if df is not None and 'Weekly_Remarks' in df.columns:
+            remarks = df[['Project_Name', 'Weekly_Remarks']].dropna(subset=['Weekly_Remarks'])
+            remarks = remarks[remarks['Weekly_Remarks'].str.strip() != '']
+            if not remarks.empty:
+                st.table(
+                    remarks.rename(columns={
+                        'Project_Name': 'Project',
+                        'Weekly_Remarks': 'Remark'
+                    }).style.set_properties(**{
+                        'text-align': 'left',
+                        'white-space': 'pre-wrap'
+                    })
+                )
+            else:
+                st.info("No weekly remarks.")
+        else:
+            st.info("`Weekly_Remarks` column not found in CSV.")
+
+# -------------------------------------------------
+# 7. 停止執行（如果 df 讀取失敗）
+# -------------------------------------------------
 if df is None:
     st.stop()
 
 # -------------------------------------------------
-# 6. 篩選（僅影響左側）
+# 8. 篩選（僅影響左側）
 # -------------------------------------------------
 filtered_df = df[df['Year'] == int(selected_year)].copy()
 
@@ -255,7 +203,7 @@ if selected_month != "--" and 'Lead_Time' in filtered_df.columns:
             filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_idx]
 
 # -------------------------------------------------
-# 7. 統計
+# 9. 統計
 # -------------------------------------------------
 total_projects = len(filtered_df)
 project_counts = filtered_df['Project_Type'].value_counts().to_dict()
@@ -268,7 +216,7 @@ for i, (pt, cnt) in enumerate(project_counts.items()):
     with rest[i]: st.write(f"**{pt}: {cnt}**")
 
 # -------------------------------------------------
-# 8. 主畫面：左側正常 + 右側延誤（進度條平排）
+# 10. 主畫面：左側正常 + 右側延誤（進度條平排）
 # -------------------------------------------------
 if total_projects > 0:
     st.markdown(f"### {selected_year} {month_str} {selected_project_type} Project Details")
@@ -327,11 +275,9 @@ if total_projects > 0:
                                80:"Testing Completed",90:"Cleaning Completed",100:"Project Completed"}.get(prog, f"{prog}% In Progress")
             })
 
-
     # 建立左側 + 右側進度條（平排）
     left_rows = filtered_df.to_dict('records')
     right_rows = delay_projects
-
     max_rows = max(len(left_rows), len(right_rows)) if right_rows else len(left_rows)
 
     for i in range(max_rows):
@@ -409,9 +355,8 @@ if total_projects > 0:
                     )
                     pc1, pc2 = st.columns([1, 5])
                     with pc1: st.write(f"{item['progress']}%")
-                    with pc2: st.write(explanation)
+                    with pc2: st.write(item['explanation'])
                     with c3: st.markdown(f"<div style='font-size:12px; color:#d00;'><strong>{item['remarks']}</strong></div>", unsafe_allow_html=True)
-
 
     # 表格（左側下方）
     st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
@@ -421,9 +366,8 @@ if total_projects > 0:
 else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
-
 # -------------------------------------------------
-# 10. Footer
+# 11. Footer
 # -------------------------------------------------
 st.markdown("---")
 st.markdown("**YIP SHING Project Management System** | Real-time Project Status Monitoring")
