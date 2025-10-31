@@ -316,7 +316,7 @@ if total_projects > 0:
                 b = 0
                 color = f'rgb({r},{g},{b})'
 
-                c1, c2, c3 = st.columns([2, 0.2, 8])
+                c1, c2, c3 = st.columns([2, 8, 0.2])
                 with c1:
                     st.write(f"**{item['name']}**")
                 with c2:
@@ -328,7 +328,7 @@ if total_projects > 0:
                     with pc1: st.write(f"{item['progress']}%")
                     with pc2: st.write(explanation)
                 with c3: pass
-                    
+
 
     # 表格（左側下方）
     st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
