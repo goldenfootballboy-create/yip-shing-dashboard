@@ -78,14 +78,20 @@ st.markdown("""
         max-height: 200px;
         overflow-y: auto;
     }
-    .reminder-section table {
-        width: 100%;
-        border-collapse: collapse;
+    .info-panel {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 0.5rem;
+        font-size: 14px;
+        line-height: 1.6;
     }
-    .reminder-section th, .reminder-section td {
-        padding: 8px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
+    .info-panel pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        margin: 0;
+        font-family: inherit;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -187,14 +193,14 @@ for i, (pt, cnt) in enumerate(project_counts.items()):
     with rest[i]: st.write(f"**{pt}: {cnt}**")
 
 # -------------------------------------------------
-# 8. 主畫面：左側正常 + 右側延誤（進度條平排）
+# 8. 主畫面：左側正常 + 右側「可展開 Info Panel」
 # -------------------------------------------------
 if total_projects > 0:
     st.markdown(f"### {selected_year} {month_str} {selected_project_type} Project Details")
 
     # 顯示用 DataFrame
     milestone_cols = ['Project_Name', 'Description', 'Parts_Arrival_Date', 'Installation_Complete_Date',
-                      'Testing_Date', 'Cleaning', 'Delivery_Date', 'Remarks']
+                      'Testing_Date', 'Cleaning', 'Delivery_Date', 'Remarks', 'Weekly Remarks']
     avail_cols = [c for c in milestone_cols if c in filtered_df.columns]
     display_df = filtered_df[avail_cols].copy()
     for c in avail_cols[1:]:
@@ -203,55 +209,14 @@ if total_projects > 0:
 
     current_date = datetime.now()
 
-    # 準備延誤專案（全局）
-    delay_projects = []
-    for _, row in df.iterrows():
-        prog = 0
-        if 'Parts_Arrival_Date' in df.columns and pd.notna(row['Parts_Arrival_Date']):
-            if row['Parts_Arrival_Date'].date() < current_date.date():
-                prog += 30
-        if 'Installation_Complete_Date' in df.columns and pd.notna(row['Installation_Complete_Date']):
-            if row['Installation_Complete_Date'].date() < current_date.date():
-                prog += 40
-        if 'Testing_Date' in df.columns and pd.notna(row['Testing_Date']):
-            if row['Testing_Date'].date() < current_date.date():
-                prog += 10
-        if 'Cleaning' in df.columns and str(row.get('Cleaning','')).strip().upper() == 'YES':
-            prog += 10
-        if 'Delivery_Date' in df.columns and pd.notna(row['Delivery_Date']):
-            if row['Delivery_Date'].date() < current_date.date():
-                prog += 10
-        prog = min(prog, 100)
-
-        condition1 = ('Delivery_Date' in df.columns and 'Lead_Time' in df.columns and
-                     pd.notna(row['Delivery_Date']) and pd.notna(row['Lead_Time']) and
-                     row['Delivery_Date'] > row['Lead_Time'])
-
-        condition2 = (prog < 100 and 'Lead_Time' in df.columns and pd.notna(row['Lead_Time']) and
-                     current_date.date() > row['Lead_Time'].date())
-
-        if (condition1 or condition2) and prog < 100:
-            if condition1:
-                days_late = (row['Delivery_Date'] - row['Lead_Time']).days
-                delay_msg = f"{days_late} days late"
-            else:
-                delay_msg = "Overdue"
-
-            delay_projects.append({
-                'name': row['Project_Name'],
-                'progress': prog,
-                'delay': delay_msg,
-                'remarks': row['Remarks'],
-                'explanation': {0:"Not Start",30:"Parts Arrived",70:"Installation Completed",
-                               80:"Testing Completed",90:"Cleaning Completed",100:"Project Completed"}.get(prog, f"{prog}% In Progress")
-            })
-
-
     # 建立左側 + 右側進度條（平排）
     left_rows = filtered_df.to_dict('records')
-    right_rows = delay_projects
 
-    max_rows = max(len(left_rows), len(right_rows)) if right_rows else len(left_rows)
+    max_rows = len(left_rows)
+
+    # 初始化 Session State（控制展開狀態）
+    if 'show_info_panel' not in st.session_state:
+        st.session_state.show_info_panel = False
 
     for i in range(max_rows):
         col_left, col_right = st.columns([5, 5])
@@ -305,32 +270,29 @@ if total_projects > 0:
                     with pc1: st.write(f"{progress}%")
                     with pc2: st.write(explanation)
 
-        # 右側：延誤專案
-        if i == 0 and delay_projects:
+        # 右側：Info Panel 按鈕（只顯示一次）
+        if i == 0:
             with col_right:
-                st.markdown("### Delay Projects")
+                # 按鈕文字切換
+                button_label = "Hide Info Panel" if st.session_state.show_info_panel else "Show Info Panel"
+                if st.button(button_label, key="info_panel_toggle"):
+                    st.session_state.show_info_panel = not st.session_state.show_info_panel
 
-        if i < len(delay_projects):
-            item = delay_projects[i]
-            with col_right:
-                r = 255
-                g = int(69 * (1 - item['progress']/100))
-                b = 0
-                color = f'rgb({r},{g},{b})'
+                # 展開內容
+                if st.session_state.show_info_panel:
+                    weekly_remarks = df['Weekly Remarks'].dropna().unique()
+                    if len(weekly_remarks) > 0:
+                        remarks_text = "\n".join([f"• {r}" for r in weekly_remarks])
+                    else:
+                        remarks_text = "No weekly remarks available."
 
-                c1, c2, c3 = st.columns([4, 8, 10])
-                with c1:
-                    st.write(f"**{item['name']}**")
-                with c2:
-                    st.markdown(
-                        f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{item["progress"]}%;background:{color};"></div></div>',
-                        unsafe_allow_html=True
-                    )
-                    pc1, pc2 = st.columns([1, 5])
-                    with pc1: st.write(f"{item['progress']}%")
-                    with pc2: st.write(explanation)
-                    with c3: st.markdown(f"<div style='font-size:12px; color:#d00;'><strong>{item['remarks']}</strong></div>", unsafe_allow_html=True)
-
+                    st.markdown(f"""
+                    <div class="info-panel">
+                        <strong>Weekly Remarks:</strong>
+                        <pre>{remarks_text}</pre>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    st.markdown("")  # 空行間距
 
     # 表格（左側下方）
     st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
@@ -340,6 +302,32 @@ if total_projects > 0:
 else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
+# -------------------------------------------------
+# 9. 全局提醒（Delivery > Lead_Time）
+# -------------------------------------------------
+if 'Delivery_Date' in df.columns and 'Lead_Time' in df.columns:
+    df_remind = df[['Project_Name', 'Lead_Time', 'Delivery_Date', 'Remarks']].copy()
+    df_remind['Delivery_Date'] = pd.to_datetime(df_remind['Delivery_Date'], errors='coerce')
+    df_remind['Lead_Time'] = pd.to_datetime(df_remind['Lead_Time'], errors='coerce')
+
+    reminder_df = df_remind[
+        (df_remind['Delivery_Date'].isna()) |
+        (df_remind['Delivery_Date'] > df_remind['Lead_Time'])
+    ].copy()
+
+    if not reminder_df.empty:
+        reminder_df = reminder_df.dropna(how='all').reset_index(drop=True)
+        for col in ['Lead_Time', 'Delivery_Date']:
+            if col in reminder_df.columns:
+                reminder_df[col] = pd.to_datetime(reminder_df[col], errors='coerce').dt.strftime('%Y-%m-%d')
+
+        st.markdown(f"""
+        <div class="reminder-section">
+            <h3>Reminder: Delivery Date Issues</h3>
+            <p>The following projects have Delivery Date either blank or later than Lead Time:</p>
+            {reminder_df.to_html(index=False, escape=False)}
+        </div>
+        """, unsafe_allow_html=True)
 
 # -------------------------------------------------
 # 10. Footer
