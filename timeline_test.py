@@ -53,53 +53,18 @@ st.markdown("""
         font-size: 14px;
         width: 100%;
     }
-    .progress-container {
-        margin: 10px 0;
-        display: flex;
-        width: 100%;
-        align-items: center;
-    }
-    .project-name {
-        font-weight: bold;
-        padding-right: 0px; /* 減小與圖片的間距 */
-        vertical-align: top;
-        padding-top: 5px;
-        word-wrap: break-word;
-    }
-    .progress-wrapper {
-        display: flex;
-        flex-direction: column; /* 垂直排列進度條和說明 */
-        align-items: flex-start;
-        flex-grow: 1;
-    }
     .custom-progress {
         height: 20px;
         background-color: #e0e0e0;
         border-radius: 10px;
         overflow: hidden;
-        width: 150px; /* 保持收窄的進度條 */
-        padding: 0; /* 移除內部填充 */
+        width: 150px;
+        padding: 0;
     }
     .custom-progress-fill {
         height: 100%;
         transition: width 0.3s ease;
-        border-radius: 10px; /* 與外框一致 */
-    }
-    .progress-text {
-        margin-top: 5px; /* 百分比與進度條的間距 */
-        vertical-align: middle;
-    }
-    .progress-explanation {
-        margin-left: 0px; /* 說明與百分比的間距 */
-        vertical-align: middle;
-        font-size: 12px;
-        color: #333;
-    }
-    .kta38-icon {
-        width: 30px; /* 保持圖片大小 */
-        height: auto; /* 自動調整高度以保持比例 */
-        margin: 0 2px; /* 減小與 Project Name 和進度條的間距 */
-        vertical-align: middle;
+        border-radius: 10px;
     }
     .reminder-section {
         background-color: #fff3cd;
@@ -129,7 +94,7 @@ st.markdown('<div class="main-header"><div class="title">YIP SHING Project Statu
 st.markdown("---")
 
 # 側邊欄設置
-st.sidebar.title("📊 Dashboard Controls")
+st.sidebar.title("Dashboard Controls")
 st.sidebar.markdown("### Project Type Selection")
 project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
 selected_project_type = st.sidebar.selectbox(
@@ -150,7 +115,7 @@ selected_year = st.sidebar.selectbox(
 
 # Load CSV data
 def load_data():
-    """Load data from CSV file"""
+    """Load data from CSV file with explicit MM/DD/YYYY format"""
     csv_file = "projects.csv"
     if not os.path.exists(csv_file):
         st.error(f"Cannot find {csv_file}! Ensure the file is located in: {script_dir}")
@@ -160,28 +125,41 @@ def load_data():
         return None
 
     try:
-        data_df = pd.read_csv(csv_file, encoding='utf-8', sep=',', dayfirst=True)
+        # 定義所有日期欄位
+        date_columns = [
+            'Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date',
+            'Testing_Date', 'Delivery_Date'
+        ]
+
+        # 讀取 CSV，強制使用 MM/DD/YYYY 格式解析日期
+        data_df = pd.read_csv(
+            csv_file,
+            encoding='utf-8',
+            sep=',',
+            parse_dates=date_columns,
+            date_format='%m/%d/%Y',  # 關鍵：明確指定美式格式
+            dayfirst=False
+        )
+
         required_columns = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
         missing_columns = [col for col in required_columns if col not in data_df.columns]
         if missing_columns:
             st.error(f"CSV file is missing the following required columns: {', '.join(missing_columns)}")
-            st.info("Ensure the CSV file contains: Project_Type, Project_Name, Year, Lead_Time")
             return None
 
-        date_columns = ['Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
+        # 除錯：顯示解析後的日期樣本
         for col in date_columns:
             if col in data_df.columns:
-                data_df[col] = pd.to_datetime(data_df[col], errors='coerce', dayfirst=True)
-                if data_df[col].isna().all():
-                    st.warning(f"Column {col} contains no valid dates and may be ignored.")
-            else:
-                st.warning(f"Column {col} is missing in the CSV file.")
+                sample = data_df[col].dropna()
+                if not sample.empty:
+                    st.info(f"{col} parsed as: {sample.iloc[0]} (type: {type(sample.iloc[0])})")
+                else:
+                    st.warning(f"Column {col} has no valid dates.")
+
         return data_df
-    except UnicodeDecodeError:
-        st.error("Failed to read CSV file with UTF-8 encoding. Ensure the file uses UTF-8 encoding.")
-        return None
-    except pd.errors.ParserError:
-        st.error("CSV file format error, possibly due to incorrect delimiter (should be comma). Check the file content.")
+
+    except Exception as e:
+        st.error(f"Error reading CSV: {str(e)}")
         return None
 
 # Load data
@@ -190,7 +168,7 @@ df = load_data()
 if df is None:
     st.error("Failed to load data. Please check the console or previous messages for details.")
 else:
-    # Define fixed month options for Lead Time (中文月份)
+    # Define month options
     month_options = ["--", "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
     selected_month = st.sidebar.selectbox(
         "Lead Time:",
@@ -199,192 +177,139 @@ else:
         help="Select the lead time to view or '--' for all lead times"
     )
 
-    # Filter by selected project type and year/month based on Lead_Time
+    # Filter data
     if selected_project_type == "All":
-        if 'Year' in df.columns and 'Lead_Time' in df.columns:
-            filtered_df = df[df['Year'] == int(selected_year)].copy()
-            if selected_month != "--":
-                if pd.api.types.is_datetime64_any_dtype(filtered_df['Lead_Time']):
-                    month_index = month_options.index(selected_month)
-                    if month_index != 0:
-                        filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_index]
-                else:
-                    st.warning("Lead_Time column is not in datetime format. Skipping month filter.")
-        else:
-            st.error("Columns 'Year' or 'Lead_Time' not found in the data. Please check your CSV file.")
-            filtered_df = pd.DataFrame()
+        filtered_df = df[df['Year'] == int(selected_year)].copy()
     else:
-        filtered_df = df[df['Project_Type'] == selected_project_type].copy()
-        if 'Year' in df.columns and 'Lead_Time' in df.columns:
-            filtered_df = filtered_df[filtered_df['Year'] == int(selected_year)].copy()
-            if selected_month != "--":
-                if pd.api.types.is_datetime64_any_dtype(filtered_df['Lead_Time']):
-                    month_index = month_options.index(selected_month)
-                    if month_index != 0:
-                        filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_index]
-                else:
-                    st.warning("Lead_Time column is not in datetime format. Skipping month filter.")
-        else:
-            st.error("Columns 'Year' or 'Lead_Time' not found in the data. Please check your CSV file.")
-            filtered_df = pd.DataFrame()
+        filtered_df = df[(df['Project_Type'] == selected_project_type) & (df['Year'] == int(selected_year))].copy()
 
-    # Calculate project counts by Project_Type
+    if selected_month != "--" and 'Lead_Time' in filtered_df.columns:
+        if pd.api.types.is_datetime64_any_dtype(filtered_df['Lead_Time']):
+            month_index = month_options.index(selected_month)
+            if month_index != 0:
+                filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_index]
+
+    # Project counts
     total_projects = len(filtered_df)
     project_counts = filtered_df['Project_Type'].value_counts().to_dict()
 
     # Display project count
+    month_str = selected_month if selected_month != "--" else "All Months"
     if selected_project_type == "All":
-        if selected_month == "--":
-            st.markdown(f"### All - {selected_year} All Months Project Count")
-        else:
-            st.markdown(f"### All - {selected_year} {selected_month} Project Count")
+        st.markdown(f"### All - {selected_year} {month_str} Project Count")
     else:
-        if selected_month == "--":
-            st.markdown(f"### {selected_project_type} - {selected_year} All Months Project Count")
-        else:
-            st.markdown(f"### {selected_project_type} - {selected_year} {selected_month} Project Count")
+        st.markdown(f"### {selected_project_type} - {selected_year} {month_str} Project Count")
 
     col1, col2, *other_cols = st.columns([1] + [1] * (len(project_counts) + 1))
     with col1:
         st.write(f"Total Projects: {total_projects}")
-    index = 0
-    for project_type, count in project_counts.items():
-        with other_cols[index]:
-            st.write(f"{project_type}: {count}")
-        index += 1
+    for i, (ptype, count) in enumerate(project_counts.items()):
+        with other_cols[i]:
+            st.write(f"{ptype}: {count}")
 
-    # Display projects and milestones with progress bar
+    # Display projects
     if total_projects > 0:
-        if selected_project_type == "All":
-            if selected_month == "--":
-                st.markdown(f"### {selected_year} All Months {selected_project_type} Project Details")
-            else:
-                st.markdown(f"### {selected_year} {selected_month} {selected_project_type} Project Details")
-        else:
-            if selected_month == "--":
-                st.markdown(f"### {selected_year} All Months {selected_project_type} Project Details")
-            else:
-                st.markdown(f"### {selected_year} {selected_month} {selected_project_type} Project Details")
+        st.markdown(f"### {selected_year} {month_str} {selected_project_type} Project Details")
+
         milestone_columns = [
             'Project_Name', 'Description', 'Parts_Arrival_Date', 'Installation_Complete_Date',
             'Testing_Date', 'Cleaning', 'Delivery_Date', 'Remarks'
         ]
         available_columns = [col for col in milestone_columns if col in filtered_df.columns]
-        if not any(col in filtered_df.columns for col in milestone_columns[1:]):
-            st.warning("No date-related, Description, or Remarks columns found in the data.")
         display_df = filtered_df[available_columns].copy()
 
-        # Format date columns
-        for col in available_columns[1:]:
-            if pd.api.types.is_datetime64_any_dtype(display_df[col]):
-                display_df[col] = display_df[col].dt.strftime('%Y-%m-%d')
+        # Format dates for display only
+        for col in available_columns:
+            if col in ['Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date', 'Lead_Time']:
+                if pd.api.types.is_datetime64_any_dtype(display_df[col]):
+                    display_df[col] = display_df[col].dt.strftime('%Y-%m-%d')
 
-        # Calculate progress for each project
+        # Calculate progress using original datetime columns
         current_date = datetime.now()
-        for index, row in display_df.iterrows():
+        progress_data = []
+
+        for idx, row in filtered_df.iterrows():
             progress = 0
 
-            # Check Parts_Arrival_Date (30%)
+            # Parts Arrival (30%)
             parts_arrival_met = False
-            if 'Parts_Arrival_Date' in display_df.columns and pd.notna(row['Parts_Arrival_Date']):
-                try:
-                    parts_arrival_date = pd.to_datetime(row['Parts_Arrival_Date'], dayfirst=True).date()
-                    parts_arrival_met = parts_arrival_date < current_date.date()
-                    if parts_arrival_met:
-                        progress += 30
-                except (ValueError, TypeError):
-                    pass
+            if 'Parts_Arrival_Date' in filtered_df.columns and pd.notna(row['Parts_Arrival_Date']):
+                if row['Parts_Arrival_Date'].date() < current_date.date():
+                    parts_arrival_met = True
+                    progress += 30
 
-            # Check Installation_Complete_Date (40%)
+            # Installation (40%)
             install_met = False
-            if 'Installation_Complete_Date' in display_df.columns and pd.notna(row['Installation_Complete_Date']):
-                try:
-                    install_date = pd.to_datetime(row['Installation_Complete_Date'], dayfirst=True).date()
-                    install_met = install_date < current_date.date()
-                    if install_met:
-                        progress += 40
-                except (ValueError, TypeError):
-                    pass
+            if 'Installation_Complete_Date' in filtered_df.columns and pd.notna(row['Installation_Complete_Date']):
+                if row['Installation_Complete_Date'].date() < current_date.date():
+                    install_met = True
+                    progress += 40
 
-            # Check Testing_Date (10%)
+            # Testing (10%)
             testing_met = False
-            if 'Testing_Date' in display_df.columns and pd.notna(row['Testing_Date']):
-                try:
-                    testing_date = pd.to_datetime(row['Testing_Date'], dayfirst=True).date()
-                    testing_met = testing_date < current_date.date()
-                    if testing_met:
-                        progress += 10
-                except (ValueError, TypeError):
-                    pass
+            if 'Testing_Date' in filtered_df.columns and pd.notna(row['Testing_Date']):
+                if row['Testing_Date'].date() < current_date.date():
+                    testing_met = True
+                    progress += 10
 
-            # Check Cleaning (10%)
+            # Cleaning (10%)
             cleaning_met = False
-            if 'Cleaning' in display_df.columns:
+            if 'Cleaning' in filtered_df.columns and pd.notna(row['Cleaning']):
                 cleaning_met = str(row['Cleaning']).strip().upper() == 'YES'
                 if cleaning_met:
                     progress += 10
 
-            # Check Delivery_Date (10%)
+            # Delivery (10%)
             delivery_met = False
-            if 'Delivery_Date' in display_df.columns and pd.notna(row['Delivery_Date']):
-                try:
-                    delivery_date = pd.to_datetime(row['Delivery_Date'], dayfirst=True).date()
-                    delivery_met = delivery_date < current_date.date()
-                    if delivery_met:
-                        progress += 10
-                except (ValueError, TypeError):
-                    pass
+            if 'Delivery_Date' in filtered_df.columns and pd.notna(row['Delivery_Date']):
+                if row['Delivery_Date'].date() < current_date.date():
+                    delivery_met = True
+                    progress += 10
 
             # Force 100% if all met
-            all_met_conditions = []
-            if 'Parts_Arrival_Date' in display_df.columns: all_met_conditions.append(parts_arrival_met)
-            if 'Installation_Complete_Date' in display_df.columns: all_met_conditions.append(install_met)
-            if 'Testing_Date' in display_df.columns: all_met_conditions.append(testing_met)
-            if 'Cleaning' in display_df.columns: all_met_conditions.append(cleaning_met)
-            if 'Delivery_Date' in display_df.columns: all_met_conditions.append(delivery_met)
-
-            all_milestones_met = all(all_met_conditions) if all_met_conditions else False
-            if all_milestones_met:
+            all_met = (
+                ('Parts_Arrival_Date' not in filtered_df.columns or parts_arrival_met) and
+                ('Installation_Complete_Date' not in filtered_df.columns or install_met) and
+                ('Testing_Date' not in filtered_df.columns or testing_met) and
+                ('Cleaning' not in filtered_df.columns or cleaning_met) and
+                ('Delivery_Date' not in filtered_df.columns or delivery_met)
+            )
+            if all_met:
                 progress = 100
             progress = min(progress, 100)
 
-            # 動態計算進度條顏色（根據 0%、30%、70%、80%、90%、100% 設置）
+            # Color gradient
             if progress == 0:
-                color = '#e0e0e0'  # 0% 無色（灰色，與背景接近）
+                color = '#e0e0e0'
             elif progress < 30:
-                # 0% 到 30%：從 #e0e0e0 漸變到橙紅 #ff4500
                 r = int(224 + (255 - 224) * (progress / 30))
                 g = int(224 + (69 - 224) * (progress / 30))
                 b = int(224 + (0 - 224) * (progress / 30))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 70:
-                # 30% 到 70%：從橙紅 #ff4500 漸變到黃 #ffff00
                 r = 255
                 g = int(69 + (255 - 69) * ((progress - 30) / 40))
-                b = int(0 + (0 - 0) * ((progress - 30) / 40))
+                b = 0
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 80:
-                # 70% 到 80%：從黃 #ffff00 漸變到黃綠 #9acd32
                 r = int(255 + (154 - 255) * ((progress - 70) / 10))
                 g = 255
                 b = int(0 + (50 - 0) * ((progress - 70) / 10))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 90:
-                # 80% 到 90%：從黃綠 #9acd32 漸變到綠 #00ff00
                 r = int(154 + (0 - 154) * ((progress - 80) / 10))
                 g = int(205 + (255 - 205) * ((progress - 80) / 10))
                 b = int(50 + (0 - 50) * ((progress - 80) / 10))
                 color = f'rgb({r}, {g}, {b})'
             elif progress < 100:
-                # 90% 到 100%：從綠 #00ff00 漸變到藍 #0000ff
-                r = int(0 + (0 - 0) * ((progress - 90) / 10))
+                r = 0
                 g = int(255 + (0 - 255) * ((progress - 90) / 10))
                 b = int(0 + (255 - 0) * ((progress - 90) / 10))
                 color = f'rgb({r}, {g}, {b})'
             else:
-                color = '#0000ff'  # 100% 藍
+                color = '#0000ff'
 
-            # 動態說明文字
+            # Explanation
             explanation = "Not Start"
             if parts_arrival_met:
                 explanation = "Parts Arrived"
@@ -399,63 +324,69 @@ else:
             elif progress > 0:
                 explanation = f"{progress}% In Progress"
 
-            # 檢查 Description 是否包含 KTA38，決定是否添加圖片
+            # KTA icons
             has_kta38 = False
             has_kta50 = False
-            if 'Description' in display_df.columns:
-                description_text = str(row['Description']).strip().replace('\n', '').replace('\r', '') if pd.notna(row['Description']) else ""
-                has_kta38 = 'KTA38' in description_text.upper()
-                has_kta50 = 'KTA50' in description_text.upper()
+            if 'Description' in filtered_df.columns and pd.notna(row['Description']):
+                desc = str(row['Description']).upper()
+                has_kta38 = 'KTA38' in desc
+                has_kta50 = 'KTA50' in desc
 
-            # 使用 Streamlit 原生組件渲染進度條，圖片放在中間
-            col1, col2, col3 = st.columns([1, 0.2, 6])  # 收窄整體寬度比例
+            progress_data.append({
+                'index': idx,
+                'Project_Name': row['Project_Name'],
+                'progress': progress,
+                'explanation': explanation,
+                'color': color,
+                'has_kta38': has_kta38,
+                'has_kta50': has_kta50
+            })
+
+        # Render progress bars
+        for item in progress_data:
+            disp_row = display_df.loc[item['index']]
+            col1, col2, col3 = st.columns([1, 0.2, 6])
             with col1:
-                st.write(row['Project_Name'], unsafe_allow_html=False)
+                st.write(disp_row['Project_Name'])
             with col2:
-                if has_kta38:
-                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)  # 圖片在中間
-                elif has_kta50:
-                    st.image("https://i.imgur.com/3Cb2Nqj.png", width=30)  # 圖片在中間
+                if item['has_kta38']:
+                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)
+                elif item['has_kta50']:
+                    st.image("https://i.imgur.com/3Cb2Nqj.png", width=30)
             with col3:
-                progress_value = progress / 100
                 st.markdown(
-                    f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {progress_value * 100}%; background-color: {color};"></div></div>',
+                    f'<div class="custom-progress"><div class="custom-progress-fill" style="width: {item["progress"]}%; background-color: {item["color"]};"></div></div>',
                     unsafe_allow_html=True
                 )
-                col_percent, col_explain = st.columns([1, 20])  # 百分比和說明平排
-                with col_percent:
-                    st.write(f"{progress}%", unsafe_allow_html=False)
-                with col_explain:
-                    st.write(explanation, unsafe_allow_html=False)
+                pcol1, pcol2 = st.columns([1, 20])
+                with pcol1:
+                    st.write(f"{item['progress']}%")
+                with pcol2:
+                    st.write(item['explanation'])
 
-        # Display table with styling
+        # Display table
         st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
-        st.dataframe(
-            display_df,
-            use_container_width=True,
-            hide_index=True
-        )
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
         st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
-    # Reminder section for Delivery_Date issues
+    else:
+        st.warning(f"No {selected_project_type} projects found in {selected_year} {month_str}.")
+
+    # Reminder
     if 'Delivery_Date' in df.columns and 'Lead_Time' in df.columns:
         reminder_df = df[
             (df['Delivery_Date'].isna()) |
             (df['Delivery_Date'] > df['Lead_Time'])
-        ].copy()
-        reminder_df = reminder_df[['Project_Name', 'Lead_Time', 'Delivery_Date', 'Remarks']].dropna(how='all').reset_index(drop=True)
+        ][['Project_Name', 'Lead_Time', 'Delivery_Date', 'Remarks']].dropna(how='all')
         if not reminder_df.empty:
-            reminder_html = f"""
+            st.markdown(f"""
             <div class="reminder-section">
                 <h3>Reminder: Delivery Date Issues</h3>
                 <p>The following projects have Delivery Date either blank or later than Lead Time:</p>
                 {reminder_df.to_html(index=False)}
             </div>
-            """
-            st.markdown(reminder_html, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-# Footer information
+# Footer
 st.markdown("---")
 st.markdown("**YIP SHING Project Management System** | Real-time Project Status Monitoring")
