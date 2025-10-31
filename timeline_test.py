@@ -241,9 +241,11 @@ if total_projects > 0:
                 'name': row['Project_Name'],
                 'progress': prog,
                 'delay': delay_msg,
+                'remarks': row['Remarks'],
                 'explanation': {0:"Not Start",30:"Parts Arrived",70:"Installation Completed",
                                80:"Testing Completed",90:"Cleaning Completed",100:"Project Completed"}.get(prog, f"{prog}% In Progress")
             })
+
 
     # 建立左側 + 右側進度條（平排）
     left_rows = filtered_df.to_dict('records')
