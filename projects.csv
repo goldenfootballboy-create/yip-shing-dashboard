@@ -43,14 +43,14 @@ Marine,TP25/166(Diesel Motoren) ,"KTA19-M600 x 5
 Open Set,TP25/170(MGK),"KTA38G4 (41394499)
 /TCU428C. NO PMG (FR5108)
 /No Control Panel. No Wiring",2025,2025-11-30,2025-11-07,,,,,,
-Enclosure,TP25/192(DPX),FIEO/ KTA50GS8 (41386351)/ S7L1D-D41(X25H334734)/ DEFI/ 2500A ACB/ 3P heater/ Smartgen 8A/ ,2025,2025-11-30,,,,,,,
+Enclosure,TP25/192(DPX),FIEO/ KTA50GS8 (41386351)/ S7L1D-D41(X25H334734)/ DEFI/ 2500A ACB/ 3P heater/ Smartgen 8A/ ,2025,2025-12-15,,,,,,,
 Enclosure,YS25/093(Keyway),"QSB3.9-G2 x 1
 / QSL8.9-G4 x 2/ 
 QSK19-G4 x 1
 ",2025,2025-12-15,,,,,,,
 Enclosure,TP057/25(GenDiesel),FIEO/KTA50G3/S6L1M-H41/No ACB/7320MK2,2025,2025-12-30,,,,,,,
 Enclosure,#3465 HK租機,KTA50G3/Filter Suppy standard/香港裝大線，控制面版,2025,2025-11-30,2025-10-27,,,,,,
-K50G3,K50G3 Per Install,KTA50G3/Filter Suppy standard,2025,2025-11-30,2025-10-27,,,,,,
+K50G3,K50G3 Per Install,KTA50G3 (41395425)/S6L1D-H41 (X24L514719)/Filter Suppy standard,2025,2025-11-30,2025-10-27,,,,,,
 Essential,YS25/137(Essential),CCEC NTA855-G2A + Leroy Smoer LSA47.3S4 +50 Degree Hero Radiator without Fuel Cooler x2/CCEC NTA855-G2A + Leroy Smoer LSA47.3M7 +50 Degree Hero Radiator without Fuel Cooler,2025,2025-11-30,2025-10-16,,,,,Delivery date depends on site condition,
 Essential,YS25/138(Essential),CCEC KTAA19-G7 + Leroy Smoer LSA47.3M8 +50 Degreee Hero Radiator without Fuel Cooler x2 / CCEC NTA855-G2A+ Leroy Smoer LSA47.3S4 +5 DegreeHero Radiator without Fuel Cooler,2025,2025-11-15,2025-10-17,2025-10-25,2025-10-31,,,Delivery date depends on site condition,
 Enclosure,TP024/25(GenDiesel),KTA38G4(41315760)/S6L1D-E41(X23E186708),2025,2025-06-15,2025-07-10,2025-07-20,2025-10-31,,2025-11-18,18/11 loading confirm,
@@ -62,3 +62,6 @@ Open Set,TP25/206(MGK),KTA50-G3 / Evotech TCU428E (W63842) no PMG / No Control P
 Open Set,TP25/204(Energen),KTA38-G4 / Evotech TCU428C (W63842) with PMG  / KTA50-G3 / Evotech TCU428E with PMG/ Control Panel; Engine Wiring included,2025,2025-12-07,,,,,,,
 Enclosure,TP25/209(DPX),KTA50-GS8 / S6L1D-D41 / FIEO; SEA8620; 2500A ACB Motorized;,2025,2025-12-30,,,,,,,
 Open Set,TP25/207(Energen),KTA38-G4 / Evotech TCU428C (W63842) with PMG / Control Panel(Right); Engine wiring included,2025,2025-12-07,,,,,,,
+Enclosure,TP25/201(DPX),KTA38-G5 x2,2025,2025-12-31,,,,,,,
+Enclosure,TP25/210(DPX),KTA38-G2A x2,2026,2026-01-31,,,,,,,
+Scania,TP25/028(GE WA),DC09 x2/IG1000,2025,2025-11-30,,,,,,,
