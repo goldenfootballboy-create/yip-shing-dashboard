@@ -300,7 +300,7 @@ if total_projects > 0:
                 else:
                     color = '#0000ff'
 
-                exp_map = {0: "Not Start", 30: "Parts Arrived", 70: "Installation Completed",
+                exp_map = {0: "Not Start Yet", 30: "Parts Arrived", 70: "Installation Completed",
                            80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}
                 explanation = exp_map.get(progress, f"{progress}% In Progress")
 
