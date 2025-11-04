@@ -317,7 +317,7 @@ if total_projects > 0:
                         st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)
                     if K3850:
                         st.image("https://i.imgur.com/S2kIoCM.png", width=30)
-                    elif k50:
+                    if k50:
                         st.image("https://i.imgur.com/oJNLgDG.png", width=30)
                 with c3:
                     st.markdown(
