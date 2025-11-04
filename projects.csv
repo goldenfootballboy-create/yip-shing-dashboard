@@ -42,7 +42,7 @@ Marine,TP25/166(Diesel Motoren) ,"KTA19-M600 x 5
 /要安裝panel & 車身線   參考TP24/24",2025,2025-11-30,2025-10-18,,,,,,
 Open Set,TP25/170(MGK),"KTA38G4 (41394499)
 /TCU428C. NO PMG (FR5108)
-/No Control Panel. No Wiring",2025,2025-11-30,2025-11-07,,,,,,
+/No Control Panel. No Wiring",2025,2025-11-30,2025-11-06,,,,,,
 Enclosure,TP25/192(DPX),FIEO/ KTA50GS8 (41386351)/ S7L1D-D41(X25H334734)/ DEFI/ 2500A ACB/ 3P heater/ Smartgen 8A/ ,2025,2025-12-15,,,,,,,
 Enclosure,YS25/093(Keyway),"QSB3.9-G2 x 1
 / QSL8.9-G4 x 2/ 
@@ -63,5 +63,5 @@ Open Set,TP25/204(Energen),KTA38-G4 / Evotech TCU428C (W63842) with PMG  / KTA50
 Enclosure,TP25/209(DPX),KTA50-GS8 / S6L1D-D41 / FIEO; SEA8620; 2500A ACB Motorized;,2025,2025-12-30,,,,,,,
 Open Set,TP25/207(Energen),KTA38-G4 / Evotech TCU428C (W63842) with PMG / Control Panel(Right); Engine wiring included,2025,2025-12-07,,,,,,,
 Enclosure,TP25/201(DPX),KTA38-G5 x2,2025,2025-12-31,,,,,,,
-Enclosure,TP25/210(DPX),KTA38-G2A x2,2026,2026-01-31,,,,,,,
+Enclosure,TP25/210(DPX),KTA38-G2A x2 / S6L1D-E41 X2 / DSE 8620 / 4P1600A MCCB  /  50-60Hz 轉換 / 50hz:380-440; 60Hz:416-480,2026,2026-01-31,,,,,,,
 Scania,TP25/028(GE WA),DC09 x2/IG1000,2025,2025-11-30,,,,,,,
