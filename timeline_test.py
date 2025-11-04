@@ -307,6 +307,7 @@ if total_projects > 0:
                 desc = str(row.get('Description', '')).upper()
                 k38 = 'KTA38' in desc
                 k50 = 'KTA50' in desc
+                K3850 = 'KTA38 & KTA50' in desc
 
                 c1, c2, c3 = st.columns([3, 2, 8])
                 with c1:
@@ -314,6 +315,8 @@ if total_projects > 0:
                 with c2:
                     if k38:
                         st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)
+                    if K3850:
+                        st.image("https://i.imgur.com/S2kIoCM.png", width=30)
                     elif k50:
                         st.image("https://i.imgur.com/oJNLgDG.png", width=30)
                 with c3:
