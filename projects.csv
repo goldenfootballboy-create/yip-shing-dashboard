@@ -34,10 +34,10 @@ Open Set,TP25/173(ALM),"KTA38-G5 x2
 ,,,,,,,,,,
 Open Set,TP25/187(MGK),"KTA50-G3 x1 (41395422)
 /TCU428E. NO PMG
-/No Control Panel. No Wiring",2025,2025-11-15,2025-11-07,,,,,
+/No Control Panel. No Wiring",2025,2025-11-15,2025-11-19,,,,,
 Open Set,TP25/188(Energen),"KTA50G3 (41395423)
 /EVOTECT TCU428E with PMG
-/有箱 有車身線 有HEATER 有水箱/Panel 在左",2025,2025-11-30,2025-11-07,,,,,
+/有箱 有車身線 有HEATER 有水箱/Panel 在左",2025,2025-11-30,2025-11-19,,,,,
 Marine,TP25/166(Diesel Motoren) ,"KTA19-M600 x 5
 /要安裝panel & 車身線   參考TP24/24",2025,2025-11-30,2025-10-18,,,,,
 Open Set,TP25/170(MGK),"KTA38G4 (41394499)
@@ -59,9 +59,9 @@ Open Set,TP25/189(Energen),KTA50-G9 x2(41354912/41354913) /Evo With PMG(W63842) 
 Open Set,TP25/193(Energen),KTA38-G4 x1 / Evotech TCU428C (W63842) with PMG / Control Panel; Engine Wiring including,2026,2026-02-15,,,,,,
 Open Set,YS25/190(CSX),KTA19-G3 x1 / Engine and Radiator only / Engine wiring,2025,2025-12-15,,,,,,
 Open Set,TP25/206(MGK),KTA50-G3 / Evotech TCU428E (W63842) no PMG / No Control Panel; No Wiring,2026,2026-02-15,,,,,,
-Open Set,TP25/204(Energen),KTA38-G4 / Evotech TCU428C (W63842) with PMG   / KTA50-G3 / Evotech TCU428E with PMG/ Control Panel(K38 Right) ; Engine Wiring included,2025,2025-12-07,,,,,,12月頭交貨
+Open Set,TP25/204(Energen),KTA38-G4 / Evotech TCU428C (W63842) with PMG   / KTA50-G3 / Evotech TCU428E with PMG/ Control Panel(K38 Right)(K50 Right) ; Engine Wiring included,2025,2025-12-07,2025-11-17,,,,,12月頭交貨
 Enclosure,TP25/209(DPX),KTA50-GS8 / S6L1D-D41 / FIEO; SEA8620; 2500A ACB Motorized;,2025,2025-12-30,,,,,,
-Open Set,TP25/207(Energen),KTA38-G4 / Evotech TCU428C (W63842) with PMG / Control Panel(Right); Engine wiring included,2025,2025-12-07,,,,,,12月頭交貨
+Open Set,TP25/207(Energen),KTA38-G4 / Evotech TCU428C (W63842) with PMG / Control Panel(Right); Engine wiring included,2025,2025-12-07,2025-11-17,,,,,12月頭交貨
 Enclosure,TP25/201(DPX),KTA38-G5 x2 / S6L1D-F41 / 8620 / 2500A 4P MCCB / SmartGen 8A / ,2025,2025-12-31,,,,,,
 Enclosure,TP25/210(DPX),KTA38-G2A x2 / S6L1D-E41 X2 / FIEO  /  DSE 8620 / 4P1600A MCCB  /  50-60Hz 轉換 / 50hz:380-440; 60Hz:416-480,2026,2026-01-31,,,,,,
 Scania,TP25/216(GE WA),DC13 x2/IG1000/,2025,2025-11-30,2025-11-17,,,,,
