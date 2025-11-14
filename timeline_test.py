@@ -309,17 +309,19 @@ if total_projects > 0:
                 k50 = 'KTA50' in desc
                 K3850 = 'KTA38 & KTA50' in desc
 
-                c1, c2, c3 = st.columns([3, 2, 8])
+                c1, c2, c3, c4 = st.columns([3,2,2, 8])
                 with c1:
                     st.write(row['Project_Name'])
                 with c2:
+                    st.write(row['Qty'])
+                with c3:
                     if k38:
                         st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)
                     if K3850:
                         st.image("https://i.imgur.com/S2kIoCM.png", width=30)
                     elif k50:
                         st.image("https://i.imgur.com/oJNLgDG.png", width=30)
-                with c3:
+                with c4:
                     st.markdown(
                         f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>',
                         unsafe_allow_html=True)
