@@ -313,11 +313,13 @@ if total_real_count > 0:
                 k50 = 'KTA50' in desc
                 K3850 = 'KTA38 & KTA50' in desc
 
-                c1, c2, c3, c4 = st.columns([3, 2, 3, 10])
-                with c1:
+                PC1, PC2, c3, c4 = st.columns([3, 2, 3, 10])
+                with PC1:
                     st.write(row['Project_Name'])
-                with c2:
-                    st.write(row.get('Qty', ''))
+                with PC2:
+                    brand = row.get('Brand', '').strip()
+                    if brand:
+                        st.write(brand)
                 with c3:
                     if k38:
                         st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)
