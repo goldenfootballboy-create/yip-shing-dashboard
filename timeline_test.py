@@ -209,7 +209,7 @@ for i, (pt, cnt) in enumerate(project_counts.items()):
 # -------------------------------------------------
 # 10. 主畫面：左側正常 + 右側延誤（進度條平排）
 # -------------------------------------------------
-if total_projects > 0:
+if total_real_count > 0:
     st.markdown(f"### {selected_year} {month_str} {selected_project_type} Project Details")
 
     # 顯示用 DataFrame
