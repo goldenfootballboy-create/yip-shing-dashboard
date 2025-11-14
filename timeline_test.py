@@ -314,11 +314,13 @@ if total_real_count > 0:
                 K3850 = 'KTA38 & KTA50' in desc
 
                 PC1, PC2, c3, c4 = st.columns([3, 2, 3, 10])
+
                 with PC1:
                     st.write(row['Project_Name'])
+
                 with PC2:
-                    brand = row.get('Brand', '').strip()
-                    if brand:
+                    brand = str(row.get('Brand', '')).strip()
+                    if brand and brand.lower() != 'nan':
                         st.write(brand)
                 with c3:
                     if k38:
