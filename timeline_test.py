@@ -313,15 +313,22 @@ if total_real_count > 0:
                 k50 = 'KTA50' in desc
                 K3850 = 'KTA38 & KTA50' in desc
 
-                PC1, PC2, c3, c4 = st.columns([3, 2, 3, 10])
+                c1, c2, c3, c4 = st.columns([3, 2, 3, 10])
 
-                with PC1:
-                    st.write(row['Project_Name'])
-
-                with PC2:
+                # ── c1：Project_Name (上) + Brand (下) ──
+                with c1:
+                    st.markdown(f"**{row['Project_Name']}**")
                     brand = str(row.get('Brand', '')).strip()
                     if brand and brand.lower() != 'nan':
-                        st.write(brand)
+                        st.caption(brand)
+
+                # ── c2：Qty ──
+                with c2:
+                    qty = row.get('Qty', '')
+                    if qty:
+                        st.write(qty)
+
+                # ── c3：圖示 ──
                 with c3:
                     if k38:
                         st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)
@@ -329,12 +336,15 @@ if total_real_count > 0:
                         st.image("https://i.imgur.com/S2kIoCM.png", width=30)
                     elif k50:
                         st.image("https://i.imgur.com/oJNLgDG.png", width=30)
+
+                # ── c4：進度條 + 百分比 + 說明 ──
                 with c4:
                     st.markdown(
                         f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>',
-                        unsafe_allow_html=True)
+                        unsafe_allow_html=True
+                    )
                     pc1, pc2 = st.columns([1, 5])
-                    with pc1: st.write(f"{progress}%")
+                    with pc1: st.write(f"**{progress}%**")
                     with pc2: st.write(explanation)
 
         # 右側：延誤專案
