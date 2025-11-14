@@ -896,3 +896,4 @@ with st.expander("📝 Memo Pad", expanded=True):
 # -------------------------------------------------
 st.markdown("---")
 st.markdown("**YIP SHING Project Management System** | Real-time Project Status Monitoring")
+
