@@ -309,7 +309,7 @@ if total_projects > 0:
                 k50 = 'KTA50' in desc
                 K3850 = 'KTA38 & KTA50' in desc
 
-                c1, c2, c3, c4 = st.columns([3,2,2, 8])
+                c1, c2, c3, c4 = st.columns([3,2,3, 8])
                 with c1:
                     st.write(row['Project_Name'])
                 with c2:
