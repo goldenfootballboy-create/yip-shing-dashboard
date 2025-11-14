@@ -669,10 +669,7 @@ if total_real_count > 0:
 
                 c1, c2, c3, c4 = st.columns([3,2,3,10])
                 with c1:
-                    pc1, pc2 = st.columns([1, 5])
-                   with pc1: st.write(row['Project_Name'])
-                with pc2: st.write(row['Brand'])
-
+                    st.write(row['Project_Name'])
                 with c2:
                     st.write(row['Qty'])
                 with c3:
