@@ -317,10 +317,20 @@ if total_real_count > 0:
 
                 # ── c1：Project_Name (上) + Brand (下) ──
                 with c1:
-                    st.markdown(row['Project_Name'])
-                    brand = str(row.get('Brand', '')).strip()
+                    project_name = row['Project_Name']
+                    brand_raw = row.get('Brand', '')
+                    brand = str(brand_raw).strip() if brand_raw is not None else ''
+
                     if brand and brand.lower() != 'nan':
-                        st.caption(brand)
+                        html = f"""
+                        <div style="line-height: 1.2;">
+                            <div style="font-weight: bold; margin-bottom: 2px;">{project_name}</div>
+                            <div style="font-size: 0.8rem; color: #666;">{brand}</div>
+                        </div>
+                        """
+                        st.markdown(html, unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"**{project_name}**")
 
                 # ── c2：Qty ──
                 with c2:
