@@ -317,7 +317,7 @@ if total_real_count > 0:
 
                 # ── c1：Project_Name (上) + Brand (下) ──
                 with c1:
-                    st.markdown(f"**{row['Project_Name']}**")
+                    st.markdown(row['Project_Name'])
                     brand = str(row.get('Brand', '')).strip()
                     if brand and brand.lower() != 'nan':
                         st.caption(brand)
