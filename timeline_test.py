@@ -197,7 +197,20 @@ with col1:
 for i, (pt, cnt) in enumerate(project_counts.items()):
     with rest[i]:
         st.write(f"**{pt}: {int(cnt)}**")
+# -------------------------------------------------
+# 9. 統計（防呆版：優先用 Real_Count，沒有就用筆數）
+# -------------------------------------------------
+if 'Real_Count' in filtered_df.columns:
+    filtered_df['Real_Count'] = pd.to_numeric(filtered_df['Real_Count'], errors='coerce').fillna(0).astype(int)
+    total_count = int(filtered_df['Real_Count'].sum())
+    if total_count == 0:
+        total_count = len(filtered_df)  # 退回用筆數
+else:
+    total_count = len(filtered_df)
 
+project_counts = filtered_df['Project_Type'].value_counts().to_dict()
+
+st.markdown(f"### Total: **{total_count}** | {'  '.join([f'{k}: {v}' for k, v in project_counts.items()])}")
 # -------------------------------------------------
 # 10. 主畫面：左側正常 + 右側延誤（進度條平排）
 # -------------------------------------------------
