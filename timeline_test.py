@@ -14,14 +14,14 @@ st.set_page_config(page_title="YIP SHING Project Status Dashboard", layout="wide
 
 # Checklist 狀態
 CHECKLIST_FILE = "checklist.json"
-if os.path.exists(CHECK_FILE):
-    with open(CHECK_FILE, "r", encoding="utf-8") as f:
+if os.path.exists(CHECKLIST_FILE):
+    with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
         st.session_state.checklist = json.load(f)
 else:
     st.session_state.checklist = {}
 
 def save_checklist():
-    with open(CHECK_FILE, "w", encoding="utf-8") as f:
+    with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
         json.dump(st.session_state.checklist, f, ensure_ascii=False, indent=2)
 
 # -------------------------------------------------
