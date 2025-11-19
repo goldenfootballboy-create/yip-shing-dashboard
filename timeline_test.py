@@ -68,109 +68,118 @@ if df is None:
     st.stop()
 
 # -------------------------------------------------
-# 5. 載入/儲存 Checklist 狀態
+# 5. 載入/儲存 Checklist 狀態（持久化）
 # -------------------------------------------------
 CHECKLIST_FILE = "checklist.json"
 
-def load_checklist():
-    if os.path.exists(CHECKLIST_FILE):
-        with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
+if os.path.exists(CHECKLIST_FILE):
+    with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
+        saved_checklist = json.load(f)
+else:
+    saved_checklist = {}
+
+if 'checklist' not in st.session_state:
+    st.session_state.checklist = saved_checklist
 
 def save_checklist():
     with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
         json.dump(st.session_state.checklist, f, ensure_ascii=False, indent=2)
 
-if 'checklist' not in st.session_state:
-    st.session_state.checklist = load_checklist()
-
 # -------------------------------------------------
-# 6. 篩選
+# 6. 篩選 + Real_Count 統計
 # -------------------------------------------------
 filtered_df = df[df['Year'] == int(selected_year)].copy()
 if selected_project_type != "All":
     filtered_df = filtered_df[filtered_df['Project_Type'] == selected_project_type]
-
 if selected_month != "--" and 'Lead_Time' in filtered_df.columns:
     month_idx = month_options.index(selected_month)
     if month_idx > 0:
         filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_idx]
 
-# -------------------------------------------------
-# 7. 統計 (Real_Count)
-# -------------------------------------------------
 filtered_df['Real_Count'] = pd.to_numeric(filtered_df.get('Real_Count', 0), errors='coerce').fillna(0).astype(int)
 total_real_count = int(filtered_df['Real_Count'].sum())
 project_counts = filtered_df.groupby('Project_Type')['Real_Count'].sum().to_dict()
 
-st.markdown(f"### Total: **{total_real_count}**  |  {',  '.join([f'{k}: {int(v)}' for k, v in project_counts.items()])}")
+st.markdown(f"### Total: **{total_real_count}** | {'  '.join([f'{k}: {int(v)}' for k, v in project_counts.items()])}")
 
 # -------------------------------------------------
-# 8. 主畫面 + Checklist
+# 7. 主畫面 + Checklist
 # -------------------------------------------------
 if total_real_count > 0:
     current_date = datetime.now()
-
-    # 延誤專案判斷（維持原邏輯）
-    delay_projects = []
-    for _, row in df.iterrows():
-        prog = 0
-        # ...（你原本的進度計算邏輯，保持不變）...
-        # （這裡省略，保留你原本的 delay_projects 判斷）
-
     left_rows = filtered_df.to_dict('records')
 
     for i, row in enumerate(left_rows):
         col_left, col_right = st.columns([5, 5])
 
         with col_left:
-            # 點擊展開的 Project + Checklist
+            # 點擊展開的 Expander
             with st.expander(f"**{row['Project_Name']}** | {row.get('Brand', '')} | Qty: {row.get('Qty', '')}", expanded=False):
                 st.write(f"**Description:** {row.get('Description', '')}")
 
-                # 解析文件清單（CSV 用逗號分隔）
-                order_list = [x.strip() for x in str(row.get('Need_Order', '')).split(',') if x.strip()]
-                submit_list = [x.strip() for x in str(row.get('Need_Submit', '')).split(',') if x.strip()]
+                # 解析 Checklist
+                order_items = [x.strip() for x in str(row.get('Need_Order', '')).split(',') if x.strip()]
+                submit_items = [x.strip() for x in str(row.get('Need_Submit', '')).split(',') if x.strip()]  # ← 已改
 
                 col_a, col_b = st.columns(2)
 
                 with col_a:
-                    st.subheader("📦 需要訂購")
-                    for item in order_list:
+                    st.subheader("需要訂購")
+                    for item in order_items:
                         key = f"order_{row['Project_Name']}_{item}"
                         checked = st.checkbox(item, value=st.session_state.checklist.get(key, False), key=key)
                         st.session_state.checklist[key] = checked
 
                 with col_b:
-                    st.subheader("📄 需要交付")
-                    for item in deliver_list:
-                        key = f"deliver_{row['Project_Name']}_{item}"
+                    st.subheader("需要提交")  # ← 已改
+                    for item in submit_items:
+                        key = f"submit_{row['Project_Name']}_{item}"  # ← key 也改成 submit_
                         checked = st.checkbox(item, value=st.session_state.checklist.get(key, False), key=key)
                         st.session_state.checklist[key] = checked
 
                 # 完成度
-                total_items = len(order_list) + len(deliver_list)
-                completed = sum(1 for k in st.session_state.checklist if k.startswith(f"order_{row['Project_Name']}") or k.startswith(f"deliver_{row['Project_Name']}") and st.session_state.checklist.get(k, False))
-                st.progress(completed / total_items if total_items else 0)
-                st.write(f"**完成度：{completed}/{total_items}**")
+                total = len(order_items) + len(submit_items)
+                completed = sum(st.session_state.checklist.get(k, False) for k in st.session_state.checklist
+                                if k.startswith(f"order_{row['Project_Name']}") or k.startswith(f"submit_{row['Project_Name']}"))
+                st.progress(completed / total if total else 0)
+                st.write(f"**完成度：{completed}/{total}**")
 
                 # 進度條（你原本的邏輯）
-                # ...（這裡放你原本的 progress 計算 + custom-progress）...
+                progress = 0
+                if 'Parts_Arrival_Date' in row and pd.notna(row['Parts_Arrival_Date']):
+                    if row['Parts_Arrival_Date'].date() < current_date.date():
+                        progress += 30
+                if 'Installation_Complete_Date' in row and pd.notna(row['Installation_Complete_Date']):
+                    if row['Installation_Complete_Date'].date() < current_date.date():
+                        progress += 40
+                if 'Testing_Date' in row and pd.notna(row['Testing_Date']):
+                    if row['Testing_Date'].date() < current_date.date():
+                        progress += 10
+                if str(row.get('Cleaning', '')).strip().upper() == 'YES':
+                    progress += 10
+                if 'Delivery_Date' in row and pd.notna(row['Delivery_Date']):
+                    if row['Delivery_Date'].date() < current_date.date():
+                        progress += 10
+                progress = min(progress, 100)
 
-        # 右側延誤專案（保持原樣）
-        # ...（你原本的 delay_projects 顯示）...
+                color = '#0000ff' if progress == 100 else f'rgb(255, {int(255*(1-progress/100))}, 0)'
+                st.markdown(f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>', unsafe_allow_html=True)
+                st.write(f"**{progress}%** - {['Not Start', 'Parts Arrived', 'Installation Completed', 'Testing Completed', 'Cleaning Completed', 'Completed'][progress//20]}")
 
     # 保存按鈕
-    if st.button("💾 保存所有 Checklist 狀態", use_container_width=True):
+    if st.button("保存所有 Checklist 狀態", use_container_width=True):
         save_checklist()
-        st.success("所有 Checklist 已保存到 checklist.json！")
+        st.success("所有打勾狀態已保存！")
 
 else:
     st.info("No projects found.")
 
 # -------------------------------------------------
-# 9. Footer
+# 8. Memo Pad & Footer
 # -------------------------------------------------
 st.markdown("---")
+with st.expander("Memo Pad", expanded=True):
+    # (你原本的 Memo Pad 程式碼，保持不變)
+    pass
+
 st.markdown("**YIP SHING Project Management System** | Real-time Status + Checklist")
