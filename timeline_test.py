@@ -12,7 +12,7 @@ os.chdir(script_dir)
 
 st.set_page_config(page_title="YIP SHING Project Status Dashboard", layout="wide", initial_sidebar_state="expanded")
 
-# 載入/初始化 Checklist 狀態
+# Checklist 持久化
 CHECKLIST_FILE = "checklist.json"
 if os.path.exists(CHECKLIST_FILE):
     with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
@@ -20,8 +20,12 @@ if os.path.exists(CHECKLIST_FILE):
 else:
     st.session_state.checklist = {}
 
+def save_checklist():
+    with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
+        json.dump(st.session_state.checklist, f, ensure_ascii=False, indent=2)
+
 # -------------------------------------------------
-# 2. CSS（保持原樣）
+# 2. CSS
 # -------------------------------------------------
 st.markdown("""
 <style>
@@ -110,9 +114,82 @@ if total_real_count > 0:
         col_left, col_right = st.columns([5, 5])
 
         with col_left:
-            # 主顯示 + 點擊展開 Checklist
-            with st.expander(f"**{row['Project_Name']}** | {row.get('Brand', '')} | Qty: {row.get('Qty', '')}", expanded=False):
-                # 解析 Checklist
+            # 先計算 progress 和 color（兩邊都要用）
+            progress = 0
+            if 'Parts_Arrival_Date' in row and pd.notna(row['Parts_Arrival_Date']):
+                if row['Parts_Arrival_Date'].date() < current_date.date():
+                    progress += 30
+            if 'Installation_Complete_Date' in row and pd.notna(row['Installation_Complete_Date']):
+                if row['Installation_Complete_Date'].date() < current_date.date():
+                    progress += 40
+            if 'Testing_Date' in row and pd.notna(row['Testing_Date']):
+                if row['Testing_Date'].date() < current_date.date():
+                    progress += 10
+            if str(row.get('Cleaning', '')).strip().upper() == 'YES':
+                progress += 10
+            if 'Delivery_Date' in row and pd.notna(row['Delivery_Date']):
+                if row['Delivery_Date'].date() < current_date.date():
+                    progress += 10
+            progress = min(progress, 100)
+
+            # 顏色
+            if progress == 0:
+                color = '#e0e0e0'
+            elif progress < 30:
+                color = f'rgb({int(224 + (255 - 224) * (progress / 30))}, {int(224 + (69 - 224) * (progress / 30))}, {int(224 + (0 - 224) * (progress / 30))})'
+            elif progress < 70:
+                color = f'rgb(255, {int(69 + (255 - 69) * ((progress - 30) / 40))}, 0)'
+            elif progress < 80:
+                color = f'rgb({int(255 + (154 - 255) * ((progress - 70) / 10))}, 255, {int(0 + (50 - 0) * ((progress - 70) / 10))})'
+            elif progress < 90:
+                color = f'rgb({int(154 + (0 - 154) * ((progress - 80) / 10))}, {int(205 + (255 - 205) * ((progress - 80) / 10))}, {int(50 + (0 - 50) * ((progress - 80) / 10))})'
+            elif progress < 100:
+                color = f'rgb(0, {int(255 + (0 - 255) * ((progress - 90) / 10))}, {int(0 + (255 - 0) * ((progress - 90) / 10))})'
+            else:
+                color = '#0000ff'
+
+            explanation = {0: "Not Start Yet", 30: "Parts Arrived", 70: "Installation Completed",
+                           80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(progress, f"{progress}% In Progress")
+
+            # 主顯示
+            c1, c2, c3, c4 = st.columns([3, 2, 3, 10])
+
+            with c1:
+                project_name = row['Project_Name']
+                brand = str(row.get('Brand', '')).strip()
+                if brand and brand.lower() != 'nan':
+                    html = f"""
+                    <div style="line-height: 1.2;">
+                        <div style="font-weight: bold; margin-bottom: 2px;">{project_name}</div>
+                        <div style="font-size: 0.8rem; color: #666;">{brand}</div>
+                    </div>
+                    """
+                    st.markdown(html, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"**{project_name}**")
+
+            with c2:
+                qty = row.get('Qty', '')
+                if qty:
+                    st.write(qty)
+
+            with c3:
+                desc = str(row.get('Description', '')).upper()
+                if 'KTA38' in desc and 'KTA50' in desc:
+                    st.image("https://i.imgur.com/S2kIoCM.png", width=30)
+                elif 'KTA38' in desc:
+                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)
+                elif 'KTA50' in desc:
+                    st.image("https://i.imgur.com/oJNLgDG.png", width=30)
+
+            with c4:
+                st.markdown(f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>', unsafe_allow_html=True)
+                pc1, pc2 = st.columns([1, 5])
+                with pc1: st.write(f"**{progress}%**")
+                with pc2: st.write(explanation)
+
+            # Checklist 展開區
+            with st.expander("Checklist", expanded=False):
                 order_items = [x.strip() for x in str(row.get('Order_List', '')).split(',') if x.strip()]
                 submit_items = [x.strip() for x in str(row.get('Submit_List', '')).split(',') if x.strip()]
 
@@ -131,56 +208,26 @@ if total_real_count > 0:
                         checked = st.checkbox(item, value=st.session_state.checklist.get(key, False), key=key)
                         st.session_state.checklist[key] = checked
 
-                # 完成度
                 total = len(order_items) + len(submit_items)
                 completed = sum(st.session_state.checklist.get(k, False) for k in st.session_state.checklist
                                 if k.startswith(f"order_{row['Project_Name']}_") or k.startswith(f"submit_{row['Project_Name']}_"))
                 st.progress(completed / total if total else 0)
                 st.write(f"**完成度：{completed}/{total}**")
 
-            # 原有顯示（收合時仍可見）
-            progress = 0
-            # ...（你原本的 progress 計算邏輯，保持不變）...
-            # （以下保留你原本的 progress 計算 + c1 c2 c3 c4 顯示）
-
-            c1, c2, c3, c4 = st.columns([3, 2, 3, 10])
-            with c1:
-                project_name = row['Project_Name']
-                brand = str(row.get('Brand', '')).strip()
-                if brand and brand.lower() != 'nan':
-                    html = f"<div style='line-height:1.2;'><div style='font-weight:bold;margin-bottom:2px;'>{project_name}</div><div style='font-size:0.8rem;color:#666;'>{brand}</div></div>"
-                    st.markdown(html, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"**{project_name}**")
-            with c2:
-                if row.get('Qty'): st.write(row['Qty'])
-            with c3:
-                desc = str(row.get('Description', '')).upper()
-                if 'KTA38' in desc and 'KTA50' in desc:
-                    st.image("https://i.imgur.com/S2kIoCM.png", width=30)
-                elif 'KTA38' in desc:
-                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)
-                elif 'KTA50' in desc:
-                    st.image("https://i.imgur.com/oJNLgDG.png", width=30)
-            with c4:
-                # 你原本的進度條
-                st.markdown(f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>', unsafe_allow_html=True)
-                pc1, pc2 = st.columns([1, 5])
-                with pc1: st.write(f"**{progress}%**")
-                with pc2: st.write(explanation)
-
     # 保存按鈕
     if st.button("保存所有 Checklist 狀態", use_container_width=True):
-        with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
-            json.dump(st.session_state.checklist, f, ensure_ascii=False, indent=2)
-        st.success("所有打勾狀態已永久保存！")
+        save_checklist()
+        st.success("所有狀態已保存到 checklist.json！")
 
 else:
-    st.warning("No projects found.")
+    st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
 # -------------------------------------------------
-# Memo Pad & Footer（保持原樣）
+# Memo Pad & Footer
 # -------------------------------------------------
-# （你原本的 Memo Pad 區塊）
+st.markdown("---")
+with st.expander("Memo Pad", expanded=True):
+    # （你原本的 Memo Pad 程式碼）
+    pass
 
 st.markdown("**YIP SHING Project Management System** | Real-time Status + Checklist")
