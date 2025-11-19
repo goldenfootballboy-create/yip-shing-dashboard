@@ -99,19 +99,44 @@ for i, (pt, cnt) in enumerate(project_counts.items()):
     with rest[i]: st.write(f"**{pt}: {int(cnt)}**")
 
 # -------------------------------------------------
-# 5. 主畫面 + 右側側邊欄 Checklist（左右收合）
+# 5. 主畫面（左邊專案列表 + 右邊 Checklist 側邊欄）
 # -------------------------------------------------
 if total_real_count > 0:
-    # 左邊主內容
-    left_col, right_col = st.columns([7, 3])
+    # 左邊主內容 + 右邊佔位
+    left_col, right_placeholder = st.columns([7, 3])
 
     with left_col:
         current_date = datetime.now()
         left_rows = filtered_df.to_dict('records')
 
-        # 延誤專案計算（保持你原本邏輯）
+        # 延誤專案計算
         delay_projects = []
-        # （你原本的延誤計算邏輯）
+        for _, row in df.iterrows():
+            prog = 0
+            if 'Parts_Arrival_Date' in df.columns and pd.notna(row['Parts_Arrival_Date']):
+                if row['Parts_Arrival_Date'].date() < current_date.date():
+                    prog += 30
+            if 'Installation_Complete_Date' in df.columns and pd.notna(row['Installation_Complete_Date']):
+                if row['Installation_Complete_Date'].date() < current_date.date():
+                    prog += 40
+            if 'Testing_Date' in df.columns and pd.notna(row['Testing_Date']):
+                if row['Testing_Date'].date() < current_date.date():
+                    prog += 10
+            if 'Cleaning' in df.columns and str(row.get('Cleaning', '')).strip().upper() == 'YES':
+                prog += 10
+            if 'Delivery_Date' in df.columns and pd.notna(row['Delivery_Date']):
+                if row['Delivery_Date'].date() < current_date.date():
+                    prog += 10
+            prog = min(prog, 100)
+
+            if prog < 100 and 'Lead_Time' in df.columns and pd.notna(row['Lead_Time']) and current_date.date() > row['Lead_Time'].date():
+                delay_projects.append({
+                    'name': row['Project_Name'],
+                    'progress': prog,
+                    'remarks': row.get('Remarks', ''),
+                    'explanation': {0: "Not Start Yet", 30: "Parts Arrived", 70: "Installation Completed",
+                                    80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(prog, f"{prog}% In Progress")
+                })
 
         for i, row in enumerate(left_rows):
             # 計算 progress
@@ -136,7 +161,6 @@ if total_real_count > 0:
             explanation = {0: "Not Start Yet", 30: "Parts Arrived", 70: "Installation Completed",
                            80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(progress, f"{progress}% In Progress")
 
-            # 主顯示
             c1, c2, c3, c4 = st.columns([3, 2, 3, 10])
             with c1:
                 project_name = row['Project_Name']
@@ -168,7 +192,7 @@ if total_real_count > 0:
                 with pc2: st.write(explanation)
 
     # -------------------------------------------------
-    # 右側側邊欄 Checklist（左右收合，像左邊一樣）
+    # 右邊側邊欄 Checklist（左右收合，像左邊一樣）
     # -------------------------------------------------
     with st.sidebar:
         st.title("Checklist Panel")
@@ -176,10 +200,10 @@ if total_real_count > 0:
             save_checklist()
             st.success("已保存！")
 
-        for row in filtered_df.itertuples():
+        for row in filtered_df.itertuples(index=False):
             with st.expander(f"{row.Project_Name}", expanded=False):
-                order_items = [x.strip() for x in str(row.get('Order_List', '')).split(',') if x.strip()]
-                submit_items = [x.strip() for x in str(row.get('Submit_List', '')).split(',') if x.strip()]
+                order_items = [x.strip() for x in str(getattr(row, 'Order_List', '')).split(',') if x.strip()]
+                submit_items = [x.strip() for x in str(getattr(row, 'Submit_List', '')).split(',') if x.strip()]
 
                 col_a, col_b = st.columns(2)
                 with col_a:
@@ -209,7 +233,7 @@ else:
 # -------------------------------------------------
 st.markdown("---")
 with st.expander("Memo Pad", expanded=True):
-    # （你原本的 Memo Pad）
+    # （你原本的 Memo Pad 保持不變）
     pass
 
 st.markdown("**YIP SHING Project Management System** | Real-time Status + Checklist")
