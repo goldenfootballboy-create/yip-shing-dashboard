@@ -1,28 +1,15 @@
 import streamlit as st
 import pandas as pd
 import os
-import json
 from datetime import datetime
 
 # -------------------------------------------------
-# 1. 基本設定 + Checklist 持久化
+# 1. 基本設定
 # -------------------------------------------------
 script_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(script_dir)
 
 st.set_page_config(page_title="YIP SHING Project Status Dashboard", layout="wide", initial_sidebar_state="expanded")
-
-# Checklist 狀態
-CHECKLIST_FILE = "checklist.json"
-if os.path.exists(CHECKLIST_FILE):
-    with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
-        st.session_state.checklist = json.load(f)
-else:
-    st.session_state.checklist = {}
-
-def save_checklist():
-    with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
-        json.dump(st.session_state.checklist, f, ensure_ascii=False, indent=2)
 
 # -------------------------------------------------
 # 2. 完整 CSS（保持你原本的）
@@ -385,38 +372,41 @@ else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
 # -------------------------------------------------
-# 右側側邊欄：Checklist Panel（左右收合，像左邊一樣）
+# 右側側邊欄：可編輯 Checklist 內容（自動存回 CSV）
 # -------------------------------------------------
 with st.sidebar:
     st.title("Checklist Panel")
-    if st.button("保存所有狀態", use_container_width=True):
-        save_checklist()
-        st.success("已保存！")
+
+    # 每次都讀最新 CSV
+    df_latest = pd.read_csv("projects.csv", encoding='utf-8')
 
     for row in filtered_df.itertuples(index=False):
-        with st.expander(f"{row.Project_Name}", expanded=False):
-            order_items = [x.strip() for x in str(getattr(row, 'Order_List', '')).split(',') if x.strip()]
-            submit_items = [x.strip() for x in str(getattr(row, 'Submit_List', '')).split(',') if x.strip()]
+        project_name = row.Project_Name
 
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.subheader("需要訂購")
-                for item in order_items:
-                    key = f"order_{row.Project_Name}_{item}"
-                    checked = st.checkbox(item, value=st.session_state.checklist.get(key, False), key=key)
-                    st.session_state.checklist[key] = checked
+        with st.expander(f"{project_name}", expanded=False):
+            current_order = getattr(row, 'Order_List', '')
+            current_submit = getattr(row, 'Submit_List', '')
 
-            with col_b:
-                st.subheader("需要提交")
-                for item in submit_items:
-                    key = f"submit_{row.Project_Name}_{item}"
-                    checked = st.checkbox(item, value=st.session_state.checklist.get(key, False), key=key)
-                    st.session_state.checklist[key] = checked
+            new_order = st.text_area(
+                "需要訂購（逗號分隔）",
+                value=current_order,
+                height=100,
+                key=f"order_edit_{project_name}"
+            )
+            new_submit = st.text_area(
+                "需要提交（逗號分隔）",
+                value=current_submit,
+                height=100,
+                key=f"submit_edit_{project_name}"
+            )
 
-            total = len(order_items) + len(submit_items)
-            completed = sum(st.session_state.checklist.get(k, False) for k in st.session_state.checklist if k.startswith(f"order_{row.Project_Name}_") or k.startswith(f"submit_{row.Project_Name}_"))
-            st.progress(completed / total if total else 0)
-            st.write(f"**完成度：{completed}/{total}**")
+            # 自動保存（只要內容變就存）
+            if new_order.strip() != current_order.strip() or new_submit.strip() != current_submit.strip():
+                df_latest.loc[df_latest['Project_Name'] == project_name, 'Order_List'] = new_order.strip()
+                df_latest.loc[df_latest['Project_Name'] == project_name, 'Submit_List'] = new_submit.strip()
+                df_latest.to_csv("projects.csv", index=False, encoding='utf-8')
+                st.success(f"{project_name} 已自動保存！", icon="✅")
+                st.rerun()
 
 # -------------------------------------------------
 # Memo Pad & Footer
