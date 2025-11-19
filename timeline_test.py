@@ -99,27 +99,78 @@ for i, (pt, cnt) in enumerate(project_counts.items()):
     with rest[i]: st.write(f"**{pt}: {int(cnt)}**")
 
 # -------------------------------------------------
-# 5. 主畫面 + 右側側邊欄 Checklist（左右收合，像左邊一樣）
+# 5. 主畫面 + 右側側邊欄 Checklist（左右收合）
 # -------------------------------------------------
 if total_real_count > 0:
     # 左邊主內容
-    main_container = st.container()
-    with main_container:
+    left_col, right_col = st.columns([7, 3])
+
+    with left_col:
         current_date = datetime.now()
         left_rows = filtered_df.to_dict('records')
 
         # 延誤專案計算（保持你原本邏輯）
         delay_projects = []
-        # （你原本的延誤計算邏輯，省略）
+        # （你原本的延誤計算邏輯）
 
         for i, row in enumerate(left_rows):
-            # 你的左側專案顯示（完全不變）
-            # ...（保持你原本的 c1 c2 c3 c4 顯示）...
+            # 計算 progress
+            progress = 0
+            if 'Parts_Arrival_Date' in row and pd.notna(row['Parts_Arrival_Date']):
+                if row['Parts_Arrival_Date'].date() < current_date.date():
+                    progress += 30
+            if 'Installation_Complete_Date' in row and pd.notna(row['Installation_Complete_Date']):
+                if row['Installation_Complete_Date'].date() < current_date.date():
+                    progress += 40
+            if 'Testing_Date' in row and pd.notna(row['Testing_Date']):
+                if row['Testing_Date'].date() < current_date.date():
+                    progress += 10
+            if str(row.get('Cleaning', '')).strip().upper() == 'YES':
+                progress += 10
+            if 'Delivery_Date' in row and pd.notna(row['Delivery_Date']):
+                if row['Delivery_Date'].date() < current_date.date():
+                    progress += 10
+            progress = min(progress, 100)
+
+            color = '#0000ff' if progress == 100 else '#ff4500'
+            explanation = {0: "Not Start Yet", 30: "Parts Arrived", 70: "Installation Completed",
+                           80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(progress, f"{progress}% In Progress")
+
+            # 主顯示
+            c1, c2, c3, c4 = st.columns([3, 2, 3, 10])
+            with c1:
+                project_name = row['Project_Name']
+                brand = str(row.get('Brand', '')).strip()
+                if brand and brand.lower() != 'nan':
+                    html = f"<div style='line-height:1.2;'><div style='font-weight:bold;margin-bottom:2px;'>{project_name}</div><div style='font-size:0.8rem;color:#666;'>{brand}</div></div>"
+                    st.markdown(html, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"**{project_name}**")
+
+            with c2:
+                qty = row.get('Qty', '')
+                if qty:
+                    st.write(qty)
+
+            with c3:
+                desc = str(row.get('Description', '')).upper()
+                if 'KTA38' in desc and 'KTA50' in desc:
+                    st.image("https://i.imgur.com/S2kIoCM.png", width=30)
+                elif 'KTA38' in desc:
+                    st.image("https://i.imgur.com/koGZmUz.jpeg", width=30)
+                elif 'KTA50' in desc:
+                    st.image("https://i.imgur.com/oJNLgDG.png", width=30)
+
+            with c4:
+                st.markdown(f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>', unsafe_allow_html=True)
+                pc1, pc2 = st.columns([1, 5])
+                with pc1: st.write(f"**{progress}%**")
+                with pc2: st.write(explanation)
 
     # -------------------------------------------------
-    # 右側側邊欄 Checklist（左右收合）
+    # 右側側邊欄 Checklist（左右收合，像左邊一樣）
     # -------------------------------------------------
-    with st.sidebar("Checklist Panel", key="checklist_sidebar"):
+    with st.sidebar:
         st.title("Checklist Panel")
         if st.button("保存所有狀態", use_container_width=True):
             save_checklist()
