@@ -384,8 +384,8 @@ with st.sidebar:
         project_name = row.Project_Name
 
         with st.expander(f"{project_name}", expanded=False):
-            current_order = getattr(row, 'Order_List', '')
-            current_submit = getattr(row, 'Submit_List', '')
+            current_order = str(getattr(row, 'Order_List', '')) if pd.notna(getattr(row, 'Order_List', '')) else ''
+            current_submit = str(getattr(row, 'Submit_List', '')) if pd.notna(getattr(row, 'Submit_List', '')) else ''
 
             new_order = st.text_area(
                 "需要訂購（逗號分隔）",
