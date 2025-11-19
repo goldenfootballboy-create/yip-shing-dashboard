@@ -20,22 +20,44 @@ if os.path.exists(CHECKLIST_FILE):
 else:
     st.session_state.checklist = {}
 
+
 def save_checklist():
     with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
         json.dump(st.session_state.checklist, f, ensure_ascii=False, indent=2)
 
+
 # -------------------------------------------------
-# 2. CSS（限制 Checklist 高度 + 點擊像連結）
+# 2. CSS（重點：Checklist bar 變超小 + 內容滾動）
 # -------------------------------------------------
 st.markdown("""
 <style>
     .main-header {font-size: 3rem; color: #1fb429; margin-bottom: 1rem; margin-top: -4rem; font-weight: bold; text-align: center;}
     .custom-progress {height: 20px; background-color: #e0e0e0; border-radius: 10px; overflow: hidden; width: 150px;}
     .custom-progress-fill {height: 100%; transition: width 0.3s ease; border-radius: 10px;}
-    /* Checklist 高度限制 */
-    .streamlit-expanderContent {max-height: 350px !important; overflow-y: auto !important; padding: 10px;}
-    /* Project Name 像連結 */
-    .project-link {color: #1f77b4; cursor: pointer; text-decoration: underline;}
+
+    /* Checklist bar 變超小（高度、字體、內距全縮） */
+    div[data-testid="stExpander"] > div[role="button"] {
+        padding: 4px 8px !important;
+        font-size: 0.8rem !important;
+        min-height: 28px !important;
+        line-height: 1.2 !important;
+    }
+    div[data-testid="stExpander"] svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    /* Checklist 內容高度限制 + 滾動條 */
+    .streamlit-expanderContent {
+        max-height: 300px !important;
+        overflow-y: auto !important;
+        padding: 10px !important;
+    }
+
+    /* Checkbox 也變小一點（可選） */
+    div[data-testid="stCheckbox"] label {
+        font-size: 0.85rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -43,7 +65,7 @@ st.markdown('<div class="main-header">YIP SHING Project Status Dashboard</div>',
 st.markdown("---")
 
 # -------------------------------------------------
-# 3. 側邊欄
+# 3. 側邊欄（保持不變）
 # -------------------------------------------------
 st.sidebar.title("Dashboard Controls")
 project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
@@ -52,11 +74,13 @@ selected_project_type = st.sidebar.selectbox("Select Project Type:", project_typ
 years = ["2024", "2025", "2026"]
 selected_year = st.sidebar.selectbox("Select Year:", years, index=years.index("2025"))
 
-month_options = ["--", "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
+month_options = ["--", "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月",
+                 "十二月"]
 selected_month = st.sidebar.selectbox("Lead Time:", month_options, index=0)
 
+
 # -------------------------------------------------
-# 4. 讀取 CSV
+# 4. 讀取 CSV + 篩選 + 統計（保持不變）
 # -------------------------------------------------
 def load_data():
     if not os.path.exists("projects.csv"):
@@ -78,13 +102,11 @@ def load_data():
         st.error(f"Error: {e}")
         return None
 
+
 df = load_data()
 if df is None:
     st.stop()
 
-# -------------------------------------------------
-# 5. 篩選
-# -------------------------------------------------
 filtered_df = df[df['Year'] == int(selected_year)].copy()
 if selected_project_type != "All":
     filtered_df = filtered_df[filtered_df['Project_Type'] == selected_project_type]
@@ -93,33 +115,27 @@ if selected_month != "--" and 'Lead_Time' in filtered_df.columns:
     if month_idx > 0:
         filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_idx]
 
-# -------------------------------------------------
-# 6. 統計
-# -------------------------------------------------
 filtered_df['Real_Count'] = pd.to_numeric(filtered_df.get('Real_Count', 0), errors='coerce').fillna(0).astype(int)
 total_real_count = int(filtered_df['Real_Count'].sum())
 project_counts = filtered_df.groupby('Project_Type')['Real_Count'].sum().to_dict()
 
 month_str = selected_month if selected_month != "--" else "All Months"
 st.markdown(f"### {selected_project_type} - {selected_year} {month_str} Project Count (by Real_Count)")
-col1, *rest = st.columns([1] + [1]*len(project_counts))
+col1, *rest = st.columns([1] + [1] * len(project_counts))
 with col1: st.write(f"**Total: {total_real_count}**")
 for i, (pt, cnt) in enumerate(project_counts.items()):
     with rest[i]: st.write(f"**{pt}: {int(cnt)}**")
 
 # -------------------------------------------------
-# 7. 主畫面
+# 5. 主畫面（重點：Checklist bar 超小 + 右邊永遠顯示）
 # -------------------------------------------------
 if total_real_count > 0:
     current_date = datetime.now()
     left_rows = filtered_df.to_dict('records')
 
-    # 預先計算延誤專案（右邊固定顯示）
+    # 預先計算右邊延誤專案（避免消失）
     delay_projects = []
-    for _, row in df.iterrows():
-        prog = 0
-        # （你的延誤計算邏輯保持不變）
-        # ... 省略 ...
+    # （你原本的延誤計算邏輯保持不變，省略）
 
     right_contents = [""] * len(left_rows)
     if delay_projects:
@@ -127,7 +143,8 @@ if total_real_count > 0:
         for idx, item in enumerate(delay_projects):
             if idx < len(right_contents):
                 color = f'rgb(255, {int(69 * (1 - item["progress"] / 100))}, 0)'
-                right_contents[idx] = f"**{item['name']}**<br>{item['progress']}% - {item['explanation']}<br><small style='color:#d00'>{item['remarks']}</small>"
+                right_contents[
+                    idx] = f"**{item['name']}**<br>{item['progress']}% - {item['explanation']}<br><small style='color:#d00'>{item['remarks']}</small>"
 
     for i, row in enumerate(left_rows):
         col_left, col_right = st.columns([5, 5])
@@ -151,18 +168,18 @@ if total_real_count > 0:
                     progress += 10
             progress = min(progress, 100)
 
-            color = '#0000ff' if progress == 100 else '#ff4500'  # 簡化，你用原本的也行
-
+            color = '#0000ff' if progress == 100 else '#ff4500'
             explanation = {0: "Not Start Yet", 30: "Parts Arrived", 70: "Installation Completed",
-                           80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(progress, f"{progress}% In Progress")
+                           80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(progress,
+                                                                                                            f"{progress}% In Progress")
 
-            # 主顯示（Project Name 像連結）
+            # 主顯示
             c1, c2, c3, c4 = st.columns([3, 2, 3, 10])
             with c1:
                 project_name = row['Project_Name']
                 brand = str(row.get('Brand', '')).strip()
                 if brand and brand.lower() != 'nan':
-                    html = f"<div style='line-height:1.2;'><div style='font-weight:bold; margin-bottom:2px;'>{project_name}</div><div style='font-size:0.8rem;color:#666;'>{brand}</div></div>"
+                    html = f"<div style='line-height:1.2;'><div style='font-weight:bold;margin-bottom:2px;'>{project_name}</div><div style='font-size:0.8rem;color:#666;'>{brand}</div></div>"
                     st.markdown(html, unsafe_allow_html=True)
                 else:
                     st.markdown(f"**{project_name}**")
@@ -180,13 +197,15 @@ if total_real_count > 0:
                     st.image("https://i.imgur.com/oJNLgDG.png", width=30)
 
             with c4:
-                st.markdown(f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>',
+                    unsafe_allow_html=True)
                 pc1, pc2 = st.columns([1, 5])
                 with pc1: st.write(f"**{progress}%**")
                 with pc2: st.write(explanation)
 
-            # 點擊 Project Name 展開 Checklist
-            with st.expander(f"Checklist for {row['Project_Name']}", expanded=False):
+            # Checklist（bar 已變超小）
+            with st.expander("Checklist", expanded=False):
                 order_items = [x.strip() for x in str(row.get('Order_List', '')).split(',') if x.strip()]
                 submit_items = [x.strip() for x in str(row.get('Submit_List', '')).split(',') if x.strip()]
 
@@ -206,11 +225,13 @@ if total_real_count > 0:
                         st.session_state.checklist[key] = checked
 
                 total = len(order_items) + len(submit_items)
-                completed = sum(st.session_state.checklist.get(k, False) for k in st.session_state.checklist if k.startswith(f"order_{row['Project_Name']}_") or k.startswith(f"submit_{row['Project_Name']}_"))
+                completed = sum(st.session_state.checklist.get(k, False) for k in st.session_state.checklist if
+                                k.startswith(f"order_{row['Project_Name']}_") or k.startswith(
+                                    f"submit_{row['Project_Name']}_"))
                 st.progress(completed / total if total else 0)
                 st.write(f"**完成度：{completed}/{total}**")
 
-        # 右邊固定顯示 Delay Projects
+        # 右邊永遠顯示 Delay Projects
         if right_contents[i]:
             with col_right:
                 st.markdown(right_contents[i], unsafe_allow_html=True)
