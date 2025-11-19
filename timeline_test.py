@@ -178,7 +178,25 @@ if selected_month != "--" and 'Lead_Time' in filtered_df.columns:
             filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_idx]
 
 # -------------------------------------------------
+# 9. 統計（改用 Real_Count 總和）
+# -------------------------------------------------
+if 'Real_Count' in filtered_df.columns:
+    filtered_df['Real_Count'] = pd.to_numeric(filtered_df['Real_Count'], errors='coerce').fillna(0).astype(int)
+else:
+    filtered_df['Real_Count'] = 0
 
+project_counts = filtered_df.groupby('Project_Type')['Real_Count'].sum().to_dict()
+total_real_count = int(filtered_df['Real_Count'].sum())
+
+month_str = selected_month if selected_month != "--" else "All Months"
+st.markdown(f"### {selected_project_type} - {selected_year} {month_str} Project Count (by Real_Count)")
+
+col1, *rest = st.columns([1] + [1] * len(project_counts))
+with col1:
+    st.write(f"**Total: {total_real_count}**")
+for i, (pt, cnt) in enumerate(project_counts.items()):
+    with rest[i]:
+        st.write(f"**{pt}: {int(cnt)}**")
 
 # -------------------------------------------------
 # 10. 主畫面：左側正常 + 右側延誤（進度條平排）
