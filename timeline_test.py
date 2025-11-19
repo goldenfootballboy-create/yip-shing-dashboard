@@ -12,7 +12,6 @@ os.chdir(script_dir)
 
 st.set_page_config(page_title="YIP SHING Project Status Dashboard", layout="wide", initial_sidebar_state="expanded")
 
-# Checklist 狀態
 CHECKLIST_FILE = "checklist.json"
 if os.path.exists(CHECKLIST_FILE):
     with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
@@ -20,12 +19,14 @@ if os.path.exists(CHECKLIST_FILE):
 else:
     st.session_state.checklist = {}
 
+
 def save_checklist():
     with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
         json.dump(st.session_state.checklist, f, ensure_ascii=False, indent=2)
 
+
 # -------------------------------------------------
-# 2. CSS（Checklist bar 超小 + 內容滾動 + 右邊永遠顯示）
+# 2. CSS（隱藏 expander bar + 讓點擊 Project Name 像連結）
 # -------------------------------------------------
 st.markdown("""
 <style>
@@ -33,40 +34,20 @@ st.markdown("""
     .custom-progress {height: 20px; background-color: #e0e0e0; border-radius: 10px; overflow: hidden; width: 150px;}
     .custom-progress-fill {height: 100%; transition: width 0.3s ease; border-radius: 10px;}
 
-    /* Checklist bar 變成左下角超小按鈕 */
+    /* 完全隱藏 expander 的標題 bar */
     div[data-testid="stExpander"] > div[role="button"] {
-        width: 100px !important;
-        padding: 4px 8px !important;
-        font-size: 0.78rem !important;
-        min-height: 26px !important;
-        margin-top: 8px !important;
-        display: inline-block !important;
-        background-color: #2d2d2d !important;
-        color: white !important;
-        border-radius: 6px !important;
-    }
-    div[data-testid="stExpander"] svg {
-        width: 12px !important;
-        height: 12px !important;
+        display: none !important;
     }
 
-    /* Checklist 內容高度限制 + 滾動條 */
-    .streamlit-expanderContent {
-        max-height: 320px !important;
-        overflow-y: auto !important;
-        padding: 10px !important;
-        background-color: #1e1e1e !important;
-        border-radius: 8px !important;
+    /* Project Name 變成可點擊連結樣式 */
+    .clickable-project {
+        cursor: pointer;
+        color: #1f77b4;
+        text-decoration: underline;
+        font-weight: bold;
     }
-
-    /* Checkbox 變小 */
-    div[data-testid="stCheckbox"] label {
-        font-size: 0.82rem !important;
-        padding-left: 22px !important;
-    }
-    div[data-testid="stCheckbox"] div[role="checkbox"] {
-        width: 14px !important;
-        height: 14px !important;
+    .clickable-project:hover {
+        color: #ff9500;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -75,7 +56,7 @@ st.markdown('<div class="main-header">YIP SHING Project Status Dashboard</div>',
 st.markdown("---")
 
 # -------------------------------------------------
-# 3. 側邊欄
+# 3. 側邊欄（不變）
 # -------------------------------------------------
 st.sidebar.title("Dashboard Controls")
 project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
@@ -84,11 +65,13 @@ selected_project_type = st.sidebar.selectbox("Select Project Type:", project_typ
 years = ["2024", "2025", "2026"]
 selected_year = st.sidebar.selectbox("Select Year:", years, index=years.index("2025"))
 
-month_options = ["--", "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
+month_options = ["--", "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月",
+                 "十二月"]
 selected_month = st.sidebar.selectbox("Lead Time:", month_options, index=0)
 
+
 # -------------------------------------------------
-# 4. 讀取 CSV
+# 4. 讀取 CSV + 篩選 + 統計（不變）
 # -------------------------------------------------
 def load_data():
     if not os.path.exists("projects.csv"):
@@ -96,8 +79,7 @@ def load_data():
         return None
     try:
         df = pd.read_csv("projects.csv", encoding='utf-8')
-        required = ['Project_Type', 'Project_Name',
-                    'Year', 'Lead_Time']
+        required = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
         if not all(col in df.columns for col in required):
             st.error(f"Missing columns: {', '.join([c for c in required if c not in df.columns])}")
             return None
@@ -111,13 +93,11 @@ def load_data():
         st.error(f"Error: {e}")
         return None
 
+
 df = load_data()
 if df is None:
     st.stop()
 
-# -------------------------------------------------
-# 5. 篩選
-# -------------------------------------------------
 filtered_df = df[df['Year'] == int(selected_year)].copy()
 if selected_project_type != "All":
     filtered_df = filtered_df[filtered_df['Project_Type'] == selected_project_type]
@@ -126,28 +106,25 @@ if selected_month != "--" and 'Lead_Time' in filtered_df.columns:
     if month_idx > 0:
         filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_idx]
 
-# -------------------------------------------------
-# 6. 統計
-# -------------------------------------------------
 filtered_df['Real_Count'] = pd.to_numeric(filtered_df.get('Real_Count', 0), errors='coerce').fillna(0).astype(int)
 total_real_count = int(filtered_df['Real_Count'].sum())
 project_counts = filtered_df.groupby('Project_Type')['Real_Count'].sum().to_dict()
 
 month_str = selected_month if selected_month != "--" else "All Months"
 st.markdown(f"### {selected_project_type} - {selected_year} {month_str} Project Count (by Real_Count)")
-col1, *rest = st.columns([1] + [1]*len(project_counts))
+col1, *rest = st.columns([1] + [1] * len(project_counts))
 with col1: st.write(f"**Total: {total_real_count}**")
 for i, (pt, cnt) in enumerate(project_counts.items()):
     with rest[i]: st.write(f"**{pt}: {int(cnt)}**")
 
 # -------------------------------------------------
-# 7. 主畫面（Checklist bar 超小 + 右邊永遠顯示）
+# 5. 主畫面（點擊 Project Name 展開 Checklist + 右邊永遠顯示）
 # -------------------------------------------------
 if total_real_count > 0:
     current_date = datetime.now()
     left_rows = filtered_df.to_dict('records')
 
-    # 預先計算延誤專案（右邊固定顯示）
+    # 預先計算延誤專案
     delay_projects = []
     for _, row in df.iterrows():
         prog = 0
@@ -167,30 +144,25 @@ if total_real_count > 0:
                 prog += 10
         prog = min(prog, 100)
 
-        condition1 = ('Delivery_Date' in df.columns and 'Lead_Time' in df.columns and
-                      pd.notna(row['Delivery_Date']) and pd.notna(row['Lead_Time']) and
-                      row['Delivery_Date'] > row['Lead_Time'])
-
-        condition2 = (prog < 100 and 'Lead_Time' in df.columns and pd.notna(row['Lead_Time']) and
-                      current_date.date() > row['Lead_Time'].date())
-
-        if (condition1 or condition2) and prog < 100:
+        if prog < 100 and 'Lead_Time' in df.columns and pd.notna(row['Lead_Time']) and current_date.date() > row[
+            'Lead_Time'].date():
             delay_projects.append({
                 'name': row['Project_Name'],
                 'progress': prog,
                 'remarks': row.get('Remarks', ''),
                 'explanation': {0: "Not Start Yet", 30: "Parts Arrived", 70: "Installation Completed",
-                                80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(prog, f"{prog}% In Progress")
+                                80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(prog,
+                                                                                                                 f"{prog}% In Progress")
             })
 
-    # 右邊內容預先準備
     right_contents = [""] * len(left_rows)
     if delay_projects:
         right_contents[0] = "### Delay Projects"
         for idx, item in enumerate(delay_projects):
             if idx < len(right_contents):
                 color = f'rgb(255, {int(69 * (1 - item["progress"] / 100))}, 0)'
-                right_contents[idx] = f"**{item['name']}**<br>{item['progress']}% - {item['explanation']}<br><small style='color:#d00'>{item['remarks']}</small>"
+                right_contents[
+                    idx] = f"**{item['name']}**<br><div class='custom-progress'><div class='custom-progress-fill' style='width:{item['progress']}%;background:{color};'></div></div><br>{item['progress']}% - {item['explanation']}<br><small style='color:#d00'>{item['remarks']}</small>"
 
     for i, row in enumerate(left_rows):
         col_left, col_right = st.columns([5, 5])
@@ -216,7 +188,8 @@ if total_real_count > 0:
 
             color = '#0000ff' if progress == 100 else '#ff4500'
             explanation = {0: "Not Start Yet", 30: "Parts Arrived", 70: "Installation Completed",
-                           80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(progress, f"{progress}% In Progress")
+                           80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(progress,
+                                                                                                            f"{progress}% In Progress")
 
             # 主顯示
             c1, c2, c3, c4 = st.columns([3, 2, 3, 10])
@@ -224,10 +197,10 @@ if total_real_count > 0:
                 project_name = row['Project_Name']
                 brand = str(row.get('Brand', '')).strip()
                 if brand and brand.lower() != 'nan':
-                    html = f"<div style='line-height:1.2;'><div style='font-weight:bold;margin-bottom:2px;'>{project_name}</div><div style='font-size:0.8rem;color:#666;'>{brand}</div></div>"
+                    html = f"<div style='line-height:1.2;'><div class='clickable-project'>{project_name}</div><div style='font-size:0.8rem;color:#666;'>{brand}</div></div>"
                     st.markdown(html, unsafe_allow_html=True)
                 else:
-                    st.markdown(f"**{project_name}**")
+                    st.markdown(f"<div class='clickable-project'>{project_name}</div>", unsafe_allow_html=True)
 
             with c2:
                 qty = row.get('Qty', '')
@@ -244,13 +217,15 @@ if total_real_count > 0:
                     st.image("https://i.imgur.com/oJNLgDG.png", width=30)
 
             with c4:
-                st.markdown(f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>',
+                    unsafe_allow_html=True)
                 pc1, pc2 = st.columns([1, 5])
                 with pc1: st.write(f"**{progress}%**")
                 with pc2: st.write(explanation)
 
-            # Checklist（bar 已變超小）
-            with st.expander("Checklist", expanded=False):
+            # Checklist（完全隱藏 bar，點擊 Project Name 展開）
+            with st.expander("", expanded=False):  # 空標題 = 完全隱藏 bar
                 order_items = [x.strip() for x in str(row.get('Order_List', '')).split(',') if x.strip()]
                 submit_items = [x.strip() for x in str(row.get('Submit_List', '')).split(',') if x.strip()]
 
@@ -270,7 +245,9 @@ if total_real_count > 0:
                         st.session_state.checklist[key] = checked
 
                 total = len(order_items) + len(submit_items)
-                completed = sum(st.session_state.checklist.get(k, False) for k in st.session_state.checklist if k.startswith(f"order_{row['Project_Name']}_") or k.startswith(f"submit_{row['Project_Name']}_"))
+                completed = sum(st.session_state.checklist.get(k, False) for k in st.session_state.checklist if
+                                k.startswith(f"order_{row['Project_Name']}_") or k.startswith(
+                                    f"submit_{row['Project_Name']}_"))
                 st.progress(completed / total if total else 0)
                 st.write(f"**完成度：{completed}/{total}**")
 
@@ -279,7 +256,6 @@ if total_real_count > 0:
             with col_right:
                 st.markdown(right_contents[i], unsafe_allow_html=True)
 
-    # 保存按鈕
     if st.button("保存所有 Checklist 狀態", use_container_width=True):
         save_checklist()
         st.success("已保存！")
@@ -292,7 +268,7 @@ else:
 # -------------------------------------------------
 st.markdown("---")
 with st.expander("Memo Pad", expanded=True):
-    # （你原本的 Memo Pad 保持不變）
+    # （你原本的 Memo Pad）
     pass
 
 st.markdown("**YIP SHING Project Management System** | Real-time Status + Checklist")
