@@ -33,13 +33,16 @@ st.markdown("""
     .custom-progress {height: 20px; background-color: #e0e0e0; border-radius: 10px; overflow: hidden; width: 150px;}
     .custom-progress-fill {height: 100%; transition: width 0.3s ease; border-radius: 10px;}
 
-    /* Checklist bar 變超小（高度、字體、內距全縮） */
+    /* Checklist bar 變成左下角超小按鈕 */
     div[data-testid="stExpander"] > div[role="button"] {
-        padding: 3px 8px !important;
-        font-size: 0.75rem !important;
+        width: 100px !important;
+        padding: 4px 8px !important;
+        font-size: 0.78rem !important;
         min-height: 26px !important;
-        line-height: 1.1 !important;
-        background-color: #f0f2f6 !important;
+        margin-top: 8px !important;
+        display: inline-block !important;
+        background-color: #2d2d2d !important;
+        color: white !important;
         border-radius: 6px !important;
     }
     div[data-testid="stExpander"] svg {
@@ -51,12 +54,14 @@ st.markdown("""
     .streamlit-expanderContent {
         max-height: 320px !important;
         overflow-y: auto !important;
-        padding: 8px !important;
+        padding: 10px !important;
+        background-color: #1e1e1e !important;
+        border-radius: 8px !important;
     }
 
     /* Checkbox 變小 */
     div[data-testid="stCheckbox"] label {
-        font-size: 0.8rem !important;
+        font-size: 0.82rem !important;
         padding-left: 22px !important;
     }
     div[data-testid="stCheckbox"] div[role="checkbox"] {
@@ -91,7 +96,8 @@ def load_data():
         return None
     try:
         df = pd.read_csv("projects.csv", encoding='utf-8')
-        required = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
+        required = ['Project_Type', 'Project_Name',
+                    'Year', 'Lead_Time']
         if not all(col in df.columns for col in required):
             st.error(f"Missing columns: {', '.join([c for c in required if c not in df.columns])}")
             return None
@@ -161,13 +167,20 @@ if total_real_count > 0:
                 prog += 10
         prog = min(prog, 100)
 
-        if prog < 100 and 'Lead_Time' in df.columns and pd.notna(row['Lead_Time']) and current_date.date() > row['Lead_Time'].date():
+        condition1 = ('Delivery_Date' in df.columns and 'Lead_Time' in df.columns and
+                      pd.notna(row['Delivery_Date']) and pd.notna(row['Lead_Time']) and
+                      row['Delivery_Date'] > row['Lead_Time'])
+
+        condition2 = (prog < 100 and 'Lead_Time' in df.columns and pd.notna(row['Lead_Time']) and
+                      current_date.date() > row['Lead_Time'].date())
+
+        if (condition1 or condition2) and prog < 100:
             delay_projects.append({
                 'name': row['Project_Name'],
                 'progress': prog,
+                'remarks': row.get('Remarks', ''),
                 'explanation': {0: "Not Start Yet", 30: "Parts Arrived", 70: "Installation Completed",
-                                80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(prog, f"{prog}% In Progress"),
-                'remarks': row.get('Remarks', '')
+                                80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(prog, f"{prog}% In Progress")
             })
 
     # 右邊內容預先準備
@@ -202,7 +215,6 @@ if total_real_count > 0:
             progress = min(progress, 100)
 
             color = '#0000ff' if progress == 100 else '#ff4500'
-
             explanation = {0: "Not Start Yet", 30: "Parts Arrived", 70: "Installation Completed",
                            80: "Testing Completed", 90: "Cleaning Completed", 100: "Project Completed"}.get(progress, f"{progress}% In Progress")
 
@@ -270,10 +282,10 @@ if total_real_count > 0:
     # 保存按鈕
     if st.button("保存所有 Checklist 狀態", use_container_width=True):
         save_checklist()
-        st.success("所有打勾狀態已永久保存！")
+        st.success("已保存！")
 
 else:
-    st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
+    st.warning("No projects found.")
 
 # -------------------------------------------------
 # Memo Pad & Footer
