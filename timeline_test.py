@@ -109,33 +109,27 @@ with st.sidebar:
     selected_month = st.selectbox("Lead Time:", month_options, index=0, help="Select the lead time to view or '--' for all lead times")
 
 # -------------------------------------------------
-# 5. 讀取 CSV（強制每次都讀最新檔案！）
+# 5. 讀取 CSV（永不快取，保證即時更新！）
 # -------------------------------------------------
-@st.cache_data(ttl=1)  # 每 1 秒重新讀取一次，保證即時更新
-def load_data():
-    csv_file = "projects.csv"
-    if not os.path.exists(csv_file):
-        st.error("Cannot find `projects.csv`!")
-        return None
-    try:
-        df = pd.read_csv(csv_file, encoding='utf-8')
-        required = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
-        if not all(col in df.columns for col in required):
-            st.error(f"Missing columns: {', '.join([c for c in required if c not in df.columns])}")
-            return None
-        df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
-        date_cols = ['Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
-        for col in date_cols:
-            if col in df.columns:
                 df[col] = pd.to_datetime(df[col], errors='coerce')
-        return df
-    except Exception as e:
-        st.error(f"Error: {e}")
-        return None
-
-df = load_data()
-if df is None:
+csv_file = "projects.csv"
+if not os.path.exists(csv_file):
+    st.error("Cannot find `projects.csv`! 請把檔案放在同目錄")
     st.stop()
+
+df = pd.read_csv(csv_file, encoding='utf-8')
+
+required = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
+missing = [c for c in required if c not in df.columns]
+if missing:
+    st.error(f"CSV 缺少欄位: {', '.join(missing)}")
+    st.stop()
+
+df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
+date_cols = ['Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
+for col in date_cols:
+    if col in df.columns:
+        df[col] = pd.to_datetime(df[col], errors='coerce')
 
 # -------------------------------------------------
 # 6. 篩選
