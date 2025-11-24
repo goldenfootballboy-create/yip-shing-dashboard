@@ -40,16 +40,14 @@ with st.sidebar:
     selected_month = st.selectbox("Lead Time:", month_options, index=0)
 
 # -------------------------------------------------
-# 4. 強制每次讀最新 CSV（永不快取！）
+# 4. 讀取 CSV（強制每次讀最新檔案！永不快取！）
 # -------------------------------------------------
 if not os.path.exists("projects.csv"):
     st.error("找不到 projects.csv！請確認檔案在同目錄")
     st.stop()
 
-# 關鍵：完全不使用快取，直接讀！
 df = pd.read_csv("projects.csv", encoding='utf-8')
 
-# 必要欄位檢查
 required = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
 missing = [c for c in required if c not in df.columns]
 if missing:
@@ -63,7 +61,7 @@ for col in date_cols:
         df[col] = pd.to_datetime(df[col], errors='coerce')
 
 # -------------------------------------------------
-# 5. 篩選 + 統計
+# 5. 篩選
 # -------------------------------------------------
 filtered_df = df[df['Year'] == int(selected_year)].copy()
 if selected_project_type != "All":
@@ -73,6 +71,9 @@ if selected_month != "--" and 'Lead_Time' in filtered_df.columns:
     if month_idx > 0:
         filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_idx]
 
+# -------------------------------------------------
+# 6. 統計
+# -------------------------------------------------
 filtered_df['Real_Count'] = pd.to_numeric(filtered_df.get('Real_Count', 0), errors='coerce').fillna(0).astype(int)
 total_real_count = int(filtered_df['Real_Count'].sum())
 project_counts = filtered_df.groupby('Project_Type')['Real_Count'].sum().to_dict()
@@ -85,7 +86,7 @@ for i, (pt, cnt) in enumerate(project_counts.items()):
     with rest[i]: st.write(f"**{pt}: {int(cnt)}**")
 
 # -------------------------------------------------
-# 6. 主畫面 + 右側 Checklist 側邊欄（可編輯 + 自動存回 CSV）
+# 7. 主畫面 + 右側側邊欄 Checklist（可編輯 + 自動存回 CSV）
 # -------------------------------------------------
 if total_real_count > 0:
     current_date = datetime.now()
