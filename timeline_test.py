@@ -3,7 +3,9 @@ import pandas as pd
 import os
 import json
 from datetime import datetime
-
+# 強制刷新按鈕（加這行就一定看到最新 CSV）
+if st.button("強制刷新 (點我測試)"):
+    st.rerun()
 # -------------------------------------------------
 # 1. 基本設定 + Checklist 持久化
 # -------------------------------------------------
