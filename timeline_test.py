@@ -111,7 +111,6 @@ with st.sidebar:
 # -------------------------------------------------
 # 5. 讀取 CSV（永不快取，保證即時更新！）
 # -------------------------------------------------
-                df[col] = pd.to_datetime(df[col], errors='coerce')
 csv_file = "projects.csv"
 if not os.path.exists(csv_file):
     st.error("Cannot find `projects.csv`! 請把檔案放在同目錄")
