@@ -56,7 +56,54 @@ if missing:
     st.error(f"CSV 缺少必要欄位: {', '.join(missing)}")
     st.stop()
 
+df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
+date_cols = ['Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
+for col in date_cols:
+    if col in df.columns:
+        df[col] = pd.to_datetime(df[col], errors='coerce')
 
+# -------------------------------------------------
+# 5. 篩選
+# -------------------------------------------------
+filtered_df = df[df['Year'] == int(selected_year)].copy()
+if selected_project_type != "All":
+    filtered_df = filtered_df[filtered_df['Project_Type'] == selected_project_type]
+if selected_month != "--" and 'Lead_Time' in filtered_df.columns:
+    month_idx = month_options.index(selected_month)
+    if month_idx > 0:
+        filtered_df = filtered_df[filtered_df['Lead_Time'].dt.month == month_idx]
+
+# -------------------------------------------------
+# 6. 統計
+# -------------------------------------------------
+filtered_df['Real_Count'] = pd.to_numeric(filtered_df.get('Real_Count', 0), errors='coerce').fillna(0).astype(int)
+total_real_count = int(filtered_df['Real_Count'].sum())
+project_counts = filtered_df.groupby('Project_Type')['Real_Count'].sum().to_dict()
+
+month_str = selected_month if selected_month != "--" else "All Months"
+st.markdown(f"### {selected_project_type} - {selected_year} {month_str} Project Count (by Real_Count)")
+col1, *rest = st.columns([1] + [1]*len(project_counts))
+with col1: st.write(f"**Total: {total_real_count}**")
+for i, (pt, cnt) in enumerate(project_counts.items()):
+    with rest[i]: st.write(f"**{pt}: {int(cnt)}**")
+
+# -------------------------------------------------
+# 7. 主畫面 + 右側側邊欄 Checklist（可編輯 + 自動存回 CSV）
+# -------------------------------------------------
+if total_real_count > 0:
+    current_date = datetime.now()
+    left_rows = filtered_df.to_dict('records')
+
+    # 延誤專案計算
+    delay_projects = []
+    for _, row in df.iterrows():
+        prog = 0
+        if 'Parts_Arrival_Date' in df.columns and pd.notna(row['Parts_Arrival_Date']):
+            if row['Parts_Arrival_Date'].date() < current_date.date():
+                prog += 30
+        if 'Installation_Complete_Date' in df.columns and pd.notna(row['Installation_Complete_Date']):
+            if row['Installation_Complete_Date'].date() < current_date.date():
+                prog += 40
         if 'Testing_Date' in df.columns and pd.notna(row['Testing_Date']):
             if row['Testing_Date'].date() < current_date.date():
                 prog += 10
