@@ -109,35 +109,25 @@ with st.sidebar:
     selected_month = st.selectbox("Lead Time:", month_options, index=0, help="Select the lead time to view or '--' for all lead times")
 
 # -------------------------------------------------
-# 5. 讀取 CSV（永不快取，保證每次都讀最新檔案！）
+# 5. 讀取 CSV（強制每次讀最新檔案！永不快取！）
 # -------------------------------------------------
-def load_data():
-    csv_file = "projects.csv"
-    if not os.path.exists(csv_file):
-        st.error("Cannot find `projects.csv`!")
-        return None
-    try:
-        # 關鍵：clear_cache + 每次都重新讀
-        st.cache_data.clear()  # 強制清除快取
-        df = pd.read_csv(csv_file, encoding='utf-8')
-        required = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
-        if not all(col in df.columns for col in required):
-            st.error(f"Missing columns: {', '.join([c for c in required if c not in df.columns])}")
-            return None
-        df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
-        date_cols = ['Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
-        for col in date_cols:
-            if col in df.columns:
-                df[col] = pd.to_datetime(df[col], errors='coerce')
-        return df
-    except Exception as e:
-        st.error(f"Error: {e}")
-        return None
-
-# 每次都重新執行（最重要！）
-df = load_data()
-if df is None:
+if not os.path.exists("projects.csv"):
+    st.error("找不到 projects.csv！請確認檔案在同目錄")
     st.stop()
+
+df = pd.read_csv("projects.csv", encoding='utf-8')
+
+required = ['Project_Type', 'Project_Name', 'Year', 'Lead_Time']
+missing = [c for c in required if c not in df.columns]
+if missing:
+    st.error(f"CSV 缺少必要欄位: {', '.join(missing)}")
+    st.stop()
+
+df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
+date_cols = ['Lead_Time', 'Parts_Arrival_Date', 'Installation_Complete_Date', 'Testing_Date', 'Delivery_Date']
+for col in date_cols:
+    if col in df.columns:
+        df[col] = pd.to_datetime(df[col], errors='coerce')
 
 # -------------------------------------------------
 # 6. 篩選
@@ -383,7 +373,7 @@ with st.sidebar:
         project_name = row.Project_Name
 
         with st.expander(f"{project_name}", expanded=False):
-            # 安全讀取（防 NaN）
+            # 安全讀取
             current_order = str(getattr(row, 'Order_List', '')) if pd.notna(getattr(row, 'Order_List', '')) else ''
             current_submit = str(getattr(row, 'Submit_List', '')) if pd.notna(getattr(row, 'Submit_List', '')) else ''
 
@@ -400,12 +390,11 @@ with st.sidebar:
                 key=f"submit_edit_{project_name}"
             )
 
-            # 自動保存（只要內容變就存）
             if new_order.strip() != current_order.strip() or new_submit.strip() != current_submit.strip():
                 df_latest.loc[df_latest['Project_Name'] == project_name, 'Order_List'] = new_order.strip()
                 df_latest.loc[df_latest['Project_Name'] == project_name, 'Submit_List'] = new_submit.strip()
                 df_latest.to_csv("projects.csv", index=False, encoding='utf-8')
-                st.success(f"{project_name} 已自動保存！", icon="✅")
+                st.success(f"{project_name} 已自動保存！", icon="Success")
                 st.rerun()
 
 # -------------------------------------------------
