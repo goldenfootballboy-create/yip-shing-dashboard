@@ -337,27 +337,43 @@ if total_real_count > 0:
                     elif k50:
                         st.image("https://i.imgur.com/oJNLgDG.png", width=30)
 
-                # ── c4：進度條 + 百分比 + 說明 ──
                 with c4:
-                    # 讀取 Tooltip（如果沒有就空白）
+                    # 讀取 Tooltip
                     tooltip = str(row.get('Progress_Tooltip', '')).strip()
                     if tooltip and tooltip.lower() != 'nan':
-                        tooltip_html = f'title="{tooltip}" style="cursor: help;"'
+                        # 真正有效的 Tooltip（用 data-tooltip + CSS）
+                        st.markdown(
+                            f'''
+                            <div style="position: relative; display: inline-block;">
+                                <div class="custom-progress">
+                                    <div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div>
+                                </div>
+                                <div style="position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); 
+                                           background: #333; color: white; padding: 8px 12px; border-radius: 6px; 
+                                           font-size: 13px; white-space: nowrap; opacity: 0; transition: opacity 0.3s;
+                                           pointer-events: none; z-index: 100;" 
+                                     onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+                                    {tooltip.replace(chr(10), '<br>')}
+                                    <div style="position: absolute; top: 100%; left: 50%; margin-left: -5px; 
+                                               border-width: 5px; border-style: solid; border-color: #333 transparent transparent transparent;">
+                                    </div>
+                                </div>
+                            </div>
+                            ''',
+                            unsafe_allow_html=True
+                        )
                     else:
-                        tooltip_html = ''
+                        # 沒 tooltip 就照常顯示
+                        st.markdown(
+                            f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>',
+                            unsafe_allow_html=True
+                        )
 
-                    st.markdown(
-                        f'<div class="custom-progress" {tooltip_html}>'
-                        f'<div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div>'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
                     pc1, pc2 = st.columns([1, 5])
                     with pc1:
                         st.write(f"**{progress}%**")
                     with pc2:
                         st.write(explanation)
-
         # 右側：延誤專案
         if i == 0 and delay_projects:
             with col_right:
