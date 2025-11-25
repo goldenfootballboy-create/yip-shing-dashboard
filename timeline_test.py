@@ -339,13 +339,24 @@ if total_real_count > 0:
 
                 # ── c4：進度條 + 百分比 + 說明 ──
                 with c4:
+                    # 讀取 Tooltip（如果沒有就空白）
+                    tooltip = str(row.get('Progress_Tooltip', '')).strip()
+                    if tooltip and tooltip.lower() != 'nan':
+                        tooltip_html = f'title="{tooltip}" style="cursor: help;"'
+                    else:
+                        tooltip_html = ''
+
                     st.markdown(
-                        f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>',
+                        f'<div class="custom-progress" {tooltip_html}>'
+                        f'<div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div>'
+                        f'</div>',
                         unsafe_allow_html=True
                     )
                     pc1, pc2 = st.columns([1, 5])
-                    with pc1: st.write(f"**{progress}%**")
-                    with pc2: st.write(explanation)
+                    with pc1:
+                        st.write(f"**{progress}%**")
+                    with pc2:
+                        st.write(explanation)
 
         # 右側：延誤專案
         if i == 0 and delay_projects:
