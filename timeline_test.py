@@ -451,7 +451,7 @@ with st.sidebar:
                             new_done_d.add(txt.strip())
 
             # 儲存按鈕（點了才寫入 JSON）
-            if st.button("儲存此項目", key=f"save_{project_name}", use_container_width=True, type="primary"):
+            if st.button("SAVE", key=f"save_{project_name}", use_container_width=True, type="primary"):
                 saved_checklist[project_name] = {
                     "purchase": new_purchase,
                     "done_p":   list(new_done_p),
