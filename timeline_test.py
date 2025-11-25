@@ -341,39 +341,59 @@ if total_real_count > 0:
                     # 讀取 Tooltip
                     tooltip = str(row.get('Progress_Tooltip', '')).strip()
                     if tooltip and tooltip.lower() != 'nan':
-                        # 真正有效的 Tooltip（用 data-tooltip + CSS）
-                        st.markdown(
-                            f'''
-                            <div style="position: relative; display: inline-block;">
-                                <div class="custom-progress">
-                                    <div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div>
-                                </div>
-                                <div style="position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); 
-                                           background: #333; color: white; padding: 8px 12px; border-radius: 6px; 
-                                           font-size: 13px; white-space: nowrap; opacity: 0; transition: opacity 0.3s;
-                                           pointer-events: none; z-index: 100;" 
-                                     onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
-                                    {tooltip.replace(chr(10), '<br>')}
-                                    <div style="position: absolute; top: 100%; left: 50%; margin-left: -5px; 
-                                               border-width: 5px; border-style: solid; border-color: #333 transparent transparent transparent;">
-                                    </div>
-                                </div>
+                        # 真正有效的 Tooltip（純 CSS + data-tooltip 方式）
+                        st.markdown(f"""
+                        <div style="position:relative; display:inline-block; width:150px;">
+                            <div class="custom-progress">
+                                <div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div>
                             </div>
-                            ''',
-                            unsafe_allow_html=True
-                        )
+                            <div style="
+                                position: absolute;
+                                bottom: 28px;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                background: #1e1e1e;
+                                color: white;
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                font-size: 13px;
+                                white-space: pre-wrap;
+                                max-width: 300px;
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                                opacity: 0;
+                                visibility: hidden;
+                                transition: all 0.3s;
+                                z-index: 999;
+                                pointer-events: none;
+                            ">
+                                {tooltip.replace(chr(10), '<br>')}
+                                <div style="
+                                    position: absolute;
+                                    top: 100%;
+                                    left: 50%;
+                                    margin-left: -6px;
+                                    border: 6px solid transparent;
+                                    border-top-color: #1e1e1e;
+                                "></div>
+                            </div>
+                            <style>
+                            .custom-progress:hover + div {{
+                                opacity: 1 !important;
+                                visibility: visible !important;
+                            }}
+                            </style>
+                        </div>
+                        """, unsafe_allow_html=True)
                     else:
-                        # 沒 tooltip 就照常顯示
+                        # 沒 tooltip 就正常顯示
                         st.markdown(
                             f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>',
                             unsafe_allow_html=True
                         )
 
                     pc1, pc2 = st.columns([1, 5])
-                    with pc1:
-                        st.write(f"**{progress}%**")
-                    with pc2:
-                        st.write(explanation)
+                    with pc1: st.write(f"**{progress}%**")
+                    with pc2: st.write(explanation)
         # 右側：延誤專案
         if i == 0 and delay_projects:
             with col_right:
