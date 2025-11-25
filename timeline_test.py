@@ -385,84 +385,82 @@ else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
 # -------------------------------------------------
-# 左側側邊欄：雙欄 Checklist（Purchase List + Drawings Submission）
+# 左側側邊欄：雙欄 Checklist（打勾永久保留 + 自動存 CSV）
 # -------------------------------------------------
 with st.sidebar:
     st.title("Checklist Panel")
 
-    # 每次都讀最新 CSV
+    # 強制讀最新 CSV
     df_latest = pd.read_csv("projects.csv", encoding='utf-8')
 
     for _, row in filtered_df.iterrows():
         project_name = row['Project_Name']
 
         with st.expander(f"{project_name}", expanded=False):
-            # 讀取原始內容
+            # 讀取原始字串
             order_raw = str(row.get('Order_List', '')) if pd.notna(row.get('Order_List')) else ''
             submit_raw = str(row.get('Submit_List', '')) if pd.notna(row.get('Submit_List')) else ''
 
-            # 解析項目
+            # 解析項目 + 是否完成
             purchase_items = [x.strip() for x in order_raw.split(',') if x.strip()]
             drawing_items = [x.strip() for x in submit_raw.split(',') if x.strip()]
 
-            st.markdown("### Purchase List  Drawings Submission")
-
-            # 計算最大行數（讓兩欄對齊）
-            max_rows = max(len(purchase_items), len(drawing_items), 5)  # 至少5行可新增
-
             new_purchase = []
             new_drawings = []
+
+            st.markdown("### Purchase List     Drawings Submission")
+
+            max_rows = max(len(purchase_items), len(drawing_items), 6)
 
             for i in range(max_rows):
                 col1, col2 = st.columns(2)
 
                 # Purchase List
                 with col1:
-                    current_text = purchase_items[i] if i < len(purchase_items) else ""
-                    is_completed = current_text.startswith("Completed: ")
-                    display_text = current_text.replace("Completed: ", "") if is_completed else current_text
+                    item_text = purchase_items[i] if i < len(purchase_items) else ""
+                    is_done = item_text.startswith("Completed: ")
+                    clean_text = item_text.replace("Completed: ", "") if is_done else item_text
 
-                    check1 = st.checkbox("Completed", value=is_completed, key=f"p_check_{project_name}_{i}")
-                    text1 = st.text_input(
-                        "Purchase Item",
-                        value=display_text,
-                        key=f"p_text_{project_name}_{i}",
-                        label_visibility="collapsed"
-                    )
-                    final_text1 = f"Completed: {text1}" if check1 and text1 else text1
-                    if text1 or i < len(purchase_items):
-                        new_purchase.append(final_text1)
+                    c1, c2 = st.columns([1, 6])
+                    with c1:
+                        check1 = st.checkbox("", value=is_done, key=f"p_chk_{project_name}_{i}")
+                    with c2:
+                        text1 = st.text_input(
+                            "", value=clean_text, key=f"p_txt_{project_name}_{i}",
+                            label_visibility="collapsed"
+                        )
+                    final1 = f"Completed: {text1}" if check1 else text1
+                    if text1.strip():
+                        new_purchase.append(final1)
 
                 # Drawings Submission
                 with col2:
-                    current_text = drawing_items[i] if i < len(drawing_items) else ""
-                    is_completed = current_text.startswith("Completed: ")
-                    display_text = current_text.replace("Completed: ", "") if is_completed else current_text
+                    item_text = drawing_items[i] if i < len(drawing_items) else ""
+                    is_done = item_text.startswith("Completed: ")
+                    clean_text = item_text.replace("Completed: ", "") if is_done else item_text
 
-                    check2 = st.checkbox("Completed", value=is_completed, key=f"d_check_{project_name}_{i}")
-                    text2 = st.text_input(
-                        "Drawing Item",
-                        value=display_text,
-                        key=f"d_text_{project_name}_{i}",
-                        label_visibility="collapsed"
-                    )
-                    final_text2 = f"Completed: {text2}" if check2 and text2 else text2
-                    if text2 or i < len(drawing_items):
-                        new_drawings.append(final_text2)
+                    c1, c2 = st.columns([1, 6])
+                    with c1:
+                        check2 = st.checkbox("", value=is_done, key=f"d_chk_{project_name}_{i}")
+                    with c2:
+                        text2 = st.text_input(
+                            "", value=clean_text, key=f"d_txt_{project_name}_{i}",
+                            label_visibility="collapsed"
+                        )
+                    final2 = f"Completed: {text2}" if check2 else text2
+                    if text2.strip():
+                        new_drawings.append(final2)
 
-            # 自動寫回 CSV
-            final_order = ", ".join([x.replace("Completed: ", "") for x in new_purchase if x])
-            final_submit = ", ".join([x.replace("Completed: ", "") for x in new_drawings if x])
+            # 寫回 CSV（只存未完成的 + 已完成的文字）
+            final_order = ", ".join([x.replace("Completed: ", "") for x in new_purchase])
+            final_submit = ", ".join([x.replace("Completed: ", "") for x in new_drawings])
 
+            # 只有真的變動才寫入（避免無限迴圈）
             if final_order != order_raw or final_submit != submit_raw:
                 df_latest.loc[df_latest['Project_Name'] == project_name, 'Order_List'] = final_order
                 df_latest.loc[df_latest['Project_Name'] == project_name, 'Submit_List'] = final_submit
                 df_latest.to_csv("projects.csv", index=False, encoding='utf-8')
-                st.success(f"{project_name} 已自動保存！", icon="Success")
-                st.rerun()
-
-            # 可選：加一個「新增一行」按鈕
-            if st.button("Add New Row +", key=f"addrow_{project_name}"):
+                st.success(f"{project_name} 已儲存！", icon="Success")
                 st.rerun()
 # -------------------------------------------------
 # Memo Pad & Footer
