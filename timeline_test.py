@@ -385,7 +385,7 @@ else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
 # -------------------------------------------------
-# 左側側邊欄：雙欄 Checklist（打勾永遠記得！）
+# 左側側邊欄：雙欄 Checklist + 儲存按鈕（打勾永久保留！）
 # -------------------------------------------------
 with st.sidebar:
     st.title("Checklist Panel")
@@ -397,54 +397,57 @@ with st.sidebar:
         project_name = row['Project_Name']
 
         with st.expander(f"{project_name}", expanded=False):
-            # 讀取清單
-            order_raw = str(row.get('Order_List', '')) if pd.notna(row.get('Order_List')) else ''
-            submit_raw = str(row.get('Submit_List', '')) if pd.notna(row.get('Submit_List')) else ''
-            done_order_raw = str(row.get('Order_Done', '')) if pd.notna(row.get('Order_Done')) else ''
-            done_submit_raw = str(row.get('Submit_Done', '')) if pd.notna(row.get('Submit_Done')) else ''
+            # 讀取四個欄位
+            order_raw     = str(row.get('Order_List', ''))    if pd.notna(row.get('Order_List'))    else ''
+            submit_raw    = str(row.get('Submit_List', ''))   if pd.notna(row.get('Submit_List'))   else ''
+            done_order_raw = str(row.get('Order_Done', ''))   if pd.notna(row.get('Order_Done'))    else ''
+            done_submit_raw= str(row.get('Submit_Done', ''))  if pd.notna(row.get('Submit_Done'))   else ''
 
-            order_items = [x.strip() for x in order_raw.split(',') if x.strip()]
-            submit_items = [x.strip() for x in submit_raw.split(',') if x.strip()]
-            done_order = set(x.strip() for x in done_order_raw.split(',') if x.strip())
-            done_submit = set(x.strip() for x in done_submit_raw.split(',') if x.strip())
+            order_items   = [x.strip() for x in order_raw.split(',') if x.strip()]
+            submit_items  = [x.strip() for x in submit_raw.split(',') if x.strip()]
+            done_order    = set(x.strip() for x in done_order_raw.split(',') if x.strip())
+            done_submit   = set(x.strip() for x in done_submit_raw.split(',') if x.strip())
 
             st.markdown("### Purchase List     Drawings Submission")
 
+            # 暫存本次編輯結果
+            this_done_order  = set()
+            this_done_submit = set()
+
             max_rows = max(len(order_items), len(submit_items), 6)
-            new_done_order = set()
-            new_done_submit = set()
 
             for i in range(max_rows):
                 col1, col2 = st.columns(2)
 
                 # Purchase List
                 with col1:
-                    item = order_items[i] if i < len(order_items) else ""
-                    checked = item in done_order
-                    new_check = st.checkbox("Completed", value=checked, key=f"po_{project_name}_{i}")
-                    new_text = st.text_input(
-                        "", value=item, key=f"pt_{project_name}_{i}",
-                        label_visibility="collapsed"
-                    )
-                    if new_check and new_text.strip():
-                        new_done_order.add(new_text.strip())
+                    item_text = order_items[i] if i < len(order_items) else ""
+                    checked = item_text in done_order
+                    c_chk, c_txt = st.columns([1, 6])
+                    with c_chk:
+                        chk = st.checkbox("", value=checked, key=f"chk_p_{project_name}_{i}")
+                    with c_txt:
+                        txt = st.text_input("", value=item_text, key=f"txt_p_{project_name}_{i}", label_visibility="collapsed")
+                    if chk and txt.strip():
+                        this_done_order.add(txt.strip())
 
                 # Drawings Submission
                 with col2:
-                    item = submit_items[i] if i < len(submit_items) else ""
-                    checked = item in done_submit
-                    new_check = st.checkbox("Completed", value=checked, key=f"so_{project_name}_{i}")
-                    new_text = st.text_input(
-                        "", value=item, key=f"st_{project_name}_{i}",
-                        label_visibility="collapsed"
-                    )
-                    if new_check and new_text.strip():
-                        new_done_submit.add(new_text.strip())
+                    item_text = submit_items[i] if i < len(submit_items) else ""
+                    checked = item_text in done_submit
+                    c_chk, c_txt = st.columns([1, 6])
+                    with c_chk:
+                        chk = st.checkbox("", value=checked, key=f"chk_s_{project_name}_{i}")
+                    with c_txt:
+                        txt = st.text_input("", value=item_text, key=f"txt_s_{project_name}_{i}", label_visibility="collapsed")
+                    if chk and txt.strip():
+                        this_done_submit.add(txt.strip())
 
-            # 自動寫回 CSV
-            if new_done_order != done_order or new_done_submit != done_submit:
-                df_latest.loc[df_latest['Project_Name'] == project_name, 'Order_Done'] = ", ".join(new_done_order)
-                df_latest.loc[df_latest['Project_Name'] == project_name, 'Submit_Done'] = ", ".join(new_done_submit)
+            # 儲存按鈕
+            if st.button("Save", key=f"save_{project_name}", use_container_width=True, type="primary"):
+                # 寫回 CSV
+                df_latest.loc[df_latest['Project_Name'] == project_name, 'Order_Done']  = ", ".join(this_done_order)
+                df_latest.loc[df_latest['Project_Name'] == project_name, 'Submit_Done'] = ", ".join(this_done_submit)
                 df_latest.to_csv("projects.csv", index=False, encoding='utf-8')
                 st.success(f"{project_name} 已儲存！", icon="Success")
                 st.rerun()
