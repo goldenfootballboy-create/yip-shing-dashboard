@@ -385,88 +385,82 @@ else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
 # -------------------------------------------------
-# 左側側邊欄：雙欄 Checklist + Save 按鈕（真正寫入 CSV！）
+# 左側側邊欄：雙欄 Checklist（打勾永久保留 + 點 Save 才存入 JSON，不動 CSV、不影響排版）
 # -------------------------------------------------
 with st.sidebar:
     st.title("Checklist Panel")
 
-    # 關鍵：每次都重新讀取（絕對不快取！）
-    df_latest = pd.read_csv("projects.csv", encoding='utf-8')
-
-    # 用 session_state 儲存當前編輯狀態（避免快取問題）
-    if f"editing_{project_name}" not in st.session_state:
-        st.session_state[f"editing_{project_name}"] = True
+    # 永久儲存檔案
+    CHECKLIST_FILE = "checklist_data.json"
+    if os.path.exists(CHECKLIST_FILE):
+        with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
+            saved_checklist = json.load(f)
+    else:
+        saved_checklist = {}
 
     for _, row in filtered_df.iterrows():
         project_name = row['Project_Name']
 
+        # 從 JSON 讀取（沒有就用 CSV 原始值當預設）
+        data = saved_checklist.get(project_name, {
+            "purchase": [x.strip() for x in str(row.get('Order_List', '')).split(',') if x.strip()],
+            "done_p":   [],
+            "drawing":  [x.strip() for x in str(row.get('Submit_List', '')).split(',') if x.strip()],
+            "done_d":   []
+        })
+
         with st.expander(f"{project_name}", expanded=False):
-            # 讀取原始資料
-            order_raw     = str(row.get('Order_List', '')) if pd.notna(row.get('Order_List')) else ''
-            submit_raw    = str(row.get('Submit_List', '')) if pd.notna(row.get('Submit_List')) else ''
-            done_order_raw = str(row.get('Order_Done', '')) if pd.notna(row.get('Order_Done')) else ''
-            done_submit_raw= str(row.get('Submit_Done', '')) if pd.notna(row.get('Submit_Done')) else ''
-
-            order_items   = [x.strip() for x in order_raw.split(',') if x.strip()]
-            submit_items  = [x.strip() for x in submit_raw.split(',') if x.strip()]
-            done_order    = set(x.strip() for x in done_order_raw.split(',') if x.strip())
-            done_submit   = set(x.strip() for x in done_submit_raw.split(',') if x.strip())
-
             st.markdown("### Purchase List     Drawings Submission")
 
-            new_order_items = []
-            new_submit_items = []
-            new_done_order = set()
-            new_done_submit = set()
+            new_purchase = []
+            new_done_p   = set()
+            new_drawing  = []
+            new_done_d   = set()
 
-            max_rows = max(len(order_items), len(submit_items), 6)
+            max_rows = max(len(data["purchase"]), len(data["drawing"]), 6)
 
             for i in range(max_rows):
                 col1, col2 = st.columns(2)
 
                 # Purchase List
                 with col1:
-                    current = order_items[i] if i < len(order_items) else ""
-                    checked = current in done_order
+                    text = data["purchase"][i] if i < len(data["purchase"]) else ""
+                    checked = text in data["done_p"]
                     c1, c2 = st.columns([1, 6])
                     with c1:
                         chk = st.checkbox("", value=checked, key=f"pchk_{project_name}_{i}")
                     with c2:
-                        txt = st.text_input("", value=current, key=f"ptxt_{project_name}_{i}", label_visibility="collapsed")
+                        txt = st.text_input("", value=text, key=f"ptxt_{project_name}_{i}", label_visibility="collapsed")
                     if txt.strip():
-                        new_order_items.append(txt.strip())
+                        new_purchase.append(txt.strip())
                         if chk:
-                            new_done_order.add(txt.strip())
+                            new_done_p.add(txt.strip())
 
                 # Drawings Submission
                 with col2:
-                    current = submit_items[i] if i < len(submit_items) else ""
-                    checked = current in done_submit
+                    text = data["drawing"][i] if i < len(data["drawing"]) else ""
+                    checked = text in data["done_d"]
                     c1, c2 = st.columns([1, 6])
                     with c1:
-                        chk = st.checkbox("", value=checked, key=f"schk_{project_name}_{i}")
+                        chk = st.checkbox("", value=checked, key=f"dchk_{project_name}_{i}")
                     with c2:
-                        txt = st.text_input("", value=current, key=f"stxt_{project_name}_{i}", label_visibility="collapsed")
+                        txt = st.text_input("", value=text, key=f"dtxt_{project_name}_{i}", label_visibility="collapsed")
                     if txt.strip():
-                        new_submit_items.append(txt.strip())
+                        new_drawing.append(txt.strip())
                         if chk:
-                            new_done_submit.add(txt.strip())
+                            new_done_d.add(txt.strip())
 
-            # 儲存按鈕
-            if st.button("Save Changes", key=f"save_{project_name}", use_container_width=True, type="primary"):
-                # 強制重新讀取最新 CSV（避免快取）
-                df_fresh = pd.read_csv("projects.csv", encoding='utf-8')
-
-                # 寫回四個欄位
-                df_fresh.loc[df_fresh['Project_Name'] == project_name, 'Order_List']   = ", ".join(new_order_items)
-                df_fresh.loc[df_fresh['Project_Name'] == project_name, 'Submit_List']  = ", ".join(new_submit_items)
-                df_fresh.loc[df_fresh['Project_Name'] == project_name, 'Order_Done']   = ", ".join(new_done_order)
-                df_fresh.loc[df_fresh['Project_Name'] == project_name, 'Submit_Done']  = ", ".join(new_done_submit)
-
-                # 真正寫入檔案
-                df_fresh.to_csv("projects.csv", index=False, encoding='utf-8')
-
-                st.success(f"{project_name} 已成功儲存！")
+            # 儲存按鈕（點了才寫入 JSON）
+            if st.button("儲存此項目", key=f"save_{project_name}", use_container_width=True, type="primary"):
+                saved_checklist[project_name] = {
+                    "purchase": new_purchase,
+                    "done_p":   list(new_done_p),
+                    "drawing":  new_drawing,
+                    "done_d":   list(new_done_d)
+                }
+                with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
+                    json.dump(saved_checklist, f, ensure_ascii=False, indent=2)
+                st.success(f"{project_name} 已儲存！")
                 st.rerun()
 # -------------------------------------------------
 # Memo Pad & Footer
