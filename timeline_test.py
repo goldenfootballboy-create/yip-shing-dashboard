@@ -338,29 +338,28 @@ if total_real_count > 0:
                         st.image("https://i.imgur.com/oJNLgDG.png", width=30)
 
                 with c4:
+                    # 讀取 Tooltip
                     tooltip = str(row.get('Progress_Tooltip', '')).strip()
                     if tooltip and tooltip.lower() != 'nan':
+                        # 真正有效的 Tooltip（純 CSS + data-tooltip 方式）
                         st.markdown(f"""
                         <div style="position:relative; display:inline-block; width:150px;">
                             <div class="custom-progress">
                                 <div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div>
                             </div>
-
-                            <!-- 這裡就是跳出的方格，改這幾個地方就變大變美 -->
                             <div style="
                                 position: absolute;
-                                bottom: 32px;              /* 距離進度條的距離（可調高） */
+                                bottom: 28px;
                                 left: 50%;
                                 transform: translateX(-50%);
-                                background: #1e1e1e;       /* 背景色 */
+                                background: #1e1e1e;
                                 color: white;
-                                padding: 14px 18px;        /* 內距 → 讓方格變大 */
-                                border-radius: 10px;       /* 圓角 */
-                                font-size: 15px;           /* 字變大 */
-                                line-height: 1.5;          /* 行距 */
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                font-size: 13px;
                                 white-space: pre-wrap;
-                                max-width: 380px;          /* 方格最大寬度（可調更大） */
-                                box-shadow: 0 6px 20px rgba(0,0,0,0.4);  /* 陰影更明顯 */
+                                max-width: 300px;
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                                 opacity: 0;
                                 visibility: hidden;
                                 transition: all 0.3s;
@@ -372,12 +371,11 @@ if total_real_count > 0:
                                     position: absolute;
                                     top: 100%;
                                     left: 50%;
-                                    margin-left: -8px;
-                                    border: 8px solid transparent;
+                                    margin-left: -6px;
+                                    border: 6px solid transparent;
                                     border-top-color: #1e1e1e;
                                 "></div>
                             </div>
-
                             <style>
                             .custom-progress:hover + div {{
                                 opacity: 1 !important;
@@ -387,10 +385,15 @@ if total_real_count > 0:
                         </div>
                         """, unsafe_allow_html=True)
                     else:
+                        # 沒 tooltip 就正常顯示
                         st.markdown(
                             f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>',
                             unsafe_allow_html=True
                         )
+
+                    pc1, pc2 = st.columns([1, 5])
+                    with pc1: st.write(f"**{progress}%**")
+                    with pc2: st.write(explanation)
         # 右側：延誤專案
         if i == 0 and delay_projects:
             with col_right:
