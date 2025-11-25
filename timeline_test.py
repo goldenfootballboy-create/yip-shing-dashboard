@@ -340,54 +340,39 @@ if total_real_count > 0:
                 with c4:
                     tooltip = str(row.get('Progress_Tooltip', '')).strip()
                     if tooltip and tooltip.lower() != 'nan':
+                        # 1. 先寫 style（獨立出來！千萬別放進 f-string）
+                        st.markdown("""
+                        <style>
+                        .tooltip-container { position: relative; display: inline-block; }
+                        .tooltip-box {
+                            position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+                            background: #1e1e1e; color: white; padding: 16px 24px; border-radius: 12px;
+                            font-size: 16px; line-height: 1.7; white-space: pre-wrap; text-align: left;
+                            min-width: 200px; max-width: 500px; box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+                            opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999;
+                            pointer-events: none;
+                        }
+                        .tooltip-arrow {
+                            position: absolute; top: 100%; left: 50%; margin-left: -8px;
+                            border: 8px solid transparent; border-top-color: #1e1e1e;
+                        }
+                        .tooltip-container:hover .tooltip-box {
+                            opacity: 1 !important; visibility: visible !important;
+                        }
+                        </style>
+                        """, unsafe_allow_html=True)
+
+                        # 2. 再寫真正的 HTML（不再包含 <style>）
                         st.markdown(f"""
-                        <div class="tooltip-container" style="position:relative; display:inline-block; width:150px;">
+                        <div class="tooltip-container" style="width:150px;">
                             <div class="custom-progress">
                                 <div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div>
                             </div>
-
-                            <div class="tooltip-box" style="
-                                position: absolute;
-                                bottom: 32px;
-                                left: 50%;
-                                transform: translateX(-50%);
-                                background: #1e1e1e;
-                                color: white;
-                                padding: 16px 24px;
-                                border-radius: 12px;
-                                font-size: 16px;
-                                line-height: 1.7;
-                                white-space: pre-wrap !important;     /* 自動換行 */
-                                text-align: left !important;          /* 左對齊 */
-                                width: auto !important;
-                                min-width: 200px !important;
-                                max-width: 500px !important;          /* 最大500px，可調更大 */
-                                box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-                                opacity: 0;
-                                visibility: hidden;
-                                transition: all 0.3s ease;
-                                z-index: 999;
-                                pointer-events: none;
-                            ">
+                            <div class="tooltip-box">
                                 {tooltip.replace(chr(10), '<br>')}
                                 <div class="tooltip-arrow"></div>
                             </div>
                         </div>
-
-                        <style>
-                        .tooltip-container:hover .tooltip-box {{
-                            opacity: 1 !important;
-                            visibility: visible !important;
-                        }}
-                        .tooltip-arrow {{
-                            position: absolute;
-                            top: 100%;
-                            left: 50%;
-                            margin-left: -8px;
-                            border: 8px solid transparent;
-                            border-top-color: #1e1e1e;
-                        }}
-                        </style>
                         """, unsafe_allow_html=True)
                     else:
                         st.markdown(
