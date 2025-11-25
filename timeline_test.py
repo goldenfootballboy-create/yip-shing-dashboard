@@ -354,7 +354,7 @@ if total_real_count > 0:
                                 transform: translateX(-50%);
                                 background: #1e1e1e;
                                 color: white;
-                                padding: 8px 20px;
+                                padding: 30px 20px;
                                 border-radius: 6px;
                                 font-size: 13px;
                                 white-space: pre-wrap;
