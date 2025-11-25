@@ -385,64 +385,57 @@ else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
 # -------------------------------------------------
-# 左側側邊欄：可編輯 Checklist（文字 + tick box，自動存回 CSV）
+# 左側側邊欄：終極簡單版 Checklist（可編輯 + tick box + 自動存 CSV）
 # -------------------------------------------------
 with st.sidebar:
     st.title("Checklist Panel")
 
-    # 每次都讀最新 CSV
     df_latest = pd.read_csv("projects.csv", encoding='utf-8')
 
-    for row in filtered_df.itertuples(index=False):
-        project_name = row.Project_Name
+    for _, row in filtered_df.iterrows():
+        project_name = row['Project_Name']
 
         with st.expander(f"{project_name}", expanded=False):
-            # 讀取目前內容（防 NaN）
-            current_order = str(getattr(row, 'Order_List', '')) if pd.notna(getattr(row, 'Order_List', '')) else ''
-            current_submit = str(getattr(row, 'Submit_List', '')) if pd.notna(getattr(row, 'Submit_List', '')) else ''
+            # 讀取原始內容
+            order_str = str(row.get('Order_List', '')) if pd.notna(row.get('Order_List')) else ''
+            submit_str = str(row.get('Submit_List', '')) if pd.notna(row.get('Submit_List')) else ''
 
-            order_items = [x.strip() for x in current_order.split(',') if x.strip()]
-            submit_items = [x.strip() for x in current_submit.split(',') if x.strip()]
+            items = []
+            if order_str:
+                items.extend([f"Order: {x.strip()}" for x in order_str.split(',') if x.strip()])
+            if submit_str:
+                items.extend([f"Submit: {x.strip()}" for x in submit_str.split(',') if x.strip()])
 
-            # 儲存新內容
-            new_order_items = []
-            new_submit_items = []
+            new_items = []
 
-            st.subheader("需要訂購")
-            for item in order_items:
-                col1, col2 = st.columns([1, 8])
+            st.markdown("**項目列表**")
+            for i, item in enumerate(items):
+                col1, col2 = st.columns([1, 9])
+                prefix = item.split(": ", 1)[0]
+                text = item.split(": ", 1)[1] if ": " in item else item
+
                 with col1:
-                    checked = st.checkbox("✓", value=False, key=f"order_check_{project_name}_{item}")
+                    checked = st.checkbox("", value=prefix == "Completed", key=f"chk_{project_name}_{i}")
                 with col2:
-                    text = st.text_input("項目", value=item, key=f"order_text_{project_name}_{item}", label_visibility="collapsed")
-                if checked:
-                    new_order_items.append(f"✓ {text}")
-                else:
-                    new_order_items.append(text)
+                    new_text = st.text_input("", value=text, key=f"txt_{project_name}_{i}", label_visibility="collapsed")
 
-            st.subheader("需要提交")
-            for item in submit_items:
-                col1, col2 = st.columns([1, 8])
-                with col1:
-                    checked = st.checkbox("✓", value=False, key=f"submit_check_{project_name}_{item}")
-                with col2:
-                    text = st.text_input("項目", value=item, key=f"submit_text_{project_name}_{item}", label_visibility="collapsed")
-                if checked:
-                    new_submit_items.append(f"✓ {text}")
-                else:
-                    new_submit_items.append(text)
+                new_prefix = "Completed" if checked else ("Order" if "Order" in prefix else "Submit")
+                new_items.append(f"{new_prefix}: {new_text}")
 
-            # 自動保存
-            new_order_str = ", ".join(new_order_items)
-            new_submit_str = ", ".join(new_submit_items)
+            # 新增一行
+            if st.button("Add New Item +", key=f"add_{project_name}"):
+                new_items.append("Order: 新項目")
 
-            if new_order_str != current_order or new_submit_str != current_submit:
-                df_latest.loc[df_latest['Project_Name'] == project_name, 'Order_List'] = new_order_str
-                df_latest.loc[df_latest['Project_Name'] == project_name, 'Submit_List'] = new_submit_str
+            # 存回 CSV
+            new_order = ", ".join([x.split(": ",1)[1] for x in new_items if x.startswith("Order") or x.startswith("Completed")])
+            new_submit = ", ".join([x.split(": ",1)[1] for x in new_items if x.startswith("Submit")])
+
+            if new_order != order_str or new_submit != submit_str:
+                df_latest.loc[df_latest['Project_Name'] == project_name, 'Order_List'] = new_order
+                df_latest.loc[df_latest['Project_Name'] == project_name, 'Submit_List'] = new_submit
                 df_latest.to_csv("projects.csv", index=False, encoding='utf-8')
-                st.success(f"{project_name} 已自動保存！", icon="Success")
+                st.success("已儲存！", icon="Success")
                 st.rerun()
-
 # -------------------------------------------------
 # Memo Pad & Footer
 # -------------------------------------------------
