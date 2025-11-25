@@ -43,7 +43,7 @@ Marine,TP25/166,Diesel Motoren,x5,5,"KTA19-M600 x 5
 Open Set,TP25/170,MGK,x1,,"KTA38G4 (41394499)
 /TCU428C. NO PMG (FR5108)
 /No Control Panel. No Wiring",2025,2025-11-30,2025-11-04,2025-11-05,2025-11-06,YES,2025-11-14,,
-Enclosure,TP25/192,DPX,x1,1,FIEO/ KTA50GS8 (41386351)/ S7L1D-D41/ DEIF/ 4P2500A ACB/ 3P heater/ Smartgen 8A/ ,2025,2025-12-15,2025-11-12,,,,,12月中死期,
+Enclosure,TP25/192,DPX,x1,1,FIEO/ KTA50GS8 (41386351)/ S7L1D-D41/ DEIF/ 4P2500A ACB/ 3P heater/ Smartgen 8A/ ,2025,2025-12-15,2025-11-12,,,,,12月中死期,"車身線已完成,電球需要造加高箱,延遲入機"
 Enclosure,YS25/093,Keyway,x4,4,"QSB3.9-G2 x 1
 / QSL8.9-G4 x 2/ 
 QSK19-G4 x 1
@@ -58,14 +58,14 @@ Open Set,TP25/189,Energen,x2,2,KTA50-G9 x2(41354912/41354913) /Evo With PMG(W638
 Open Set,TP25/193,Energen,x1,1,KTA38-G4 x1 / Evotech TCU428C (W63842) with PMG / Control Panel; Engine Wiring including,2026,2026-02-15,,,,,,,
 Open Set,YS25/190,CSX,x1,1,KTA19-G3 x1 / Engine and Radiator only / Engine wiring,2025,2025-12-15,,,,,,,
 Open Set,TP25/206,MGK,x1,,KTA50-G3 / Evotech TCU428E (W63842) no PMG / No Control Panel; No Wiring,2026,2026-02-15,,,,,,,
-Open Set,TP25/204,Energen,x2,2,KTA38-G4 (41396840)/ Evotech TCU428C (W63842) with PMG   / KTA50-G3  (41395431)/ Evotech TCU428E with PMG/ Control Panel(K38 Right)(K50 Right) ; Engine Wiring included,2025,2025-12-08,2025-11-25,,,,,ENGINE月中到12月頭交貨,
-Enclosure,TP25/209,DPX,x1,1,KTA50-GS8 (41386348) / S7L1D-D41 (X25H334734) / FIEO; SEA8620; SmartGen 8A; 2500A ACB Motorized;,2025,2025-12-30,,,,,,欠電球 12月頭返,
-Open Set,TP25/207,Energen,x1,1,KTA38-G4 / Evotech TCU428C (W63842) with PMG / Control Panel(Right); Engine wiring included,2025,2025-12-08,2025-11-25,,,,,12月頭交貨,
+Open Set,TP25/204,Energen,x2,2,KTA38-G4 (41396840)/ Evotech TCU428C (W63842) with PMG   / KTA50-G3  (41395431)/ Evotech TCU428E with PMG/ Control Panel(K38 Right)(K50 Right) ; Engine Wiring included,2025,2025-12-08,2025-11-25,,,,,ENGINE月中到12月頭交貨,安排電球噴油中，安排今星期試K50
+Enclosure,TP25/209,DPX,x1,1,KTA50-GS8 (41386348) / S7L1D-D41 (X25H334734) / FIEO; SEA8620; SmartGen 8A; 2500A ACB Motorized;,2025,2025-12-30,,,,,,欠電球 12月頭返,"Panel拉線中,電球12月到"
+Open Set,TP25/207,Energen,x1,1,KTA38-G4 / Evotech TCU428C (W63842) with PMG / Control Panel(Right); Engine wiring included,2025,2025-12-08,2025-11-25,,,,,12月頭交貨,安排電球噴油中，安排今星期試機
 Enclosure,TP25/201,DPX,x2,2,KTA38-G5 x2 / S6L1D-F41 / 8620 / 1600A 4P MCCB / SmartGen 8A / ,2025,2025-12-31,,,,,,,
 Enclosure,TP25/210,DPX,x2,2,KTA38-G2A x2 / S6L1D-E41 X2 / FIEO  /  DSE 8620 / 4P1600A MCCB  /  50-60Hz 轉換 / 50hz:380-440; 60Hz:416-480,2026,2026-01-31,,,,,,,
 Scania,TP25/216,GE WA,x2,2,DC13 x2/IG1000/,2025,2025-11-30,2025-11-18,,,,,,
 Open Set,TP25/130,Drac Mechanical,x2,2,KTA38-G5 x2(41390297/41386615) / S6L1D-E41 x2 / Controller:IG200+AIN8 / 4P1600AMCCB,2026,2026-01-15,,,,,,,
-Enclosure,TP25/225,Taxtran Limited,x2,2,KTA50-G3 x2 (41395433/41395425) / S6L1D-H41 480V 60Hz (X24L514719/X24L514720) / 8620 / 2500A ACB /,2025,2025-12-25,2025-11-13,2025-11-26,2025-12-03,,,12中交期,
+Enclosure,TP25/225,Taxtran Limited,x2,2,KTA50-G3 x2 (41395433/41395425) / S6L1D-H41 480V 60Hz (X24L514719/X24L514720) / 8620 / 2500A ACB /,2025,2025-12-25,2025-11-13,2025-11-25,2025-12-03,,,12中交期,準備內部試機
 ,YS25/216,JEC,,,"No. of 9 Genset FAT
 C450D5
 C500D5
@@ -76,4 +76,4 @@ C825D5
 C200D5
 C550D5---- 14/11 Arrive  20/11 PM TEST
 C200D5
-",2025,2025-12-30,,,,,,,
+",2025,2025-12-30,2025-11-20,2025-11-26,,,,,第一台26/11試機
