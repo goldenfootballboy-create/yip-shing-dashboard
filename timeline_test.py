@@ -338,54 +338,60 @@ if total_real_count > 0:
                         st.image("https://i.imgur.com/oJNLgDG.png", width=30)
 
                 with c4:
-                    # 讀取 Tooltip
                     tooltip = str(row.get('Progress_Tooltip', '')).strip()
                     if tooltip and tooltip.lower() != 'nan':
-                        # 真正有效的 Tooltip（純 CSS + data-tooltip 方式）
+                        # 關鍵：整個包在一個容器裡，用 :hover 控制容器
                         st.markdown(f"""
-                        <div style="position:relative; display:inline-block; width:150px;">
+                        <div class="tooltip-container" style="position:relative; display:inline-block; width:150px;">
                             <div class="custom-progress">
                                 <div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div>
                             </div>
-                            <div style="
-                                position: absolute;
-                                bottom: 28px;
-                                left: 50%;
-                                transform: translateX(-50%);
-                                background: #1e1e1e;
-                                color: white;
-                                padding: 8px 12px;
-                                border-radius: 6px;
-                                font-size: 13px;
-                                white-space: pre-wrap;
-                                max-width: 300px;
-                                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                                opacity: 0;
-                                visibility: hidden;
-                                transition: all 0.3s;
-                                z-index: 999;
-                                pointer-events: none;
-                            ">
-                                {tooltip.replace(chr(10), '<br>')}
-                                <div style="
-                                    position: absolute;
-                                    top: 100%;
-                                    left: 50%;
-                                    margin-left: -6px;
-                                    border: 6px solid transparent;
-                                    border-top-color: #1e1e1e;
-                                "></div>
+
+                            <div class="tooltip-box">
+                                {tooltip}
+                                <div class="tooltip-arrow"></div>
                             </div>
-                            <style>
-                            .custom-progress:hover + div {{
-                                opacity: 1 !important;
-                                visibility: visible !important;
-                            }}
-                            </style>
                         </div>
+
+                        <style>
+                        .tooltip-container {{
+                            position: relative;
+                            display: inline-block;
+                        }}
+                        .tooltip-box {{
+                            position: absolute;
+                            bottom: 32px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            background: #1e1e1e;
+                            color: white;
+                            padding: 14px 32px;
+                            border-radius: 12px;
+                            font-size: 16px;
+                            white-space: nowrap;           /* 橫向延伸，不換行 */
+                            max-width: none;
+                            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+                            opacity: 0;
+                            visibility: hidden;
+                            transition: all 0.3s ease;
+                            z-index: 999;
+                            pointer-events: none;
+                        }}
+                        .tooltip-arrow {{
+                            position: absolute;
+                            top: 100%;
+                            left: 50%;
+                            margin-left: -8px;
+                            border: 8px solid transparent;
+                            border-top-color: #1e1e1e;
+                        }}
+                        .tooltip-container:hover .tooltip-box {{
+                            opacity: 1 !important;
+                            visibility: visible !important;
+                        }}
+                        </style>
                         """, unsafe_allow_html=True)
                     else:
-                        # 沒 tooltip 就正常顯示
                         st.markdown(
                             f'<div class="custom-progress"><div class="custom-progress-fill" style="width:{progress}%;background:{color};"></div></div>',
                             unsafe_allow_html=True
