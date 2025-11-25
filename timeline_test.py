@@ -466,8 +466,7 @@ with st.sidebar:
                 # 真正寫入檔案
                 df_fresh.to_csv("projects.csv", index=False, encoding='utf-8')
 
-                st.success(f"{project_name} 已成功儲存！", icon="✓")  # 打勾
-                # st.success(f"{project_name} 已成功儲存！", icon="saved")   # 存檔圖示
+                st.success(f"{project_name} 已成功儲存！")
                 st.rerun()
 # -------------------------------------------------
 # Memo Pad & Footer
