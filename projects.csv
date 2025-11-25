@@ -1,72 +1,72 @@
-﻿Project_Type,Project_Name,Brand,Qty,Real_Count,Order_List,Submit_List,Order_Done,Submit_Done,Description,Year,Lead_Time,Parts_Arrival_Date,Installation_Complete_Date,Testing_Date,Cleaning,Delivery_Date,Remarks
-Enclosure,TP172/24,GenDiesel,x1,1,,,,,"KTA50-G3 41386336 
+﻿Project_Type,Project_Name,Brand,Qty,Real_Count,Description,Year,Lead_Time,Parts_Arrival_Date,Installation_Complete_Date,Testing_Date,Cleaning,Delivery_Date,Remarks
+Enclosure,TP172/24,GenDiesel,x1,1,"KTA50-G3 41386336 
 S6L1M-H41
 X25C131723",2025,2025-03-30,2025-07-11,2025-07-16,2025-07-22,YES,2025-10-24,
-Open Set,TP25/131,MKG,x1,,,,,,"QST30-G4          (37294506/37294508)/
+Open Set,TP25/131,MKG,x1,,"QST30-G4          (37294506/37294508)/
 
 S6L1D-F41 (X25C131724/X25C131725)
 
 
 NO PANEL; NO WIRING；No Radiator",2025,2025-09-30,2025-08-29,2025-09-03,2025-09-04,YES,2025-11-03,3/11 load
-Marine,YS25/164 ,CHK,x2,2,,,,,CHK x2,2025,2025-10-21,2025-09-27,2025-10-21,2025-11-06,,2025-11-12,約期走機中
-Enclosure,YS25/086 ,SF,x2,2,,,,,"QSB3.9-G2      x2/
+Marine,YS25/164 ,CHK,x2,2,CHK x2,2025,2025-10-21,2025-09-27,2025-10-21,2025-11-06,,2025-11-12,約期走機中
+Enclosure,YS25/086 ,SF,x2,2,"QSB3.9-G2      x2/
 
 Leroy Somer TALA42H+AREP.        X2",2025,2025-09-29,2025-09-25,2025-10-13,2025-10-17,YES,2025-10-22,Vendor delivery late
-Enclosure,TP065/25,GenDiesel,x2,2,,,,,KTA50-G3                x2/S6L1D-H41   x2,2025,2025-09-30,2025-09-08,2025-09-15,2025-11-04,,,4/11 Test with Customer 
-Enclosure,YS25/100,AEL,x1,1,,,,,"QSNT-G3
+Enclosure,TP065/25,GenDiesel,x2,2,KTA50-G3                x2/S6L1D-H41   x2,2025,2025-09-30,2025-09-08,2025-09-15,2025-11-04,,,4/11 Test with Customer 
+Enclosure,YS25/100,AEL,x1,1,"QSNT-G3
 /HCI534C",2025,2025-10-30,2025-09-02,2025-09-15,2025-10-02,YES,2025-10-22,
-Open Set,TP25/101,Energen,x3,3,,,,,"KTA50-G3               
+Open Set,TP25/101,Energen,x3,3,"KTA50-G3               
 (41386331/41386334/41386335)/Evotect TCU428E",2025,2025-10-31,2025-10-02,2025-10-10,2025-10-15,YES,2025-10-21,
-Open Set,TP25/114,MGK,x1,,,,,,NTA855-G2 /S4l1s-d41,2025,2025-10-30,2025-09-17,2025-10-19,2025-10-22,YES,2025-11-11,11/11 load
-Open Set,TP25/126,Energen,x1,1,,,,,"KTA38G4
+Open Set,TP25/114,MGK,x1,,NTA855-G2 /S4l1s-d41,2025,2025-10-30,2025-09-17,2025-10-19,2025-10-22,YES,2025-11-11,11/11 load
+Open Set,TP25/126,Energen,x1,1,"KTA38G4
 (41392313)/EVOTECT",2025,2025-10-30,2025-09-30,2025-10-10,2025-10-15,YES,2025-10-21,
-Open Set,TP25/139B,Zenith,x3,3,,,,,"
+Open Set,TP25/139B,Zenith,x3,3,"
 KTA50-G3
 (41386627/41386629/41386626)/Wuxi S9M1D-A4 ",2025,2025-10-30,2025-10-02,2025-10-09,2025-10-03,YES,2025-10-23,
-Open Set,TP25/169,MGK,x1,,,,,,"KTA50-G3  (41386630)
+Open Set,TP25/169,MGK,x1,,"KTA50-G3  (41386630)
 /TCU428E NO PMG (FR5109)
 /40度水箱
 /NO control panel. No wiring",2025,2025-10-15,2025-10-23,2025-10-30,,,,等LC後再試機
-Open Set,TP25/173,ALM,x1,1,,,,,"KTA38-G5 x2
+Open Set,TP25/173,ALM,x1,1,"KTA38-G5 x2
 (41394099/41394100)/
 要拉線 參考TP003/25
 ",2025,2025-10-06,2025-09-24,2025-09-29,2025-09-29,YES,,Customer request amend
-,,,,,,,,,,,,,,,,,
-Open Set,TP25/187,MGK,x1,,,,,,"KTA50-G3 x1 (41395422)
+,,,,,,,,,,,,,
+Open Set,TP25/187,MGK,x1,,"KTA50-G3 x1 (41395422)
 /TCU428E. NO PMG
 /No Control Panel. No Wiring",2025,2025-11-30,2025-11-19,2025-11-21,,,,
-Open Set,TP25/188,Energen,x1,1,,,,,"KTA50G3 (41395423)
+Open Set,TP25/188,Energen,x1,1,"KTA50G3 (41395423)
 /EVOTECT TCU428E with PMG
 /有箱 有車身線 有HEATER 有水箱/Panel 在左",2025,2025-12-08,2025-11-19,2025-11-24,,,,21/11到電球，12月8前Ready
-Marine,TP25/166,Diesel Motoren,x5,5,,,,,"KTA19-M600 x 5
+Marine,TP25/166,Diesel Motoren,x5,5,"KTA19-M600 x 5
 /要安裝panel & 車身線   參考TP24/24",2025,2025-11-30,2025-10-18,2025-11-18,,,,
-Open Set,TP25/170,MGK,x1,,,,,,"KTA38G4 (41394499)
+Open Set,TP25/170,MGK,x1,,"KTA38G4 (41394499)
 /TCU428C. NO PMG (FR5108)
 /No Control Panel. No Wiring",2025,2025-11-30,2025-11-04,2025-11-05,2025-11-06,YES,2025-11-14,
-Enclosure,TP25/192,DPX,x1,1,,,,,FIEO/ KTA50GS8 (41386351)/ S7L1D-D41/ DEIF/ 2500A ACB/ 3P heater/ Smartgen 8A/ ,2025,2025-12-15,2025-11-12,,,,,12月中死期
-Enclosure,YS25/093,Keyway,x4,4,,,,,"QSB3.9-G2 x 1
+Enclosure,TP25/192,DPX,x1,1,FIEO/ KTA50GS8 (41386351)/ S7L1D-D41/ DEIF/ 4P2500A ACB/ 3P heater/ Smartgen 8A/ ,2025,2025-12-15,2025-11-12,,,,,12月中死期
+Enclosure,YS25/093,Keyway,x4,4,"QSB3.9-G2 x 1
 / QSL8.9-G4 x 2/ 
 QSK19-G4 x 1
 ",2025,2025-12-15,2025-11-21,,,,,
-Enclosure,TP057/25,GenDiesel,x1,1,,,,,FIEO/KTA50G3/S6L1M-H41/No ACB/7320MK2,2026,2026-02-13,,,,,,
-Enclosure,#3465 HK租機,,x1,1,,,,,KTA50G3/Filter Suppy standard/香港裝大線，控制面版,2025,2025-11-30,2025-10-27,2025-11-04,2025-11-12,YES,,
-Essential,YS25/137,Essential,x3,3,,,,,CCEC NTA855-G2A + Leroy Smoer LSA47.3S4 +50 Degree Hero Radiator without Fuel Cooler x2/CCEC NTA855-G2A + Leroy Smoer LSA47.3M7 +50 Degree Hero Radiator without Fuel Cooler,2025,2025-11-30,2025-10-16,,,,,Delivery date depends on site condition
-Essential,YS25/138,Essential,x3,3,,,,,CCEC KTAA19-G7 + Leroy Smoer LSA47.3M8 +50 Degreee Hero Radiator without Fuel Cooler x2 / CCEC NTA855-G2A+ Leroy Smoer LSA47.3S4 +5 DegreeHero Radiator without Fuel Cooler,2025,2025-11-15,2025-10-17,2025-10-25,2025-10-31,,,Delivery date depends on site condition
-Enclosure,TP024/25,GenDiesel,x1,1,,,,,KTA38G4(41315760)/S6L1D-E41(X23E186708),2025,2025-06-15,2025-07-10,2025-07-20,2025-10-31,,2025-11-26,26/11 loading confirm
-Enclosure,#3463 AU租機,,x1,1,,,,,KTA38/GE Standard,2025,2025-10-31,2025-10-01,2025-10-30,2025-11-05,,,Fuel Cooler有問題
-Open Set,TP25/189,Energen,x2,2,,,,,KTA50-G9 x2(41354912/41354913) /Evo With PMG(W63842) x2/ Control Panel Engine wiring included,2026,2026-01-07,,,,,,
-Open Set,TP25/193,Energen,x1,1,,,,,KTA38-G4 x1 / Evotech TCU428C (W63842) with PMG / Control Panel; Engine Wiring including,2026,2026-02-15,,,,,,
-Open Set,YS25/190,CSX,x1,1,,,,,KTA19-G3 x1 / Engine and Radiator only / Engine wiring,2025,2025-12-15,,,,,,
-Open Set,TP25/206,MGK,x1,,,,,,KTA50-G3 / Evotech TCU428E (W63842) no PMG / No Control Panel; No Wiring,2026,2026-02-15,,,,,,
-Open Set,TP25/204,Energen,x2,2,,,,,KTA38-G4 (41396840)/ Evotech TCU428C (W63842) with PMG   / KTA50-G3  (41395431)/ Evotech TCU428E with PMG/ Control Panel(K38 Right)(K50 Right) ; Engine Wiring included,2025,2025-12-08,2025-11-26,,,,,ENGINE月中到12月頭交貨
-Enclosure,TP25/209,DPX,x1,1,,,,,KTA50-GS8 (41386348) / S7L1D-D41 (X25H334734) / FIEO; SEA8620; SmartGen 8A; 2500A ACB Motorized;,2025,2025-12-30,,,,,,欠電球 12月頭返
-Open Set,TP25/207,Energen,x1,1,,,,,KTA38-G4 / Evotech TCU428C (W63842) with PMG / Control Panel(Right); Engine wiring included,2025,2025-12-08,2025-11-26,,,,,12月頭交貨
-Enclosure,TP25/201,DPX,x2,2,dfsfdf,,,,KTA38-G5 x2 / S6L1D-F41 / 8620 / 1600A 4P MCCB / SmartGen 8A / ,2025,2025-12-31,,,,,,
-Enclosure,TP25/210,DPX,x2,2,,,,,KTA38-G2A x2 / S6L1D-E41 X2 / FIEO  /  DSE 8620 / 4P1600A MCCB  /  50-60Hz 轉換 / 50hz:380-440; 60Hz:416-480,2026,2026-01-31,,,,,,
-Scania,TP25/216,GE WA,x2,2,,,,,DC13 x2/IG1000/,2025,2025-11-30,2025-11-18,,,,,
-Open Set,TP25/130,Drac Mechanical,x2,2,,,,,KTA38-G5 x2(41390297/41386615) / S6L1D-E41 x2 / Controller:IG200+AIN8 / 4P1600AMCCB,2025,2025-12-15,,,,,,
-Enclosure,TP25/225,Taxtran Limited,x2,2,,,,,KTA50-G3 x2 (41395433/41395425) / S6L1D-H41 480V 60Hz (X24L514719/X24L514720) / 8620 / 2500A ACB /,2025,2025-12-25,2025-11-13,2025-11-26,2025-12-03,,,12中交期
-,YS25/216,JEC,,,,,,,"No. of 9 Genset FAT
+Enclosure,TP057/25,GenDiesel,x1,1,FIEO/KTA50G3/S6L1M-H41/No ACB/7320MK2,2026,2026-02-13,,,,,,
+Enclosure,#3465 HK租機,,x1,1,KTA50G3/Filter Suppy standard/香港裝大線，控制面版,2025,2025-11-30,2025-10-27,2025-11-04,2025-11-12,YES,,
+Essential,YS25/137,Essential,x3,3,CCEC NTA855-G2A + Leroy Smoer LSA47.3S4 +50 Degree Hero Radiator without Fuel Cooler x2/CCEC NTA855-G2A + Leroy Smoer LSA47.3M7 +50 Degree Hero Radiator without Fuel Cooler,2025,2025-11-30,2025-10-16,,,,,Delivery date depends on site condition
+Essential,YS25/138,Essential,x3,3,CCEC KTAA19-G7 + Leroy Smoer LSA47.3M8 +50 Degreee Hero Radiator without Fuel Cooler x2 / CCEC NTA855-G2A+ Leroy Smoer LSA47.3S4 +5 DegreeHero Radiator without Fuel Cooler,2025,2025-11-15,2025-10-17,2025-10-25,2025-10-31,,,Delivery date depends on site condition
+Enclosure,TP024/25,GenDiesel,x1,1,KTA38G4(41315760)/S6L1D-E41(X23E186708),2025,2025-06-15,2025-07-10,2025-07-20,2025-10-31,,2025-12-01,1/12 loading confirm
+Enclosure,#3463 AU租機,,x1,1,KTA38/GE Standard,2025,2025-10-31,2025-10-01,2025-10-30,2025-11-05,,,Fuel Cooler有問題
+Open Set,TP25/189,Energen,x2,2,KTA50-G9 x2(41354912/41354913) /Evo With PMG(W63842) x2/ Control Panel Engine wiring included,2026,2026-01-07,,,,,,
+Open Set,TP25/193,Energen,x1,1,KTA38-G4 x1 / Evotech TCU428C (W63842) with PMG / Control Panel; Engine Wiring including,2026,2026-02-15,,,,,,
+Open Set,YS25/190,CSX,x1,1,KTA19-G3 x1 / Engine and Radiator only / Engine wiring,2025,2025-12-15,,,,,,
+Open Set,TP25/206,MGK,x1,,KTA50-G3 / Evotech TCU428E (W63842) no PMG / No Control Panel; No Wiring,2026,2026-02-15,,,,,,
+Open Set,TP25/204,Energen,x2,2,KTA38-G4 (41396840)/ Evotech TCU428C (W63842) with PMG   / KTA50-G3  (41395431)/ Evotech TCU428E with PMG/ Control Panel(K38 Right)(K50 Right) ; Engine Wiring included,2025,2025-12-08,2025-11-26,,,,,ENGINE月中到12月頭交貨
+Enclosure,TP25/209,DPX,x1,1,KTA50-GS8 (41386348) / S7L1D-D41 (X25H334734) / FIEO; SEA8620; SmartGen 8A; 2500A ACB Motorized;,2025,2025-12-30,,,,,,欠電球 12月頭返
+Open Set,TP25/207,Energen,x1,1,KTA38-G4 / Evotech TCU428C (W63842) with PMG / Control Panel(Right); Engine wiring included,2025,2025-12-08,2025-11-26,,,,,12月頭交貨
+Enclosure,TP25/201,DPX,x2,2,KTA38-G5 x2 / S6L1D-F41 / 8620 / 1600A 4P MCCB / SmartGen 8A / ,2025,2025-12-31,,,,,,
+Enclosure,TP25/210,DPX,x2,2,KTA38-G2A x2 / S6L1D-E41 X2 / FIEO  /  DSE 8620 / 4P1600A MCCB  /  50-60Hz 轉換 / 50hz:380-440; 60Hz:416-480,2026,2026-01-31,,,,,,
+Scania,TP25/216,GE WA,x2,2,DC13 x2/IG1000/,2025,2025-11-30,2025-11-18,,,,,
+Open Set,TP25/130,Drac Mechanical,x2,2,KTA38-G5 x2(41390297/41386615) / S6L1D-E41 x2 / Controller:IG200+AIN8 / 4P1600AMCCB,2025,2025-12-15,,,,,,
+Enclosure,TP25/225,Taxtran Limited,x2,2,KTA50-G3 x2 (41395433/41395425) / S6L1D-H41 480V 60Hz (X24L514719/X24L514720) / 8620 / 2500A ACB /,2025,2025-12-25,2025-11-13,2025-11-26,2025-12-03,,,12中交期
+,YS25/216,JEC,,,"No. of 9 Genset FAT
 C450D5
 C500D5
 C550D5
