@@ -420,8 +420,9 @@ if total_real_count > 0:
 else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
 
+
 # -------------------------------------------------
-# 左側側邊欄：雙欄 Checklist（打勾永久保留 + 點 Save 才存入 JSON，不動 CSV、不影響排版）
+# 永久記住 Checklist
 # -------------------------------------------------
 with st.sidebar:
     st.title("Checklist Panel")
@@ -437,7 +438,7 @@ with st.sidebar:
     for _, row in filtered_df.iterrows():
         project_name = row['Project_Name']
 
-        # 從 JSON 讀取（沒有就用 CSV 原始值當預設）
+        # 從 JSON 讀取（沒有就用 CSV 原始值）
         data = saved_checklist.get(project_name, {
             "purchase": [x.strip() for x in str(row.get('Order_List', '')).split(',') if x.strip()],
             "done_p":   [],
@@ -464,9 +465,9 @@ with st.sidebar:
                     checked = text in data["done_p"]
                     c1, c2 = st.columns([1, 6])
                     with c1:
-                        chk = st.checkbox("", value=checked, key=f"pchk_{project_name}_{i}")
+                        chk = st.checkbox("", value=checked, key=f"p_{project_name}_{i}")
                     with c2:
-                        txt = st.text_input("", value=text, key=f"ptxt_{project_name}_{i}", label_visibility="collapsed")
+                        txt = st.text_input("", value=text, key=f"pt_{project_name}_{i}", label_visibility="collapsed")
                     if txt.strip():
                         new_purchase.append(txt.strip())
                         if chk:
@@ -478,25 +479,25 @@ with st.sidebar:
                     checked = text in data["done_d"]
                     c1, c2 = st.columns([1, 6])
                     with c1:
-                        chk = st.checkbox("", value=checked, key=f"dchk_{project_name}_{i}")
+                        chk = st.checkbox("", value=checked, key=f"d_{project_name}_{i}")
                     with c2:
-                        txt = st.text_input("", value=text, key=f"dtxt_{project_name}_{i}", label_visibility="collapsed")
+                        txt = st.text_input("", value=text, key=f"dt_{project_name}_{i}", label_visibility="collapsed")
                     if txt.strip():
                         new_drawing.append(txt.strip())
                         if chk:
                             new_done_d.add(txt.strip())
 
-            # 儲存按鈕（點了才寫入 JSON）
+            # 儲存按鈕
             if st.button("SAVE", key=f"save_{project_name}", use_container_width=True, type="primary"):
                 saved_checklist[project_name] = {
                     "purchase": new_purchase,
-                    "done_p":   list(new_done_p),
-                    "drawing":  new_drawing,
-                    "done_d":   list(new_done_d)
+                    "done_p": list(new_done_p),
+                    "drawing": new_drawing,
+                    "done_d": list(new_done_d)
                 }
                 with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
                     json.dump(saved_checklist, f, ensure_ascii=False, indent=2)
-                st.success(f"{project_name} 已儲存！")
+                st.success(f"{project_name} 已永久儲存！")
                 st.rerun()
 # -------------------------------------------------
 # Memo Pad & Footer
