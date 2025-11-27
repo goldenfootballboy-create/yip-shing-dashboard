@@ -446,26 +446,7 @@ with st.sidebar:
             "done_d":   []
         })
 
-        has_unchecked = False
-        for i in range(max_rows):
-            # Purchase
-            if f"ptxt_{project_name}_{i}" in st.session_state:
-                txt = st.session_state[f"ptxt_{project_name}_{i}"]
-                chk = st.session_state.get(f"p_{project_name}_{i}", False)
-                if txt.strip() and not chk:
-                    has_unchecked = True
-            # Drawing
-            if f"dtxt_{project_name}_{i}" in st.session_state:
-                txt = st.session_state[f"dtxt_{project_name}_{i}"]
-                chk = st.session_state.get(f"d_{project_name}_{i}", False)
-                if txt.strip() and not chk:
-                    has_unchecked = True
-
-        if has_unchecked:
-            with st.expander(f"**<span style='color:red'>{project_name} ← 有項目未完成！</span>**", expanded=False,
-                             unsafe_allow_html=True):
-        else:
-            with st.expander(f"{project_name}", expanded=False):
+        with st.expander(f"{project_name}", expanded=False):
             st.markdown("### Purchase List     Drawings Submission")
 
             new_purchase = []
