@@ -446,30 +446,8 @@ with st.sidebar:
             "done_d":   []
         })
 
-        # === 只加這段：有未打勾項目就標紅（其他完全不變！）===
-        has_unchecked = False
-        for i in range(max_rows):
-            # Purchase List
-            if f"pt_{project_name}_{i}" in st.session_state:
-                txt = st.session_state[f"pt_{project_name}_{i}"]
-                chk = st.session_state.get(f"p_{project_name}_{i}", False)
-                if txt.strip() and not chk:
-                    has_unchecked = True
-            # Drawings Submission
-            if f"dt_{project_name}_{i}" in st.session_state:
-                txt = st.session_state[f"dt_{project_name}_{i}"]
-                chk = st.session_state.get(f"d_{project_name}_{i}", False)
-                if txt.strip() and not chk:
-                    has_unchecked = True
-
-        if has_unchecked:
-            with st.expander(f"**<span style='color:red'>{project_name} ← 未完成</span>**", expanded=False,
-                             unsafe_allow_html=True):
-                st.markdown("### Purchase List     Drawings Submission")
-        else:
-            with st.expander(f"{project_name}", expanded=False):
-                st.markdown("### Purchase List     Drawings Submission")
-            # === 到這裡結束，其他你原本的內容全部照舊（for 迴圈、SAVE 按鈕）===
+        with st.expander(f"{project_name}", expanded=False):
+            st.markdown("### Purchase List     Drawings Submission")
 
             new_purchase = []
             new_done_p   = set()
