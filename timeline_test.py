@@ -446,8 +446,26 @@ with st.sidebar:
             "done_d":   []
         })
 
-        with st.expander(f"{project_name}", expanded=False):
+        # === 有未打勾項目 → 標題右邊顯示紅色驚嘆號（完美版！）===
+        has_unchecked = False
+        for i in range(max_rows):
+            # Purchase
+            if f"pt_{project_name}_{i}" in st.session_state and st.session_state[f"pt_{project_name}_{i}"].strip():
+                if f"p_{project_name}_{i}" not in st.session_state or not st.session_state[f"p_{project_name}_{i}"]:
+                    has_unchecked = True
+            # Drawing
+            if f"dt_{project_name}_{i}" in st.session_state and st.session_state[f"dt_{project_name}_{i}"].strip():
+                if f"d_{project_name}_{i}" not in st.session_state or not st.session_state[f"d_{project_name}_{i}"]:
+                    has_unchecked = True
+
+        # 關鍵：label 永遠是 project_name（避免展開亂掉），用 markdown 加紅色驚嘆號
+        with st.expander(project_name, key=f"exp_{project_name}"):
+            if has_unchecked:
+                st.markdown(f"**{project_name} <span style='color:red;font-size:24px'>!</span>**", unsafe_allow_html=True)
+            else:
+                st.markdown(f"**{project_name}**", unsafe_allow_html=True)
             st.markdown("### Purchase List     Drawings Submission")
+        # === 結束，其他全部照舊 ===
 
             new_purchase = []
             new_done_p   = set()
