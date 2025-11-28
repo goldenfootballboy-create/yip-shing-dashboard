@@ -446,8 +446,26 @@ with st.sidebar:
             "done_d":   []
         })
 
-        with st.expander(f"{project_name}", expanded=False):
-            st.markdown("### Purchase List     Drawings Submission")
+        # === 有未打勾項目 → 標題變紅（純紅色、無文字、無錯誤）===
+        has_unchecked = False
+        for i in range(max_rows):
+            if f"pt_{project_name}_{i}" in st.session_state and st.session_state[f"pt_{project_name}_{i}"].strip():
+                if f"p_{project_name}_{i}" not in st.session_state or not st.session_state[f"p_{project_name}_{i}"]:
+                    has_unchecked = True
+            if f"dt_{project_name}_{i}" in st.session_state and st.session_state[f"dt_{project_name}_{i}"].strip():
+                if f"d_{project_name}_{i}" not in st.session_state or not st.session_state[f"d_{project_name}_{i}"]:
+                    has_unchecked = True
+
+        # 正確方式：用 label + help 繞過 Streamlit 限制
+        if has_unchecked:
+            with st.expander(label="", expanded=False):
+                st.markdown(f"<span style='color:red;font-weight:bold'>{project_name}</span>", unsafe_allow_html=True)
+                st.markdown("### Purchase List     Drawings Submission")
+        else:
+            with st.expander(label="", expanded=False):
+                st.markdown(f"<span style='font-weight:bold'>{project_name}</span>", unsafe_allow_html=True)
+                st.markdown("### Purchase List     Drawings Submission")
+            # === 結束，其他全部照舊（for 迴圈、SAVE 按鈕）===
 
             new_purchase = []
             new_done_p   = set()
