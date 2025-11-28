@@ -446,8 +446,26 @@ with st.sidebar:
             "done_d":   []
         })
 
-        with st.expander(f"{project_name}", expanded=False):
-            st.markdown("### Purchase List     Drawings Submission")
+        # === 有填文字但沒打勾 → 專案標題右邊加紅色驚嘆號 ❗ ===
+        has_unchecked = False
+        for i in range(max_rows):
+            # Purchase
+            if f"pt_{project_name}_{i}" in st.session_state and st.session_state[f"pt_{project_name}_{i}"].strip():
+                if f"p_{project_name}_{i}" not in st.session_state or not st.session_state[f"p_{project_name}_{i}"]:
+                    has_unchecked = True
+            # Drawing
+            if f"dt_{project_name}_{i}" in st.session_state and st.session_state[f"dt_{project_name}_{i}"].strip():
+                if f"d_{project_name}_{i}" not in st.session_state or not st.session_state[f"d_{project_name}_{i}"]:
+                    has_unchecked = True
+
+        # 標題右邊加紅色驚嘆號
+        if has_unchecked:
+            with st.expander(f"{project_name}  ❗", expanded=False):
+                st.markdown("### Purchase List     Drawings Submission")
+        else:
+            with st.expander(f"{project_name}", expanded=False):
+                st.markdown("### Purchase List     Drawings Submission")
+            # 其他程式碼全部照舊（for 迴圈、SAVE 按鈕）
 
             new_purchase = []
             new_done_p   = set()
