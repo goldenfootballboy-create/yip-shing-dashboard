@@ -446,59 +446,88 @@ with st.sidebar:
             "done_d":   []
         })
 
-        with st.expander(f"{project_name}", expanded=False):
-            st.markdown("### Purchase List     Drawings Submission")
+        # === 永遠不報錯版：用 container + button 實現展開 + 紅色 ❗️提醒 ===
+        has_unchecked = False
+        for i in range(max_rows):
+            if f"pt_{project_name}_{i}" in st.session_state and st.session_state[f"pt_{project_name}_{i}"].strip():
+                if f"p_{project_name}_{i}" not in st.session_state or not st.session_state[f"p_{project_name}_{i}"]:
+                    has_unchecked = True
+            if f"dt_{project_name}_{i}" in st.session_state and st.session_state[f"dt_{project_name}_{i}"].strip():
+                if f"d_{project_name}_{i}" not in st.session_state or not st.session_state[f"d_{project_name}_{i}"]:
+                    has_unchecked = True
 
-            new_purchase = []
-            new_done_p   = set()
-            new_drawing  = []
-            new_done_d   = set()
+        # 用 session_state 控制展開狀態
+        if f"open_{project_name}" not in st.session_state:
+            st.session_state[f"open_{project_name}"] = False
 
-            max_rows = max(len(data["purchase"]), len(data["drawing"]), 6)
-
-            for i in range(max_rows):
-                col1, col2 = st.columns(2)
-
-                # Purchase List
-                with col1:
-                    text = data["purchase"][i] if i < len(data["purchase"]) else ""
-                    checked = text in data["done_p"]
-                    c1, c2 = st.columns([1, 6])
-                    with c1:
-                        chk = st.checkbox("", value=checked, key=f"p_{project_name}_{i}")
-                    with c2:
-                        txt = st.text_input("", value=text, key=f"pt_{project_name}_{i}", label_visibility="collapsed")
-                    if txt.strip():
-                        new_purchase.append(txt.strip())
-                        if chk:
-                            new_done_p.add(txt.strip())
-
-                # Drawings Submission
-                with col2:
-                    text = data["drawing"][i] if i < len(data["drawing"]) else ""
-                    checked = text in data["done_d"]
-                    c1, c2 = st.columns([1, 6])
-                    with c1:
-                        chk = st.checkbox("", value=checked, key=f"d_{project_name}_{i}")
-                    with c2:
-                        txt = st.text_input("", value=text, key=f"dt_{project_name}_{i}", label_visibility="collapsed")
-                    if txt.strip():
-                        new_drawing.append(txt.strip())
-                        if chk:
-                            new_done_d.add(txt.strip())
-
-            # 儲存按鈕
-            if st.button("SAVE", key=f"save_{project_name}", use_container_width=True, type="primary"):
-                saved_checklist[project_name] = {
-                    "purchase": new_purchase,
-                    "done_p": list(new_done_p),
-                    "drawing": new_drawing,
-                    "done_d": list(new_done_d)
-                }
-                with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
-                    json.dump(saved_checklist, f, ensure_ascii=False, indent=2)
-                st.success(f"{project_name} 已永久儲存！")
+        # 標題列（點擊切換展開）
+        col_title, col_btn = st.columns([8, 1])
+        with col_title:
+            if has_unchecked:
+                st.markdown(f"**<span style='color:red'>{project_name} ❗️</span>**", unsafe_allow_html=True)
+            else:
+                st.markdown(f"**{project_name}**", unsafe_allow_html=True)
+        with col_btn:
+            if st.button("↓" if st.session_state[f"open_{project_name}"] else "→",
+                         key=f"toggle_{project_name}", help="展開/收合"):
+                st.session_state[f"open_{project_name}"] = not st.session_state[f"open_{project_name}"]
                 st.rerun()
+
+        # 內容區（只有展開時才顯示）
+        if st.session_state[f"open_{project_name}"]:
+            with st.container():
+                st.markdown("### Purchase List     Drawings Submission")
+
+                new_purchase = []
+                new_done_p = set()
+                new_drawing = []
+                new_done_d = set()
+
+                max_rows = max(len(data["purchase"]), len(data["drawing"]), 6)
+
+                for i in range(max_rows):
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        text = data["purchase"][i] if i < len(data["purchase"]) else ""
+                        checked = text in data["done_p"]
+                        c1, c2 = st.columns([1, 6])
+                        with c1:
+                            chk = st.checkbox("", value=checked, key=f"p_{project_name}_{i}")
+                        with c2:
+                            txt = st.text_input("", value=text, key=f"pt_{project_name}_{i}",
+                                                label_visibility="collapsed")
+                        if txt.strip():
+                            new_purchase.append(txt.strip())
+                            if chk:
+                                new_done_p.add(txt.strip())
+
+                    with col2:
+                        text = data["drawing"][i] if i < len(data["drawing"]) else ""
+                        checked = text in data["done_d"]
+                        c1, c2 = st.columns([1, 6])
+                        with c1:
+                            chk = st.checkbox("", value=checked, key=f"d_{project_name}_{i}")
+                        with c2:
+                            txt = st.text_input("", value=text, key=f"dt_{project_name}_{i}",
+                                                label_visibility="collapsed")
+                        if txt.strip():
+                            new_drawing.append(txt.strip())
+                            if chk:
+                                new_done_d.add(txt.strip())
+
+                if st.button("SAVE", key=f"save_{project_name}", use_container_width=True, type="primary"):
+                    saved_checklist[project_name] = {
+                        "purchase": new_purchase,
+                        "done_p": list(new_done_p),
+                        "drawing": new_drawing,
+                        "done_d": list(new_done_d)
+                    }
+                    with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
+                        json.dump(saved_checklist, f, ensure_ascii=False, indent=2)
+                    st.success(f"{project_name} 已永久儲存！")
+                    st.rerun()
+        # === 結束 ===
 # -------------------------------------------------
 # Memo Pad & Footer
 # -------------------------------------------------
