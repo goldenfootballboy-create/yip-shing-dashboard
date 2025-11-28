@@ -446,28 +446,7 @@ with st.sidebar:
             "done_d":   []
         })
 
-        has_unchecked = False
-        for i in range(max_rows):
-            # Purchase List
-            if f"pt_{project_name}_{i}" in st.session_state:
-                txt = st.session_state[f"pt_{project_name}_{i}"]
-                chk = st.session_state.get(f"p_{project_name}_{i}", False)
-                if txt.strip() and not chk:
-                    has_unchecked = True
-            # Drawings Submission
-            if f"dt_{project_name}_{i}" in st.session_state:
-                txt = st.session_state[f"dt_{project_name}_{i}"]
-                chk = st.session_state.get(f"d_{project_name}_{i}", False)
-                if txt.strip() and not chk:
-                    has_unchecked = True
-
-        # 關鍵：label 固定為 project_name（保證展開不亂），用 markdown 加紅色 ❗️
-        with st.expander(project_name, expanded=False, key=f"checklist_{project_name}"):
-            if has_unchecked:
-                st.markdown(f"**{project_name} <span style='color:red;font-size:28px'> ❗️</span>**",
-                            unsafe_allow_html=True)
-            else:
-                st.markdown(f"**{project_name}**", unsafe_allow_html=True)
+        with st.expander(f"{project_name}", expanded=False):
             st.markdown("### Purchase List     Drawings Submission")
 
             new_purchase = []
