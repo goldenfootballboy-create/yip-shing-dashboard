@@ -424,71 +424,109 @@ else:
 # -------------------------------------------------
 # 永久記住 Checklist
 # -------------------------------------------------
-with st.sidebar:
-    st.title("Checklist Panel")
+# -------------------------------------------------
+# 永久 + 穩定 + 紅色 ❗️ 的 Checklist Panel（終極版）
+# -------------------------------------------------
+st.title("Checklist Panel")
 
-    # 永久儲存檔案
-    CHECKLIST_FILE = "checklist_data.json"
-    if os.path.exists(CHECKLIST_FILE):
-        with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
-            saved_checklist = json.load(f)
-    else:
-        saved_checklist = {}
+CHECKLIST_FILE = "checklist_data.json"
+if os.path.exists(CHECKLIST_FILE):
+    with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
+        saved_checklist = json.load(f)
+else:
+    saved_checklist = {}
 
-    for _, row in filtered_df.iterrows():
-        project_name = row['Project_Name']
+for _, row in filtered_df.iterrows():
+    project_name = row['Project_Name']
 
-        # 從 JSON 讀取（沒有就用 CSV 原始值）
-        data = saved_checklist.get(project_name, {
-            "purchase": [x.strip() for x in str(row.get('Order_List', '')).split(',') if x.strip()],
-            "done_p":   [],
-            "drawing":  [x.strip() for x in str(row.get('Submit_List', '')).split(',') if x.strip()],
-            "done_d":   []
-        })
+    # 讀取已儲存的資料（最準確的來源）
+    data = saved_checklist.get(project_name, {
+        "purchase": [x.strip() for x in str(row.get('Order_List', '')).split(',') if x.strip()],
+        "done_p": [],
+        "drawing": [x.strip() for x in str(row.get('Submit_List', '')).split(',') if x.strip()],
+        "done_d": []
+    })
 
-        # === 永遠正確版：用已儲存的資料判斷紅色 ❗️（永不閃爍、永不消失！）===
-        # 從已永久儲存的資料判斷（最準確、最穩定！）
-        current_data = saved_checklist.get(project_name, {
-            "purchase": [x.strip() for x in str(row.get('Order_List', '')).split(',') if x.strip()],
-            "done_p":   [],
-            "drawing":  [x.strip() for x in str(row.get('Submit_List', '')).split(',') if x.strip()],
-            "done_d":   []
-        })
-
-        has_unchecked = False
-        # 檢查 Purchase 是否有未完成
-        for item in current_data["purchase"]:
-            if item and item not in current_data["done_p"]:
+    # 判斷是否有未完成項目（用已儲存的資料，永遠正確）
+    has_unchecked = False
+    for item in data["purchase"]:
+        if item and item not in data["done_p"]:
+            has_unchecked = True
+            break
+    if not has_unchecked:
+        for item in data["drawing"]:
+            if item and item not in data["done_d"]:
                 has_unchecked = True
                 break
-        # 檢查 Drawing 是否有未完成
-        if not has_unchecked:
-            for item in current_data["drawing"]:
-                if item and item not in current_data["done_d"]:
-                    has_unchecked = True
-                    break
 
-        # 用 session_state 控制展開
-        if f"open_{project_name}" not in st.session_state:
-            st.session_state[f"open_{project_name}"] = False
+    # 展開狀態（穩定不亂）
+    if f"open_{project_name}" not in st.session_state:
+        st.session_state[f"open_{project_name}"] = False
 
-        # 標題列
-        col_title, col_btn = st.columns([8, 1])
-        with col_title:
-            if has_unchecked:
-                st.markdown(f"**<span style='color:red'>{project_name} ❗️</span>**", unsafe_allow_html=True)
-            else:
-                st.markdown(f"**{project_name}**", unsafe_allow_html=True)
-        with col_btn:
-            if st.button("↓" if st.session_state[f"open_{project_name}"] else "→",
-                         key=f"toggle_{project_name}", help="展開/收合"):
-                st.session_state[f"open_{project_name}"] = not st.session_state[f"open_{project_name}"]
-                st.rerun()
+    # 標題列
+    col1, col2 = st.columns([9, 1])
+    with col1:
+        if has_unchecked:
+            st.markdown(f"**<span style='color:red'>{project_name} ❗️</span>**", unsafe_allow_html=True)
+        else:
+            st.markdown(f"**{project_name}**", unsafe_allow_html=True)
+    with col2:
+        if st.button("↓" if st.session_state[f"open_{project_name}"] else "→",
+                     key=f"btn_{project_name}"):
+            st.session_state[f"open_{project_name}"] = not st.session_state[f"open_{project_name}"]
+            st.rerun()
 
-        # 內容區
-        if st.session_state[f"open_{project_name}"]:
-            with st.container():
-                st.markdown("### Purchase List     Drawings Submission")
+    # 內容（只有展開才顯示）
+    if st.session_state[f"open_{project_name}"]:
+        st.markdown("### Purchase List     Drawings Submission")
+
+        new_purchase = []
+        new_done_p = set()
+        new_drawing = []
+        new_done_d = set()
+
+        max_rows = max(len(data["purchase"]), len(data["drawing"]), 6)
+
+        for i in range(max_rows):
+            c1, c2 = st.columns(2)
+
+            # Purchase
+            with c1:
+                text = data["purchase"][i] if i < len(data["purchase"]) else ""
+                checked = text in data["done_p"]
+                ch1, ch2 = st.columns([1, 6])
+                with ch1:
+                    chk = st.checkbox("", value=checked, key=f"p_{project_name}_{i}")
+                with ch2:
+                    txt = st.text_input("", value=text, key=f"pt_{project_name}_{i}", label_visibility="collapsed")
+                if txt.strip():
+                    new_purchase.append(txt.strip())
+                    if chk: new_done_p.add(txt.strip())
+
+            # Drawing
+            with c2:
+                text = data["drawing"][i] if i < len(data["drawing"]) else ""
+                checked = text in data["done_d"]
+                ch1, ch2 = st.columns([1, 6])
+                with ch1:
+                    chk = st.checkbox("", value=checked, key=f"d_{project_name}_{i}")
+                with ch2:
+                    txt = st.text_input("", value=text, key=f"dt_{project_name}_{i}", label_visibility="collapsed")
+                if txt.strip():
+                    new_drawing.append(txt.strip())
+                    if chk: new_done_d.add(txt.strip())
+
+        if st.button("SAVE", key=f"save_{project_name}", use_container_width=True, type="primary"):
+            saved_checklist[project_name] = {
+                "purchase": new_purchase,
+                "done_p": list(new_done_p),
+                "drawing": new_drawing,
+                "done_d": list(new_done_d)
+            }
+            with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
+                json.dump(saved_checklist, f, ensure_ascii=False, indent=2)
+            st.success("已永久儲存！")
+            st.rerun()
                 # 以下全部照舊（for 迴圈、SAVE 按鈕）
 # -------------------------------------------------
 # Memo Pad & Footer
