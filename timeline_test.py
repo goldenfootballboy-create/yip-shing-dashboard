@@ -445,27 +445,9 @@ with st.sidebar:
             "drawing":  [x.strip() for x in str(row.get('Submit_List', '')).split(',') if x.strip()],
             "done_d":   []
         })
-        
-        # === 有未打勾項目 → 標題右邊加紅色驚嘆號（100% 不會亂、不會報錯！）===
-        has_unchecked = False
-        for i in range(max_rows):
-            # Purchase
-            if f"pt_{project_name}_{i}" in st.session_state and st.session_state[f"pt_{project_name}_{i}"].strip():
-                if f"p_{project_name}_{i}" not in st.session_state or not st.session_state[f"p_{project_name}_{i}"]:
-                    has_unchecked = True
-            # Drawing
-            if f"dt_{project_name}_{i}" in st.session_state and st.session_state[f"dt_{project_name}_{i}"].strip():
-                if f"d_{project_name}_{i}" not in st.session_state or not st.session_state[f"d_{project_name}_{i}"]:
-                    has_unchecked = True
 
-        # 關鍵：用 key 固定，label 固定為 project_name，內部用 markdown 加紅色驚嘆號
-        with st.expander(project_name, expanded=False, key=f"exp_{project_name}"):
-            if has_unchecked:
-                st.markdown(f"**{project_name} <span style='color:red;font-size:22px'>!</span>**", unsafe_allow_html=True)
-            else:
-                st.markdown(f"**{project_name}**", unsafe_allow_html=True)
+        with st.expander(f"{project_name}", expanded=False):
             st.markdown("### Purchase List     Drawings Submission")
-        # === 結束，其他全部照舊（for 迴圈、SAVE 按鈕）===
 
             new_purchase = []
             new_done_p   = set()
@@ -573,3 +555,4 @@ with st.expander("Memo Pad", expanded=True):
 
 st.markdown("---")
 st.markdown("**YIP SHING Project Management System** | Real-time Project Status Monitoring")
+
