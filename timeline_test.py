@@ -446,25 +446,28 @@ with st.sidebar:
             "done_d":   []
         })
 
-        # === 有填文字但沒打勾 → 專案標題右邊加紅色驚嘆號 ❗ ===
+        # === 有填文字但沒打勾 → 標題右邊加紅色驚嘆號（不會亂掉！）===
         has_unchecked = False
         for i in range(max_rows):
-            # Purchase
+            # Purchase List
             if f"pt_{project_name}_{i}" in st.session_state and st.session_state[f"pt_{project_name}_{i}"].strip():
                 if f"p_{project_name}_{i}" not in st.session_state or not st.session_state[f"p_{project_name}_{i}"]:
                     has_unchecked = True
-            # Drawing
-            if f"dt_{project_name}_{i}" in st.session_state and st.session_state[f"dt_{project_name}_{i}"].strip():
+            # Drawings Submission
+            if f"dt_{project_name}_{i3}" in st.session_state and st.session_state[f"dt_{project_name}_{i}"].strip():
                 if f"d_{project_name}_{i}" not in st.session_state or not st.session_state[f"d_{project_name}_{i}"]:
                     has_unchecked = True
 
-        # 標題右邊加紅色驚嘆號
-        if has_unchecked:
-            with st.expander(f"{project_name}  ❗", expanded=False):
-                st.markdown("### Purchase List     Drawings Submission")
-        else:
-            with st.expander(f"{project_name}", expanded=False):
-                st.markdown("### Purchase List     Drawings Submission")
+        # 用 key 固定身份，label 只負責顯示
+        with st.expander(label=project_name, key=f"checklist_{project_name}", expanded=False):
+            # 標題：有未完成就加紅色驚嘆號
+            if has_unchecked:
+                st.markdown(f"**{project_name} <span style='color:red;font-size:20px'>!</span>**",
+                            unsafe_allow_html=True)
+            else:
+                st.markdown(f"**{project_name}**", unsafe_allow_html=True)
+            st.markdown("### Purchase List     Drawings Submission")
+            # === 結束，其他全部照舊（for 迴圈、SAVE 按鈕）===
             # 其他程式碼全部照舊（for 迴圈、SAVE 按鈕）
 
             new_purchase = []
