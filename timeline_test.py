@@ -456,9 +456,12 @@ with st.sidebar:
                 if f"d_{project_name}_{i}" not in st.session_state or not st.session_state[f"d_{project_name}_{i}"]:
                     has_unchecked = True
 
-        # 用 key + label 雙保險（Streamlit 最新版都支援）
-        with st.expander(label=project_name + (" !" if has_unchecked else ""),
-                        key=f"exp_{project_name}", expanded=False):
+        # 關鍵：用 key 固定，label 用純文字，驚嘆號用 markdown 加在裡面
+        with st.expander(project_name, expanded=False, key=f"exp_{project_name}"):
+            if has_unchecked:
+                st.markdown(f"**{project_name} <span style='color:red;font-size:24px'>!</span>**", unsafe_allow_html=True)
+            else:
+                st.markdown(f"**{project_name}**", unsafe_allow_html=True)
             st.markdown("### Purchase List     Drawings Submission")
         # === 結束，其他全部照舊 ===
 
