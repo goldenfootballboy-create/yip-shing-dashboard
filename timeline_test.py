@@ -446,8 +446,22 @@ with st.sidebar:
             "done_d":   []
         })
 
-        with st.expander(f"{project_name}", expanded=False):
-            st.markdown("### Purchase List     Drawings Submission")
+        has_unchecked = False
+        for i in range(max_rows):
+            if f"pt_{project_name}_{i}" in st.session_state and st.session_state[f"pt_{project_name}_{i}"].strip():
+                if f"p_{project_name}_{i}" not in st.session_state or not st.session_state[f"p_{project_name}_{i}"]:
+                    has_unchecked = True
+            if f"dt_{project_name}_{i}" in st.session_state and st.session_state[f"dt_{project_name}_{i}"].strip():
+                if f"d_{project_name}_{i}" not in st.session_state or not st.session_state[f"d_{project_name}_{i}"]:
+                    has_unchecked = True
+
+        if has_unchecked:
+            with st.expander(f"<span style='color:red;font-weight:bold'>{project_name}</span>", expanded=False,
+                             unsafe_allow_html=True):
+                st.markdown("### Purchase List     Drawings Submission")
+        else:
+            with st.expander(f"{project_name}", expanded=False):
+                st.markdown("### Purchase List     Drawings Submission")
 
             new_purchase = []
             new_done_p   = set()
