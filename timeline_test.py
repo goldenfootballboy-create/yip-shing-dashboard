@@ -13,12 +13,12 @@ os.chdir(script_dir)
 st.set_page_config(page_title="YIP SHING Project Status Dashboard", layout="wide", initial_sidebar_state="expanded")
 
 # Checklist 狀態
-CHECKLIST_FILE = "checklist.json"
+CHECKLIST_FILE = "checklist_data.json"
 if os.path.exists(CHECKLIST_FILE):
     with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
-        st.session_state.checklist = json.load(f)
+        saved_checklist = json.load(f)
 else:
-    st.session_state.checklist = {}
+    saved_checklist = {}
 
 def save_checklist():
     with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
@@ -428,7 +428,7 @@ with st.sidebar:
     st.title("Checklist Panel")
 
     # 永久儲存檔案
-    CHECKLIST_FILE = "checklist_data.json"
+    CHECKLIST_FILE = "yipshing_checklist.json"
     if os.path.exists(CHECKLIST_FILE):
         with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
             saved_checklist = json.load(f)
