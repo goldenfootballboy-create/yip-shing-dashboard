@@ -412,10 +412,6 @@ if total_real_count > 0:
                         f"<div style='font-size:12px; color:#d00;'><strong>{item['remarks']}</strong></div>",
                         unsafe_allow_html=True)
 
-    # 表格（左側下方）
-    st.markdown('<div class="milestone-table">', unsafe_allow_html=True)
-    st.dataframe(display_df, use_container_width=True, hide_index=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
 else:
     st.warning(f"No {selected_project_type} projects found in {selected_year} {selected_month}.")
