@@ -1,18 +1,27 @@
 import streamlit as st
+import pandas as pd
+import os
 import json
 from datetime import datetime
 
-# -------------------------------------------------
-# 永久儲存（用 JSON，永不消失）
-# -------------------------------------------------
-DATA_FILE = "yipshing_projects.json"
+# 必須在 st.set_page_config 之前定義！
+DATA_FILE
+DATA_FILE = "yipshing_projects.json"   # 這行一定要在最上面！
 
+# -------------------------------------------------
+# 1. 基本設定
+# -------------------------------------------------
+script_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(script_dir)
+
+st.set_page_config(page_title="YIP SHING Project Status Dashboard", layout="wide", initial_sidebar_state="expanded")
+
+# 現在才可以安全地檢查檔案是否存在
 if os.path.exists(DATA_FILE):
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         projects = json.load(f)
 else:
-    projects = []  # 格式：[{"name": "TP25/201", "type": "Open Set", "year": 2025, ...}]
-
+    projects = []
 # -------------------------------------------------
 # 頁面設定
 # -------------------------------------------------
