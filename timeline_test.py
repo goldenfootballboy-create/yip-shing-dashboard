@@ -109,17 +109,6 @@ st.markdown("---")
 # -------------------------------------------------
 # 4. 左側側邊欄（原本的 Controls）
 # -------------------------------------------------
-with st.sidebar:
-    st.title("Dashboard Controls")
-    st.markdown("### Project Type Selection")
-    project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
-    selected_project_type = st.selectbox("Select Project Type:", project_types, index=0, help="Select the project type status to view")
-
-    years = ["2024", "2025", "2026"]
-    selected_year = st.selectbox("Select Year:", years, index=years.index("2025"), help="Select the year to view")
-
-    month_options = ["--", "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
-    selected_month = st.selectbox("Lead Time:", month_options, index=0, help="Select the lead time to view or '--' for all lead times")
 
 # -------------------------------------------------
 # 5. 讀取 CSV（保持你原本的）
