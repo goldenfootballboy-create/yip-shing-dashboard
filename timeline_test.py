@@ -41,7 +41,7 @@ def load_projects():
         if c in df.columns:
             df[c] = pd.to_datetime(df[c], errors="coerce")
 
-    # 強制補 Year（永不缺）
+    # 強制補 Year（舊資料完美相容）
     if "Year" in df.columns:
         df["Year"] = pd.to_numeric(df["Year"], errors="coerce")
     else:
@@ -52,7 +52,6 @@ def load_projects():
 
     df["Year"] = df["Year"].fillna(2025).astype(int)
 
-    # Real_Count 補齊
     if "Real_Count" not in df.columns:
         df["Real_Count"] = df.get("Qty", 1)
 
@@ -230,7 +229,7 @@ if st.session_state.view_mode == "delay":
     page_title = "Delay Projects"
 else:
     filtered_df = df.copy()
-    # 三大篩選（安全讀取，避免 KeyError）
+    # 三大篩選（安全讀取）
     selected_type = st.session_state.get("filter_type", "All")
     selected_year = st.session_state.get("filter_year", "2025")
     selected_month = st.session_state.get("filter_month", "All")
@@ -507,4 +506,4 @@ else:
                     st.rerun()
 
 st.markdown("---")
-st.caption("Year column auto-filled from Lead_Time • No more KeyError • All functions perfect • 永久儲存")
+st.caption("Year column auto-filled • No more KeyError • All functions perfect • 永久儲存")
