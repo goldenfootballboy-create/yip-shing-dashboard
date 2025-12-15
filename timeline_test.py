@@ -32,7 +32,7 @@ def load_projects():
                 "Parts_Arrival", "Installation_Complete", "Testing_Complete", "Cleaning_Complete", "Delivery_Complete"]
     for c in required:
         if c not in df.columns:
-            df[c] = ""  # 空字串
+            df[c] = ""  # 先補空字串
 
     # 日期欄位處理
     date_cols = ["Lead_Time", "Parts_Arrival", "Installation_Complete", "Testing_Complete", "Cleaning_Complete",
@@ -41,11 +41,8 @@ def load_projects():
         if c in df.columns:
             df[c] = pd.to_datetime(df[c], errors="coerce")
 
-    # 關鍵：如果沒有 Year 欄位或全部空，用 Lead_Time 的年份補上
-    if "Year" not in df.columns or df["Year"].isnull().all():
-        df["Year"] = df["Lead_Time"].dt.year.fillna(2025).astype(int)
-    else:
-        df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(2025).astype(int)
+    # 關鍵：強制補 Year 欄位，用 Lead_Time 的年份填（舊資料完美相容）
+    df["Year"] = df["Lead_Time"].dt.year.fillna(2025).astype(int)
 
     # Real_Count 補齊
     if "Real_Count" not in df.columns:
@@ -53,33 +50,39 @@ def load_projects():
 
     return df
 
+
 def save_projects(df):
     df2 = df.copy()
-    date_cols = ["Lead_Time","Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete"]
+    date_cols = ["Lead_Time", "Parts_Arrival", "Installation_Complete", "Testing_Complete", "Cleaning_Complete",
+                 "Delivery_Complete"]
     for c in date_cols:
         if c in df2.columns:
             df2[c] = df2[c].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) and hasattr(x, "strftime") else None)
     with open(PROJECTS_FILE, "w", encoding="utf-8") as f:
         json.dump(df2.to_dict("records"), f, ensure_ascii=False, indent=2)
 
+
 def load_checklist():
     with open(CHECKLIST_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
+
 
 def save_checklist(data):
     with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+
 df = load_projects()
 checklist_db = load_checklist()
 
 # ==============================================
-# 進度計算 + 顏色
+# 進度計算（只有「日期已過今天」才計分）
 # ==============================================
+today = date.today()
+
+
 def calculate_progress(row):
     p = 0
-    today = date.today()
-    # 只有日期不為空且已過今天才計分
     if pd.notna(row.get("Parts_Arrival")) and row["Parts_Arrival"].date() < today:
         p += 30
     if pd.notna(row.get("Installation_Complete")) and row["Installation_Complete"].date() < today:
@@ -92,15 +95,23 @@ def calculate_progress(row):
         p += 10
     return min(p, 100)
 
+
 def get_color(pct):
-    if pct >= 100: return "#0066ff"
-    elif pct >= 90: return "#00aa00"
-    elif pct >= 70: return "#66cc66"
-    elif pct >= 30: return "#ffaa00"
-    else: return "#ff4444"
+    if pct >= 100:
+        return "#0066ff"
+    elif pct >= 90:
+        return "#00aa00"
+    elif pct >= 70:
+        return "#66cc66"
+    elif pct >= 30:
+        return "#ffaa00"
+    else:
+        return "#ff4444"
+
 
 def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
+
 
 # ==============================================
 # 左側側邊欄：三大篩選 + 頁面切換 + New Project
@@ -109,9 +120,9 @@ with st.sidebar:
     st.header("View Controls")
 
     # 頁面切換按鈕
-    if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
+    if st.button("All Projects", use_container_width=True, type="primary"):
         st.session_state.view_mode = "all"
-    if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
+    if st.button("Delay Projects", use_container_width=True, type="secondary"):
         st.session_state.view_mode = "delay"
 
     if "view_mode" not in st.session_state:
@@ -139,25 +150,24 @@ with st.sidebar:
     with st.form("add_form", clear_on_submit=True):
         c1, c2 = st.columns(2)
         with c1:
-            new_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"], key="new_type")
-            new_name = st.text_input("Project Name*", key="new_name")
-            new_year = st.selectbox("Year*", [2024,2025,2026], index=1, key="new_year")
-            new_qty  = st.number_input("Qty", min_value=1, value=1, key="new_qty")
+            new_type = st.selectbox("Project Type*", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"])
+            new_name = st.text_input("Project Name*")
+            new_year = st.selectbox("Year*", [2024, 2025, 2026], index=1)
+            new_qty = st.number_input("Qty", min_value=1, value=1)
         with c2:
-            new_customer = st.text_input("Customer", key="new_customer")
-            new_supervisor = st.text_input("Supervisor", key="new_supervisor")
-            new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
+            new_customer = st.text_input("Customer")
+            new_supervisor = st.text_input("Supervisor")
+            new_leadtime = st.date_input("Lead Time*", value=date.today())
 
         with st.expander("Project Specification & Progress Dates", expanded=False):
             st.markdown("**Specification**")
-            s1 = st.text_input("Genset model", key="s1")
-            s2 = st.text_input("Alternator Model", key="s2")
-            s3 = st.text_input("Controller", key="s3")
-            s4 = st.text_input("Circuit breaker Size", key="s4")
-            s5 = st.text_input("Charger", key="s5")
+            s1 = st.text_input("Genset model")
+            s2 = st.text_input("Alternator Model")
+            s3 = st.text_input("Controller")
+            s4 = st.text_input("Circuit breaker Size")
+            s5 = st.text_input("Charger")
 
-            # Description 已移到 Specification
-            desc = st.text_area("Description", height=100, key="desc")
+            desc = st.text_area("Description", height=100)
 
             st.markdown("**Progress Dates**")
             d1 = st.date_input("Parts Arrival", value=None, key="d1")
@@ -166,7 +176,8 @@ with st.sidebar:
             d4 = st.date_input("Cleaning Complete", value=None, key="d4")
             d5 = st.date_input("Delivery Complete", value=None, key="d5")
 
-            reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
+            reminder = st.text_input("Progress Reminder (顯示在進度條中間)",
+                                     placeholder="例如：等緊報價 / 生產中 / 已發貨")
 
         if st.form_submit_button("Add", type="primary", use_container_width=True):
             if not new_name.strip():
@@ -203,24 +214,25 @@ with st.sidebar:
 # ==============================================
 # 篩選邏輯 + 頁面切換
 # ==============================================
-today = date.today()
-all_df = df.copy()
-
 if st.session_state.view_mode == "delay":
-    filtered_df = all_df[
-        (all_df["Lead_Time"].dt.date < today) &
-        (all_df.apply(calculate_progress, axis=1) < 100)
-    ].copy()
+    filtered_df = df[
+        (df["Lead_Time"].dt.date < today) &
+        (df.apply(calculate_progress, axis=1) < 100)
+        ].copy()
     page_title = "Delay Projects"
 else:
-    filtered_df = all_df.copy()
-    # 三大篩選
+    filtered_df = df.copy()
+    # 三大篩選（安全讀取）
+    selected_type = st.session_state.get("filter_type", "All")
+    selected_year = st.session_state.get("filter_year", "2025")
+    selected_month = st.session_state.get("filter_month", "All")
+
     if selected_type != "All":
         filtered_df = filtered_df[filtered_df["Project_Type"] == selected_type]
     filtered_df = filtered_df[filtered_df["Year"] == int(selected_year)]
     if selected_month != "All":
-        month_map = {"Jan":1, "Feb":2, "Mar":3, "Apr":4, "May":5, "Jun":6,
-                     "Jul":7, "Aug":8, "Sep":9, "Oct":10, "Nov":11, "Dec":12}
+        month_map = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
+                     "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12}
         filtered_df = filtered_df[filtered_df["Lead_Time"].dt.month == month_map[selected_month]]
     page_title = "YIP SHING Project Dashboard"
 
@@ -294,7 +306,7 @@ else:
                 </div>
             </div>
             <div style="font-size:0.85rem; color:#555; margin-top:6px; position:relative; z-index:5;">
-                {row.get('Customer','—')} | {row.get('Supervisor','—')} | Qty:{row.get('Qty',0)} | 
+                {row.get('Customer', '—')} | {row.get('Supervisor', '—')} | Qty:{row.get('Qty', 0)} | 
                 Lead Time: {fmt(row['Lead_Time'])}
             </div>
         </div>
@@ -303,16 +315,16 @@ else:
         # 展開內容
         with st.expander(f"Details • {row['Project_Name']}", expanded=False):
             st.markdown(f"**Year:** {row['Year']} | **Lead Time:** {fmt(row['Lead_Time'])}")
-            st.markdown(f"**Customer:** {row.get('Customer','—')} | **Supervisor:** {row.get('Supervisor','—')} | **Qty:** {row.get('Qty',0)}")
+            st.markdown(
+                f"**Customer:** {row.get('Customer', '—')} | **Supervisor:** {row.get('Supervisor', '—')} | **Qty:** {row.get('Qty', 0)}")
 
             if row.get("Project_Spec"):
                 st.markdown("**Project Specification:**")
                 for line in row["Project_Spec"].split("\n"):
                     if line.strip():
-                        key, val = line.split(": ",1) if ": " in line else ("", line)
+                        key, val = line.split(": ", 1) if ": " in line else ("", line)
                         st.markdown(f"• **{key}:** {val}")
 
-            # Description 已移到 Specification 區塊上方（在展開內容也顯示）
             if row.get("Description"):
                 st.markdown(f"**Description:** {row['Description']}")
 
@@ -321,9 +333,10 @@ else:
                 st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
 
             if st.session_state.get(f"cl_open_{idx}", False):
-                current = checklist_db.get(project_name, {"purchase": [],"done_p": [],"drawing": [],"done_d": []})
+                current = checklist_db.get(project_name, {"purchase": [], "done_p": [], "drawing": [], "done_d": []})
 
-                st.markdown("<h4 style='text-align:center;'>Purchase List        Drawings Submission</h4>", unsafe_allow_html=True)
+                st.markdown("<h4 style='text-align:center;'>Purchase List        Drawings Submission</h4>",
+                            unsafe_allow_html=True)
 
                 new_purchase = []
                 new_done_p = set()
@@ -337,7 +350,7 @@ else:
                     with c1:
                         text = current["purchase"][i] if i < len(current["purchase"]) else ""
                         checked = text in current["done_p"]
-                        col_chk, col_txt = st.columns([1,7])
+                        col_chk, col_txt = st.columns([1, 7])
                         with col_chk:
                             chk = st.checkbox("", value=checked, key=f"p_{idx}_{i}")
                         with col_txt:
@@ -349,7 +362,7 @@ else:
                     with c2:
                         text = current["drawing"][i] if i < len(current["drawing"]) else ""
                         checked = text in current["done_d"]
-                        col_chk, col_txt = st.columns([1,7])
+                        col_chk, col_txt = st.columns([1, 7])
                         with col_chk:
                             chk = st.checkbox("", value=checked, key=f"d_{idx}_{i}")
                         with col_txt:
@@ -380,36 +393,51 @@ else:
                 with st.form(key=f"edit_form_{idx}"):
                     c1, c2 = st.columns(2)
                     with c1:
-                        e_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"],
-                                             index=["Enclosure","Open Set","Scania","Marine","K50G3"].index(row["Project_Type"]))
+                        e_type = st.selectbox("Project Type*", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"],
+                                              index=["Enclosure", "Open Set", "Scania", "Marine", "K50G3"].index(
+                                                  row["Project_Type"]))
                         e_name = st.text_input("Project Name*", value=row["Project_Name"])
-                        e_year = st.selectbox("Year*", [2024,2025,2026], index=[2024,2025,2026].index(row["Year"]))
-                        e_qty = st.number_input("Qty", min_value=1, value=int(row.get("Qty",1)))
+                        e_year = st.selectbox("Year*", [2024, 2025, 2026], index=[2024, 2025, 2026].index(row["Year"]))
+                        e_qty = st.number_input("Qty", min_value=1, value=int(row.get("Qty", 1)))
                     with c2:
-                        e_customer = st.text_input("Customer", value=row.get("Customer",""))
-                        e_supervisor = st.text_input("Supervisor", value=row.get("Supervisor",""))
-                        e_leadtime = st.date_input("Lead Time*", value=pd.to_datetime(row["Lead_Time"]).date() if pd.notna(row["Lead_Time"]) else date.today())
+                        e_customer = st.text_input("Customer", value=row.get("Customer", ""))
+                        e_supervisor = st.text_input("Supervisor", value=row.get("Supervisor", ""))
+                        e_leadtime = st.date_input("Lead Time*",
+                                                   value=pd.to_datetime(row["Lead_Time"]).date() if pd.notna(
+                                                       row["Lead_Time"]) else date.today())
 
                     with st.expander("Project Specification & Progress Dates", expanded=True):
-                        curr_spec = row.get("Project_Spec","")
-                        lines = [line.split(": ",1)[1] if ": " in line else "" for line in curr_spec.split("\n")] if curr_spec else ["","","","",""]
-                        e_s1 = st.text_input("Genset model", value=lines[0] if len(lines)>0 else "")
-                        e_s2 = st.text_input("Alternator Model", value=lines[1] if len(lines)>1 else "")
-                        e_s3 = st.text_input("Controller", value=lines[2] if len(lines)>2 else "")
-                        e_s4 = st.text_input("Circuit breaker Size", value=lines[3] if len(lines)>3 else "")
-                        e_s5 = st.text_input("Charger", value=lines[4] if len(lines)>4 else "")
+                        curr_spec = row.get("Project_Spec", "")
+                        lines = [line.split(": ", 1)[1] if ": " in line else "" for line in
+                                 curr_spec.split("\n")] if curr_spec else ["", "", "", "", ""]
+                        e_s1 = st.text_input("Genset model", value=lines[0] if len(lines) > 0 else "")
+                        e_s2 = st.text_input("Alternator Model", value=lines[1] if len(lines) > 1 else "")
+                        e_s3 = st.text_input("Controller", value=lines[2] if len(lines) > 2 else "")
+                        e_s4 = st.text_input("Circuit breaker Size", value=lines[3] if len(lines) > 3 else "")
+                        e_s5 = st.text_input("Charger", value=lines[4] if len(lines) > 4 else "")
 
-                        # Description 移到 Specification 區塊
-                        e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
+                        e_desc = st.text_area("Description", value=row.get("Description", ""), height=100)
 
                         st.markdown("**Progress Dates**")
-                        e_d1 = st.date_input("Parts Arrival", value=pd.to_datetime(row["Parts_Arrival"]).date() if pd.notna(row["Parts_Arrival"]) else None, key=f"d1e{idx}")
-                        e_d2 = st.date_input("Installation Complete", value=pd.to_datetime(row["Installation_Complete"]).date() if pd.notna(row["Installation_Complete"]) else None, key=f"d2e{idx}")
-                        e_d3 = st.date_input("Testing Complete", value=pd.to_datetime(row["Testing_Complete"]).date() if pd.notna(row["Testing_Complete"]) else None, key=f"d3e{idx}")
-                        e_d4 = st.date_input("Cleaning Complete", value=pd.to_datetime(row["Cleaning_Complete"]).date() if pd.notna(row["Cleaning_Complete"]) else None, key=f"d4e{idx}")
-                        e_d5 = st.date_input("Delivery Complete", value=pd.to_datetime(row["Delivery_Complete"]).date() if pd.notna(row["Delivery_Complete"]) else None, key=f"d5e{idx}")
+                        e_d1 = st.date_input("Parts Arrival",
+                                             value=pd.to_datetime(row["Parts_Arrival"]).date() if pd.notna(
+                                                 row["Parts_Arrival"]) else None, key=f"d1e{idx}")
+                        e_d2 = st.date_input("Installation Complete",
+                                             value=pd.to_datetime(row["Installation_Complete"]).date() if pd.notna(
+                                                 row["Installation_Complete"]) else None, key=f"d2e{idx}")
+                        e_d3 = st.date_input("Testing Complete",
+                                             value=pd.to_datetime(row["Testing_Complete"]).date() if pd.notna(
+                                                 row["Testing_Complete"]) else None, key=f"d3e{idx}")
+                        e_d4 = st.date_input("Cleaning Complete",
+                                             value=pd.to_datetime(row["Cleaning_Complete"]).date() if pd.notna(
+                                                 row["Cleaning_Complete"]) else None, key=f"d4e{idx}")
+                        e_d5 = st.date_input("Delivery Complete",
+                                             value=pd.to_datetime(row["Delivery_Complete"]).date() if pd.notna(
+                                                 row["Delivery_Complete"]) else None, key=f"d5e{idx}")
 
-                        e_reminder = st.text_input("Progress Reminder (顯示在進度條中間)", value=row.get("Progress_Reminder",""), placeholder="例如：等緊報價 / 生產中 / 已發貨")
+                        e_reminder = st.text_input("Progress Reminder (顯示在進度條中間)",
+                                                   value=row.get("Progress_Reminder", ""),
+                                                   placeholder="例如：等緊報價 / 生產中 / 已發貨")
 
                     col_save, col_cancel = st.columns(2)
                     with col_save:
@@ -471,4 +499,4 @@ else:
                     st.rerun()
 
 st.markdown("---")
-st.caption("Progress only counts when date has passed today • All functions perfect • 永久儲存")
+st.caption("Year column auto-filled from Lead_Time • No more KeyError • All functions perfect • 永久儲存")
