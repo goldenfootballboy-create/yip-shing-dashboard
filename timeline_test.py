@@ -41,8 +41,11 @@ def load_projects():
         if c in df.columns:
             df[c] = pd.to_datetime(df[c], errors="coerce")
 
-    # 強制補 Year 欄位：用 Lead_Time 的年份填（舊資料完美相容）
-    df["Year"] = df["Lead_Time"].dt.year.fillna(2025).astype(int)
+    # 強制補 Year：如果沒有或空，就用 Lead_Time 的年份，沒有 Lead_Time 就用 2025
+    df["Year"] = df.get("Year", pd.Series([2025] * len(df)))
+    df["Year"] = pd.to_numeric(df["Year"], errors="coerce")
+    df["Year"] = df["Year"].fillna(df["Lead_Time"].dt.year if "Lead_Time" in df.columns else 2025)
+    df["Year"] = df["Year"].fillna(2025).astype(int)
 
     # Real_Count 補齊
     if "Real_Count" not in df.columns:
