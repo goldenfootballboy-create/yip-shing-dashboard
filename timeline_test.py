@@ -26,37 +26,33 @@ def load_projects():
         return pd.DataFrame()
     df = pd.DataFrame(data)
 
-    # 補齊所有欄位
+    # 強制補齊所有必要欄位（舊資料一定有）
     required = ["Project_Type", "Project_Name", "Year", "Lead_Time", "Customer", "Supervisor",
                 "Qty", "Real_Count", "Project_Spec", "Description", "Progress_Reminder",
                 "Parts_Arrival", "Installation_Complete", "Testing_Complete", "Cleaning_Complete", "Delivery_Complete"]
     for c in required:
         if c not in df.columns:
-            df[c] = ""
+            df[c] = ""  # 空字串
 
-    # 日期處理
+    # 日期欄位安全處理
     date_cols = ["Lead_Time", "Parts_Arrival", "Installation_Complete", "Testing_Complete", "Cleaning_Complete",
                  "Delivery_Complete"]
     for c in date_cols:
         if c in df.columns:
             df[c] = pd.to_datetime(df[c], errors="coerce")
 
-    # 強制補 Year（舊資料完美相容）
-    if "Year" in df.columns:
-        df["Year"] = pd.to_numeric(df["Year"], errors="coerce")
-    else:
-        df["Year"] = pd.Series([2025] * len(df))
+    # 強制補 Year（用 Lead_Time 年份）
+    df["Year"] = df["Lead_Time"].dt.year.fillna(2025).astype(int)
 
-    if "Lead_Time" in df.columns:
-        df["Year"] = df["Lead_Time"].dt.year.fillna(df["Year"])
-
-    df["Year"] = df["Year"].fillna(2025).astype(int)
-
+    # Real_Count 補齊
     if "Real_Count" not in df.columns:
-        df["Real_Count"] = df.get("Qty", 1)
+        df["Real_Count"] = pd.to_numeric(df["Qty"], errors="coerce").fillna(1).astype(int)
+
+    # Project_Type 如果空，補成 "Unknown"
+    if df["Project_Type"].empty or df["Project_Type"].isnull().all():
+        df["Project_Type"] = "Unknown"
 
     return df
-
 
 def save_projects(df):
     df2 = df.copy()
