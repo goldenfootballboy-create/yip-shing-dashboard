@@ -26,13 +26,13 @@ def load_projects():
         return pd.DataFrame()
     df = pd.DataFrame(data)
 
-    # 強制補齊所有必要欄位
+    # 強制補齊所有欄位
     required = ["Project_Type", "Project_Name", "Year", "Lead_Time", "Customer", "Supervisor",
                 "Qty", "Real_Count", "Project_Spec", "Description", "Progress_Reminder",
                 "Parts_Arrival", "Installation_Complete", "Testing_Complete", "Cleaning_Complete", "Delivery_Complete"]
     for c in required:
         if c not in df.columns:
-            df[c] = ""  # 先補空字串
+            df[c] = ""
 
     # 日期欄位處理
     date_cols = ["Lead_Time", "Parts_Arrival", "Installation_Complete", "Testing_Complete", "Cleaning_Complete",
@@ -41,7 +41,7 @@ def load_projects():
         if c in df.columns:
             df[c] = pd.to_datetime(df[c], errors="coerce")
 
-    # 關鍵：強制補 Year 欄位，用 Lead_Time 的年份填（舊資料完美相容）
+    # 強制補 Year 欄位：用 Lead_Time 的年份填（舊資料完美相容）
     df["Year"] = df["Lead_Time"].dt.year.fillna(2025).astype(int)
 
     # Real_Count 補齊
@@ -222,7 +222,7 @@ if st.session_state.view_mode == "delay":
     page_title = "Delay Projects"
 else:
     filtered_df = df.copy()
-    # 三大篩選（安全讀取）
+    # 三大篩選（安全讀取，避免 KeyError）
     selected_type = st.session_state.get("filter_type", "All")
     selected_year = st.session_state.get("filter_year", "2025")
     selected_month = st.session_state.get("filter_month", "All")
