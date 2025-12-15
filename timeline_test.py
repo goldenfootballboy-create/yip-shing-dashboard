@@ -18,24 +18,39 @@ if not os.path.exists(CHECKLIST_FILE):
     with open(CHECKLIST_FILE, "w", encoding="utf-8") as f:
         json.dump({}, f, ensure_ascii=False, indent=2)
 
+
 def load_projects():
     with open(PROJECTS_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
     if not data:
         return pd.DataFrame()
     df = pd.DataFrame(data)
-    required = ["Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
-                "Qty","Real_Count","Project_Spec","Description","Progress_Reminder",
-                "Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete"]
+
+    # 強制補齊所有必要欄位
+    required = ["Project_Type", "Project_Name", "Year", "Lead_Time", "Customer", "Supervisor",
+                "Qty", "Real_Count", "Project_Spec", "Description", "Progress_Reminder",
+                "Parts_Arrival", "Installation_Complete", "Testing_Complete", "Cleaning_Complete", "Delivery_Complete"]
     for c in required:
-        if c not in df.columns: df[c] = ""
-    date_cols = ["Lead_Time","Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete"]
+        if c not in df.columns:
+            df[c] = ""  # 空字串
+
+    # 日期欄位處理
+    date_cols = ["Lead_Time", "Parts_Arrival", "Installation_Complete", "Testing_Complete", "Cleaning_Complete",
+                 "Delivery_Complete"]
     for c in date_cols:
         if c in df.columns:
             df[c] = pd.to_datetime(df[c], errors="coerce")
-    df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(2025).astype(int)
+
+    # 關鍵：如果沒有 Year 欄位或全部空，用 Lead_Time 的年份補上
+    if "Year" not in df.columns or df["Year"].isnull().all():
+        df["Year"] = df["Lead_Time"].dt.year.fillna(2025).astype(int)
+    else:
+        df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(2025).astype(int)
+
+    # Real_Count 補齊
     if "Real_Count" not in df.columns:
         df["Real_Count"] = df.get("Qty", 1)
+
     return df
 
 def save_projects(df):
