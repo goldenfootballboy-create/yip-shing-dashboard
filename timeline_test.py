@@ -223,7 +223,6 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Search 功能
     st.markdown("### Search Project Name")
     search_term = st.text_input(
         "Enter Project Name (partial match)",
@@ -304,40 +303,39 @@ with st.sidebar:
                 st.rerun()
 
 # ==============================================
-# 篩選邏輯（Search 完全獨立）
+# 篩選邏輯（Search 完全獨立，先搜尋再套用其他 filter，最後按完成度排序）
 # ==============================================
 today = date.today()
 filtered_df = df.copy()
 
-# Step 1: 先套用 Search（全局搜尋，完全獨立）
+# Step 1: 先套用 Search（全局搜尋，不受其他 filter 限制）
 if search_term.strip():
     search_term_lower = search_term.strip().lower()
     filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
-    page_title = f"Search Results: '{search_term}' ({len(filtered_df)} found)"
+
+# Step 2: 再根據 view_mode 決定其他 filter
+if st.session_state.view_mode == "delay":
+    filtered_df = filtered_df[
+        filtered_df["Lead_Time"].notna() &
+        (filtered_df["Lead_Time"] < pd.Timestamp(today)) &
+        (filtered_df.apply(calculate_progress, axis=1) < 100)
+    ]
+    page_title = "Delay Projects"
 else:
-    # 只有當沒有 Search 時，才套用其他 filter
-    if st.session_state.view_mode == "delay":
+    if selected_type != "All":
+        filtered_df = filtered_df[filtered_df["Project_Type"] == selected_type]
+    filtered_df = filtered_df[filtered_df["Year"] == selected_year]
+    if selected_month != "All":
+        month_map = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
         filtered_df = filtered_df[
             filtered_df["Lead_Time"].notna() &
-            (filtered_df["Lead_Time"] < pd.Timestamp(today)) &
-            (filtered_df.apply(calculate_progress, axis=1) < 100)
+            (filtered_df["Lead_Time"].dt.month == month_map[selected_month])
         ]
-        page_title = "Delay Projects"
-    else:
-        if selected_type != "All":
-            filtered_df = filtered_df[filtered_df["Project_Type"] == selected_type]
-        filtered_df = filtered_df[filtered_df["Year"] == selected_year]
-        if selected_month != "All":
-            month_map = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
-            filtered_df = filtered_df[
-                filtered_df["Lead_Time"].notna() &
-                (filtered_df["Lead_Time"].dt.month == month_map[selected_month])
-            ]
-        page_title = "YIP SHING Project Dashboard"
+    page_title = "YIP SHING Project Dashboard"
 
-# 如果搜尋沒結果
-if search_term.strip() and len(filtered_df) == 0:
-    page_title = f"No results found for: '{search_term}'"
+# Step 3: 按完成度降序排序（完成度高的排前面）
+filtered_df["Progress"] = filtered_df.apply(calculate_progress, axis=1)
+filtered_df = filtered_df.sort_values("Progress", ascending=False).reset_index(drop=True)
 
 # ==============================================
 # 主畫面
@@ -359,12 +357,17 @@ if len(filtered_df) > 0:
     """, unsafe_allow_html=True)
 
 if len(filtered_df) == 0:
-    st.info("No projects match the current search or filters.")
+    if st.session_state.view_mode == "delay":
+        st.success("No delay projects! All on time!")
+    else:
+        st.info("No projects match the selected filters or search term.")
 else:
+    # 一行顯示 2 個專案卡片
     rows = filtered_df.to_dict('records')
     for i in range(0, len(rows), 2):
         col1, col2 = st.columns(2)
 
+        # 左邊卡片
         with col1:
             if i < len(rows):
                 row = rows[i]
