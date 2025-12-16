@@ -456,32 +456,32 @@ else:
                                 st.success("Updated!")
                                 st.rerun()
 
-                # Delete 確認
-                if st.session_state.get(f"confirm_delete_{idx}", False):
-                    st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
-                    col_yes, col_no = st.columns(2)
-                    if col_yes.button("Yes, Delete", type="primary", key=f"yes_del_{idx}"):
-                        # 1. 從原始 df 刪除（用 Project_Name 找，安全）
-                        global df, checklist_db
-                        df = df[df["Project_Name"] != row["Project_Name"]].reset_index(drop=True)
+                              
+                                # 專案卡片渲染函數內的 Delete 確認（左邊卡片）
+                                # Delete 確認
+                                if st.session_state.get(f"confirm_delete_{idx}", False):
+                                    st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
+                                    col_yes, col_no = st.columns(2)
+                                    if col_yes.button("Yes, Delete", type="primary", key=f"yes_del_{idx}"):
+                                        global checklist_db
 
-                        # 2. 刪除 checklist
-                        checklist_db.pop(row["Project_Name"], None)
+                                        df = df[df["Project_Name"] != row["Project_Name"]].reset_index(drop=True)
+                                        checklist_db.pop(row["Project_Name"], None)
 
-                        # 3. 保存兩個 sheet
-                        save_projects()
-                        save_checklist()
+                                        save_projects()
+                                        save_checklist()
 
-                        # 4. 清快取 + 清除 session state
-                        st.cache_data.clear()
-                        st.cache_resource.clear()
-                        del st.session_state[f"confirm_delete_{idx}"]
+                                        st.cache_data.clear()
+                                        st.cache_resource.clear()
+                                        del st.session_state[f"confirm_delete_{idx}"]
 
-                        st.success("已刪除！")
-                        st.rerun()
-                    if col_no.button("Cancel", key=f"cancel_del_{idx}"):
-                        del st.session_state[f"confirm_delete_{idx}"]
-                        st.rerun()
+                                        st.success("已刪除！")
+                                        st.rerun()
+                                    if col_no.button("Cancel", key=f"cancel_del_{idx}"):
+                                        del st.session_state[f"confirm_delete_{idx}"]
+                                        st.rerun()
+
+                # 右邊卡片同樣取代成上面一樣的程式碼
 
         # 右邊卡片
         with col2:
