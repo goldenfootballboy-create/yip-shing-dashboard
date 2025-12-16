@@ -363,6 +363,25 @@ if len(filtered_df) == 0:
     else:
         st.info("No projects match the selected filters or search term.")
 else:
+    # === 新增：按完成度從高到低排序 ===
+    if not filtered_df.empty:
+        progress_series = filtered_df.apply(calculate_progress, axis=1)
+        filtered_df = filtered_df.assign(Progress=progress_series) \
+                                      .sort_values(by="Progress", ascending=False) \
+                                      .drop(columns="Progress")
+        filtered_df = filtered_df.reset_index(drop=True)  # 重置 index，避免 key 重複問題
+
+    # 計算總數和分類統計（排序後依然正確）
+    counter = filtered_df.groupby("Project_Type")["Qty"].sum().astype(int).sort_index()
+    total_qty = int(filtered_df["Qty"].sum())
+    st.markdown(f"""
+    <div style="position:fixed; top:70px; right:20px; background:#1e3a8a; color:white; padding:12px 18px; 
+                border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:1000; font-size:0.9rem; text-align:center;">
+        <strong style="font-size:1.1rem;">Total: {total_qty}</strong><br>
+        {"<br>".join([f"<strong>{k}:</strong> {v}" for k, v in counter.items()])}
+    </div>
+    """, unsafe_allow_html=True)
+
     # 一行顯示 2 個專案卡片
     rows = filtered_df.to_dict('records')
     for i in range(0, len(rows), 2):
@@ -372,7 +391,7 @@ else:
         with col1:
             if i < len(rows):
                 row = rows[i]
-                idx = filtered_df.index[i]
+                idx = filtered_df.index[i]  # 這裡用的是排序後的新 index
                 render_project_card(row, idx)
 
                 # Edit 和 Delete 平排
