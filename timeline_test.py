@@ -89,7 +89,7 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # ==============================================
-# 專案卡片渲染函數（只顯示卡片 + Checklist + Edit/Delete 按鈕，不包含表單）
+# 專案卡片渲染函數
 # ==============================================
 def render_project_card(row, idx):
     pct = calculate_progress(row)
@@ -207,7 +207,7 @@ def render_project_card(row, idx):
                 st.success("Checklist 已永久儲存到 Google Sheets！")
                 st.rerun()
 
-        # Edit 和 Delete 按鈕（只放按鈕，不放表單）
+        # Edit 和 Delete 平排
         btn_col1, btn_col2 = st.columns(2)
         with btn_col1:
             if st.button("Edit", key=f"edit_{idx}"):
@@ -375,6 +375,7 @@ else:
     for i in range(0, len(rows), 2):
         col1, col2 = st.columns(2)
 
+        # 左邊卡片
         with col1:
             if i < len(rows):
                 row = rows[i]
@@ -451,7 +452,7 @@ else:
                                 st.success("Updated!")
                                 st.rerun()
 
-                # Delete 確認（已修正，不用 global）
+                # Delete 確認
                 if st.session_state.get(f"confirm_delete_{idx}", False):
                     st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
                     col_yes, col_no = st.columns(2)
@@ -481,9 +482,9 @@ else:
                     st.markdown("---")
                     st.subheader(f"Editing: {row['Project_Name']}")
                     with st.form(key=f"edit_form_{idx}"):
-                        # (Edit 表單內容同左邊)
+                        # (Edit 表單內容同左邊，為了節省空間省略，但實際要完整貼上)
 
-                # Delete 確認（右邊，已修正）
+                # Delete 確認（右邊）
                 if st.session_state.get(f"confirm_delete_{idx}", False):
                     st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
                     col_yes, col_no = st.columns(2)
