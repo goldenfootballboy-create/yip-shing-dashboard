@@ -332,16 +332,16 @@ else:
             filtered_df["Lead_Time"].notna() &
             (filtered_df["Lead_Time"].dt.month == month_map[selected_month])
         ]
-    # 標題改顏色 + 完全置中
-    st.markdown(
-        f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px;'>{page_title}</h1>",
-        unsafe_allow_html=True
-    )
+    page_title = "YIP SHING Project Dashboard"
 
 # ==============================================
 # 主畫面
 # ==============================================
-st.title(page_title)
+# 標題改顏色 + 完全置中
+st.markdown(
+    f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px;'>{page_title}</h1>",
+    unsafe_allow_html=True
+)
 
 if len(filtered_df) > 0:
     counter = filtered_df.groupby("Project_Type")["Qty"].sum().astype(int).sort_index()
