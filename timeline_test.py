@@ -309,12 +309,13 @@ with st.sidebar:
 today = date.today()
 filtered_df = df.copy()
 
-# 先套用 Search（全局搜尋，不受其他 filter 限制）
-if search_term.strip():
+# Step 1: 先套用 Search（全局、全年份、全類型搜尋）
+has_search = search_term.strip() != ""
+if has_search:
     search_term_lower = search_term.strip().lower()
     filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
 
-# 再根據 view_mode 決定其他 filter
+# Step 2: 根據 view_mode 處理
 if st.session_state.view_mode == "delay":
     filtered_df = filtered_df[
         filtered_df["Lead_Time"].notna() &
@@ -323,16 +324,17 @@ if st.session_state.view_mode == "delay":
     ]
     page_title = "Delay Projects"
 else:
-    # 一般模式下才套用 Type / Year / Month
-    if selected_type != "All":
-        filtered_df = filtered_df[filtered_df["Project_Type"] == selected_type]
-    filtered_df = filtered_df[filtered_df["Year"] == selected_year]
-    if selected_month != "All":
-        month_map = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
-        filtered_df = filtered_df[
-            filtered_df["Lead_Time"].notna() &
-            (filtered_df["Lead_Time"].dt.month == month_map[selected_month])
-        ]
+    # 只有「沒有搜尋字」時，才套用 Type / Year / Month 篩選
+    if not has_search:
+        if selected_type != "All":
+            filtered_df = filtered_df[filtered_df["Project_Type"] == selected_type]
+        filtered_df = filtered_df[filtered_df["Year"] == selected_year]
+        if selected_month != "All":
+            month_map = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
+            filtered_df = filtered_df[
+                filtered_df["Lead_Time"].notna() &
+                (filtered_df["Lead_Time"].dt.month == month_map[selected_month])
+            ]
     page_title = "YIP SHING Project Dashboard"
 
 # ==============================================
