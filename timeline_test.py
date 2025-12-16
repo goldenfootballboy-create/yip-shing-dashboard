@@ -578,4 +578,4 @@ else:
                         st.rerun()
 
 st.markdown("---")
-st.caption("All data permanently stored in Google Sheets • Immediate update after add/edit/delete")
+st.caption("Projects Management System ")
