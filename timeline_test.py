@@ -240,9 +240,9 @@ with st.sidebar:
 
     if st.session_state.view_mode == "all":
         st.markdown("### Filters")
-        selected_type = st.selectbox("Project Type", project_types, index=0, key="filter_type")
-        selected_year = st.selectbox("Year", years, index=1, key="filter_year")
-        selected_month = st.selectbox("Month", month_names, index=0, key="filter_month")
+        selected_type = st.selectbox("Project Type", project_types, index=project_types.index("All"), key="filter_type")
+        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="filter_year")  # 預設當年
+        selected_month = st.selectbox("Month", month_names, index=month_names.index("All"), key="filter_month")
     else:
         selected_type = "All"
         selected_year = date.today().year
@@ -307,9 +307,9 @@ with st.sidebar:
 # 篩選邏輯（Search 完全獨立，先搜尋再套用其他 filter）
 # ==============================================
 today = date.today()
-filtered_df = df.copy()  # 從完整資料開始
+filtered_df = df.copy()
 
-# Step 1: 先套用 Search（全局搜尋，不受任何其他 filter 影響）
+# 先套用 Search（全局搜尋，不受其他 filter 限制）
 if search_term.strip():
     search_term_lower = search_term.strip().lower()
     filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
