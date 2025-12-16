@@ -332,7 +332,11 @@ else:
             filtered_df["Lead_Time"].notna() &
             (filtered_df["Lead_Time"].dt.month == month_map[selected_month])
         ]
-    page_title = "YIP SHING Project Dashboard"
+    # 標題改顏色 + 完全置中
+    st.markdown(
+        f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px;'>{page_title}</h1>",
+        unsafe_allow_html=True
+    )
 
 # ==============================================
 # 主畫面
