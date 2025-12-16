@@ -223,7 +223,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Search 功能（放在最上面，獨立）
+    # Search 功能
     st.markdown("### Search Project Name")
     search_term = st.text_input(
         "Enter Project Name (partial match)",
@@ -309,16 +309,12 @@ with st.sidebar:
 today = date.today()
 filtered_df = df.copy()
 
-# 當有 Search 文字時，自動重置其他 filter 為 All
-    if search_term.strip():
-        if "filter_type" in st.session_state:
-            st.session_state.filter_type = "All"
-        if "filter_year" in st.session_state:
-            st.session_state.filter_year = date.today().year  # 或固定 2025
-        if "filter_month" in st.session_state:
-            st.session_state.filter_month = "All"
+# Step 1: 先套用 Search（全局搜尋，不受其他 filter 限制）
+if search_term.strip():
+    search_term_lower = search_term.strip().lower()
+    filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
 
-# 再根據 view_mode 決定其他 filter
+# Step 2: 再根據 view_mode 決定其他 filter
 if st.session_state.view_mode == "delay":
     filtered_df = filtered_df[
         filtered_df["Lead_Time"].notna() &
