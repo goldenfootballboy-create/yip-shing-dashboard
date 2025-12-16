@@ -225,9 +225,12 @@ with st.sidebar:
 
     # Search 功能（放在最上面，不受其他 filter 限制）
     st.markdown("### Search Project Name")
-    search_term = st.text_input("Enter Project Name (partial match)", value="", key="search_input")
+    search_term = st.text_input(
+        "Enter Project Name (partial match)",
+        value=st.session_state.get("search_input", ""),
+        key="search_input"
+    )
     if st.button("Clear Search", key="clear_search"):
-        st.session_state.search_input = ""
         st.rerun()
 
     st.markdown("---")
