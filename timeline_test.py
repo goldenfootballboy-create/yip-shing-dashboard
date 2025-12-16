@@ -309,10 +309,14 @@ with st.sidebar:
 today = date.today()
 filtered_df = df.copy()
 
-# 先套用 Search（全局搜尋，不受其他 filter 限制）
-if search_term.strip():
-    search_term_lower = search_term.strip().lower()
-    filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
+# 當有 Search 文字時，自動重置其他 filter 為 All
+    if search_term.strip():
+        if "filter_type" in st.session_state:
+            st.session_state.filter_type = "All"
+        if "filter_year" in st.session_state:
+            st.session_state.filter_year = date.today().year  # 或固定 2025
+        if "filter_month" in st.session_state:
+            st.session_state.filter_month = "All"
 
 # 再根據 view_mode 決定其他 filter
 if st.session_state.view_mode == "delay":
