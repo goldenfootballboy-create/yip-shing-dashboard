@@ -89,7 +89,7 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # ==============================================
-# 專案卡片渲染函數（只顯示卡片 + Checklist，不含 Edit/Delete）
+# 專案卡片渲染函數（只顯示卡片 + Checklist）
 # ==============================================
 def render_project_card(row, idx):
     pct = calculate_progress(row)
@@ -208,7 +208,7 @@ def render_project_card(row, idx):
                 st.rerun()
 
 # ==============================================
-# 左側側邊欄（加入 Search）
+# 左側側邊欄（Search 保持在 sidebar，無 Clear 按鈕）
 # ==============================================
 with st.sidebar:
     st.header("View Controls")
@@ -231,14 +231,6 @@ with st.sidebar:
         key="search_input",
         label_visibility="collapsed"
     )
-
-    # 把輸入的值同步回 session_state
-    st.session_state.search_input = search_term
-
-    # Clear Search 按鈕
-    if st.button("Clear Search", key="clear_search"):
-        st.session_state.search_input = ""  # 清空
-        st.rerun()
 
     st.markdown("---")
 
@@ -317,7 +309,7 @@ with st.sidebar:
 today = date.today()
 filtered_df = df.copy()
 
-# 先套用 Search（全局搜尋，不受其他 filter 限制）
+# 先套用 Search
 if search_term.strip():
     search_term_lower = search_term.strip().lower()
     filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
