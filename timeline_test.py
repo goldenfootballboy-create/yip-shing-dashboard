@@ -304,17 +304,17 @@ with st.sidebar:
                 st.rerun()
 
 # ==============================================
-# 篩選邏輯（Search 先過濾，再套用其他 filter）
+# 篩選邏輯（Search 完全獨立，先搜尋再套用其他 filter）
 # ==============================================
 today = date.today()
-filtered_df = df.copy()
+filtered_df = df.copy()  # 從完整資料開始
 
-# 先套用 Search
+# Step 1: 先套用 Search（全局搜尋，不受任何其他 filter 影響）
 if search_term.strip():
     search_term_lower = search_term.strip().lower()
     filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
 
-# 再套用其他 filter
+# Step 2: 再根據 view_mode 決定其他 filter
 if st.session_state.view_mode == "delay":
     filtered_df = filtered_df[
         filtered_df["Lead_Time"].notna() &
@@ -323,6 +323,7 @@ if st.session_state.view_mode == "delay":
     ]
     page_title = "Delay Projects"
 else:
+    # 一般模式下才套用 Type / Year / Month
     if selected_type != "All":
         filtered_df = filtered_df[filtered_df["Project_Type"] == selected_type]
     filtered_df = filtered_df[filtered_df["Year"] == selected_year]
