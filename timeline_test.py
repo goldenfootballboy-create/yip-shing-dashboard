@@ -223,17 +223,12 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Search 功能（放在最上面，不受其他 filter 限制）
+    # Search 功能（只保留輸入欄，無 Clear 按鈕）
     st.markdown("### Search Project Name")
-
-    # 用 session_state 控制輸入框值
-    if "search_input" not in st.session_state:
-        st.session_state.search_input = ""
-
     search_term = st.text_input(
         "Enter Project Name (partial match)",
-        value=st.session_state.search_input,
-        key="search_input_temp",  # 用不同的 key 避免衝突
+        value="",
+        key="search_input",
         label_visibility="collapsed"
     )
 
