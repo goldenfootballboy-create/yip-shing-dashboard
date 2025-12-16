@@ -89,7 +89,7 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # ==============================================
-# 專案卡片渲染函數
+# 專案卡片渲染函數（只顯示卡片 + Checklist，不含 Edit/Delete）
 # ==============================================
 def render_project_card(row, idx):
     pct = calculate_progress(row)
@@ -207,107 +207,8 @@ def render_project_card(row, idx):
                 st.success("Checklist 已永久儲存到 Google Sheets！")
                 st.rerun()
 
-        # Edit 和 Delete 平排
-        btn_col1, btn_col2 = st.columns(2)
-        with btn_col1:
-            if st.button("Edit", key=f"edit_{idx}"):
-                st.session_state[f"editing_{idx}"] = not st.session_state.get(f"editing_{idx}", False)
-
-        with btn_col2:
-            if st.button("Delete", key=f"del_{idx}", type="secondary"):
-                st.session_state[f"confirm_delete_{idx}"] = True
-
-        # Edit 表單
-        if st.session_state.get(f"editing_{idx}", False):
-            st.markdown("---")
-            st.subheader(f"Editing: {row['Project_Name']}")
-            with st.form(key=f"edit_form_{idx}"):
-                c1, c2 = st.columns(2)
-                with c1:
-                    e_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"],
-                                          index=["Enclosure","Open Set","Scania","Marine","K50G3"].index(row["Project_Type"]))
-                    e_name = st.text_input("Project Name*", value=row["Project_Name"])
-                    e_year = st.selectbox("Year*", [2024,2025,2026], index=[2024,2025,2026].index(row["Year"]))
-                    e_qty = st.number_input("Qty", min_value=1, value=int(row.get("Qty",1)))
-                with c2:
-                    e_customer = st.text_input("Customer", value=row.get("Customer",""))
-                    e_supervisor = st.text_input("Supervisor", value=row.get("Supervisor",""))
-                    e_leadtime = st.date_input("Lead Time*", value=pd.to_datetime(row["Lead_Time"]).date() if pd.notna(row["Lead_Time"]) else date.today())
-
-                with st.expander("Project Specification & Progress Dates", expanded=True):
-                    curr_spec = row.get("Project_Spec","")
-                    lines = [line.split(": ",1)[1] if ": " in line else "" for line in curr_spec.split("\n")] if curr_spec else ["","","","",""]
-                    e_s1 = st.text_input("Genset model", value=lines[0] if len(lines)>0 else "")
-                    e_s2 = st.text_input("Alternator Model", value=lines[1] if len(lines)>1 else "")
-                    e_s3 = st.text_input("Controller", value=lines[2] if len(lines)>2 else "")
-                    e_s4 = st.text_input("Circuit breaker Size", value=lines[3] if len(lines)>3 else "")
-                    e_s5 = st.text_input("Charger", value=lines[4] if len(lines)>4 else "")
-
-                    e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
-
-                    st.markdown("**Progress Dates**")
-                    e_d1 = st.date_input("Parts Arrival", value=pd.to_datetime(row["Parts_Arrival"]).date() if pd.notna(row["Parts_Arrival"]) else None, key=f"d1e{idx}")
-                    e_d2 = st.date_input("Installation Complete", value=pd.to_datetime(row["Installation_Complete"]).date() if pd.notna(row["Installation_Complete"]) else None, key=f"d2e{idx}")
-                    e_d3 = st.date_input("Testing Complete", value=pd.to_datetime(row["Testing_Complete"]).date() if pd.notna(row["Testing_Complete"]) else None, key=f"d3e{idx}")
-                    e_d4 = st.date_input("Cleaning Complete", value=pd.to_datetime(row["Cleaning_Complete"]).date() if pd.notna(row["Cleaning_Complete"]) else None, key=f"d4e{idx}")
-                    e_d5 = st.date_input("Delivery Complete", value=pd.to_datetime(row["Delivery_Complete"]).date() if pd.notna(row["Delivery_Complete"]) else None, key=f"d5e{idx}")
-
-                    e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
-
-                if st.form_submit_button("Save Changes", type="primary"):
-                    if not e_name.strip():
-                        st.error("Project Name required!")
-                    else:
-                        new_spec = "\n".join([
-                            f"Genset model: {e_s1 or '—'}",
-                            f"Alternator Model: {e_s2 or '—'}",
-                            f"Controller: {e_s3 or '—'}",
-                            f"Circuit breaker Size: {e_s4 or '—'}",
-                            f"Charger: {e_s5 or '—'}"
-                        ])
-                        df.at[idx, "Project_Type"] = e_type
-                        df.at[idx, "Project_Name"] = e_name
-                        df.at[idx, "Year"] = int(e_year)
-                        df.at[idx, "Lead_Time"] = e_leadtime
-                        df.at[idx, "Customer"] = e_customer or ""
-                        df.at[idx, "Supervisor"] = e_supervisor or ""
-                        df.at[idx, "Qty"] = e_qty
-                        df.at[idx, "Real_Count"] = e_qty
-                        df.at[idx, "Project_Spec"] = new_spec
-                        df.at[idx, "Description"] = e_desc or ""
-                        df.at[idx, "Progress_Reminder"] = e_reminder or ""
-                        df.at[idx, "Parts_Arrival"] = e_d1
-                        df.at[idx, "Installation_Complete"] = e_d2
-                        df.at[idx, "Testing_Complete"] = e_d3
-                        df.at[idx, "Cleaning_Complete"] = e_d4
-                        df.at[idx, "Delivery_Complete"] = e_d5
-                        save_projects()
-                        st.cache_data.clear()
-                        del st.session_state[f"editing_{idx}"]
-                        st.success("Updated!")
-                        st.rerun()
-
-        # Delete 確認
-        if st.session_state.get(f"confirm_delete_{idx}", False):
-            st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
-            col_yes, col_no = st.columns(2)
-            if col_yes.button("Yes, Delete", type="primary"):
-                df = df.drop(idx).reset_index(drop=True)
-                save_projects()
-                checklist_db.pop(row["Project_Name"], None)
-                save_checklist()
-                st.cache_data.clear()
-                if f"confirm_delete_{idx}" in st.session_state:
-                    del st.session_state[f"confirm_delete_{idx}"]
-                st.success("已刪除！")
-                st.rerun()
-            if col_no.button("Cancel"):
-                if f"confirm_delete_{idx}" in st.session_state:
-                    del st.session_state[f"confirm_delete_{idx}"]
-                st.rerun()
-
 # ==============================================
-# 左側側邊欄
+# 左側側邊欄（加入 Search）
 # ==============================================
 with st.sidebar:
     st.header("View Controls")
@@ -319,6 +220,15 @@ with st.sidebar:
 
     if "view_mode" not in st.session_state:
         st.session_state.view_mode = "all"
+
+    st.markdown("---")
+
+    # Search 功能（放在最上面，不受其他 filter 限制）
+    st.markdown("### Search Project Name")
+    search_term = st.text_input("Enter Project Name (partial match)", value="", key="search_input")
+    if st.button("Clear Search", key="clear_search"):
+        st.session_state.search_input = ""
+        st.rerun()
 
     st.markdown("---")
 
@@ -392,32 +302,25 @@ with st.sidebar:
                 st.rerun()
 
 # ==============================================
-# Search Bar（新增）
-# ==============================================
-st.markdown("### Search Project Name")
-search_col1, search_col2 = st.columns([3, 1])
-with search_col1:
-    search_term = st.text_input("Enter Project Name (partial match, case insensitive)", value="", key="search_input", label_visibility="collapsed")
-with search_col2:
-    if st.button("Clear Search", use_container_width=True):
-        st.session_state.search_input = ""
-        st.rerun()
-
-# ==============================================
-# 篩選邏輯（加入 Search）
+# 篩選邏輯（Search 先過濾，再套用其他 filter）
 # ==============================================
 today = date.today()
-all_df = df.copy()
+filtered_df = df.copy()
 
+# 先套用 Search（全局搜尋，不受其他 filter 限制）
+if search_term.strip():
+    search_term_lower = search_term.strip().lower()
+    filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
+
+# 再套用其他 filter
 if st.session_state.view_mode == "delay":
-    filtered_df = all_df[
-        all_df["Lead_Time"].notna() &
-        (all_df["Lead_Time"] < pd.Timestamp(today)) &
-        (all_df.apply(calculate_progress, axis=1) < 100)
-    ].copy()
+    filtered_df = filtered_df[
+        filtered_df["Lead_Time"].notna() &
+        (filtered_df["Lead_Time"] < pd.Timestamp(today)) &
+        (filtered_df.apply(calculate_progress, axis=1) < 100)
+    ]
     page_title = "Delay Projects"
 else:
-    filtered_df = all_df.copy()
     if selected_type != "All":
         filtered_df = filtered_df[filtered_df["Project_Type"] == selected_type]
     filtered_df = filtered_df[filtered_df["Year"] == selected_year]
@@ -428,11 +331,6 @@ else:
             (filtered_df["Lead_Time"].dt.month == month_map[selected_month])
         ]
     page_title = "YIP SHING Project Dashboard"
-
-# 應用 Search 過濾（忽略大小寫，部分匹配）
-if search_term.strip():
-    search_term_lower = search_term.strip().lower()
-    filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
 
 # ==============================================
 # 主畫面
@@ -461,17 +359,217 @@ else:
     for i in range(0, len(rows), 2):
         col1, col2 = st.columns(2)
 
+        # 左邊卡片
         with col1:
             if i < len(rows):
                 row = rows[i]
                 idx = filtered_df.index[i]
                 render_project_card(row, idx)
 
+                # Edit 和 Delete 平排
+                btn_col1, btn_col2 = st.columns(2)
+                with btn_col1:
+                    if st.button("Edit", key=f"edit_{idx}"):
+                        st.session_state[f"editing_{idx}"] = not st.session_state.get(f"editing_{idx}", False)
+
+                with btn_col2:
+                    if st.button("Delete", key=f"del_{idx}", type="secondary"):
+                        st.session_state[f"confirm_delete_{idx}"] = True
+
+                # Edit 表單
+                if st.session_state.get(f"editing_{idx}", False):
+                    st.markdown("---")
+                    st.subheader(f"Editing: {row['Project_Name']}")
+                    with st.form(key=f"edit_form_{idx}"):
+                        c1, c2 = st.columns(2)
+                        with c1:
+                            e_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"],
+                                                  index=["Enclosure","Open Set","Scania","Marine","K50G3"].index(row["Project_Type"]))
+                            e_name = st.text_input("Project Name*", value=row["Project_Name"])
+                            e_year = st.selectbox("Year*", [2024,2025,2026], index=[2024,2025,2026].index(row["Year"]))
+                            e_qty = st.number_input("Qty", min_value=1, value=int(row.get("Qty",1)))
+                        with c2:
+                            e_customer = st.text_input("Customer", value=row.get("Customer",""))
+                            e_supervisor = st.text_input("Supervisor", value=row.get("Supervisor",""))
+                            e_leadtime = st.date_input("Lead Time*", value=pd.to_datetime(row["Lead_Time"]).date() if pd.notna(row["Lead_Time"]) else date.today())
+
+                        with st.expander("Project Specification & Progress Dates", expanded=True):
+                            curr_spec = row.get("Project_Spec","")
+                            lines = [line.split(": ",1)[1] if ": " in line else "" for line in curr_spec.split("\n")] if curr_spec else ["","","","",""]
+                            e_s1 = st.text_input("Genset model", value=lines[0] if len(lines)>0 else "")
+                            e_s2 = st.text_input("Alternator Model", value=lines[1] if len(lines)>1 else "")
+                            e_s3 = st.text_input("Controller", value=lines[2] if len(lines)>2 else "")
+                            e_s4 = st.text_input("Circuit breaker Size", value=lines[3] if len(lines)>3 else "")
+                            e_s5 = st.text_input("Charger", value=lines[4] if len(lines)>4 else "")
+
+                            e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
+
+                            st.markdown("**Progress Dates**")
+                            e_d1 = st.date_input("Parts Arrival", value=pd.to_datetime(row["Parts_Arrival"]).date() if pd.notna(row["Parts_Arrival"]) else None, key=f"d1e{idx}")
+                            e_d2 = st.date_input("Installation Complete", value=pd.to_datetime(row["Installation_Complete"]).date() if pd.notna(row["Installation_Complete"]) else None, key=f"d2e{idx}")
+                            e_d3 = st.date_input("Testing Complete", value=pd.to_datetime(row["Testing_Complete"]).date() if pd.notna(row["Testing_Complete"]) else None, key=f"d3e{idx}")
+                            e_d4 = st.date_input("Cleaning Complete", value=pd.to_datetime(row["Cleaning_Complete"]).date() if pd.notna(row["Cleaning_Complete"]) else None, key=f"d4e{idx}")
+                            e_d5 = st.date_input("Delivery Complete", value=pd.to_datetime(row["Delivery_Complete"]).date() if pd.notna(row["Delivery_Complete"]) else None, key=f"d5e{idx}")
+
+                            e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
+
+                        if st.form_submit_button("Save Changes", type="primary"):
+                            if not e_name.strip():
+                                st.error("Project Name required!")
+                            else:
+                                new_spec = "\n".join([
+                                    f"Genset model: {e_s1 or '—'}",
+                                    f"Alternator Model: {e_s2 or '—'}",
+                                    f"Controller: {e_s3 or '—'}",
+                                    f"Circuit breaker Size: {e_s4 or '—'}",
+                                    f"Charger: {e_s5 or '—'}"
+                                ])
+                                df.at[idx, "Project_Type"] = e_type
+                                df.at[idx, "Project_Name"] = e_name
+                                df.at[idx, "Year"] = int(e_year)
+                                df.at[idx, "Lead_Time"] = e_leadtime
+                                df.at[idx, "Customer"] = e_customer or ""
+                                df.at[idx, "Supervisor"] = e_supervisor or ""
+                                df.at[idx, "Qty"] = e_qty
+                                df.at[idx, "Real_Count"] = e_qty
+                                df.at[idx, "Project_Spec"] = new_spec
+                                df.at[idx, "Description"] = e_desc or ""
+                                df.at[idx, "Progress_Reminder"] = e_reminder or ""
+                                df.at[idx, "Parts_Arrival"] = e_d1
+                                df.at[idx, "Installation_Complete"] = e_d2
+                                df.at[idx, "Testing_Complete"] = e_d3
+                                df.at[idx, "Cleaning_Complete"] = e_d4
+                                df.at[idx, "Delivery_Complete"] = e_d5
+                                save_projects()
+                                st.cache_data.clear()
+                                del st.session_state[f"editing_{idx}"]
+                                st.success("Updated!")
+                                st.rerun()
+
+                # Delete 確認
+                if st.session_state.get(f"confirm_delete_{idx}", False):
+                    st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
+                    col_yes, col_no = st.columns(2)
+                    if col_yes.button("Yes, Delete", type="primary"):
+                        df = df.drop(idx).reset_index(drop=True)
+                        save_projects()
+                        checklist_db.pop(row["Project_Name"], None)
+                        save_checklist()
+                        st.cache_data.clear()
+                        if f"confirm_delete_{idx}" in st.session_state:
+                            del st.session_state[f"confirm_delete_{idx}"]
+                        st.success("已刪除！")
+                        st.rerun()
+                    if col_no.button("Cancel"):
+                        if f"confirm_delete_{idx}" in st.session_state:
+                            del st.session_state[f"confirm_delete_{idx}"]
+                        st.rerun()
+
+        # 右邊卡片
         with col2:
             if i + 1 < len(rows):
                 row = rows[i + 1]
                 idx = filtered_df.index[i + 1]
                 render_project_card(row, idx)
+
+                # Edit 和 Delete 平排（右邊）
+                btn_col1, btn_col2 = st.columns(2)
+                with btn_col1:
+                    if st.button("Edit", key=f"edit_{idx}"):
+                        st.session_state[f"editing_{idx}"] = not st.session_state.get(f"editing_{idx}", False)
+
+                with btn_col2:
+                    if st.button("Delete", key=f"del_{idx}", type="secondary"):
+                        st.session_state[f"confirm_delete_{idx}"] = True
+
+                # Edit 表單（右邊）
+                if st.session_state.get(f"editing_{idx}", False):
+                    st.markdown("---")
+                    st.subheader(f"Editing: {row['Project_Name']}")
+                    with st.form(key=f"edit_form_{idx}"):
+                        c1, c2 = st.columns(2)
+                        with c1:
+                            e_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"],
+                                                  index=["Enclosure","Open Set","Scania","Marine","K50G3"].index(row["Project_Type"]))
+                            e_name = st.text_input("Project Name*", value=row["Project_Name"])
+                            e_year = st.selectbox("Year*", [2024,2025,2026], index=[2024,2025,2026].index(row["Year"]))
+                            e_qty = st.number_input("Qty", min_value=1, value=int(row.get("Qty",1)))
+                        with c2:
+                            e_customer = st.text_input("Customer", value=row.get("Customer",""))
+                            e_supervisor = st.text_input("Supervisor", value=row.get("Supervisor",""))
+                            e_leadtime = st.date_input("Lead Time*", value=pd.to_datetime(row["Lead_Time"]).date() if pd.notna(row["Lead_Time"]) else date.today())
+
+                        with st.expander("Project Specification & Progress Dates", expanded=True):
+                            curr_spec = row.get("Project_Spec","")
+                            lines = [line.split(": ",1)[1] if ": " in line else "" for line in curr_spec.split("\n")] if curr_spec else ["","","","",""]
+                            e_s1 = st.text_input("Genset model", value=lines[0] if len(lines)>0 else "")
+                            e_s2 = st.text_input("Alternator Model", value=lines[1] if len(lines)>1 else "")
+                            e_s3 = st.text_input("Controller", value=lines[2] if len(lines)>2 else "")
+                            e_s4 = st.text_input("Circuit breaker Size", value=lines[3] if len(lines)>3 else "")
+                            e_s5 = st.text_input("Charger", value=lines[4] if len(lines)>4 else "")
+
+                            e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
+
+                            st.markdown("**Progress Dates**")
+                            e_d1 = st.date_input("Parts Arrival", value=pd.to_datetime(row["Parts_Arrival"]).date() if pd.notna(row["Parts_Arrival"]) else None, key=f"d1e{idx}")
+                            e_d2 = st.date_input("Installation Complete", value=pd.to_datetime(row["Installation_Complete"]).date() if pd.notna(row["Installation_Complete"]) else None, key=f"d2e{idx}")
+                            e_d3 = st.date_input("Testing Complete", value=pd.to_datetime(row["Testing_Complete"]).date() if pd.notna(row["Testing_Complete"]) else None, key=f"d3e{idx}")
+                            e_d4 = st.date_input("Cleaning Complete", value=pd.to_datetime(row["Cleaning_Complete"]).date() if pd.notna(row["Cleaning_Complete"]) else None, key=f"d4e{idx}")
+                            e_d5 = st.date_input("Delivery Complete", value=pd.to_datetime(row["Delivery_Complete"]).date() if pd.notna(row["Delivery_Complete"]) else None, key=f"d5e{idx}")
+
+                            e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
+
+                        if st.form_submit_button("Save Changes", type="primary"):
+                            if not e_name.strip():
+                                st.error("Project Name required!")
+                            else:
+                                new_spec = "\n".join([
+                                    f"Genset model: {e_s1 or '—'}",
+                                    f"Alternator Model: {e_s2 or '—'}",
+                                    f"Controller: {e_s3 or '—'}",
+                                    f"Circuit breaker Size: {e_s4 or '—'}",
+                                    f"Charger: {e_s5 or '—'}"
+                                ])
+                                df.at[idx, "Project_Type"] = e_type
+                                df.at[idx, "Project_Name"] = e_name
+                                df.at[idx, "Year"] = int(e_year)
+                                df.at[idx, "Lead_Time"] = e_leadtime
+                                df.at[idx, "Customer"] = e_customer or ""
+                                df.at[idx, "Supervisor"] = e_supervisor or ""
+                                df.at[idx, "Qty"] = e_qty
+                                df.at[idx, "Real_Count"] = e_qty
+                                df.at[idx, "Project_Spec"] = new_spec
+                                df.at[idx, "Description"] = e_desc or ""
+                                df.at[idx, "Progress_Reminder"] = e_reminder or ""
+                                df.at[idx, "Parts_Arrival"] = e_d1
+                                df.at[idx, "Installation_Complete"] = e_d2
+                                df.at[idx, "Testing_Complete"] = e_d3
+                                df.at[idx, "Cleaning_Complete"] = e_d4
+                                df.at[idx, "Delivery_Complete"] = e_d5
+                                save_projects()
+                                st.cache_data.clear()
+                                del st.session_state[f"editing_{idx}"]
+                                st.success("Updated!")
+                                st.rerun()
+
+                # Delete 確認（右邊）
+                if st.session_state.get(f"confirm_delete_{idx}", False):
+                    st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
+                    col_yes, col_no = st.columns(2)
+                    if col_yes.button("Yes, Delete", type="primary"):
+                        df = df.drop(idx).reset_index(drop=True)
+                        save_projects()
+                        checklist_db.pop(row["Project_Name"], None)
+                        save_checklist()
+                        st.cache_data.clear()
+                        if f"confirm_delete_{idx}" in st.session_state:
+                            del st.session_state[f"confirm_delete_{idx}"]
+                        st.success("已刪除！")
+                        st.rerun()
+                    if col_no.button("Cancel"):
+                        if f"confirm_delete_{idx}" in st.session_state:
+                            del st.session_state[f"confirm_delete_{idx}"]
+                        st.rerun()
 
 st.markdown("---")
 st.caption("All data permanently stored in Google Sheets • Immediate update after add/edit/delete")
