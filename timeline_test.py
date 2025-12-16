@@ -89,7 +89,7 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # ==============================================
-# 專案卡片渲染函數（只顯示卡片 + Checklist）
+# 專案卡片渲染函數
 # ==============================================
 def render_project_card(row, idx):
     pct = calculate_progress(row)
@@ -208,7 +208,7 @@ def render_project_card(row, idx):
                 st.rerun()
 
 # ==============================================
-# 左側側邊欄（Search 保持在 sidebar，無 Clear 按鈕）
+# 左側側邊欄
 # ==============================================
 with st.sidebar:
     st.header("View Controls")
@@ -223,7 +223,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Search 功能（只保留輸入欄，無 Clear 按鈕）
+    # Search 功能（放在最上面，獨立）
     st.markdown("### Search Project Name")
     search_term = st.text_input(
         "Enter Project Name (partial match)",
@@ -241,7 +241,7 @@ with st.sidebar:
     if st.session_state.view_mode == "all":
         st.markdown("### Filters")
         selected_type = st.selectbox("Project Type", project_types, index=project_types.index("All"), key="filter_type")
-        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="filter_year")  # 預設當年
+        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="filter_year")
         selected_month = st.selectbox("Month", month_names, index=month_names.index("All"), key="filter_month")
     else:
         selected_type = "All"
@@ -314,7 +314,7 @@ if search_term.strip():
     search_term_lower = search_term.strip().lower()
     filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
 
-# Step 2: 再根據 view_mode 決定其他 filter
+# 再根據 view_mode 決定其他 filter
 if st.session_state.view_mode == "delay":
     filtered_df = filtered_df[
         filtered_df["Lead_Time"].notna() &
@@ -338,9 +338,9 @@ else:
 # ==============================================
 # 主畫面
 # ==============================================
-# 標題改顏色 + 完全置中
+# 標題綠色 + 置中
 st.markdown(
-    f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px;'>{page_title}</h1>",
+    f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>",
     unsafe_allow_html=True
 )
 
