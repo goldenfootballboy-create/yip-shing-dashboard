@@ -225,12 +225,24 @@ with st.sidebar:
 
     # Search 功能（放在最上面，不受其他 filter 限制）
     st.markdown("### Search Project Name")
+
+    # 用 session_state 控制輸入框值
+    if "search_input" not in st.session_state:
+        st.session_state.search_input = ""
+
     search_term = st.text_input(
         "Enter Project Name (partial match)",
-        value=st.session_state.get("search_input", ""),
-        key="search_input"
+        value=st.session_state.search_input,
+        key="search_input_temp",  # 用不同的 key 避免衝突
+        label_visibility="collapsed"
     )
+
+    # 把輸入的值同步回 session_state
+    st.session_state.search_input = search_term
+
+    # Clear Search 按鈕
     if st.button("Clear Search", key="clear_search"):
+        st.session_state.search_input = ""  # 清空
         st.rerun()
 
     st.markdown("---")
