@@ -223,7 +223,6 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Search 功能（放在最上面，獨立）
     st.markdown("### Search Project Name")
     search_term = st.text_input(
         "Enter Project Name (partial match)",
@@ -309,13 +308,11 @@ with st.sidebar:
 today = date.today()
 filtered_df = df.copy()
 
-# Step 1: 先套用 Search（全局、全年份、全類型搜尋）
 has_search = search_term.strip() != ""
 if has_search:
     search_term_lower = search_term.strip().lower()
     filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
 
-# Step 2: 根據 view_mode 處理
 if st.session_state.view_mode == "delay":
     filtered_df = filtered_df[
         filtered_df["Lead_Time"].notna() &
@@ -324,7 +321,6 @@ if st.session_state.view_mode == "delay":
     ]
     page_title = "Delay Projects"
 else:
-    # 只有「沒有搜尋字」時，才套用 Type / Year / Month 篩選
     if not has_search:
         if selected_type != "All":
             filtered_df = filtered_df[filtered_df["Project_Type"] == selected_type]
@@ -340,22 +336,10 @@ else:
 # ==============================================
 # 主畫面
 # ==============================================
-# 標題綠色 + 置中
 st.markdown(
     f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>",
     unsafe_allow_html=True
 )
-
-if len(filtered_df) > 0:
-    counter = filtered_df.groupby("Project_Type")["Qty"].sum().astype(int).sort_index()
-    total_qty = int(filtered_df["Qty"].sum())
-    st.markdown(f"""
-    <div style="position:fixed; top:70px; right:20px; background:#1e3a8a; color:white; padding:12px 18px; 
-                border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:1000; font-size:0.9rem; text-align:center;">
-        <strong style="font-size:1.1rem;">Total: {total_qty}</strong><br>
-        {"<br>".join([f"<strong>{k}:</strong> {v}" for k, v in counter.items()])}
-    </div>
-    """, unsafe_allow_html=True)
 
 if len(filtered_df) == 0:
     if st.session_state.view_mode == "delay":
@@ -363,15 +347,15 @@ if len(filtered_df) == 0:
     else:
         st.info("No projects match the selected filters or search term.")
 else:
-    # === 新增：按完成度從高到低排序 ===
+    # === 按完成度從高到低排序（關鍵：不要 reset_index）===
     if not filtered_df.empty:
         progress_series = filtered_df.apply(calculate_progress, axis=1)
         filtered_df = filtered_df.assign(Progress=progress_series) \
                                       .sort_values(by="Progress", ascending=False) \
                                       .drop(columns="Progress")
-        filtered_df = filtered_df.reset_index(drop=True)  # 重置 index，避免 key 重複問題
+        # 移除這一行！這是導致 Edit/Delete 失效的罪魁禍首
+        # filtered_df = filtered_df.reset_index(drop=True)
 
-    # 計算總數和分類統計（排序後依然正確）
     counter = filtered_df.groupby("Project_Type")["Qty"].sum().astype(int).sort_index()
     total_qty = int(filtered_df["Qty"].sum())
     st.markdown(f"""
@@ -382,24 +366,20 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # 一行顯示 2 個專案卡片
     rows = filtered_df.to_dict('records')
     for i in range(0, len(rows), 2):
         col1, col2 = st.columns(2)
 
-        # 左邊卡片
         with col1:
             if i < len(rows):
                 row = rows[i]
-                idx = filtered_df.index[i]  # 這裡用的是排序後的新 index
+                idx = filtered_df.index[i]  # 這就是原始 df 的正確 index！
                 render_project_card(row, idx)
 
-                # Edit 和 Delete 平排
                 btn_col1, btn_col2 = st.columns(2)
                 with btn_col1:
                     if st.button("Edit", key=f"edit_{idx}"):
                         st.session_state[f"editing_{idx}"] = not st.session_state.get(f"editing_{idx}", False)
-
                 with btn_col2:
                     if st.button("Delete", key=f"del_{idx}", type="secondary"):
                         st.session_state[f"confirm_delete_{idx}"] = True
