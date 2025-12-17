@@ -3,8 +3,9 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 import json
 from datetime import date
+
 # ==============================================
-# LOGO
+# LOGO + 頁面設定（只寫一次）
 # ==============================================
 st.set_page_config(
     page_title="YIP SHING Project Dashboard",
@@ -12,23 +13,17 @@ st.set_page_config(
     layout="wide"
 )
 
-# 加這段 CSS 試著改善顯示（但 favicon 還是會有點壓縮）
+# 匯入科技字體 Orbitron（用於 KTA38 特效）
 st.markdown(
     """
-    <style>
-        header img {
-            object-fit: contain !important;
-            max-width: 32px !important;
-            max-height: 32px !important;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
     """,
     unsafe_allow_html=True
 )
+
 # ==============================================
 # Google Sheets 連接（永久儲存）
 # ==============================================
-st.set_page_config(layout="wide")
 conn = st.connection('gsheets', type=GSheetsConnection)
 
 # 讀取 projects（ttl=0：不快取，永遠讀最新）
@@ -110,7 +105,7 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # ==============================================
-# 專案卡片渲染函數
+# 專案卡片渲染函數（加入 KTA38 科技風特效）
 # ==============================================
 def render_project_card(row, idx):
     pct = calculate_progress(row)
@@ -133,25 +128,24 @@ def render_project_card(row, idx):
     elif has_missing:
         status_tag = '<span style="background:#ff4444; color:white; padding:4px 12px; border-radius:20px; font-weight:bold; font-size:0.8rem; margin-left:10px;">Missing Submission</span>'
 
-    # 檢查 Project_Spec 是否包含 KTA38
+    # === KTA38 科技風特效判斷 ===
     project_spec = str(row.get("Project_Spec", "")).lower()
     if "kta38" in project_spec:
-        # 科技風 KTA38 顯示
         reminder_text = "KTA38"
         reminder_display = f'''
-        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); 
-                    font-weight:bold; font-size:1.1rem; color:#00ffff; 
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+                    font-weight:bold; font-size:1.2rem; color:#00ffff;
                     text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
-                    font-family: 'Orbitron', 'Courier New', monospace;
-                    letter-spacing: 2px;
+                    font-family: 'Orbitron', monospace;
+                    letter-spacing: 3px;
                     pointer-events:none; z-index:10;">
             {reminder_text}
         </div>
         '''
     else:
-        # 原本的顯示
         reminder_text = str(row.get("Progress_Reminder", "")).strip() or "In Progress"
         reminder_display = f'<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:bold; font-size:0.8rem; color:white; text-shadow:1px 1px 3px black; pointer-events:none; z-index:10;">{reminder_text}</div>'
+
     st.markdown(f"""
     <div style="background: linear-gradient(to right, {color} {pct}%, #f0f0f0 {pct}%); 
                 border-radius: 8px; padding: 10px 15px; margin: 10px 0; 
@@ -384,14 +378,12 @@ if len(filtered_df) == 0:
     else:
         st.info("No projects match the selected filters or search term.")
 else:
-    # === 按完成度從高到低排序（關鍵：不要 reset_index）===
+    # === 按完成度從高到低排序（不 reset_index，保留原始 index 以確保 Edit/Delete 正確）===
     if not filtered_df.empty:
         progress_series = filtered_df.apply(calculate_progress, axis=1)
         filtered_df = filtered_df.assign(Progress=progress_series) \
                                       .sort_values(by="Progress", ascending=False) \
                                       .drop(columns="Progress")
-        # 移除這一行！這是導致 Edit/Delete 失效的罪魁禍首
-        # filtered_df = filtered_df.reset_index(drop=True)
 
     counter = filtered_df.groupby("Project_Type")["Qty"].sum().astype(int).sort_index()
     total_qty = int(filtered_df["Qty"].sum())
@@ -410,7 +402,7 @@ else:
         with col1:
             if i < len(rows):
                 row = rows[i]
-                idx = filtered_df.index[i]  # 這就是原始 df 的正確 index！
+                idx = filtered_df.index[i]
                 render_project_card(row, idx)
 
                 btn_col1, btn_col2 = st.columns(2)
@@ -421,7 +413,6 @@ else:
                     if st.button("Delete", key=f"del_{idx}", type="secondary"):
                         st.session_state[f"confirm_delete_{idx}"] = True
 
-                # Edit 表單
                 if st.session_state.get(f"editing_{idx}", False):
                     st.markdown("---")
                     st.subheader(f"Editing: {row['Project_Name']}")
@@ -491,7 +482,6 @@ else:
                                 st.success("Updated!")
                                 st.rerun()
 
-                # Delete 確認
                 if st.session_state.get(f"confirm_delete_{idx}", False):
                     st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
                     col_yes, col_no = st.columns(2)
@@ -510,14 +500,12 @@ else:
                             del st.session_state[f"confirm_delete_{idx}"]
                         st.rerun()
 
-        # 右邊卡片
         with col2:
             if i + 1 < len(rows):
                 row = rows[i + 1]
                 idx = filtered_df.index[i + 1]
                 render_project_card(row, idx)
 
-                # Edit 和 Delete 平排（右邊）
                 btn_col1, btn_col2 = st.columns(2)
                 with btn_col1:
                     if st.button("Edit", key=f"edit_{idx}"):
@@ -527,7 +515,6 @@ else:
                     if st.button("Delete", key=f"del_{idx}", type="secondary"):
                         st.session_state[f"confirm_delete_{idx}"] = True
 
-                # Edit 表單（右邊）
                 if st.session_state.get(f"editing_{idx}", False):
                     st.markdown("---")
                     st.subheader(f"Editing: {row['Project_Name']}")
@@ -597,7 +584,6 @@ else:
                                 st.success("Updated!")
                                 st.rerun()
 
-                # Delete 確認（右邊）
                 if st.session_state.get(f"confirm_delete_{idx}", False):
                     st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
                     col_yes, col_no = st.columns(2)
@@ -617,4 +603,4 @@ else:
                         st.rerun()
 
 st.markdown("---")
-st.caption("Projects Management System ")
+st.caption("Projects Management System")
