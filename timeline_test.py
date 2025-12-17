@@ -3,7 +3,29 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 import json
 from datetime import date
-
+# ==============================================
+# LOGO
+# ==============================================
+st.markdown(
+    """
+    <style>
+        [data-testid="stSidebarNav"] > div:first-child img {
+            display: none !important;
+        }
+        [data-testid="stSidebarNav"] > div:first-child::before {
+            content: "";
+            display: block;
+            width: 100px;
+            height: 100px;
+            background-image: url('https://i.imgur.com/htVuOMu.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 # ==============================================
 # Google Sheets 連接（永久儲存）
 # ==============================================
