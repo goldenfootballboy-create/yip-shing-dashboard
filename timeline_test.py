@@ -3,7 +3,6 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 import json
 from datetime import date
-import time  # 用於重試延遲
 
 # ==============================================
 # Google Sheets 連接（永久儲存）
@@ -11,28 +10,10 @@ import time  # 用於重試延遲
 st.set_page_config(layout="wide")
 conn = st.connection('gsheets', type=GSheetsConnection)
 
-# ================ 讀取 projects（加入重試機制）================
-st.markdown("### 🔄 正在載入專案資料，請稍等...")
-max_retries = 5
-df = None
+# 讀取 projects（ttl=0：不快取，永遠讀最新）
+df = conn.read(worksheet="projects", usecols=list(range(16)), ttl=0)
+df = df.dropna(how="all")
 
-for attempt in range(max_retries):
-    try:
-        df = conn.read(worksheet="projects", usecols=list(range(16)), ttl=0)
-        df = df.dropna(how="all")
-        st.success("✅ 專案資料載入成功！")
-        break
-    except Exception as e:
-        if attempt < max_retries - 1:
-            st.warning(f"⚠️ 讀取失敗（第 {attempt + 1}/{max_retries} 次），30 秒後自動重試...\n（可能是 Google API 暫時限流）")
-            time.sleep(30)
-            st.rerun()
-        else:
-            st.error("❌ 無法連線到 Google Sheets，請稍後再試或檢查共用權限。")
-            st.info("提示：請確保 Google Sheets 已分享給 `streamlit-cloud@streamlit-io.iam.gserviceaccount.com`（編輯權限）")
-            st.stop()
-
-# ================ 處理 df 初始化 ================
 required = ["Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
             "Qty","Real_Count","Project_Spec","Description","Progress_Reminder",
             "Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete"]
@@ -52,19 +33,8 @@ df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(date.today().year
 df["Qty"] = pd.to_numeric(df["Qty"], errors="coerce").fillna(1).astype(int)
 df["Real_Count"] = pd.to_numeric(df["Real_Count"], errors="coerce").fillna(df["Qty"]).astype(int)
 
-# ================ 讀取 checklist（加入重試）================
-checklist_raw = None
-for attempt in range(max_retries):
-    try:
-        checklist_raw = conn.read(worksheet="checklist", ttl=0)
-        break
-    except Exception as e:
-        if attempt < max_retries - 1:
-            time.sleep(30)
-        else:
-            checklist_raw = pd.DataFrame()
-            break
-
+# 讀取 checklist
+checklist_raw = conn.read(worksheet="checklist", ttl=0)
 checklist_db = {}
 if not checklist_raw.empty:
     for _, row in checklist_raw.iterrows():
@@ -377,12 +347,14 @@ if len(filtered_df) == 0:
     else:
         st.info("No projects match the selected filters or search term.")
 else:
-    # === 按完成度從高到低排序（不 reset_index，保留原始 index 以確保 Edit/Delete 正確）===
+    # === 按完成度從高到低排序（關鍵：不要 reset_index）===
     if not filtered_df.empty:
         progress_series = filtered_df.apply(calculate_progress, axis=1)
         filtered_df = filtered_df.assign(Progress=progress_series) \
                                       .sort_values(by="Progress", ascending=False) \
                                       .drop(columns="Progress")
+        # 移除這一行！這是導致 Edit/Delete 失效的罪魁禍首
+        # filtered_df = filtered_df.reset_index(drop=True)
 
     counter = filtered_df.groupby("Project_Type")["Qty"].sum().astype(int).sort_index()
     total_qty = int(filtered_df["Qty"].sum())
@@ -401,18 +373,18 @@ else:
         with col1:
             if i < len(rows):
                 row = rows[i]
-                idx = filtered_df.index[i]
+                idx = filtered_df.index[i]  # 這就是原始 df 的正確 index！
                 render_project_card(row, idx)
 
                 btn_col1, btn_col2 = st.columns(2)
                 with btn_col1:
                     if st.button("Edit", key=f"edit_{idx}"):
                         st.session_state[f"editing_{idx}"] = not st.session_state.get(f"editing_{idx}", False)
-
                 with btn_col2:
                     if st.button("Delete", key=f"del_{idx}", type="secondary"):
                         st.session_state[f"confirm_delete_{idx}"] = True
 
+                # Edit 表單
                 if st.session_state.get(f"editing_{idx}", False):
                     st.markdown("---")
                     st.subheader(f"Editing: {row['Project_Name']}")
@@ -482,6 +454,7 @@ else:
                                 st.success("Updated!")
                                 st.rerun()
 
+                # Delete 確認
                 if st.session_state.get(f"confirm_delete_{idx}", False):
                     st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
                     col_yes, col_no = st.columns(2)
@@ -500,12 +473,14 @@ else:
                             del st.session_state[f"confirm_delete_{idx}"]
                         st.rerun()
 
+        # 右邊卡片
         with col2:
             if i + 1 < len(rows):
                 row = rows[i + 1]
                 idx = filtered_df.index[i + 1]
                 render_project_card(row, idx)
 
+                # Edit 和 Delete 平排（右邊）
                 btn_col1, btn_col2 = st.columns(2)
                 with btn_col1:
                     if st.button("Edit", key=f"edit_{idx}"):
@@ -515,6 +490,7 @@ else:
                     if st.button("Delete", key=f"del_{idx}", type="secondary"):
                         st.session_state[f"confirm_delete_{idx}"] = True
 
+                # Edit 表單（右邊）
                 if st.session_state.get(f"editing_{idx}", False):
                     st.markdown("---")
                     st.subheader(f"Editing: {row['Project_Name']}")
@@ -584,6 +560,7 @@ else:
                                 st.success("Updated!")
                                 st.rerun()
 
+                # Delete 確認（右邊）
                 if st.session_state.get(f"confirm_delete_{idx}", False):
                     st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
                     col_yes, col_no = st.columns(2)
@@ -603,4 +580,4 @@ else:
                         st.rerun()
 
 st.markdown("---")
-st.caption("Projects Management System")
+st.caption("Projects Management System ")
