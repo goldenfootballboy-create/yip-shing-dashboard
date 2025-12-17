@@ -7,9 +7,23 @@ from datetime import date
 # LOGO
 # ==============================================
 st.set_page_config(
-    page_title="YIP SHING Project Dashboard",  # 瀏覽器標籤顯示的文字
-    page_icon="https://i.imgur.com/htVuOMu.png",  # 你的 Logo
+    page_title="YIP SHING Project Dashboard",
+    page_icon="https://i.imgur.com/htVuOMu.png",
     layout="wide"
+)
+
+# 加這段 CSS 試著改善顯示（但 favicon 還是會有點壓縮）
+st.markdown(
+    """
+    <style>
+        header img {
+            object-fit: contain !important;
+            max-width: 32px !important;
+            max-height: 32px !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 # ==============================================
 # Google Sheets 連接（永久儲存）
