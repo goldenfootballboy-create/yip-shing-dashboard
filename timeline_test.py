@@ -218,6 +218,25 @@ def render_project_card(row, idx):
 # 左側側邊欄
 # ==============================================
 with st.sidebar:
+    if "theme" not in st.session_state:
+        st.session_state.theme = "light"
+
+    if st.button("🌙 切換深色模式" if st.session_state.theme == "light" else "☀️ 切換淺色模式"):
+        st.session_state.theme = "dark" if st.session_state.theme == "light" else "light"
+        st.rerun()
+
+    # 根據主題注入 CSS
+    if st.session_state.theme == "dark":
+        st.markdown(
+            """
+            <style>
+            .stApp { background-color: #0e1117; color: #fafafa; }
+            .stMarkdown { color: #fafafa; }
+            /* 其他深色調整 */
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
     st.header("View Controls")
 
     if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
