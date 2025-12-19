@@ -8,13 +8,17 @@ from datetime import date
 st.markdown(
     """
     <style>
-    .stMarkdown > div > div[data-testid="column"] > div {
-        transition: all 0.3s ease;
+    /* 針對 Streamlit 最新版卡片 hover 特效 */
+    section[data-testid="stSidebar"] ~ div > div > div > div > div > div {
+        transition: all 0.4s ease;
+        border-radius: 12px;
+        overflow: hidden;
     }
-    .stMarkdown > div > div[data-testid="column"] > div:hover {
-        transform: scale(1.05) translateY(-10px);
-        box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
-        z-index: 10;
+
+    section[data-testid="stSidebar"] ~ div > div > div > div > div > div:hover {
+        transform: scale(1.05) translateY(-12px);
+        box-shadow: 0 15px 35px rgba(0, 255, 255, 0.4);
+        z-index: 999;
     }
     </style>
     """,
