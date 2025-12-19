@@ -4,7 +4,7 @@ from streamlit_calendar import calendar
 import pandas as pd
 import json
 from datetime import date
-import time  # 用於延遲
+import time
 
 # ==============================================
 # 頁面設定
@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # ==============================================
-# Google Sheets 連接 + 讀取（加載入提示 + 重試 + 快取）
+# Google Sheets 連接 + 讀取（快取 + 重試）
 # ==============================================
 conn = st.connection('gsheets', type=GSheetsConnection)
 
@@ -25,13 +25,11 @@ df = None
 
 for attempt in range(max_retries):
     try:
-        df = conn.read(worksheet="projects", usecols=list(range(16)), ttl=300)  # 快取 5 分鐘
+        df = conn.read(worksheet="projects", usecols=list(range(16)), ttl=300)
         df = df.dropna(how="all")
-
         break
     except Exception:
         if attempt < max_retries - 1:
-            st.warning(f"讀取失敗（第 {attempt+1} 次），5 秒後自動重試...")
             time.sleep(5)
         else:
             st.error("無法連線到 Google Sheets，請稍後再試或檢查網路")
@@ -56,7 +54,7 @@ df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(date.today().year
 df["Qty"] = pd.to_numeric(df["Qty"], errors="coerce").fillna(1).astype(int)
 df["Real_Count"] = pd.to_numeric(df["Real_Count"], errors="coerce").fillna(df["Qty"]).astype(int)
 
-# 讀取 checklist（同樣快取 + 重試）
+# 讀取 checklist
 checklist_raw = None
 for attempt in range(max_retries):
     try:
@@ -77,13 +75,13 @@ if not checklist_raw.empty:
             except:
                 pass
 
-# 儲存函數（加延遲避免限流）
+# 儲存函數
 def save_projects():
     df_save = df.copy()
     for c in date_cols:
         df_save[c] = df_save[c].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) else None)
     conn.update(worksheet="projects", data=df_save)
-    time.sleep(2)  # 避免連續寫入撞限流
+    time.sleep(2)
 
 def save_checklist():
     if not checklist_db:
@@ -124,7 +122,7 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # ==============================================
-# 專案卡片渲染函數（保持原樣）
+# 專案卡片渲染函數
 # ==============================================
 def render_project_card(row, idx):
     pct = calculate_progress(row)
@@ -371,7 +369,7 @@ else:
     page_title = "YIP SHING Project Dashboard"
 
 # ==============================================
-# 日曆模式
+# 日曆模式（修正後版，點空白日期一定可新增）
 # ==============================================
 if st.session_state.view_mode == "calendar":
     page_title = "專案日曆視圖"
@@ -419,15 +417,18 @@ if st.session_state.view_mode == "calendar":
             "right": "dayGridMonth,timeGridWeek,timeGridDay"
         },
         "selectable": True,
-        "selectMirror": True,  # 關鍵：讓選取更明顯
-        "dayMaxEvents": True,  # 關鍵：允許多事件顯示
+        "selectMirror": True,
+        "selectOverlap": False,
+        "selectAllow": "function(selectInfo) { return true; }",
         "editable": True,
+        "dayMaxEvents": True,
         "height": "800px",
         "locale": "zh-hk",
     }
 
     calendar_events = calendar(events=events, options=calendar_options, key="project_calendar")
 
+    # 編輯事件
     if calendar_events.get("eventClick"):
         event = calendar_events["eventClick"]["event"]
         st.subheader(f"編輯事件: {event['title']}")
@@ -440,23 +441,16 @@ if st.session_state.view_mode == "calendar":
             st.success("事件已更新！")
             st.rerun()
 
-    # 處理選取日期（新增事件） - 更穩定的判斷
+    # 新增事件（修正判斷）
     if "select" in calendar_events and calendar_events["select"]:
         selection = calendar_events["select"]
         st.subheader("新增事件")
         title = st.text_input("事件標題", value="新工作")
         desc = st.text_area("描述", value="")
         if st.button("新增"):
-            # 生成新 ID
-            if not events_df.empty and "id" in events_df.columns and pd.notna(events_df["id"].max()):
-                new_id = str(int(events_df["id"].max()) + 1)
-            else:
-                new_id = "1"
-
-            # 處理日期（只取 YYYY-MM-DD 部分）
+            new_id = str(int(events_df["id"].max()) + 1) if not events_df.empty and pd.notna(events_df["id"].max()) else "1"
             start_date = selection["startStr"][:10]
             end_date = selection["endStr"][:10] if selection.get("endStr") else start_date
-
             new_row = pd.DataFrame([{
                 "id": new_id,
                 "title": title,
@@ -465,7 +459,6 @@ if st.session_state.view_mode == "calendar":
                 "description": desc,
                 "project_name": ""
             }])
-
             events_df = pd.concat([events_df, new_row], ignore_index=True)
             conn.update(worksheet="calendar_events", data=events_df)
             st.success("事件已新增！")
