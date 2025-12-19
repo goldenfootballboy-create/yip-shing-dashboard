@@ -1,24 +1,25 @@
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
+from streamlit_calendar import calendar
 import pandas as pd
 import json
 from datetime import date
 
 # ==============================================
-# LOGO
+# 頁面設定
 # ==============================================
 st.set_page_config(
-    page_title="YIP SHING Project Dashboard",  # 瀏覽器標籤顯示的文字
-    page_icon="https://i.imgur.com/Q8ehtk3.jpeg",  # 你的 Logo
+    page_title="YIP SHING Project Dashboard",
+    page_icon="https://i.imgur.com/Q8ehtk3.jpeg",
     layout="wide"
 )
+
 # ==============================================
-# Google Sheets 連接（永久儲存）
+# Google Sheets 連接
 # ==============================================
-st.set_page_config(layout="wide")
 conn = st.connection('gsheets', type=GSheetsConnection)
 
-# 讀取 projects（ttl=0：不快取，永遠讀最新）
+# 讀取 projects
 df = conn.read(worksheet="projects", usecols=list(range(16)), ttl=0)
 df = df.dropna(how="all")
 
@@ -219,13 +220,16 @@ def render_project_card(row, idx):
 # 左側側邊欄
 # ==============================================
 with st.sidebar:
-
     st.header("View Controls")
 
     if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
         st.session_state.view_mode = "all"
     if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
         st.session_state.view_mode = "delay"
+
+    # 新增日曆按鈕
+    if st.button("📅 專案日曆", use_container_width=True, type="primary", key="btn_calendar"):
+        st.session_state.view_mode = "calendar"
 
     if "view_mode" not in st.session_state:
         st.session_state.view_mode = "all"
@@ -312,7 +316,7 @@ with st.sidebar:
                 st.rerun()
 
 # ==============================================
-# 篩選邏輯（Search 完全獨立，先搜尋再套用其他 filter）
+# 篩選邏輯
 # ==============================================
 today = date.today()
 filtered_df = df.copy()
@@ -343,6 +347,101 @@ else:
     page_title = "YIP SHING Project Dashboard"
 
 # ==============================================
+# 日曆模式
+# ==============================================
+if st.session_state.view_mode == "calendar":
+    page_title = "專案日曆視圖"
+
+    # 讀取或建立 calendar_events worksheet
+    try:
+        events_df = conn.read(worksheet="calendar_events", ttl=0)
+        if events_df.empty:
+            events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
+    except:
+        events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
+        conn.update(worksheet="calendar_events", data=events_df)
+
+    # 轉成 calendar 所需格式
+    events = []
+    for _, row in events_df.iterrows():
+        events.append({
+            "id": str(row["id"]),
+            "title": row["title"],
+            "start": row["start"],
+            "end": row["end"] if pd.notna(row["end"]) else row["start"],
+            "description": row["description"] if pd.notna(row["description"]) else "",
+            "extendedProps": {"project_name": row["project_name"] if pd.notna(row["project_name"]) else ""}
+        })
+
+    # 自動加入專案日期事件
+    for _, proj in df.iterrows():
+        if pd.notna(proj["Parts_Arrival"]):
+            events.append({
+                "title": f"零件到貨: {proj['Project_Name']}",
+                "start": proj["Parts_Arrival"].strftime("%Y-%m-%d"),
+                "color": "#a8e6cf",
+                "extendedProps": {"project_name": proj["Project_Name"]}
+            })
+        if pd.notna(proj["Testing_Complete"]):
+            events.append({
+                "title": f"測試完成: {proj['Project_Name']}",
+                "start": proj["Testing_Complete"].strftime("%Y-%m-%d"),
+                "color": "#ff9f89",
+                "extendedProps": {"project_name": proj["Project_Name"]}
+            })
+
+    calendar_options = {
+        "initialView": "dayGridMonth",
+        "headerToolbar": {
+            "left": "prev,next today",
+            "center": "title",
+            "right": "dayGridMonth,timeGridWeek,timeGridDay"
+        },
+        "selectable": True,
+        "editable": True,
+        "height": "800px",
+        "locale": "zh-hk",
+    }
+
+    calendar_events = calendar(events=events, options=calendar_options, key="project_calendar")
+
+    # 處理點擊事件（編輯）
+    if calendar_events.get("eventClick"):
+        event = calendar_events["eventClick"]["event"]
+        st.subheader(f"編輯事件: {event['title']}")
+        new_title = st.text_input("標題", event['title'])
+        new_date = st.date_input("日期", pd.to_datetime(event['start']).date())
+        new_desc = st.text_area("描述", event.get('extendedProps', {}).get('description', ''))
+        if st.button("儲存修改"):
+            events_df.loc[events_df["id"] == event["id"], ["title", "start", "description"]] = [new_title, new_date.strftime("%Y-%m-%d"), new_desc]
+            conn.update(worksheet="calendar_events", data=events_df)
+            st.success("事件已更新！")
+            st.rerun()
+
+    # 處理選取日期（新增事件）
+    if calendar_events.get("select"):
+        selection = calendar_events["select"]
+        st.subheader("新增事件")
+        title = st.text_input("事件標題", "新工作")
+        desc = st.text_area("描述")
+        if st.button("新增"):
+            new_id = str(int(events_df["id"].max()) + 1) if not events_df.empty and pd.notna(events_df["id"].max()) else "1"
+            new_row = pd.DataFrame([{
+                "id": new_id,
+                "title": title,
+                "start": selection["startStr"],
+                "end": selection["endStr"] if selection.get("endStr") else selection["startStr"],
+                "description": desc,
+                "project_name": ""
+            }])
+            events_df = pd.concat([events_df, new_row], ignore_index=True)
+            conn.update(worksheet="calendar_events", data=events_df)
+            st.success("事件已新增！")
+            st.rerun()
+
+    st.stop()  # 停止顯示專案列表
+
+# ==============================================
 # 主畫面
 # ==============================================
 st.markdown(
@@ -356,14 +455,11 @@ if len(filtered_df) == 0:
     else:
         st.info("No projects match the selected filters or search term.")
 else:
-    # === 按完成度從高到低排序（關鍵：不要 reset_index）===
     if not filtered_df.empty:
         progress_series = filtered_df.apply(calculate_progress, axis=1)
         filtered_df = filtered_df.assign(Progress=progress_series) \
                                       .sort_values(by="Progress", ascending=False) \
                                       .drop(columns="Progress")
-        # 移除這一行！這是導致 Edit/Delete 失效的罪魁禍首
-        # filtered_df = filtered_df.reset_index(drop=True)
 
     counter = filtered_df.groupby("Project_Type")["Qty"].sum().astype(int).sort_index()
     total_qty = int(filtered_df["Qty"].sum())
@@ -382,7 +478,7 @@ else:
         with col1:
             if i < len(rows):
                 row = rows[i]
-                idx = filtered_df.index[i]  # 這就是原始 df 的正確 index！
+                idx = filtered_df.index[i]
                 render_project_card(row, idx)
 
                 btn_col1, btn_col2 = st.columns(2)
@@ -393,7 +489,6 @@ else:
                     if st.button("Delete", key=f"del_{idx}", type="secondary"):
                         st.session_state[f"confirm_delete_{idx}"] = True
 
-                # Edit 表單
                 if st.session_state.get(f"editing_{idx}", False):
                     st.markdown("---")
                     st.subheader(f"Editing: {row['Project_Name']}")
@@ -463,7 +558,6 @@ else:
                                 st.success("Updated!")
                                 st.rerun()
 
-                # Delete 確認
                 if st.session_state.get(f"confirm_delete_{idx}", False):
                     st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
                     col_yes, col_no = st.columns(2)
@@ -482,14 +576,12 @@ else:
                             del st.session_state[f"confirm_delete_{idx}"]
                         st.rerun()
 
-        # 右邊卡片
         with col2:
             if i + 1 < len(rows):
                 row = rows[i + 1]
                 idx = filtered_df.index[i + 1]
                 render_project_card(row, idx)
 
-                # Edit 和 Delete 平排（右邊）
                 btn_col1, btn_col2 = st.columns(2)
                 with btn_col1:
                     if st.button("Edit", key=f"edit_{idx}"):
@@ -499,7 +591,6 @@ else:
                     if st.button("Delete", key=f"del_{idx}", type="secondary"):
                         st.session_state[f"confirm_delete_{idx}"] = True
 
-                # Edit 表單（右邊）
                 if st.session_state.get(f"editing_{idx}", False):
                     st.markdown("---")
                     st.subheader(f"Editing: {row['Project_Name']}")
@@ -569,7 +660,6 @@ else:
                                 st.success("Updated!")
                                 st.rerun()
 
-                # Delete 確認（右邊）
                 if st.session_state.get(f"confirm_delete_{idx}", False):
                     st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
                     col_yes, col_no = st.columns(2)
@@ -589,4 +679,4 @@ else:
                         st.rerun()
 
 st.markdown("---")
-st.caption("Projects Management System ")
+st.caption("Projects Management System")
