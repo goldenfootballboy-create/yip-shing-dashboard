@@ -4,6 +4,7 @@ from streamlit_calendar import calendar
 import pandas as pd
 import json
 from datetime import date
+import time  # 用於延遲
 
 # ==============================================
 # 頁面設定
@@ -15,13 +16,27 @@ st.set_page_config(
 )
 
 # ==============================================
-# Google Sheets 連接
+# Google Sheets 連接 + 讀取（加載入提示 + 重試 + 快取）
 # ==============================================
 conn = st.connection('gsheets', type=GSheetsConnection)
 
-# 讀取 projects
-df = conn.read(worksheet="projects", usecols=list(range(16)), ttl=0)
-df = df.dropna(how="all")
+st.markdown("### 🔄 正在載入專案資料，請稍等...")
+max_retries = 3
+df = None
+
+for attempt in range(max_retries):
+    try:
+        df = conn.read(worksheet="projects", usecols=list(range(16)), ttl=300)  # 快取 5 分鐘
+        df = df.dropna(how="all")
+        st.success("✅ 專案資料載入成功！")
+        break
+    except Exception:
+        if attempt < max_retries - 1:
+            st.warning(f"讀取失敗（第 {attempt+1} 次），5 秒後自動重試...")
+            time.sleep(5)
+        else:
+            st.error("無法連線到 Google Sheets，請稍後再試或檢查網路")
+            st.stop()
 
 required = ["Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
             "Qty","Real_Count","Project_Spec","Description","Progress_Reminder",
@@ -42,8 +57,18 @@ df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(date.today().year
 df["Qty"] = pd.to_numeric(df["Qty"], errors="coerce").fillna(1).astype(int)
 df["Real_Count"] = pd.to_numeric(df["Real_Count"], errors="coerce").fillna(df["Qty"]).astype(int)
 
-# 讀取 checklist
-checklist_raw = conn.read(worksheet="checklist", ttl=0)
+# 讀取 checklist（同樣快取 + 重試）
+checklist_raw = None
+for attempt in range(max_retries):
+    try:
+        checklist_raw = conn.read(worksheet="checklist", ttl=300)
+        break
+    except Exception:
+        if attempt < max_retries - 1:
+            time.sleep(5)
+        else:
+            checklist_raw = pd.DataFrame()
+
 checklist_db = {}
 if not checklist_raw.empty:
     for _, row in checklist_raw.iterrows():
@@ -53,12 +78,13 @@ if not checklist_raw.empty:
             except:
                 pass
 
-# 儲存函數
+# 儲存函數（加延遲避免限流）
 def save_projects():
     df_save = df.copy()
     for c in date_cols:
         df_save[c] = df_save[c].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) else None)
     conn.update(worksheet="projects", data=df_save)
+    time.sleep(2)  # 避免連續寫入撞限流
 
 def save_checklist():
     if not checklist_db:
@@ -68,6 +94,7 @@ def save_checklist():
         checklist_list = [{"Project_Name": k, "Checklist_Data": json.dumps(v, ensure_ascii=False)} for k, v in checklist_db.items()]
         checklist_save = pd.DataFrame(checklist_list)
         conn.update(worksheet="checklist", data=checklist_save)
+    time.sleep(2)
 
 # ==============================================
 # 進度計算 + 顏色
@@ -98,7 +125,7 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # ==============================================
-# 專案卡片渲染函數
+# 專案卡片渲染函數（保持原樣）
 # ==============================================
 def render_project_card(row, idx):
     pct = calculate_progress(row)
@@ -161,7 +188,6 @@ def render_project_card(row, idx):
         if row.get("Description"):
             st.markdown(f"**Description:** {row['Description']}")
 
-        # Checklist Panel
         if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
             st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
 
@@ -227,7 +253,6 @@ with st.sidebar:
     if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
         st.session_state.view_mode = "delay"
 
-    # 新增日曆按鈕
     if st.button("📅 專案日曆", use_container_width=True, type="primary", key="btn_calendar"):
         st.session_state.view_mode = "calendar"
 
@@ -352,16 +377,14 @@ else:
 if st.session_state.view_mode == "calendar":
     page_title = "專案日曆視圖"
 
-    # 讀取或建立 calendar_events worksheet
     try:
-        events_df = conn.read(worksheet="calendar_events", ttl=0)
+        events_df = conn.read(worksheet="calendar_events", ttl=300)
         if events_df.empty:
             events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
     except:
         events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
         conn.update(worksheet="calendar_events", data=events_df)
 
-    # 轉成 calendar 所需格式
     events = []
     for _, row in events_df.iterrows():
         events.append({
@@ -373,7 +396,6 @@ if st.session_state.view_mode == "calendar":
             "extendedProps": {"project_name": row["project_name"] if pd.notna(row["project_name"]) else ""}
         })
 
-    # 自動加入專案日期事件
     for _, proj in df.iterrows():
         if pd.notna(proj["Parts_Arrival"]):
             events.append({
@@ -405,7 +427,6 @@ if st.session_state.view_mode == "calendar":
 
     calendar_events = calendar(events=events, options=calendar_options, key="project_calendar")
 
-    # 處理點擊事件（編輯）
     if calendar_events.get("eventClick"):
         event = calendar_events["eventClick"]["event"]
         st.subheader(f"編輯事件: {event['title']}")
@@ -418,7 +439,6 @@ if st.session_state.view_mode == "calendar":
             st.success("事件已更新！")
             st.rerun()
 
-    # 處理選取日期（新增事件）
     if calendar_events.get("select"):
         selection = calendar_events["select"]
         st.subheader("新增事件")
@@ -439,7 +459,7 @@ if st.session_state.view_mode == "calendar":
             st.success("事件已新增！")
             st.rerun()
 
-    st.stop()  # 停止顯示專案列表
+    st.stop()
 
 # ==============================================
 # 主畫面
