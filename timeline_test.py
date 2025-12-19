@@ -3,7 +3,7 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 import json
 from datetime import date
-from streamlit_calendar import calendar
+
 # ==============================================
 # LOGO
 # ==============================================
