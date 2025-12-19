@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # ==============================================
-# Google Sheets 連接 + 讀取（快取 + 重試）
+# Google Sheets 連接 + 讀取（加載入提示 + 重試 + 快取）
 # ==============================================
 conn = st.connection('gsheets', type=GSheetsConnection)
 
@@ -250,7 +250,7 @@ with st.sidebar:
     if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
         st.session_state.view_mode = "delay"
 
-    if st.button("📅Calendar", use_container_width=True, type="primary", key="btn_calendar"):
+    if st.button("📅 專案日曆", use_container_width=True, type="primary", key="btn_calendar"):
         st.session_state.view_mode = "calendar"
 
     if "view_mode" not in st.session_state:
@@ -369,11 +369,12 @@ else:
     page_title = "YIP SHING Project Dashboard"
 
 # ==============================================
-# 日曆模式（修正後版，點空白日期一定可新增）
+# 日曆模式（完整支援新增/編輯自定義事件）
 # ==============================================
 if st.session_state.view_mode == "calendar":
     page_title = "專案日曆視圖"
 
+    # 讀取或建立 calendar_events worksheet
     try:
         events_df = conn.read(worksheet="calendar_events", ttl=300)
         if events_df.empty:
@@ -382,6 +383,7 @@ if st.session_state.view_mode == "calendar":
         events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
         conn.update(worksheet="calendar_events", data=events_df)
 
+    # 轉成 calendar 所需格式
     events = []
     for _, row in events_df.iterrows():
         events.append({
@@ -393,6 +395,7 @@ if st.session_state.view_mode == "calendar":
             "extendedProps": {"project_name": row["project_name"] if pd.notna(row["project_name"]) else ""}
         })
 
+    # 自動加入專案日期事件（只顯示，不寫入 calendar_events）
     for _, proj in df.iterrows():
         if pd.notna(proj["Parts_Arrival"]):
             events.append({
@@ -441,16 +444,16 @@ if st.session_state.view_mode == "calendar":
             st.success("事件已更新！")
             st.rerun()
 
-    # 新增事件（修正判斷）
-    if "select" in calendar_events and calendar_events["select"]:
-        selection = calendar_events["select"]
+    # 新增事件（點空白日期）
+    select_info = calendar_events.get("select")
+    if select_info and isinstance(select_info, dict):
         st.subheader("新增事件")
         title = st.text_input("事件標題", value="新工作")
         desc = st.text_area("描述", value="")
         if st.button("新增"):
             new_id = str(int(events_df["id"].max()) + 1) if not events_df.empty and pd.notna(events_df["id"].max()) else "1"
-            start_date = selection["startStr"][:10]
-            end_date = selection["endStr"][:10] if selection.get("endStr") else start_date
+            start_date = select_info["startStr"][:10]
+            end_date = select_info.get("endStr", "")[:10] if select_info.get("endStr") else start_date
             new_row = pd.DataFrame([{
                 "id": new_id,
                 "title": title,
