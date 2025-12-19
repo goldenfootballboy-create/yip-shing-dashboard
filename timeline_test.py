@@ -419,6 +419,8 @@ if st.session_state.view_mode == "calendar":
             "right": "dayGridMonth,timeGridWeek,timeGridDay"
         },
         "selectable": True,
+        "selectMirror": True,  # 關鍵：讓選取更明顯
+        "dayMaxEvents": True,  # 關鍵：允許多事件顯示
         "editable": True,
         "height": "800px",
         "locale": "zh-hk",
@@ -438,21 +440,32 @@ if st.session_state.view_mode == "calendar":
             st.success("事件已更新！")
             st.rerun()
 
-    if calendar_events.get("select"):
+    # 處理選取日期（新增事件） - 更穩定的判斷
+    if "select" in calendar_events and calendar_events["select"]:
         selection = calendar_events["select"]
         st.subheader("新增事件")
-        title = st.text_input("事件標題", "新工作")
-        desc = st.text_area("描述")
+        title = st.text_input("事件標題", value="新工作")
+        desc = st.text_area("描述", value="")
         if st.button("新增"):
-            new_id = str(int(events_df["id"].max()) + 1) if not events_df.empty and pd.notna(events_df["id"].max()) else "1"
+            # 生成新 ID
+            if not events_df.empty and "id" in events_df.columns and pd.notna(events_df["id"].max()):
+                new_id = str(int(events_df["id"].max()) + 1)
+            else:
+                new_id = "1"
+
+            # 處理日期（只取 YYYY-MM-DD 部分）
+            start_date = selection["startStr"][:10]
+            end_date = selection["endStr"][:10] if selection.get("endStr") else start_date
+
             new_row = pd.DataFrame([{
                 "id": new_id,
                 "title": title,
-                "start": selection["startStr"],
-                "end": selection["endStr"] if selection.get("endStr") else selection["startStr"],
+                "start": start_date,
+                "end": end_date,
                 "description": desc,
                 "project_name": ""
             }])
+
             events_df = pd.concat([events_df, new_row], ignore_index=True)
             conn.update(worksheet="calendar_events", data=events_df)
             st.success("事件已新增！")
