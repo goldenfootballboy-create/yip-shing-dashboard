@@ -8,7 +8,7 @@ from datetime import date
 # ==============================================
 st.set_page_config(
     page_title="YIP SHING Project Dashboard",  # 瀏覽器標籤顯示的文字
-    page_icon="https://i.imgur.com/htVuOMu.png",  # 你的 Logo
+    page_icon="https://i.imgur.com/Q8ehtk3.jpeg",  # 你的 Logo
     layout="wide"
 )
 # ==============================================
