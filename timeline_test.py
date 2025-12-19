@@ -4,20 +4,6 @@ import pandas as pd
 import json
 from datetime import date
 
-st.markdown(
-    """
-    <style>
-    [data-testid="stSidebar"] {
-        background: linear-gradient(to bottom, #1e3a8a, #1e40af);
-        color: white;
-    }
-    [data-testid="stSidebar"] .css-1d391kg {  /* Sidebar 文字顏色 */
-        color: white;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 # ==============================================
 # LOGO
 # ==============================================
