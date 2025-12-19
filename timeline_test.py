@@ -3,23 +3,7 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 import json
 from datetime import date
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background: linear-gradient(-45deg, #ee7752, #23a6d5, #23d5ab, #1fb429);
-        background-size: 400% 400%;
-        animation: gradient 20s ease infinite;
-    }
-    @keyframes gradient {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+
 # ==============================================
 # LOGO
 # ==============================================
