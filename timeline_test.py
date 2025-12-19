@@ -4,21 +4,7 @@ import pandas as pd
 import json
 from datetime import date
 
-st.markdown(
-    """
-    <style>
-    .stMarkdown > div > div[data-testid="column"] > div {
-        transition: all 0.3s ease;
-    }
-    .stMarkdown > div > div[data-testid="column"] > div:hover {
-        transform: scale(1.05) translateY(-10px);
-        box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
-        z-index: 10;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+
 # ==============================================
 # LOGO
 # ==============================================
