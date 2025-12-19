@@ -20,7 +20,6 @@ st.set_page_config(
 # ==============================================
 conn = st.connection('gsheets', type=GSheetsConnection)
 
-st.markdown("### 🔄 正在載入專案資料，請稍等...")
 max_retries = 3
 df = None
 
@@ -28,7 +27,7 @@ for attempt in range(max_retries):
     try:
         df = conn.read(worksheet="projects", usecols=list(range(16)), ttl=300)  # 快取 5 分鐘
         df = df.dropna(how="all")
-        st.success("✅ 專案資料載入成功！")
+
         break
     except Exception:
         if attempt < max_retries - 1:
