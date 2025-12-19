@@ -219,16 +219,7 @@ def render_project_card(row, idx):
 # 左側側邊欄
 # ==============================================
 with st.sidebar:
-    
-    if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
-        st.session_state.view_mode = "delay"
 
-    # === 新增：日曆按鈕 ===
-    if st.button("📅 專案日曆視圖", use_container_width=True, type="primary", key="btn_calendar"):
-        st.session_state.view_mode = "calendar"
-
-    if "view_mode" not in st.session_state:
-        st.session_state.view_mode = "all"
     st.header("View Controls")
 
     if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
