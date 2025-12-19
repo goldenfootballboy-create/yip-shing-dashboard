@@ -3,7 +3,7 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 import json
 from datetime import date
-
+from streamlit_calendar import calendar
 # ==============================================
 # LOGO
 # ==============================================
@@ -220,6 +220,15 @@ def render_project_card(row, idx):
 # ==============================================
 with st.sidebar:
 
+    if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
+        st.session_state.view_mode = "delay"
+
+    # === 新增：日曆按鈕 ===
+    if st.button("📅 專案日曆視圖", use_container_width=True, type="primary", key="btn_calendar"):
+        st.session_state.view_mode = "calendar"
+
+    if "view_mode" not in st.session_state:
+        st.session_state.view_mode = "all"
     st.header("View Controls")
 
     if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
@@ -341,6 +350,104 @@ else:
                 (filtered_df["Lead_Time"].dt.month == month_map[selected_month])
             ]
     page_title = "YIP SHING Project Dashboard"
+
+    # === 在這裡加入日曆模式處理（在主畫面之前）===
+    if st.session_state.view_mode == "calendar":
+        page_title = "專案日曆視圖"
+
+        # 讀取 calendar_events sheet（如果沒有就新建）
+        try:
+            events_df = conn.read(worksheet="calendar_events", ttl=0)
+            if events_df.empty:
+                events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
+        except:
+            events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
+            conn.update(worksheet="calendar_events", data=events_df)
+
+        # 轉成 FullCalendar 需要的 events 格式
+        events = []
+        for _, row in events_df.iterrows():
+            events.append({
+                "id": str(row["id"]),
+                "title": row["title"],
+                "start": row["start"],
+                "end": row["end"] if pd.notna(row["end"]) else row["start"],
+                "description": row["description"] if pd.notna(row["description"]) else "",
+                "extendedProps": {"project_name": row["project_name"] if pd.notna(row["project_name"]) else ""}
+            })
+
+        # 從專案自動生成事件（Lead_Time 等）
+        for _, proj in df.iterrows():
+            if pd.notna(proj["Lead_Time"]):
+                events.append({
+                    "title": f"交貨期限: {proj['Project_Name']}",
+                    "start": proj["Lead_Time"].strftime("%Y-%m-%d"),
+                    "color": "#ff9f89",
+                    "extendedProps": {"project_name": proj["Project_Name"]}
+                })
+            if pd.notna(proj["Parts_Arrival"]):
+                events.append({
+                    "title": f"零件到貨: {proj['Project_Name']}",
+                    "start": proj["Parts_Arrival"].strftime("%Y-%m-%d"),
+                    "color": "#a8e6cf",
+                    "extendedProps": {"project_name": proj["Project_Name"]}
+                })
+            # 可加更多如 Installation_Complete 等
+
+        calendar_options = {
+            "initialView": "dayGridMonth",
+            "headerToolbar": {
+                "left": "prev,next today",
+                "center": "title",
+                "right": "dayGridMonth,timeGridWeek,timeGridDay"
+            },
+            "selectable": True,
+            "editable": True,
+            "height": "800px",
+            "locale": "zh-hk",  # 中文介面
+        }
+
+        calendar_events = calendar(events=events, options=calendar_options, key="main_calendar")
+
+        # 處理事件點擊（編輯）
+        if calendar_events.get("eventClick"):
+            event = calendar_events["eventClick"]["event"]
+            st.subheader(f"編輯事件: {event['title']}")
+            new_title = st.text_input("標題", event['title'])
+            new_date = st.date_input("日期", pd.to_datetime(event['start']).date())
+            new_desc = st.text_area("描述", event.get('extendedProps', {}).get('description', ''))
+            if st.button("儲存修改"):
+                events_df.loc[events_df["id"] == event["id"], ["title", "start", "description"]] = [new_title,
+                                                                                                    new_date.strftime(
+                                                                                                        "%Y-%m-%d"),
+                                                                                                    new_desc]
+                conn.update(worksheet="calendar_events", data=events_df)
+                st.success("事件已更新！")
+                st.rerun()
+
+        # 處理選取日期（新增事件）
+        if calendar_events.get("select"):
+            selection = calendar_events["select"]
+            st.subheader("新增事件")
+            title = st.text_input("事件標題", "新工作")
+            desc = st.text_area("描述")
+            if st.button("新增"):
+                new_id = str(int(events_df["id"].max()) + 1) if not events_df.empty and pd.notna(
+                    events_df["id"].max()) else "1"
+                new_row = pd.DataFrame([{
+                    "id": new_id,
+                    "title": title,
+                    "start": selection["startStr"],
+                    "end": selection["endStr"] if selection.get("endStr") else selection["startStr"],
+                    "description": desc,
+                    "project_name": ""
+                }])
+                events_df = pd.concat([events_df, new_row], ignore_index=True)
+                conn.update(worksheet="calendar_events", data=events_df)
+                st.success("事件已新增！")
+                st.rerun()
+
+        st.stop()  # 停止執行後面的專案列表顯示
 
 # ==============================================
 # 主畫面
