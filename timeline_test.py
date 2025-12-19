@@ -3,7 +3,23 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 import json
 from datetime import date
-
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background: linear-gradient(-45deg, #ee7752, #23a6d5, #23d5ab, #1fb429);
+        background-size: 400% 400%;
+        animation: gradient 20s ease infinite;
+    }
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 # ==============================================
 # LOGO
 # ==============================================
@@ -219,26 +235,7 @@ def render_project_card(row, idx):
 # 左側側邊欄
 # ==============================================
 with st.sidebar:
-    # 在 with st.sidebar: 第一行加
-    if "dark_mode" not in st.session_state:
-        st.session_state.dark_mode = False
 
-    if st.button("🌙 深色模式" if not st.session_state.dark_mode else "☀️ 淺色模式"):
-        st.session_state.dark_mode = not st.session_state.dark_mode
-        st.rerun()
-
-    # 注入深色 CSS
-    if st.session_state.dark_mode:
-        st.markdown(
-            """
-            <style>
-            .stApp { background-color: #0e1117; color: #fafafa; }
-            h1, h2, h3, h4 { color: #00ff88; }
-            .stMarkdown { color: #fafafa; }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
     st.header("View Controls")
 
     if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
