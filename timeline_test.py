@@ -4,21 +4,15 @@ import pandas as pd
 import json
 from datetime import date
 
-# === 在這裡加入你的 hover 特效 CSS ===
 st.markdown(
     """
     <style>
-    /* 針對 Streamlit 最新版卡片 hover 特效 */
-    section[data-testid="stSidebar"] ~ div > div > div > div > div > div {
-        transition: all 0.4s ease;
-        border-radius: 12px;
-        overflow: hidden;
+    [data-testid="stSidebar"] {
+        background: linear-gradient(to bottom, #1e3a8a, #1e40af);
+        color: white;
     }
-
-    section[data-testid="stSidebar"] ~ div > div > div > div > div > div:hover {
-        transform: scale(1.05) translateY(-12px);
-        box-shadow: 0 15px 35px rgba(0, 255, 255, 0.4);
-        z-index: 999;
+    [data-testid="stSidebar"] .css-1d391kg {  /* Sidebar 文字顏色 */
+        color: white;
     }
     </style>
     """,
