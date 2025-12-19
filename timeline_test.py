@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # ==============================================
-# Google Sheets 連接 + 讀取（加載入提示 + 重試 + 快取）
+# Google Sheets 連接 + 讀取（快取 + 重試）
 # ==============================================
 conn = st.connection('gsheets', type=GSheetsConnection)
 
@@ -395,7 +395,7 @@ if st.session_state.view_mode == "calendar":
             "extendedProps": {"project_name": row["project_name"] if pd.notna(row["project_name"]) else ""}
         })
 
-    # 自動加入專案日期事件（只顯示，不寫入 calendar_events）
+    # 自動加入專案日期事件
     for _, proj in df.iterrows():
         if pd.notna(proj["Parts_Arrival"]):
             events.append({
