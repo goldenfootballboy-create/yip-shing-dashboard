@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 from streamlit_calendar import calendar
 import pandas as pd
-import jsonz
+import json
 from datetime import date
 import time
 
