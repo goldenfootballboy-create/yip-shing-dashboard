@@ -249,7 +249,7 @@ with st.sidebar:
     if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
         st.session_state.view_mode = "delay"
 
-    if st.button("📅Calender", use_container_width=True, type="primary", key="btn_calendar"):
+    if st.button("📅Calendar", use_container_width=True, type="primary", key="btn_calendar"):
         st.session_state.view_mode = "calendar"
 
     if "view_mode" not in st.session_state:
