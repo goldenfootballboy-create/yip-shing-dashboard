@@ -14,7 +14,7 @@ st.set_page_config(
     page_icon="https://i.imgur.com/Q8ehtk3.jpeg",
     layout="wide"
 )
-
+st.title("YIP SHING Project Dashboard")  # 或任何你想要的名字
 # ==============================================
 # Google Sheets 連接 + 讀取（快取 + 重試）
 # ==============================================
