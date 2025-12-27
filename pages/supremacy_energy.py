@@ -30,17 +30,10 @@ except:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
 
 # ==============================================
-# Sidebar
+# Sidebar - New Project 輸入區
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
-
-    # Calendar 按鈕 - 跳轉到主頁的 calendar 模式
-    if st.button("📅 Calendar", use_container_width=True, type="primary"):
-        # 設定主頁 session_state 為 calendar 模式
-        st.session_state.view_mode = "calendar"
-        # 切換到主頁（你的主檔案名是 YipShing.py）
-        st.switch_page("YipShing.py")
 
     st.markdown("### New Project")
 
@@ -56,6 +49,7 @@ with st.sidebar:
             if not quote_number.strip() or not project_detail.strip():
                 st.error("Quote Number 和 Project Detail 不能為空！")
             else:
+                # 新增一列
                 new_row = pd.DataFrame([{
                     "Date": date.today().strftime("%Y-%m-%d"),
                     "Quote_Number": quote_number.strip(),
@@ -65,6 +59,9 @@ with st.sidebar:
                 projects_df = pd.concat([projects_df, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=projects_df)
                 st.success(f"已新增專案：{quote_number}")
+
+                # 關鍵修正：強制重新讀取最新資料並刷新頁面
+                projects_df = conn.read(worksheet="supremacy_projects", ttl=0)  # ttl=0 強制讀最新
                 st.rerun()
 
 # ==============================================
@@ -82,8 +79,9 @@ st.markdown("""
 # 顯示已新增的專案列表
 # ==============================================
 if len(projects_df) > 0 and "Date" in projects_df.columns:
+    # 排序：最新日期在上
     display_df = projects_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
-    display_df.index += 1
+    display_df.index += 1  # 從 1 開始編號
 
     st.markdown("### 已新增專案")
     st.dataframe(
