@@ -9,7 +9,6 @@ import time
 # ==============================================
 # 頁面設定
 # ==============================================
-# === 關鍵：加這行改 sidebar 頂部顯示名稱 ===
 st.set_page_config(
     page_title="YIP SHING Project Dashboard",
     page_icon="https://i.imgur.com/Q8ehtk3.jpeg",
