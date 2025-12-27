@@ -111,21 +111,19 @@ if st.session_state.supremacy_view == "calendar":
             "extendedProps": {"project_name": row["project_name"] if pd.notna(row["project_name"]) else ""}
         })
 
-    # 自動加入專案日期事件（安全版本）
+    # 自動加入主專案日期事件
     for _, proj in df.iterrows():
         if pd.notna(proj["Parts_Arrival"]):
-            parts_date = proj["Parts_Arrival"].date()
             events.append({
                 "title": f"零件到貨: {proj['Project_Name']}",
-                "start": parts_date.strftime("%Y-%m-%d"),
+                "start": proj["Parts_Arrival"].strftime("%Y-%m-%d"),
                 "color": "#a8e6cf",
                 "extendedProps": {"project_name": proj["Project_Name"]}
             })
         if pd.notna(proj["Testing_Complete"]):
-            test_date = proj["Testing_Complete"].date()
             events.append({
                 "title": f"測試完成: {proj['Project_Name']}",
-                "start": test_date.strftime("%Y-%m-%d"),
+                "start": proj["Testing_Complete"].strftime("%Y-%m-%d"),
                 "color": "#ff9f89",
                 "extendedProps": {"project_name": proj["Project_Name"]}
             })
