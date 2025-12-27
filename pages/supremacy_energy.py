@@ -39,9 +39,9 @@ with st.sidebar:
     st.markdown("### New Project")
 
     with st.form(key="supremacy_new_project", clear_on_submit=True):
-        quote_number = st.text_input("Quote Number *", placeholder="例如: SE-2025-001")
+        quote_number = st.text_input("Quote Number *")
         project_detail = st.text_area("Project Detail *", height=150, placeholder="描述專案內容、客戶需求、規格等")
-        status_options = ["Pending", "Quoting", "Confirmed", "In Production", "Delivered", "Completed"]
+        status_options = ["Quoting", "Confirmed", "In Production", "Completed"]
         status = st.selectbox("Status", status_options, index=0)
 
         submitted = st.form_submit_button("Add Project", type="primary", use_container_width=True)
