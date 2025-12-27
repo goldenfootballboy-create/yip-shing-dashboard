@@ -37,10 +37,10 @@ with st.sidebar:
 
     # Calendar 按鈕 - 跳轉到主頁的 calendar 模式
     if st.button("📅 Calendar", use_container_width=True, type="primary"):
-        # 設定主頁的 session_state 為 calendar 模式
+        # 設定主頁 session_state 為 calendar 模式
         st.session_state.view_mode = "calendar"
-        # 切換到主頁
-        st.switch_page("streamlit_app.py")  # 改成你的主檔案名，例如 timeline_test.py 或 streamlit_app.py
+        # 切換到主頁（你的主檔案名是 YipShing.py）
+        st.switch_page("YipShing.py")
 
     st.markdown("### New Project")
 
