@@ -39,7 +39,7 @@ except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
 
 # ==============================================
-# Sidebar - New Project 輸入區
+# Sidebar - New Project 輸入區（新增日期輸入）
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -47,6 +47,9 @@ with st.sidebar:
     st.markdown("### New Project")
 
     with st.form(key="supremacy_new_project", clear_on_submit=True):
+        # 新增：日期選擇（預設今天）
+        project_date = st.date_input("Date *", value=date.today())
+
         quote_number = st.text_input("Quote Number *")
         project_detail = st.text_area("Project Detail *", height=150, placeholder="描述專案內容、客戶需求、規格等")
         status_options = ["Quoting", "Confirmed", "In Production", "Completed"]
@@ -59,7 +62,7 @@ with st.sidebar:
                 st.error("Quote Number 和 Project Detail 不能為空！")
             else:
                 new_row = pd.DataFrame([{
-                    "Date": date.today().strftime("%Y-%m-%d"),
+                    "Date": project_date.strftime("%Y-%m-%d"),
                     "Quote_Number": quote_number.strip(),
                     "Project_Detail": project_detail.strip(),
                     "Status": status
@@ -96,7 +99,7 @@ if len(projects_df) > 0:
             }.get(row["Status"], "#888888")
 
             st.markdown(f"""
-            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 80px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 220px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                     <h5 style="margin:0 0 12px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
                     <p style="margin:0 0 16px 0; font-size:1rem; color:#333; line-height:1.6;">{row["Project_Detail"]}</p>
@@ -140,22 +143,17 @@ if len(projects_df) > 0:
                         del st.session_state[f"edit_mode_{idx}"]
                         st.rerun()
 
-            # Delete 確認 + 正常刪除
+            # Delete 確認
             if st.session_state.get(f"confirm_delete_{idx}", False):
                 st.warning(f"確定要刪除專案 **{row['Quote_Number']}** 嗎？")
                 col_yes, col_no = st.columns(2)
-                if col_yes.button("Yes, Delete", type="primary", key=f"yes_del_{idx}"):
-                    # 用 Quote_Number 刪除（安全）
-                    projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                if col_yes.button("Yes, Delete", type="primary", key=f"yes_{idx}"):
+                    projects_df = projects_df.drop(idx).reset_index(drop=True)
                     conn.update(worksheet="supremacy_projects", data=projects_df)
-                    st.success(f"已刪除專案：{row['Quote_Number']}")
-                    # 強制讀最新資料並刷新
-                    raw_df = conn.read(worksheet="supremacy_projects", ttl=0)
-                    projects_df = raw_df.iloc[1:].reset_index(drop=True) if len(raw_df) > 1 else pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
-                    projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
+                    st.success("已刪除！")
                     del st.session_state[f"confirm_delete_{idx}"]
                     st.rerun()
-                if col_no.button("Cancel", key=f"no_del_{idx}"):
+                if col_no.button("Cancel", key=f"no_{idx}"):
                     del st.session_state[f"confirm_delete_{idx}"]
                     st.rerun()
 
