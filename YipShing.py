@@ -298,6 +298,7 @@ with st.sidebar:
             new_supervisor = st.text_input("Supervisor", key="new_supervisor")
             new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
 
+        # Progress Dates 直接放在主表單
         st.markdown("**Progress Dates**")
         col_d1, col_d2 = st.columns(2)
         with col_d1:
@@ -310,65 +311,46 @@ with st.sidebar:
 
         reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
 
-        # Project Specification 按鈕（放在 form 內）
-        if st.button("Project Specification", type="primary", use_container_width=True):
-            st.session_state.spec_dialog_open = True
-
-        # Project Specification 彈出視窗（放在 form 內，但 @st.dialog 會自動處理）
-        @st.dialog("Project Specification", width="large")
-        def spec_dialog():
+        # Project Specification - 5 行 2 欄布局，每個規格旁邊加 S/N
+        with st.expander("Project Specification", expanded=False):
             st.markdown("**Specification**")
-            # 5 行 2 欄布局
+
+            # 行 1
             row1 = st.columns(2)
             with row1[0]:
-                s_genset = st.text_input("Genset model", key="dlg_genset")
+                s_genset = st.text_input("Genset model", key="s_genset")
             with row1[1]:
-                s_genset_sn = st.text_input("S/N", key="dlg_genset_sn")
+                s_genset_sn = st.text_input("S/N", key="s_genset_sn")
 
+            # 行 2
             row2 = st.columns(2)
             with row2[0]:
-                s_alternator = st.text_input("Alternator Model", key="dlg_alternator")
+                s_alternator = st.text_input("Alternator Model", key="s_alternator")
             with row2[1]:
-                s_alternator_sn = st.text_input("S/N", key="dlg_alternator_sn")
+                s_alternator_sn = st.text_input("S/N", key="s_alternator_sn")
 
+            # 行 3
             row3 = st.columns(2)
             with row3[0]:
-                s_controller = st.text_input("Controller", key="dlg_controller")
+                s_controller = st.text_input("Controller", key="s_controller")
             with row3[1]:
-                s_controller_sn = st.text_input("S/N", key="dlg_controller_sn")
+                s_controller_sn = st.text_input("S/N", key="s_controller_sn")
 
+            # 行 4
             row4 = st.columns(2)
             with row4[0]:
-                s_breaker = st.text_input("Circuit breaker Size", key="dlg_breaker")
+                s_breaker = st.text_input("Circuit breaker Size", key="s_breaker")
             with row4[1]:
-                s_breaker_sn = st.text_input("S/N", key="dlg_breaker_sn")
+                s_breaker_sn = st.text_input("S/N", key="s_breaker_sn")
 
+            # 行 5
             row5 = st.columns(2)
             with row5[0]:
-                s_charger = st.text_input("Charger", key="dlg_charger")
+                s_charger = st.text_input("Charger", key="s_charger")
             with row5[1]:
-                s_charger_sn = st.text_input("S/N", key="dlg_charger_sn")
+                s_charger_sn = st.text_input("S/N", key="s_charger_sn")
 
-            desc = st.text_area("Description", height=150, key="dlg_desc")
-
-            if st.button("Save & Close", type="primary"):
-                st.session_state.spec_data = {
-                    "genset": s_genset or '—',
-                    "genset_sn": s_genset_sn or '—',
-                    "alternator": s_alternator or '—',
-                    "alternator_sn": s_alternator_sn or '—',
-                    "controller": s_controller or '—',
-                    "controller_sn": s_controller_sn or '—',
-                    "breaker": s_breaker or '—',
-                    "breaker_sn": s_breaker_sn or '—',
-                    "charger": s_charger or '—',
-                    "charger_sn": s_charger_sn or '—',
-                    "desc": desc or ""
-                }
-                st.rerun()
-
-        if st.session_state.get("spec_dialog_open", False):
-            spec_dialog()
+            desc = st.text_area("Description", height=100, key="desc")
 
         if st.form_submit_button("Add", type="primary", use_container_width=True):
             if not new_name.strip():
@@ -376,34 +358,25 @@ with st.sidebar:
             elif new_name in df["Project_Name"].values:
                 st.error("Name exists!")
             else:
-                spec_data = st.session_state.get("spec_data", {
-                    "genset": "—", "genset_sn": "—", "alternator": "—", "alternator_sn": "—",
-                    "controller": "—", "controller_sn": "—", "breaker": "—", "breaker_sn": "—",
-                    "charger": "—", "charger_sn": "—", "desc": ""
-                })
                 spec_lines = [
-                    f"Genset model: {spec_data['genset']} | S/N: {spec_data['genset_sn']}",
-                    f"Alternator Model: {spec_data['alternator']} | S/N: {spec_data['alternator_sn']}",
-                    f"Controller: {spec_data['controller']} | S/N: {spec_data['controller_sn']}",
-                    f"Circuit breaker Size: {spec_data['breaker']} | S/N: {spec_data['breaker_sn']}",
-                    f"Charger: {spec_data['charger']} | S/N: {spec_data['charger_sn']}"
+                    f"Genset model: {s_genset or '—'} | S/N: {s_genset_sn or '—'}",
+                    f"Alternator Model: {s_alternator or '—'} | S/N: {s_alternator_sn or '—'}",
+                    f"Controller: {s_controller or '—'} | S/N: {s_controller_sn or '—'}",
+                    f"Circuit breaker Size: {s_breaker or '—'} | S/N: {s_breaker_sn or '—'}",
+                    f"Charger: {s_charger or '—'} | S/N: {s_charger_sn or '—'}"
                 ]
                 spec_text = "\n".join(spec_lines)
 
                 new_project = {
                     "Project_Type": new_type, "Project_Name": new_name, "Year": int(new_year),
                     "Lead_Time": new_leadtime, "Customer": new_customer or "", "Supervisor": new_supervisor or "",
-                    "Qty": new_qty, "Real_Count": new_qty, "Project_Spec": spec_text, "Description": spec_data["desc"],
+                    "Qty": new_qty, "Real_Count": new_qty, "Project_Spec": spec_text, "Description": desc or "",
                     "Progress_Reminder": reminder or "", "Parts_Arrival": d1, "Installation_Complete": d2,
                     "Testing_Complete": d3, "Cleaning_Complete": d4, "Delivery_Complete": d5
                 }
                 df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
                 save_projects()
                 st.cache_data.clear()
-                if "spec_data" in st.session_state:
-                    del st.session_state.spec_data
-                if "spec_dialog_open" in st.session_state:
-                    del st.session_state.spec_dialog_open
                 st.success(f"Added: {new_name}")
                 st.rerun()
 
@@ -610,17 +583,11 @@ else:
 
                             e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
 
-                        # Project Specification 按鈕（放在 edit form 內）
-                        if st.button("Project Specification", type="primary", use_container_width=True):
-                            st.session_state[f"edit_spec_dialog_{idx}"] = True
-
-                        # Edit Specification 彈出視窗
-                        @st.dialog("Project Specification", width="large")
-                        def edit_spec_dialog(row, idx):
-                            st.markdown("**Specification**")
+                        with st.expander("Project Specification", expanded=True):
                             curr_spec = row.get("Project_Spec","")
                             lines = [line.split(": ",1)[1].split(" | S/N: ") if " | S/N: " in line else [line.split(": ",1)[1] if ": " in line else "", ""] for line in curr_spec.split("\n")] if curr_spec else [["","","","","","","","","",""]]
 
+                            # 5 行 2 欄布局
                             row1 = st.columns(2)
                             with row1[0]:
                                 e_s1 = st.text_input("Genset model", value=lines[0][0] if len(lines)>0 else "")
@@ -651,9 +618,12 @@ else:
                             with row5[1]:
                                 e_s5_sn = st.text_input("S/N", value=lines[4][1] if len(lines[4])>1 else "")
 
-                            e_desc = st.text_area("Description", value=row.get("Description",""), height=150)
+                            e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
 
-                            if st.button("Save & Close", type="primary"):
+                        if st.form_submit_button("Save Changes", type="primary"):
+                            if not e_name.strip():
+                                st.error("Project Name required!")
+                            else:
                                 new_spec = "\n".join([
                                     f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
                                     f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
@@ -661,20 +631,6 @@ else:
                                     f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
                                     f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
                                 ])
-                                df.at[idx, "Project_Spec"] = new_spec
-                                df.at[idx, "Description"] = e_desc or ""
-                                save_projects()
-                                st.cache_data.clear()
-                                st.success("Specification 已更新！")
-                                st.rerun()
-
-                        if st.session_state.get(f"edit_spec_dialog_{idx}", False):
-                            edit_spec_dialog(row, idx)
-
-                        if st.form_submit_button("Save Changes", type="primary"):
-                            if not e_name.strip():
-                                st.error("Project Name required!")
-                            else:
                                 df.at[idx, "Project_Type"] = e_type
                                 df.at[idx, "Project_Name"] = e_name
                                 df.at[idx, "Year"] = int(e_year)
@@ -683,6 +639,8 @@ else:
                                 df.at[idx, "Supervisor"] = e_supervisor or ""
                                 df.at[idx, "Qty"] = e_qty
                                 df.at[idx, "Real_Count"] = e_qty
+                                df.at[idx, "Project_Spec"] = new_spec
+                                df.at[idx, "Description"] = e_desc or ""
                                 df.at[idx, "Progress_Reminder"] = e_reminder or ""
                                 df.at[idx, "Parts_Arrival"] = e_d1
                                 df.at[idx, "Installation_Complete"] = e_d2
@@ -756,14 +714,7 @@ else:
 
                             e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
 
-                        # Project Specification 按鈕（放在 edit form 內）
-                        if st.button("Project Specification", type="primary", use_container_width=True):
-                            st.session_state[f"edit_spec_dialog_{idx}"] = True
-
-                        # Edit Specification 彈出視窗
-                        @st.dialog("Project Specification", width="large")
-                        def edit_spec_dialog(row, idx):
-                            st.markdown("**Specification**")
+                        with st.expander("Project Specification", expanded=True):
                             curr_spec = row.get("Project_Spec","")
                             lines = [line.split(": ",1)[1].split(" | S/N: ") if " | S/N: " in line else [line.split(": ",1)[1] if ": " in line else "", ""] for line in curr_spec.split("\n")] if curr_spec else [["","","","","","","","","",""]]
 
@@ -797,9 +748,12 @@ else:
                             with row5[1]:
                                 e_s5_sn = st.text_input("S/N", value=lines[4][1] if len(lines[4])>1 else "")
 
-                            e_desc = st.text_area("Description", value=row.get("Description",""), height=150)
+                            e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
 
-                            if st.button("Save & Close", type="primary"):
+                        if st.form_submit_button("Save Changes", type="primary"):
+                            if not e_name.strip():
+                                st.error("Project Name required!")
+                            else:
                                 new_spec = "\n".join([
                                     f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
                                     f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
@@ -807,20 +761,6 @@ else:
                                     f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
                                     f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
                                 ])
-                                df.at[idx, "Project_Spec"] = new_spec
-                                df.at[idx, "Description"] = e_desc or ""
-                                save_projects()
-                                st.cache_data.clear()
-                                st.success("Specification 已更新！")
-                                st.rerun()
-
-                        if st.session_state.get(f"edit_spec_dialog_{idx}", False):
-                            edit_spec_dialog(row, idx)
-
-                        if st.form_submit_button("Save Changes", type="primary"):
-                            if not e_name.strip():
-                                st.error("Project Name required!")
-                            else:
                                 df.at[idx, "Project_Type"] = e_type
                                 df.at[idx, "Project_Name"] = e_name
                                 df.at[idx, "Year"] = int(e_year)
@@ -829,6 +769,8 @@ else:
                                 df.at[idx, "Supervisor"] = e_supervisor or ""
                                 df.at[idx, "Qty"] = e_qty
                                 df.at[idx, "Real_Count"] = e_qty
+                                df.at[idx, "Project_Spec"] = new_spec
+                                df.at[idx, "Description"] = e_desc or ""
                                 df.at[idx, "Progress_Reminder"] = e_reminder or ""
                                 df.at[idx, "Parts_Arrival"] = e_d1
                                 df.at[idx, "Installation_Complete"] = e_d2
