@@ -239,72 +239,76 @@ def render_project_card(row, idx):
                 st.success("Checklist 已永久儲存到 Google Sheets！")
                 st.rerun()
 
-    # 按鈕區域：Edit Project Spec. + Delete
+    # 按鈕區域
     col_spec, col_delete = st.columns(2)
     with col_spec:
         if st.button("Edit Project Spec.", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
-            st.session_state[f"spec_dialog_{idx}"] = True
+            st.session_state[f"edit_spec_idx"] = idx  # 儲存要編輯的 idx
+            st.session_state[f"edit_spec_dialog"] = True
     with col_delete:
         if st.button("Delete", key=f"del_{idx}", type="secondary", use_container_width=True):
             st.session_state[f"confirm_delete_{idx}"] = True
 
     # Edit Project Spec. 彈出視窗
-    @st.dialog("Edit Project Specification", width="large")
-    def spec_dialog(row, idx):
-        st.markdown(f"**Editing Specification for: {row['Project_Name']}**")
+    if st.session_state.get("edit_spec_dialog", False):
+        idx_to_edit = st.session_state["edit_spec_idx"]
+        row_to_edit = df.loc[idx_to_edit]
 
-        curr_spec = row.get("Project_Spec", "")
-        lines = [line.split(": ",1)[1].split(" | S/N: ") if " | S/N: " in line else [line.split(": ",1)[1] if ": " in line else "", ""] for line in curr_spec.split("\n")] if curr_spec else [["","","","","","","","","",""]]
+        @st.dialog("Edit Project Specification", width="large")
+        def edit_spec_dialog():
+            st.markdown(f"**Editing Specification for: {row_to_edit['Project_Name']}**")
 
-        row1 = st.columns(2)
-        with row1[0]:
-            e_s1 = st.text_input("Genset model", value=lines[0][0] if len(lines)>0 else "")
-        with row1[1]:
-            e_s1_sn = st.text_input("S/N", value=lines[0][1] if len(lines[0])>1 else "")
+            curr_spec = row_to_edit.get("Project_Spec", "")
+            lines = [line.split(": ",1)[1].split(" | S/N: ") if " | S/N: " in line else [line.split(": ",1)[1] if ": " in line else "", ""] for line in curr_spec.split("\n")] if curr_spec else [["","","","","","","","","",""]]
 
-        row2 = st.columns(2)
-        with row2[0]:
-            e_s2 = st.text_input("Alternator Model", value=lines[1][0] if len(lines)>1 else "")
-        with row2[1]:
-            e_s2_sn = st.text_input("S/N", value=lines[1][1] if len(lines[1])>1 else "")
+            row1 = st.columns(2)
+            with row1[0]:
+                e_s1 = st.text_input("Genset model", value=lines[0][0] if len(lines)>0 else "")
+            with row1[1]:
+                e_s1_sn = st.text_input("S/N", value=lines[0][1] if len(lines[0])>1 else "")
 
-        row3 = st.columns(2)
-        with row3[0]:
-            e_s3 = st.text_input("Controller", value=lines[2][0] if len(lines)>2 else "")
-        with row3[1]:
-            e_s3_sn = st.text_input("S/N", value=lines[2][1] if len(lines[2])>1 else "")
+            row2 = st.columns(2)
+            with row2[0]:
+                e_s2 = st.text_input("Alternator Model", value=lines[1][0] if len(lines)>1 else "")
+            with row2[1]:
+                e_s2_sn = st.text_input("S/N", value=lines[1][1] if len(lines[1])>1 else "")
 
-        row4 = st.columns(2)
-        with row4[0]:
-            e_s4 = st.text_input("Circuit breaker Size", value=lines[3][0] if len(lines)>3 else "")
-        with row4[1]:
-            e_s4_sn = st.text_input("S/N", value=lines[3][1] if len(lines[3])>1 else "")
+            row3 = st.columns(2)
+            with row3[0]:
+                e_s3 = st.text_input("Controller", value=lines[2][0] if len(lines)>2 else "")
+            with row3[1]:
+                e_s3_sn = st.text_input("S/N", value=lines[2][1] if len(lines[2])>1 else "")
 
-        row5 = st.columns(2)
-        with row5[0]:
-            e_s5 = st.text_input("Charger", value=lines[4][0] if len(lines)>4 else "")
-        with row5[1]:
-            e_s5_sn = st.text_input("S/N", value=lines[4][1] if len(lines[4])>1 else "")
+            row4 = st.columns(2)
+            with row4[0]:
+                e_s4 = st.text_input("Circuit breaker Size", value=lines[3][0] if len(lines)>3 else "")
+            with row4[1]:
+                e_s4_sn = st.text_input("S/N", value=lines[3][1] if len(lines[3])>1 else "")
 
-        e_desc = st.text_area("Description", value=row.get("Description",""), height=150)
+            row5 = st.columns(2)
+            with row5[0]:
+                e_s5 = st.text_input("Charger", value=lines[4][0] if len(lines)>4 else "")
+            with row5[1]:
+                e_s5_sn = st.text_input("S/N", value=lines[4][1] if len(lines[4])>1 else "")
 
-        if st.button("Save & Close", type="primary"):
-            new_spec = "\n".join([
-                f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
-                f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
-                f"Controller: {e_s3 or '—'} | S/N: {e_s3_sn or '—'}",
-                f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
-                f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
-            ])
-            df.at[idx, "Project_Spec"] = new_spec
-            df.at[idx, "Description"] = e_desc or ""
-            save_projects()
-            st.cache_data.clear()
-            st.success("Specification 已更新！")
-            st.rerun()
+            e_desc = st.text_area("Description", value=row_to_edit.get("Description",""), height=150)
 
-    if st.session_state.get(f"spec_dialog_{idx}", False):
-        spec_dialog(row, idx)
+            if st.button("Save & Close", type="primary"):
+                new_spec = "\n".join([
+                    f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
+                    f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
+                    f"Controller: {e_s3 or '—'} | S/N: {e_s3_sn or '—'}",
+                    f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
+                    f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
+                ])
+                df.at[idx_to_edit, "Project_Spec"] = new_spec
+                df.at[idx_to_edit, "Description"] = e_desc or ""
+                save_projects()
+                st.cache_data.clear()
+                st.success("Specification 已更新！")
+                st.rerun()
+
+        edit_spec_dialog()
 
     # Delete 確認對話框
     if st.session_state.get(f"confirm_delete_{idx}", False):
