@@ -58,8 +58,6 @@ with st.sidebar:
                 projects_df = pd.concat([projects_df, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=projects_df)
                 st.success(f"已新增專案：{quote_number}")
-
-                # 強制重新讀取最新資料並刷新
                 projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
                 st.rerun()
 
@@ -68,20 +66,25 @@ with st.sidebar:
 # ==============================================
 st.title("SUPREMACY ENERGY")
 
+st.markdown("""
+### 專案管理系統
+
+此頁面專門用於 SUPREMACY ENERGY 系列專案報價與追蹤。
+""")
 
 # ==============================================
-# 卡片式顯示已新增專案
+# 卡片式顯示已新增專案（縮小 + 加 Delete 按鈕）
 # ==============================================
 if len(projects_df) > 0 and "Date" in projects_df.columns:
     # 排序：最新在上
-    sorted_df = projects_df.sort_values(by="Date", ascending=False)
+    sorted_df = projects_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
 
     st.markdown("### 已新增專案")
 
-    # 用 columns 做網格布局（每行 3 個卡片）
-    cols = st.columns(3)
+    # 每行 4 個卡片（縮小）
+    cols = st.columns(4)
     for idx, row in sorted_df.iterrows():
-        with cols[idx % 3]:
+        with cols[idx % 4]:
             status_color = {
                 "Quoting": "#ffaa00",
                 "Confirmed": "#00aa00",
@@ -90,17 +93,25 @@ if len(projects_df) > 0 and "Date" in projects_df.columns:
             }.get(row["Status"], "#888888")
 
             st.markdown(f"""
-            <div style="background: white; border-left: 6px solid {status_color}; border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <h4 style="margin:0; color:#1fb429;">{row["Quote_Number"]}</h4>
-                <p style="margin:8px 0 12px 0; color:#333; font-size:0.95rem;"><strong>內容：</strong>{row["Project_Detail"]}</p>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="background:{status_color}; color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:bold;">
+            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 8px; padding: 12px; margin-bottom: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); min-height: 160px;">
+                <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
+                <p style="margin:0 0 10px 0; font-size:0.9rem; color:#333; line-height:1.4;">{row["Project_Detail"]}</p>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top: auto;">
+                    <span style="background:{status_color}; color:white; padding:3px 10px; border-radius:15px; font-size:0.8rem; font-weight:bold;">
                         {row["Status"]}
                     </span>
                     <small style="color:#888;">{row["Date"]}</small>
                 </div>
             </div>
             """, unsafe_allow_html=True)
+
+            # Delete 按鈕
+            if st.button("Delete", key=f"delete_{idx}", type="secondary", use_container_width=True):
+                # 刪除該行
+                projects_df = projects_df.drop(idx).reset_index(drop=True)
+                conn.update(worksheet="supremacy_projects", data=projects_df)
+                st.success(f"已刪除專案：{row['Quote_Number']}")
+                st.rerun()
 
 else:
     st.info("尚未新增任何專案，請在左側欄輸入並提交。")
