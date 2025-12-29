@@ -311,19 +311,24 @@ with st.sidebar:
 
         reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
 
-        # Project Specification expander（新增 S/N 欄位）
+        # Project Specification - 5 列 2 欄布局，每個規格旁邊加 S/N
         with st.expander("Project Specification", expanded=False):
             st.markdown("**Specification**")
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                s1 = st.text_input("Genset model", key="s1")
-                s2 = st.text_input("Alternator Model", key="s2")
-            with col2:
-                s3 = st.text_input("Controller", key="s3")
-                s4 = st.text_input("Circuit breaker Size", key="s4")
-            with col3:
-                s5 = st.text_input("Charger", key="s5")
-                sn = st.text_input("S/N", key="sn")  # 新增 S/N 欄位
+            # 5 行，每行 2 欄
+            s_genset = st.text_input("Genset model", key="s_genset")
+            s_genset_sn = st.text_input("S/N (Genset)", key="s_genset_sn")
+
+            s_alternator = st.text_input("Alternator Model", key="s_alternator")
+            s_alternator_sn = st.text_input("S/N (Alternator)", key="s_alternator_sn")
+
+            s_controller = st.text_input("Controller", key="s_controller")
+            s_controller_sn = st.text_input("S/N (Controller)", key="s_controller_sn")
+
+            s_breaker = st.text_input("Circuit breaker Size", key="s_breaker")
+            s_breaker_sn = st.text_input("S/N (Breaker)", key="s_breaker_sn")
+
+            s_charger = st.text_input("Charger", key="s_charger")
+            s_charger_sn = st.text_input("S/N (Charger)", key="s_charger_sn")
 
             desc = st.text_area("Description", height=100, key="desc")
 
@@ -333,8 +338,13 @@ with st.sidebar:
             elif new_name in df["Project_Name"].values:
                 st.error("Name exists!")
             else:
-                spec_lines = [f"Genset model: {s1 or '—'}", f"Alternator Model: {s2 or '—'}",
-                              f"Controller: {s3 or '—'}", f"Circuit breaker Size: {s4 or '—'}", f"Charger: {s5 or '—'}", f"S/N: {sn or '—'}"]
+                spec_lines = [
+                    f"Genset model: {s_genset or '—'} | S/N: {s_genset_sn or '—'}",
+                    f"Alternator Model: {s_alternator or '—'} | S/N: {s_alternator_sn or '—'}",
+                    f"Controller: {s_controller or '—'} | S/N: {s_controller_sn or '—'}",
+                    f"Circuit breaker Size: {s_breaker or '—'} | S/N: {s_breaker_sn or '—'}",
+                    f"Charger: {s_charger or '—'} | S/N: {s_charger_sn or '—'}"
+                ]
                 spec_text = "\n".join(spec_lines)
 
                 new_project = {
@@ -555,13 +565,37 @@ else:
 
                         with st.expander("Project Specification", expanded=True):
                             curr_spec = row.get("Project_Spec","")
-                            lines = [line.split(": ",1)[1] if ": " in line else "" for line in curr_spec.split("\n")] if curr_spec else ["","","","",""]
-                            e_s1 = st.text_input("Genset model", value=lines[0] if len(lines)>0 else "")
-                            e_s2 = st.text_input("Alternator Model", value=lines[1] if len(lines)>1 else "")
-                            e_s3 = st.text_input("Controller", value=lines[2] if len(lines)>2 else "")
-                            e_s4 = st.text_input("Circuit breaker Size", value=lines[3] if len(lines)>3 else "")
-                            e_s5 = st.text_input("Charger", value=lines[4] if len(lines)>4 else "")
-                            e_sn = st.text_input("S/N", value=lines[5] if len(lines)>5 else "")  # 新增 S/N
+                            lines = [line.split(": ",1)[1] if ": " in line else "" for line in curr_spec.split("\n")] if curr_spec else ["","","","","","","","","",""]
+                            # 5 行 2 欄布局，每行一個規格 + S/N
+                            row1 = st.columns(2)
+                            with row1[0]:
+                                e_s1 = st.text_input("Genset model", value=lines[0] if len(lines)>0 else "")
+                            with row1[1]:
+                                e_s1_sn = st.text_input("S/N (Genset)", value=lines[1] if len(lines)>1 else "")
+
+                            row2 = st.columns(2)
+                            with row2[0]:
+                                e_s2 = st.text_input("Alternator Model", value=lines[2] if len(lines)>2 else "")
+                            with row2[1]:
+                                e_s2_sn = st.text_input("S/N (Alternator)", value=lines[3] if len(lines)>3 else "")
+
+                            row3 = st.columns(2)
+                            with row3[0]:
+                                e_s3 = st.text_input("Controller", value=lines[4] if len(lines)>4 else "")
+                            with row3[1]:
+                                e_s3_sn = st.text_input("S/N (Controller)", value=lines[5] if len(lines)>5 else "")
+
+                            row4 = st.columns(2)
+                            with row4[0]:
+                                e_s4 = st.text_input("Circuit breaker Size", value=lines[6] if len(lines)>6 else "")
+                            with row4[1]:
+                                e_s4_sn = st.text_input("S/N (Breaker)", value=lines[7] if len(lines)>7 else "")
+
+                            row5 = st.columns(2)
+                            with row5[0]:
+                                e_s5 = st.text_input("Charger", value=lines[8] if len(lines)>8 else "")
+                            with row5[1]:
+                                e_s5_sn = st.text_input("S/N (Charger)", value=lines[9] if len(lines)>9 else "")
 
                             e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
 
@@ -570,12 +604,11 @@ else:
                                 st.error("Project Name required!")
                             else:
                                 new_spec = "\n".join([
-                                    f"Genset model: {e_s1 or '—'}",
-                                    f"Alternator Model: {e_s2 or '—'}",
-                                    f"Controller: {e_s3 or '—'}",
-                                    f"Circuit breaker Size: {e_s4 or '—'}",
-                                    f"Charger: {e_s5 or '—'}",
-                                    f"S/N: {e_sn or '—'}"  # 新增 S/N
+                                    f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
+                                    f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
+                                    f"Controller: {e_s3 or '—'} | S/N: {e_s3_sn or '—'}",
+                                    f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
+                                    f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
                                 ])
                                 df.at[idx, "Project_Type"] = e_type
                                 df.at[idx, "Project_Name"] = e_name
@@ -662,13 +695,37 @@ else:
 
                         with st.expander("Project Specification", expanded=True):
                             curr_spec = row.get("Project_Spec","")
-                            lines = [line.split(": ",1)[1] if ": " in line else "" for line in curr_spec.split("\n")] if curr_spec else ["","","","",""]
-                            e_s1 = st.text_input("Genset model", value=lines[0] if len(lines)>0 else "")
-                            e_s2 = st.text_input("Alternator Model", value=lines[1] if len(lines)>1 else "")
-                            e_s3 = st.text_input("Controller", value=lines[2] if len(lines)>2 else "")
-                            e_s4 = st.text_input("Circuit breaker Size", value=lines[3] if len(lines)>3 else "")
-                            e_s5 = st.text_input("Charger", value=lines[4] if len(lines)>4 else "")
-                            e_sn = st.text_input("S/N", value=lines[5] if len(lines)>5 else "")  # 新增 S/N
+                            lines = [line.split(": ",1)[1].split(" | S/N: ") if " | S/N: " in line else [line.split(": ",1)[1] if ": " in line else "", ""] for line in curr_spec.split("\n")] if curr_spec else [["","","","","","","","","",""]]
+                            # 5 行 2 欄布局
+                            row1 = st.columns(2)
+                            with row1[0]:
+                                e_s1 = st.text_input("Genset model", value=lines[0][0] if len(lines)>0 else "")
+                            with row1[1]:
+                                e_s1_sn = st.text_input("S/N (Genset)", value=lines[0][1] if len(lines[0])>1 else "")
+
+                            row2 = st.columns(2)
+                            with row2[0]:
+                                e_s2 = st.text_input("Alternator Model", value=lines[1][0] if len(lines)>1 else "")
+                            with row2[1]:
+                                e_s2_sn = st.text_input("S/N (Alternator)", value=lines[1][1] if len(lines[1])>1 else "")
+
+                            row3 = st.columns(2)
+                            with row3[0]:
+                                e_s3 = st.text_input("Controller", value=lines[2][0] if len(lines)>2 else "")
+                            with row3[1]:
+                                e_s3_sn = st.text_input("S/N (Controller)", value=lines[2][1] if len(lines[2])>1 else "")
+
+                            row4 = st.columns(2)
+                            with row4[0]:
+                                e_s4 = st.text_input("Circuit breaker Size", value=lines[3][0] if len(lines)>3 else "")
+                            with row4[1]:
+                                e_s4_sn = st.text_input("S/N (Breaker)", value=lines[3][1] if len(lines[3])>1 else "")
+
+                            row5 = st.columns(2)
+                            with row5[0]:
+                                e_s5 = st.text_input("Charger", value=lines[4][0] if len(lines)>4 else "")
+                            with row5[1]:
+                                e_s5_sn = st.text_input("S/N (Charger)", value=lines[4][1] if len(lines[4])>1 else "")
 
                             e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
 
@@ -677,12 +734,11 @@ else:
                                 st.error("Project Name required!")
                             else:
                                 new_spec = "\n".join([
-                                    f"Genset model: {e_s1 or '—'}",
-                                    f"Alternator Model: {e_s2 or '—'}",
-                                    f"Controller: {e_s3 or '—'}",
-                                    f"Circuit breaker Size: {e_s4 or '—'}",
-                                    f"Charger: {e_s5 or '—'}",
-                                    f"S/N: {e_sn or '—'}"
+                                    f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
+                                    f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
+                                    f"Controller: {e_s3 or '—'} | S/N: {e_s3_sn or '—'}",
+                                    f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
+                                    f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
                                 ])
                                 df.at[idx, "Project_Type"] = e_type
                                 df.at[idx, "Project_Name"] = e_name
