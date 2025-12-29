@@ -137,6 +137,7 @@ if len(projects_df) > 0:
                         projects_df.at[idx, "Status"] = new_status
                         conn.update(worksheet="supremacy_projects", data=projects_df)
                         st.success("已更新！")
+                        st.cache_data.clear()  # 加這行！清除快取
                         del st.session_state[f"edit_mode_{idx}"]
                         st.rerun()
                     if col_cancel.form_submit_button("Cancel", use_container_width=True):
@@ -151,6 +152,7 @@ if len(projects_df) > 0:
                     projects_df = projects_df.drop(idx).reset_index(drop=True)
                     conn.update(worksheet="supremacy_projects", data=projects_df)
                     st.success("已刪除！")
+                    st.cache_data.clear()  # 加這行！清除快取
                     del st.session_state[f"confirm_delete_{idx}"]
                     st.rerun()
                 if col_no.button("Cancel", key=f"no_{idx}"):
