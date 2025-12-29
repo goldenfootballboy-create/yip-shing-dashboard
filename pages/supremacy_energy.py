@@ -29,9 +29,10 @@ try:
     else:
         projects_df = raw_df.iloc[:, :4].copy()
         projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
+        # 移除標題行（如果第一行是 "Date"）
         if len(projects_df) > 0 and projects_df.iloc[0]["Date"] == "Date":
             projects_df = projects_df.iloc[1:].reset_index(drop=True)
-        # 強制 Quote_Number 為字串，避免 .0
+        # 強制 Quote_Number 為字串
         if "Quote_Number" in projects_df.columns:
             projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
 except Exception:
@@ -65,14 +66,16 @@ with st.sidebar:
                     "Project_Detail": project_detail.strip(),
                     "Status": status
                 }])
-                projects_df = pd.concat([projects_df, new_row], ignore_index=True)
-                conn.update(worksheet="supremacy_projects", data=projects_df)
+                # 讀取完整資料再新增
+                current_raw = conn.read(worksheet="supremacy_projects", ttl=0)
+                updated_df = pd.concat([current_raw, new_row], ignore_index=True)
+                conn.update(worksheet="supremacy_projects", data=updated_df)
                 st.success(f"已新增專案：{quote_number}")
-                projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
-                if len(projects_df) > 1:
-                    projects_df = projects_df.iloc[1:].reset_index(drop=True)
-                    projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
-                    projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
+                # 強制讀最新
+                raw_df = conn.read(worksheet="supremacy_projects", ttl=0)
+                projects_df = raw_df.iloc[1:].reset_index(drop=True) if len(raw_df) > 1 else pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
+                projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
+                projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
                 st.rerun()
 
 # ==============================================
@@ -81,12 +84,12 @@ with st.sidebar:
 st.title("SUPREMACY ENERGY")
 
 # ==============================================
-# 卡片式顯示（拉長版）
+# 卡片式顯示（拉長 + Edit + Delete）
 # ==============================================
 if len(projects_df) > 0:
     sorted_df = projects_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
 
-    cols = st.columns(4)  # 每行 4 個
+    cols = st.columns(4)
     for idx, row in sorted_df.iterrows():
         with cols[idx % 4]:
             status_color = {
@@ -111,11 +114,12 @@ if len(projects_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
-            # Edit + Delete 按鈕
             col_edit, col_delete = st.columns(2)
+
             with col_edit:
                 if st.button("Edit", key=f"edit_{idx}", use_container_width=True):
                     st.session_state[f"edit_mode_{idx}"] = True
+
             with col_delete:
                 if st.button("Delete", key=f"delete_{idx}", type="secondary", use_container_width=True):
                     st.session_state[f"confirm_delete_{idx}"] = True
@@ -145,9 +149,14 @@ if len(projects_df) > 0:
                 st.warning(f"確定要刪除專案 **{row['Quote_Number']}** 嗎？")
                 col_yes, col_no = st.columns(2)
                 if col_yes.button("Yes, Delete", type="primary", key=f"yes_{idx}"):
-                    projects_df = projects_df.drop(idx).reset_index(drop=True)
+                    # 用 Quote_Number 刪除（更安全）
+                    projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
                     conn.update(worksheet="supremacy_projects", data=projects_df)
-                    st.success("已刪除！")
+                    st.success(f"已刪除專案：{row['Quote_Number']}")
+                    # 強制讀最新
+                    raw_df = conn.read(worksheet="supremacy_projects", ttl=0)
+                    projects_df = raw_df.iloc[1:].reset_index(drop=True) if len(raw_df) > 1 else pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
+                    projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
                     del st.session_state[f"confirm_delete_{idx}"]
                     st.rerun()
                 if col_no.button("Cancel", key=f"no_{idx}"):
