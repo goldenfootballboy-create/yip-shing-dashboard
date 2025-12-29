@@ -31,6 +31,9 @@ try:
         projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
         if len(projects_df) > 0 and projects_df.iloc[0]["Date"] == "Date":
             projects_df = projects_df.iloc[1:].reset_index(drop=True)
+        # 關鍵：轉成字串，去掉 .0
+        if "Quote_Number" in projects_df.columns:
+            projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
 except Exception:
     header_df = pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
     conn.update(worksheet="supremacy_projects", data=header_df)
