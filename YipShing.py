@@ -122,9 +122,9 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # ==============================================
-# 專案卡片渲染函數
+# 專案卡片渲染函數（傳入 df）
 # ==============================================
-def render_project_card(row, idx):
+def render_project_card(row, idx, df):
     pct = calculate_progress(row)
     color = get_color(pct)
 
@@ -660,13 +660,13 @@ else:
             if i < len(rows):
                 row = rows[i]
                 idx = filtered_df.index[i]
-                render_project_card(row, idx)
+                render_project_card(row, idx, df)
 
         with col2:
             if i + 1 < len(rows):
                 row = rows[i + 1]
                 idx = filtered_df.index[i + 1]
-                render_project_card(row, idx)
+                render_project_card(row, idx, df)
 
 st.markdown("---")
 st.caption("Projects Management System")
