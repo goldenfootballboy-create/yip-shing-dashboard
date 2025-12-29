@@ -14,6 +14,7 @@ st.set_page_config(
     page_icon="https://i.imgur.com/Q8ehtk3.jpeg",
     layout="wide"
 )
+
 # ==============================================
 # Google Sheets 連接 + 讀取（快取 + 重試）
 # ==============================================
@@ -297,7 +298,21 @@ with st.sidebar:
             new_supervisor = st.text_input("Supervisor", key="new_supervisor")
             new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
 
-        with st.expander("Project Specification & Progress Dates", expanded=False):
+        # Progress Dates 直接放在主表單（不再在 expander 內）
+        st.markdown("**Progress Dates**")
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            d1 = st.date_input("Parts Arrival", value=None, key="d1")
+            d2 = st.date_input("Installation Complete", value=None, key="d2")
+            d3 = st.date_input("Testing Complete", value=None, key="d3")
+        with col_d2:
+            d4 = st.date_input("Cleaning Complete", value=None, key="d4")
+            d5 = st.date_input("Delivery Complete", value=None, key="d5")
+
+        reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
+
+        # Project Specification 仍保留在 expander
+        with st.expander("Project Specification", expanded=False):
             st.markdown("**Specification**")
             s1 = st.text_input("Genset model", key="s1")
             s2 = st.text_input("Alternator Model", key="s2")
@@ -305,13 +320,6 @@ with st.sidebar:
             s4 = st.text_input("Circuit breaker Size", key="s4")
             s5 = st.text_input("Charger", key="s5")
             desc = st.text_area("Description", height=100, key="desc")
-            st.markdown("**Progress Dates**")
-            d1 = st.date_input("Parts Arrival", value=None, key="d1")
-            d2 = st.date_input("Installation Complete", value=None, key="d2")
-            d3 = st.date_input("Testing Complete", value=None, key="d3")
-            d4 = st.date_input("Cleaning Complete", value=None, key="d4")
-            d5 = st.date_input("Delivery Complete", value=None, key="d5")
-            reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
 
         if st.form_submit_button("Add", type="primary", use_container_width=True):
             if not new_name.strip():
@@ -373,7 +381,6 @@ else:
 if st.session_state.view_mode == "calendar":
     page_title = "專案日曆視圖"
 
-    # 讀取或建立 calendar_events worksheet
     try:
         events_df = conn.read(worksheet="calendar_events", ttl=300)
         if events_df.empty:
@@ -382,7 +389,6 @@ if st.session_state.view_mode == "calendar":
         events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
         conn.update(worksheet="calendar_events", data=events_df)
 
-    # 轉成 calendar 所需格式
     events = []
     for _, row in events_df.iterrows():
         events.append({
@@ -394,7 +400,6 @@ if st.session_state.view_mode == "calendar":
             "extendedProps": {"project_name": row["project_name"] if pd.notna(row["project_name"]) else ""}
         })
 
-    # 自動加入專案日期事件
     for _, proj in df.iterrows():
         if pd.notna(proj["Parts_Arrival"]):
             events.append({
@@ -430,7 +435,6 @@ if st.session_state.view_mode == "calendar":
 
     calendar_events = calendar(events=events, options=calendar_options, key="project_calendar")
 
-    # 編輯事件
     if calendar_events.get("eventClick"):
         event = calendar_events["eventClick"]["event"]
         st.subheader(f"編輯事件: {event['title']}")
@@ -443,7 +447,6 @@ if st.session_state.view_mode == "calendar":
             st.success("事件已更新！")
             st.rerun()
 
-    # 新增事件（點空白日期）
     select_info = calendar_events.get("select")
     if select_info and isinstance(select_info, dict):
         st.subheader("新增事件")
@@ -532,7 +535,20 @@ else:
                             e_supervisor = st.text_input("Supervisor", value=row.get("Supervisor",""))
                             e_leadtime = st.date_input("Lead Time*", value=pd.to_datetime(row["Lead_Time"]).date() if pd.notna(row["Lead_Time"]) else date.today())
 
-                        with st.expander("Project Specification & Progress Dates", expanded=True):
+                        # Progress Dates 直接放在主編輯表單
+                        st.markdown("**Progress Dates**")
+                        col_d1, col_d2 = st.columns(2)
+                        with col_d1:
+                            e_d1 = st.date_input("Parts Arrival", value=pd.to_datetime(row["Parts_Arrival"]).date() if pd.notna(row["Parts_Arrival"]) else None, key=f"d1e{idx}")
+                            e_d2 = st.date_input("Installation Complete", value=pd.to_datetime(row["Installation_Complete"]).date() if pd.notna(row["Installation_Complete"]) else None, key=f"d2e{idx}")
+                            e_d3 = st.date_input("Testing Complete", value=pd.to_datetime(row["Testing_Complete"]).date() if pd.notna(row["Testing_Complete"]) else None, key=f"d3e{idx}")
+                        with col_d2:
+                            e_d4 = st.date_input("Cleaning Complete", value=pd.to_datetime(row["Cleaning_Complete"]).date() if pd.notna(row["Cleaning_Complete"]) else None, key=f"d4e{idx}")
+                            e_d5 = st.date_input("Delivery Complete", value=pd.to_datetime(row["Delivery_Complete"]).date() if pd.notna(row["Delivery_Complete"]) else None, key=f"d5e{idx}")
+
+                        e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
+
+                        with st.expander("Project Specification", expanded=True):
                             curr_spec = row.get("Project_Spec","")
                             lines = [line.split(": ",1)[1] if ": " in line else "" for line in curr_spec.split("\n")] if curr_spec else ["","","","",""]
                             e_s1 = st.text_input("Genset model", value=lines[0] if len(lines)>0 else "")
@@ -542,15 +558,6 @@ else:
                             e_s5 = st.text_input("Charger", value=lines[4] if len(lines)>4 else "")
 
                             e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
-
-                            st.markdown("**Progress Dates**")
-                            e_d1 = st.date_input("Parts Arrival", value=pd.to_datetime(row["Parts_Arrival"]).date() if pd.notna(row["Parts_Arrival"]) else None, key=f"d1e{idx}")
-                            e_d2 = st.date_input("Installation Complete", value=pd.to_datetime(row["Installation_Complete"]).date() if pd.notna(row["Installation_Complete"]) else None, key=f"d2e{idx}")
-                            e_d3 = st.date_input("Testing Complete", value=pd.to_datetime(row["Testing_Complete"]).date() if pd.notna(row["Testing_Complete"]) else None, key=f"d3e{idx}")
-                            e_d4 = st.date_input("Cleaning Complete", value=pd.to_datetime(row["Cleaning_Complete"]).date() if pd.notna(row["Cleaning_Complete"]) else None, key=f"d4e{idx}")
-                            e_d5 = st.date_input("Delivery Complete", value=pd.to_datetime(row["Delivery_Complete"]).date() if pd.notna(row["Delivery_Complete"]) else None, key=f"d5e{idx}")
-
-                            e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
 
                         if st.form_submit_button("Save Changes", type="primary"):
                             if not e_name.strip():
@@ -634,7 +641,19 @@ else:
                             e_supervisor = st.text_input("Supervisor", value=row.get("Supervisor",""))
                             e_leadtime = st.date_input("Lead Time*", value=pd.to_datetime(row["Lead_Time"]).date() if pd.notna(row["Lead_Time"]) else date.today())
 
-                        with st.expander("Project Specification & Progress Dates", expanded=True):
+                        st.markdown("**Progress Dates**")
+                        col_d1, col_d2 = st.columns(2)
+                        with col_d1:
+                            e_d1 = st.date_input("Parts Arrival", value=pd.to_datetime(row["Parts_Arrival"]).date() if pd.notna(row["Parts_Arrival"]) else None, key=f"d1e{idx}")
+                            e_d2 = st.date_input("Installation Complete", value=pd.to_datetime(row["Installation_Complete"]).date() if pd.notna(row["Installation_Complete"]) else None, key=f"d2e{idx}")
+                            e_d3 = st.date_input("Testing Complete", value=pd.to_datetime(row["Testing_Complete"]).date() if pd.notna(row["Testing_Complete"]) else None, key=f"d3e{idx}")
+                        with col_d2:
+                            e_d4 = st.date_input("Cleaning Complete", value=pd.to_datetime(row["Cleaning_Complete"]).date() if pd.notna(row["Cleaning_Complete"]) else None, key=f"d4e{idx}")
+                            e_d5 = st.date_input("Delivery Complete", value=pd.to_datetime(row["Delivery_Complete"]).date() if pd.notna(row["Delivery_Complete"]) else None, key=f"d5e{idx}")
+
+                            e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
+
+                        with st.expander("Project Specification", expanded=True):
                             curr_spec = row.get("Project_Spec","")
                             lines = [line.split(": ",1)[1] if ": " in line else "" for line in curr_spec.split("\n")] if curr_spec else ["","","","",""]
                             e_s1 = st.text_input("Genset model", value=lines[0] if len(lines)>0 else "")
@@ -644,15 +663,6 @@ else:
                             e_s5 = st.text_input("Charger", value=lines[4] if len(lines)>4 else "")
 
                             e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
-
-                            st.markdown("**Progress Dates**")
-                            e_d1 = st.date_input("Parts Arrival", value=pd.to_datetime(row["Parts_Arrival"]).date() if pd.notna(row["Parts_Arrival"]) else None, key=f"d1e{idx}")
-                            e_d2 = st.date_input("Installation Complete", value=pd.to_datetime(row["Installation_Complete"]).date() if pd.notna(row["Installation_Complete"]) else None, key=f"d2e{idx}")
-                            e_d3 = st.date_input("Testing Complete", value=pd.to_datetime(row["Testing_Complete"]).date() if pd.notna(row["Testing_Complete"]) else None, key=f"d3e{idx}")
-                            e_d4 = st.date_input("Cleaning Complete", value=pd.to_datetime(row["Cleaning_Complete"]).date() if pd.notna(row["Cleaning_Complete"]) else None, key=f"d4e{idx}")
-                            e_d5 = st.date_input("Delivery Complete", value=pd.to_datetime(row["Delivery_Complete"]).date() if pd.notna(row["Delivery_Complete"]) else None, key=f"d5e{idx}")
-
-                            e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
 
                         if st.form_submit_button("Save Changes", type="primary"):
                             if not e_name.strip():
