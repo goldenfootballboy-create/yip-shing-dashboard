@@ -58,6 +58,7 @@ with st.sidebar:
                 projects_df = pd.concat([projects_df, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=projects_df)
                 st.success(f"已新增專案：{quote_number}")
+                # 強制讀最新並刷新
                 projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
                 st.rerun()
 
@@ -73,15 +74,13 @@ st.markdown("""
 """)
 
 # ==============================================
-# 卡片式顯示已新增專案（縮小 + 加 Delete 按鈕）
+# 卡片式顯示已新增專案（縮小 + Delete 按鈕）
 # ==============================================
 if len(projects_df) > 0 and "Date" in projects_df.columns:
-    # 排序：最新在上
     sorted_df = projects_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
 
     st.markdown("### 已新增專案")
 
-    # 每行 4 個卡片（縮小）
     cols = st.columns(4)
     for idx, row in sorted_df.iterrows():
         with cols[idx % 4]:
@@ -107,10 +106,14 @@ if len(projects_df) > 0 and "Date" in projects_df.columns:
 
             # Delete 按鈕
             if st.button("Delete", key=f"delete_{idx}", type="secondary", use_container_width=True):
+                quote_to_delete = row["Quote_Number"]
                 # 刪除該行
-                projects_df = projects_df.drop(idx).reset_index(drop=True)
+                projects_df = projects_df[projects_df["Quote_Number"] != quote_to_delete].reset_index(drop=True)
                 conn.update(worksheet="supremacy_projects", data=projects_df)
-                st.success(f"已刪除專案：{row['Quote_Number']}")
+                st.success(f"已刪除專案：{quote_to_delete}")
+
+                # 關鍵：強制重新讀取最新資料並刷新頁面
+                projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
                 st.rerun()
 
 else:
