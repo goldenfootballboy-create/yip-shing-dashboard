@@ -31,7 +31,7 @@ try:
         projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
         if len(projects_df) > 0 and projects_df.iloc[0]["Date"] == "Date":
             projects_df = projects_df.iloc[1:].reset_index(drop=True)
-        # 關鍵：轉成字串，去掉 .0
+        # 強制 Quote_Number 為字串，避免 .0
         if "Quote_Number" in projects_df.columns:
             projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
 except Exception:
@@ -65,29 +65,28 @@ with st.sidebar:
                     "Project_Detail": project_detail.strip(),
                     "Status": status
                 }])
-                # 讀取完整資料（含標題）再新增
-                current_raw = conn.read(worksheet="supremacy_projects", ttl=0)
-                updated_df = pd.concat([current_raw, new_row], ignore_index=True)
-                conn.update(worksheet="supremacy_projects", data=updated_df)
+                projects_df = pd.concat([projects_df, new_row], ignore_index=True)
+                conn.update(worksheet="supremacy_projects", data=projects_df)
                 st.success(f"已新增專案：{quote_number}")
-                # 強制讀最新
-                raw_df = conn.read(worksheet="supremacy_projects", ttl=0)
-                projects_df = raw_df.iloc[1:].reset_index(drop=True) if len(raw_df) > 1 else pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
-                projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
+                projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
+                if len(projects_df) > 1:
+                    projects_df = projects_df.iloc[1:].reset_index(drop=True)
+                    projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
+                    projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
                 st.rerun()
 
 # ==============================================
-# 主頁面內容（只剩標題）
+# 主頁面內容
 # ==============================================
 st.title("SUPREMACY ENERGY")
 
 # ==============================================
-# 卡片式顯示專案 + Edit + Delete
+# 卡片式顯示（拉長版）
 # ==============================================
 if len(projects_df) > 0:
     sorted_df = projects_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
 
-    cols = st.columns(4)
+    cols = st.columns(4)  # 每行 4 個
     for idx, row in sorted_df.iterrows():
         with cols[idx % 4]:
             status_color = {
@@ -98,11 +97,13 @@ if len(projects_df) > 0:
             }.get(row["Status"], "#888888")
 
             st.markdown(f"""
-            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 8px; padding: 12px; margin-bottom: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); min-height: 220px;">
-                <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
-                <p style="margin:0 0 10px 0; font-size:0.9rem; color:#333; line-height:1.4;">{row["Project_Detail"]}</p>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top: auto;">
-                    <span style="background:{status_color}; color:white; padding:3px 10px; border-radius:15px; font-size:0.8rem; font-weight:bold;">
+            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 220px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <h5 style="margin:0 0 12px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
+                    <p style="margin:0 0 16px 0; font-size:1rem; color:#333; line-height:1.6;">{row["Project_Detail"]}</p>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:20px; font-size:0.9rem; font-weight:bold;">
                         {row["Status"]}
                     </span>
                     <small style="color:#888;">{row["Date"]}</small>
@@ -110,12 +111,11 @@ if len(projects_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
+            # Edit + Delete 按鈕
             col_edit, col_delete = st.columns(2)
-
             with col_edit:
                 if st.button("Edit", key=f"edit_{idx}", use_container_width=True):
                     st.session_state[f"edit_mode_{idx}"] = True
-
             with col_delete:
                 if st.button("Delete", key=f"delete_{idx}", type="secondary", use_container_width=True):
                     st.session_state[f"confirm_delete_{idx}"] = True
@@ -123,13 +123,12 @@ if len(projects_df) > 0:
             # Edit 表單
             if st.session_state.get(f"edit_mode_{idx}", False):
                 with st.form(key=f"edit_form_{idx}"):
-                    new_quote = st.text_input("Quote Number", value=row["Quote_Number"], key=f"quote_{idx}")
-                    new_detail = st.text_area("Project Detail", value=row["Project_Detail"], height=120, key=f"detail_{idx}")
-                    new_status = st.selectbox("Status", status_options, index=status_options.index(row["Status"]), key=f"status_{idx}")
+                    new_quote = st.text_input("Quote Number", value=row["Quote_Number"])
+                    new_detail = st.text_area("Project Detail", value=row["Project_Detail"], height=120)
+                    new_status = st.selectbox("Status", status_options, index=status_options.index(row["Status"]))
 
                     col_save, col_cancel = st.columns(2)
                     if col_save.form_submit_button("Save", type="primary", use_container_width=True):
-                        # 更新該行
                         projects_df.at[idx, "Quote_Number"] = new_quote.strip()
                         projects_df.at[idx, "Project_Detail"] = new_detail.strip()
                         projects_df.at[idx, "Status"] = new_status
@@ -137,7 +136,6 @@ if len(projects_df) > 0:
                         st.success("已更新！")
                         del st.session_state[f"edit_mode_{idx}"]
                         st.rerun()
-
                     if col_cancel.form_submit_button("Cancel", use_container_width=True):
                         del st.session_state[f"edit_mode_{idx}"]
                         st.rerun()
@@ -146,13 +144,13 @@ if len(projects_df) > 0:
             if st.session_state.get(f"confirm_delete_{idx}", False):
                 st.warning(f"確定要刪除專案 **{row['Quote_Number']}** 嗎？")
                 col_yes, col_no = st.columns(2)
-                if col_yes.button("Yes, Delete", type="primary", key=f"yes_del_{idx}"):
+                if col_yes.button("Yes, Delete", type="primary", key=f"yes_{idx}"):
                     projects_df = projects_df.drop(idx).reset_index(drop=True)
                     conn.update(worksheet="supremacy_projects", data=projects_df)
                     st.success("已刪除！")
                     del st.session_state[f"confirm_delete_{idx}"]
                     st.rerun()
-                if col_no.button("Cancel", key=f"no_del_{idx}"):
+                if col_no.button("Cancel", key=f"no_{idx}"):
                     del st.session_state[f"confirm_delete_{idx}"]
                     st.rerun()
 
