@@ -310,7 +310,7 @@ with st.sidebar:
 
         reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
 
-        # Add 按鈕（必須在 form 內）
+        # Add 按鈕（在 form 內）
         if st.form_submit_button("Add", type="primary", use_container_width=True):
             if not new_name.strip():
                 st.error("Project Name required!")
@@ -611,7 +611,7 @@ else:
 
                             e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
 
-                        # Project Specification 按鈕（彈出視窗）
+                        # Project Specification 按鈕（放在 edit form 內，但使用特殊處理）
                         if st.button("Project Specification", type="primary", use_container_width=True):
                             st.session_state[f"edit_spec_dialog_{idx}"] = True
 
@@ -757,7 +757,7 @@ else:
 
                             e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
 
-                        # Project Specification 按鈕（彈出視窗）
+                        # Project Specification 按鈕（放在 edit form 內）
                         if st.button("Project Specification", type="primary", use_container_width=True):
                             st.session_state[f"edit_spec_dialog_{idx}"] = True
 
