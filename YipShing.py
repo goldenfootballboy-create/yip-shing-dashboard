@@ -122,9 +122,9 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # ==============================================
-# 專案卡片渲染函數（傳入 df）
+# 專案卡片渲染函數
 # ==============================================
-def render_project_card(row, idx, df):
+def render_project_card(row, idx):
     pct = calculate_progress(row)
     color = get_color(pct)
 
@@ -243,15 +243,15 @@ def render_project_card(row, idx, df):
     col_spec, col_delete = st.columns(2)
     with col_spec:
         if st.button("Edit Project Spec.", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
-            st.session_state["edit_spec_idx"] = idx
+            st.session_state["current_edit_idx"] = idx
             st.session_state["edit_spec_dialog"] = True
     with col_delete:
         if st.button("Delete", key=f"del_{idx}", type="secondary", use_container_width=True):
             st.session_state[f"confirm_delete_{idx}"] = True
 
-    # Edit Project Spec. 彈出視窗
+    # 單一彈出視窗（只允許同時開一個）
     if st.session_state.get("edit_spec_dialog", False):
-        idx_to_edit = st.session_state["edit_spec_idx"]
+        idx_to_edit = st.session_state["current_edit_idx"]
         row_to_edit = df.loc[idx_to_edit]
 
         @st.dialog("Edit Project Specification", width="large")
@@ -263,35 +263,35 @@ def render_project_card(row, idx, df):
 
             row1 = st.columns(2)
             with row1[0]:
-                e_s1 = st.text_input("Genset model", value=lines[0][0] if len(lines)>0 else "")
+                e_s1 = st.text_input("Genset model", value=lines[0][0] if len(lines)>0 else "", key=f"e_genset_{idx_to_edit}")
             with row1[1]:
-                e_s1_sn = st.text_input("S/N", value=lines[0][1] if len(lines[0])>1 else "")
+                e_s1_sn = st.text_input("S/N", value=lines[0][1] if len(lines[0])>1 else "", key=f"e_genset_sn_{idx_to_edit}")
 
             row2 = st.columns(2)
             with row2[0]:
-                e_s2 = st.text_input("Alternator Model", value=lines[1][0] if len(lines)>1 else "")
+                e_s2 = st.text_input("Alternator Model", value=lines[1][0] if len(lines)>1 else "", key=f"e_alternator_{idx_to_edit}")
             with row2[1]:
-                e_s2_sn = st.text_input("S/N", value=lines[1][1] if len(lines[1])>1 else "")
+                e_s2_sn = st.text_input("S/N", value=lines[1][1] if len(lines[1])>1 else "", key=f"e_alternator_sn_{idx_to_edit}")
 
             row3 = st.columns(2)
             with row3[0]:
-                e_s3 = st.text_input("Controller", value=lines[2][0] if len(lines)>2 else "")
+                e_s3 = st.text_input("Controller", value=lines[2][0] if len(lines)>2 else "", key=f"e_controller_{idx_to_edit}")
             with row3[1]:
-                e_s3_sn = st.text_input("S/N", value=lines[2][1] if len(lines[2])>1 else "")
+                e_s3_sn = st.text_input("S/N", value=lines[2][1] if len(lines[2])>1 else "", key=f"e_controller_sn_{idx_to_edit}")
 
             row4 = st.columns(2)
             with row4[0]:
-                e_s4 = st.text_input("Circuit breaker Size", value=lines[3][0] if len(lines)>3 else "")
+                e_s4 = st.text_input("Circuit breaker Size", value=lines[3][0] if len(lines)>3 else "", key=f"e_breaker_{idx_to_edit}")
             with row4[1]:
-                e_s4_sn = st.text_input("S/N", value=lines[3][1] if len(lines[3])>1 else "")
+                e_s4_sn = st.text_input("S/N", value=lines[3][1] if len(lines[3])>1 else "", key=f"e_breaker_sn_{idx_to_edit}")
 
             row5 = st.columns(2)
             with row5[0]:
-                e_s5 = st.text_input("Charger", value=lines[4][0] if len(lines)>4 else "")
+                e_s5 = st.text_input("Charger", value=lines[4][0] if len(lines)>4 else "", key=f"e_charger_{idx_to_edit}")
             with row5[1]:
-                e_s5_sn = st.text_input("S/N", value=lines[4][1] if len(lines[4])>1 else "")
+                e_s5_sn = st.text_input("S/N", value=lines[4][1] if len(lines[4])>1 else "", key=f"e_charger_sn_{idx_to_edit}")
 
-            e_desc = st.text_area("Description", value=row_to_edit.get("Description",""), height=150)
+            e_desc = st.text_area("Description", value=row_to_edit.get("Description",""), height=150, key=f"e_desc_{idx_to_edit}")
 
             if st.button("Save & Close", type="primary"):
                 new_spec = "\n".join([
@@ -306,6 +306,7 @@ def render_project_card(row, idx, df):
                 save_projects()
                 st.cache_data.clear()
                 st.success("Specification 已更新！")
+                st.session_state["edit_spec_dialog"] = False
                 st.rerun()
 
         edit_spec_dialog()
@@ -444,35 +445,35 @@ with st.sidebar:
         st.markdown("**Specification**")
         row1 = st.columns(2)
         with row1[0]:
-            s_genset = st.text_input("Genset model", key="dlg_genset")
+            s_genset = st.text_input("Genset model", key="dlg_new_genset")
         with row1[1]:
-            s_genset_sn = st.text_input("S/N", key="dlg_genset_sn")
+            s_genset_sn = st.text_input("S/N", key="dlg_new_genset_sn")
 
         row2 = st.columns(2)
         with row2[0]:
-            s_alternator = st.text_input("Alternator Model", key="dlg_alternator")
+            s_alternator = st.text_input("Alternator Model", key="dlg_new_alternator")
         with row2[1]:
-            s_alternator_sn = st.text_input("S/N", key="dlg_alternator_sn")
+            s_alternator_sn = st.text_input("S/N", key="dlg_new_alternator_sn")
 
         row3 = st.columns(2)
         with row3[0]:
-            s_controller = st.text_input("Controller", key="dlg_controller")
+            s_controller = st.text_input("Controller", key="dlg_new_controller")
         with row3[1]:
-            s_controller_sn = st.text_input("S/N", key="dlg_controller_sn")
+            s_controller_sn = st.text_input("S/N", key="dlg_new_controller_sn")
 
         row4 = st.columns(2)
         with row4[0]:
-            s_breaker = st.text_input("Circuit breaker Size", key="dlg_breaker")
+            s_breaker = st.text_input("Circuit breaker Size", key="dlg_new_breaker")
         with row4[1]:
-            s_breaker_sn = st.text_input("S/N", key="dlg_breaker_sn")
+            s_breaker_sn = st.text_input("S/N", key="dlg_new_breaker_sn")
 
         row5 = st.columns(2)
         with row5[0]:
-            s_charger = st.text_input("Charger", key="dlg_charger")
+            s_charger = st.text_input("Charger", key="dlg_new_charger")
         with row5[1]:
-            s_charger_sn = st.text_input("S/N", key="dlg_charger_sn")
+            s_charger_sn = st.text_input("S/N", key="dlg_new_charger_sn")
 
-        desc = st.text_area("Description", height=150, key="dlg_desc")
+        desc = st.text_area("Description", height=150, key="dlg_new_desc")
 
         if st.button("Save & Close", type="primary"):
             st.session_state.spec_data = {
@@ -488,6 +489,7 @@ with st.sidebar:
                 "charger_sn": s_charger_sn or '—',
                 "desc": desc or ""
             }
+            st.session_state.spec_dialog_open = False
             st.rerun()
 
     if st.session_state.get("spec_dialog_open", False):
@@ -658,13 +660,13 @@ else:
             if i < len(rows):
                 row = rows[i]
                 idx = filtered_df.index[i]
-                render_project_card(row, idx, df)
+                render_project_card(row, idx)
 
         with col2:
             if i + 1 < len(rows):
                 row = rows[i + 1]
                 idx = filtered_df.index[i + 1]
-                render_project_card(row, idx, df)
+                render_project_card(row, idx)
 
 st.markdown("---")
 st.caption("Projects Management System")
