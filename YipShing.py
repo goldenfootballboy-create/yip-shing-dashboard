@@ -298,7 +298,7 @@ with st.sidebar:
             new_supervisor = st.text_input("Supervisor", key="new_supervisor")
             new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
 
-        # Progress Dates 直接放在主表單（不再在 expander 內）
+        # Progress Dates 直接放在主表單
         st.markdown("**Progress Dates**")
         col_d1, col_d2 = st.columns(2)
         with col_d1:
@@ -311,14 +311,20 @@ with st.sidebar:
 
         reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
 
-        # Project Specification 仍保留在 expander
+        # Project Specification expander（新增 S/N 欄位）
         with st.expander("Project Specification", expanded=False):
             st.markdown("**Specification**")
-            s1 = st.text_input("Genset model", key="s1")
-            s2 = st.text_input("Alternator Model", key="s2")
-            s3 = st.text_input("Controller", key="s3")
-            s4 = st.text_input("Circuit breaker Size", key="s4")
-            s5 = st.text_input("Charger", key="s5")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                s1 = st.text_input("Genset model", key="s1")
+                s2 = st.text_input("Alternator Model", key="s2")
+            with col2:
+                s3 = st.text_input("Controller", key="s3")
+                s4 = st.text_input("Circuit breaker Size", key="s4")
+            with col3:
+                s5 = st.text_input("Charger", key="s5")
+                sn = st.text_input("S/N", key="sn")  # 新增 S/N 欄位
+
             desc = st.text_area("Description", height=100, key="desc")
 
         if st.form_submit_button("Add", type="primary", use_container_width=True):
@@ -328,7 +334,7 @@ with st.sidebar:
                 st.error("Name exists!")
             else:
                 spec_lines = [f"Genset model: {s1 or '—'}", f"Alternator Model: {s2 or '—'}",
-                              f"Controller: {s3 or '—'}", f"Circuit breaker Size: {s4 or '—'}", f"Charger: {s5 or '—'}"]
+                              f"Controller: {s3 or '—'}", f"Circuit breaker Size: {s4 or '—'}", f"Charger: {s5 or '—'}", f"S/N: {sn or '—'}"]
                 spec_text = "\n".join(spec_lines)
 
                 new_project = {
@@ -535,7 +541,6 @@ else:
                             e_supervisor = st.text_input("Supervisor", value=row.get("Supervisor",""))
                             e_leadtime = st.date_input("Lead Time*", value=pd.to_datetime(row["Lead_Time"]).date() if pd.notna(row["Lead_Time"]) else date.today())
 
-                        # Progress Dates 直接放在主編輯表單
                         st.markdown("**Progress Dates**")
                         col_d1, col_d2 = st.columns(2)
                         with col_d1:
@@ -546,7 +551,7 @@ else:
                             e_d4 = st.date_input("Cleaning Complete", value=pd.to_datetime(row["Cleaning_Complete"]).date() if pd.notna(row["Cleaning_Complete"]) else None, key=f"d4e{idx}")
                             e_d5 = st.date_input("Delivery Complete", value=pd.to_datetime(row["Delivery_Complete"]).date() if pd.notna(row["Delivery_Complete"]) else None, key=f"d5e{idx}")
 
-                        e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
+                            e_reminder = st.text_input("Progress Reminder", value=row.get("Progress_Reminder",""))
 
                         with st.expander("Project Specification", expanded=True):
                             curr_spec = row.get("Project_Spec","")
@@ -556,6 +561,7 @@ else:
                             e_s3 = st.text_input("Controller", value=lines[2] if len(lines)>2 else "")
                             e_s4 = st.text_input("Circuit breaker Size", value=lines[3] if len(lines)>3 else "")
                             e_s5 = st.text_input("Charger", value=lines[4] if len(lines)>4 else "")
+                            e_sn = st.text_input("S/N", value=lines[5] if len(lines)>5 else "")  # 新增 S/N
 
                             e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
 
@@ -568,7 +574,8 @@ else:
                                     f"Alternator Model: {e_s2 or '—'}",
                                     f"Controller: {e_s3 or '—'}",
                                     f"Circuit breaker Size: {e_s4 or '—'}",
-                                    f"Charger: {e_s5 or '—'}"
+                                    f"Charger: {e_s5 or '—'}",
+                                    f"S/N: {e_sn or '—'}"  # 新增 S/N
                                 ])
                                 df.at[idx, "Project_Type"] = e_type
                                 df.at[idx, "Project_Name"] = e_name
@@ -661,6 +668,7 @@ else:
                             e_s3 = st.text_input("Controller", value=lines[2] if len(lines)>2 else "")
                             e_s4 = st.text_input("Circuit breaker Size", value=lines[3] if len(lines)>3 else "")
                             e_s5 = st.text_input("Charger", value=lines[4] if len(lines)>4 else "")
+                            e_sn = st.text_input("S/N", value=lines[5] if len(lines)>5 else "")  # 新增 S/N
 
                             e_desc = st.text_area("Description", value=row.get("Description",""), height=100)
 
@@ -673,7 +681,8 @@ else:
                                     f"Alternator Model: {e_s2 or '—'}",
                                     f"Controller: {e_s3 or '—'}",
                                     f"Circuit breaker Size: {e_s4 or '—'}",
-                                    f"Charger: {e_s5 or '—'}"
+                                    f"Charger: {e_s5 or '—'}",
+                                    f"S/N: {e_sn or '—'}"
                                 ])
                                 df.at[idx, "Project_Type"] = e_type
                                 df.at[idx, "Project_Name"] = e_name
