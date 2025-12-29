@@ -357,39 +357,89 @@ with st.sidebar:
         if st.session_state.get("spec_dialog_open", False):
             spec_dialog()
 
+        # New Project 表單結束
+        if st.form_submit_button("Add", type="primary", use_container_width=True):
+        # ... 原本的儲存邏輯 ...
+
+        # 把 Project Specification 按鈕移到 form 外面
+        if st.button("Project Specification", type="primary", use_container_width=True):
+            st.session_state.spec_dialog_open = True
+
+
+        # Specification 彈出視窗
+        @st.dialog("Project Specification", width="large")
+        def spec_dialog():
+            st.markdown("**Specification**")
+            # 5 行 2 欄布局
+            col1, col2 = st.columns(2)
+            with col1:
+                s_genset = st.text_input("Genset model", key="dlg_genset")
+                s_alternator = st.text_input("Alternator Model", key="dlg_alternator")
+                s_controller = st.text_input("Controller", key="dlg_controller")
+                s_breaker = st.text_input("Circuit breaker Size", key="dlg_breaker")
+                s_charger = st.text_input("Charger", key="dlg_charger")
+            with col2:
+                s_genset_sn = st.text_input("S/N (Genset)", key="dlg_genset_sn")
+                s_alternator_sn = st.text_input("S/N (Alternator)", key="dlg_alternator_sn")
+                s_controller_sn = st.text_input("S/N (Controller)", key="dlg_controller_sn")
+                s_breaker_sn = st.text_input("S/N (Breaker)", key="dlg_breaker_sn")
+                s_charger_sn = st.text_input("S/N (Charger)", key="dlg_charger_sn")
+
+            desc = st.text_area("Description", height=150, key="dlg_desc")
+
+            if st.button("Save & Close", type="primary"):
+                # 儲存到 session_state
+                st.session_state.spec_data = {
+                    "genset": s_genset or '—',
+                    "genset_sn": s_genset_sn or '—',
+                    "alternator": s_alternator or '—',
+                    "alternator_sn": s_alternator_sn or '—',
+                    "controller": s_controller or '—',
+                    "controller_sn": s_controller_sn or '—',
+                    "breaker": s_breaker or '—',
+                    "breaker_sn": s_breaker_sn or '—',
+                    "charger": s_charger or '—',
+                    "charger_sn": s_charger_sn or '—',
+                    "desc": desc or ""
+                }
+                st.rerun()
+
+
+        if st.session_state.get("spec_dialog_open", False):
+            spec_dialog()
+
+        # 在 Add 按鈕邏輯裡取 spec_data
         if st.form_submit_button("Add", type="primary", use_container_width=True):
             if not new_name.strip():
                 st.error("Project Name required!")
             elif new_name in df["Project_Name"].values:
                 st.error("Name exists!")
             else:
-                # 從 session_state 取 Specification 資料
                 spec_data = st.session_state.get("spec_data", {
-                    "genset": "", "genset_sn": "", "alternator": "", "alternator_sn": "",
-                    "controller": "", "controller_sn": "", "breaker": "", "breaker_sn": "",
-                    "charger": "", "charger_sn": "", "desc": ""
+                    "genset": "—", "genset_sn": "—", "alternator": "—", "alternator_sn": "—",
+                    "controller": "—", "controller_sn": "—", "breaker": "—", "breaker_sn": "—",
+                    "charger": "—", "charger_sn": "—", "desc": ""
                 })
-
                 spec_lines = [
-                    f"Genset model: {spec_data['genset'] or '—'} | S/N: {spec_data['genset_sn'] or '—'}",
-                    f"Alternator Model: {spec_data['alternator'] or '—'} | S/N: {spec_data['alternator_sn'] or '—'}",
-                    f"Controller: {spec_data['controller'] or '—'} | S/N: {spec_data['controller_sn'] or '—'}",
-                    f"Circuit breaker Size: {spec_data['breaker'] or '—'} | S/N: {spec_data['breaker_sn'] or '—'}",
-                    f"Charger: {spec_data['charger'] or '—'} | S/N: {spec_data['charger_sn'] or '—'}"
+                    f"Genset model: {spec_data['genset']} | S/N: {spec_data['genset_sn']}",
+                    f"Alternator Model: {spec_data['alternator']} | S/N: {spec_data['alternator_sn']}",
+                    f"Controller: {spec_data['controller']} | S/N: {spec_data['controller_sn']}",
+                    f"Circuit breaker Size: {spec_data['breaker']} | S/N: {spec_data['breaker_sn']}",
+                    f"Charger: {spec_data['charger']} | S/N: {spec_data['charger_sn']}"
                 ]
                 spec_text = "\n".join(spec_lines)
 
                 new_project = {
                     "Project_Type": new_type, "Project_Name": new_name, "Year": int(new_year),
                     "Lead_Time": new_leadtime, "Customer": new_customer or "", "Supervisor": new_supervisor or "",
-                    "Qty": new_qty, "Real_Count": new_qty, "Project_Spec": spec_text, "Description": spec_data["desc"] or "",
+                    "Qty": new_qty, "Real_Count": new_qty, "Project_Spec": spec_text, "Description": spec_data["desc"],
                     "Progress_Reminder": reminder or "", "Parts_Arrival": d1, "Installation_Complete": d2,
                     "Testing_Complete": d3, "Cleaning_Complete": d4, "Delivery_Complete": d5
                 }
                 df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
                 save_projects()
                 st.cache_data.clear()
-                # 清空 Specification 資料
+                # 清空資料
                 if "spec_data" in st.session_state:
                     del st.session_state.spec_data
                 if "spec_dialog_open" in st.session_state:
