@@ -18,13 +18,18 @@ st.set_page_config(
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 # ==============================================
-# 讀取或建立 supremacy_projects worksheet
+# 讀取 supremacy_projects worksheet
 # ==============================================
 try:
-    projects_df = conn.read(worksheet="supremacy_projects", ttl=300)
-    if projects_df.empty:
+    raw_df = conn.read(worksheet="supremacy_projects", ttl=300)
+    # 過濾掉第一行標題（避免顯示空白專案）
+    if len(raw_df) > 1:
+        projects_df = raw_df.iloc[1:].reset_index(drop=True)
+        projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
+    else:
         projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
 except:
+    # 如果分頁不存在，建立並加標題
     header_df = pd.DataFrame([["Date", "Quote_Number", "Project_Detail", "Status"]])
     conn.update(worksheet="supremacy_projects", data=header_df)
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
@@ -49,17 +54,22 @@ with st.sidebar:
             if not quote_number.strip() or not project_detail.strip():
                 st.error("Quote Number 和 Project Detail 不能為空！")
             else:
+                # 讀取最新（包含標題行）
+                current_raw = conn.read(worksheet="supremacy_projects", ttl=0)
+                # 新增資料（跳過標題行）
                 new_row = pd.DataFrame([{
                     "Date": date.today().strftime("%Y-%m-%d"),
                     "Quote_Number": quote_number.strip(),
                     "Project_Detail": project_detail.strip(),
                     "Status": status
                 }])
-                projects_df = pd.concat([projects_df, new_row], ignore_index=True)
-                conn.update(worksheet="supremacy_projects", data=projects_df)
+                updated_df = pd.concat([current_raw, new_row], ignore_index=True)
+                conn.update(worksheet="supremacy_projects", data=updated_df)
                 st.success(f"已新增專案：{quote_number}")
-                # 強制讀最新資料並刷新
-                projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
+                # 強制讀最新真實資料
+                raw_df = conn.read(worksheet="supremacy_projects", ttl=0)
+                projects_df = raw_df.iloc[1:].reset_index(drop=True)
+                projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
                 st.rerun()
 
 # ==============================================
@@ -74,9 +84,9 @@ st.markdown("""
 """)
 
 # ==============================================
-# 卡片式顯示已新增專案（縮小 + Delete 按鈕 + 確認刪除）
+# 卡片式顯示已新增專案
 # ==============================================
-if len(projects_df) > 0 and "Date" in projects_df.columns:
+if len(projects_df) > 0:
     sorted_df = projects_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
 
     st.markdown("### 已新增專案")
@@ -105,23 +115,27 @@ if len(projects_df) > 0 and "Date" in projects_df.columns:
             """, unsafe_allow_html=True)
 
             # Delete 按鈕 + 確認對話框
-            delete_key = f"delete_confirm_{row['Quote_Number']}"
-            if st.button("Delete", key=f"delete_btn_{idx}", type="secondary", use_container_width=True):
+            delete_key = f"delete_{row['Quote_Number']}"
+            if st.button("Delete", key=f"del_btn_{idx}", type="secondary", use_container_width=True):
                 st.session_state[delete_key] = True
 
             if st.session_state.get(delete_key, False):
                 st.warning(f"確定要刪除專案 **{row['Quote_Number']}** 嗎？")
                 col_yes, col_no = st.columns(2)
-                if col_yes.button("Yes, Delete", type="primary", key=f"yes_{idx}"):
-                    # 用 Quote_Number 刪除（更安全）
-                    projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
-                    conn.update(worksheet="supremacy_projects", data=projects_df)
+                if col_yes.button("Yes, Delete", type="primary", key=f"yes_del_{idx}"):
+                    # 讀取完整資料（含標題）
+                    full_df = conn.read(worksheet="supremacy_projects", ttl=0)
+                    # 刪除對應行（用 Quote_Number 找）
+                    full_df = full_df[full_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                    conn.update(worksheet="supremacy_projects", data=full_df)
                     st.success(f"已刪除專案：{row['Quote_Number']}")
-                    # 強制讀最新資料並刷新
-                    projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
+                    # 強制讀最新真實資料
+                    raw_df = conn.read(worksheet="supremacy_projects", ttl=0)
+                    projects_df = raw_df.iloc[1:].reset_index(drop=True) if len(raw_df) > 1 else pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
+                    projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
                     del st.session_state[delete_key]
                     st.rerun()
-                if col_no.button("Cancel", key=f"no_{idx}"):
+                if col_no.button("Cancel", key=f"no_del_{idx}"):
                     del st.session_state[delete_key]
                     st.rerun()
 
