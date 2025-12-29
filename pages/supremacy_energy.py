@@ -98,7 +98,7 @@ if len(projects_df) > 0:
             }.get(row["Status"], "#888888")
 
             st.markdown(f"""
-            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 8px; padding: 12px; margin-bottom: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); min-height: 160px;">
+            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 8px; padding: 12px; margin-bottom: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); min-height: 220px;">
                 <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
                 <p style="margin:0 0 10px 0; font-size:0.9rem; color:#333; line-height:1.4;">{row["Project_Detail"]}</p>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top: auto;">
