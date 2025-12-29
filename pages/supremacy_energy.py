@@ -49,7 +49,6 @@ with st.sidebar:
             if not quote_number.strip() or not project_detail.strip():
                 st.error("Quote Number 和 Project Detail 不能為空！")
             else:
-                # 新增一列
                 new_row = pd.DataFrame([{
                     "Date": date.today().strftime("%Y-%m-%d"),
                     "Quote_Number": quote_number.strip(),
@@ -60,8 +59,8 @@ with st.sidebar:
                 conn.update(worksheet="supremacy_projects", data=projects_df)
                 st.success(f"已新增專案：{quote_number}")
 
-                # 關鍵修正：強制重新讀取最新資料並刷新頁面
-                projects_df = conn.read(worksheet="supremacy_projects", ttl=0)  # ttl=0 強制讀最新
+                # 強制重新讀取最新資料並刷新
+                projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
                 st.rerun()
 
 # ==============================================
@@ -69,32 +68,40 @@ with st.sidebar:
 # ==============================================
 st.title("SUPREMACY ENERGY")
 
-st.markdown("""
-### 專案管理系統
-
-此頁面專門用於 SUPREMACY ENERGY 系列專案報價與追蹤。
-""")
 
 # ==============================================
-# 顯示已新增的專案列表
+# 卡片式顯示已新增專案
 # ==============================================
 if len(projects_df) > 0 and "Date" in projects_df.columns:
-    # 排序：最新日期在上
-    display_df = projects_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
-    display_df.index += 1  # 從 1 開始編號
+    # 排序：最新在上
+    sorted_df = projects_df.sort_values(by="Date", ascending=False)
 
     st.markdown("### 已新增專案")
-    st.dataframe(
-        display_df,
-        use_container_width=True,
-        hide_index=False,
-        column_config={
-            "Date": st.column_config.DateColumn("日期", format="YYYY-MM-DD"),
-            "Quote_Number": "報價編號",
-            "Project_Detail": st.column_config.TextColumn("專案內容", width="large"),
-            "Status": "狀態"
-        }
-    )
+
+    # 用 columns 做網格布局（每行 3 個卡片）
+    cols = st.columns(3)
+    for idx, row in sorted_df.iterrows():
+        with cols[idx % 3]:
+            status_color = {
+                "Quoting": "#ffaa00",
+                "Confirmed": "#00aa00",
+                "In Production": "#0066ff",
+                "Completed": "#66cc66"
+            }.get(row["Status"], "#888888")
+
+            st.markdown(f"""
+            <div style="background: white; border-left: 6px solid {status_color}; border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <h4 style="margin:0; color:#1fb429;">{row["Quote_Number"]}</h4>
+                <p style="margin:8px 0 12px 0; color:#333; font-size:0.95rem;"><strong>內容：</strong>{row["Project_Detail"]}</p>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="background:{status_color}; color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:bold;">
+                        {row["Status"]}
+                    </span>
+                    <small style="color:#888;">{row["Date"]}</small>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
 else:
     st.info("尚未新增任何專案，請在左側欄輸入並提交。")
 
