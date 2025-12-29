@@ -58,7 +58,7 @@ with st.sidebar:
                 projects_df = pd.concat([projects_df, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=projects_df)
                 st.success(f"已新增專案：{quote_number}")
-                # 強制讀最新並刷新
+                # 強制讀最新資料並刷新
                 projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
                 st.rerun()
 
@@ -74,7 +74,7 @@ st.markdown("""
 """)
 
 # ==============================================
-# 卡片式顯示已新增專案（縮小 + Delete 按鈕）
+# 卡片式顯示已新增專案（縮小 + Delete 按鈕 + 確認刪除）
 # ==============================================
 if len(projects_df) > 0 and "Date" in projects_df.columns:
     sorted_df = projects_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -104,17 +104,26 @@ if len(projects_df) > 0 and "Date" in projects_df.columns:
             </div>
             """, unsafe_allow_html=True)
 
-            # Delete 按鈕
-            if st.button("Delete", key=f"delete_{idx}", type="secondary", use_container_width=True):
-                quote_to_delete = row["Quote_Number"]
-                # 刪除該行
-                projects_df = projects_df[projects_df["Quote_Number"] != quote_to_delete].reset_index(drop=True)
-                conn.update(worksheet="supremacy_projects", data=projects_df)
-                st.success(f"已刪除專案：{quote_to_delete}")
+            # Delete 按鈕 + 確認對話框
+            delete_key = f"delete_confirm_{row['Quote_Number']}"
+            if st.button("Delete", key=f"delete_btn_{idx}", type="secondary", use_container_width=True):
+                st.session_state[delete_key] = True
 
-                # 關鍵：強制重新讀取最新資料並刷新頁面
-                projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
-                st.rerun()
+            if st.session_state.get(delete_key, False):
+                st.warning(f"確定要刪除專案 **{row['Quote_Number']}** 嗎？")
+                col_yes, col_no = st.columns(2)
+                if col_yes.button("Yes, Delete", type="primary", key=f"yes_{idx}"):
+                    # 用 Quote_Number 刪除（更安全）
+                    projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                    conn.update(worksheet="supremacy_projects", data=projects_df)
+                    st.success(f"已刪除專案：{row['Quote_Number']}")
+                    # 強制讀最新資料並刷新
+                    projects_df = conn.read(worksheet="supremacy_projects", ttl=0)
+                    del st.session_state[delete_key]
+                    st.rerun()
+                if col_no.button("Cancel", key=f"no_{idx}"):
+                    del st.session_state[delete_key]
+                    st.rerun()
 
 else:
     st.info("尚未新增任何專案，請在左側欄輸入並提交。")
