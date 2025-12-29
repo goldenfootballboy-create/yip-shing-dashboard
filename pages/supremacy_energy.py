@@ -39,7 +39,7 @@ except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
 
 # ==============================================
-# Sidebar - New Project 輸入區（新增 Date 選擇）
+# Sidebar - New Project 輸入區
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -47,9 +47,6 @@ with st.sidebar:
     st.markdown("### New Project")
 
     with st.form(key="supremacy_new_project", clear_on_submit=True):
-        # 新增：日期選擇
-        project_date = st.date_input("Date *", value=date.today())
-
         quote_number = st.text_input("Quote Number *")
         project_detail = st.text_area("Project Detail *", height=150, placeholder="描述專案內容、客戶需求、規格等")
         status_options = ["Quoting", "Confirmed", "In Production", "Completed"]
@@ -62,17 +59,15 @@ with st.sidebar:
                 st.error("Quote Number 和 Project Detail 不能為空！")
             else:
                 new_row = pd.DataFrame([{
-                    "Date": project_date.strftime("%Y-%m-%d"),
+                    "Date": date.today().strftime("%Y-%m-%d"),
                     "Quote_Number": quote_number.strip(),
                     "Project_Detail": project_detail.strip(),
                     "Status": status
                 }])
-                # 讀取完整資料再新增
                 current_raw = conn.read(worksheet="supremacy_projects", ttl=0)
                 updated_df = pd.concat([current_raw, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=updated_df)
                 st.success(f"已新增專案：{quote_number}")
-                # 強制讀最新
                 raw_df = conn.read(worksheet="supremacy_projects", ttl=0)
                 projects_df = raw_df.iloc[1:].reset_index(drop=True) if len(raw_df) > 1 else pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
                 projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
@@ -85,7 +80,7 @@ with st.sidebar:
 st.title("SUPREMACY ENERGY")
 
 # ==============================================
-# 卡片式顯示專案
+# 卡片式顯示專案（拉長 + Edit + Delete）
 # ==============================================
 if len(projects_df) > 0:
     sorted_df = projects_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -115,7 +110,6 @@ if len(projects_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
-            # Edit + Delete 按鈕
             col_edit, col_delete = st.columns(2)
 
             with col_edit:
@@ -146,17 +140,22 @@ if len(projects_df) > 0:
                         del st.session_state[f"edit_mode_{idx}"]
                         st.rerun()
 
-            # Delete 確認
+            # Delete 確認 + 正常刪除
             if st.session_state.get(f"confirm_delete_{idx}", False):
                 st.warning(f"確定要刪除專案 **{row['Quote_Number']}** 嗎？")
                 col_yes, col_no = st.columns(2)
-                if col_yes.button("Yes, Delete", type="primary", key=f"yes_{idx}"):
-                    projects_df = projects_df.drop(idx).reset_index(drop=True)
+                if col_yes.button("Yes, Delete", type="primary", key=f"yes_del_{idx}"):
+                    # 用 Quote_Number 刪除（安全）
+                    projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
                     conn.update(worksheet="supremacy_projects", data=projects_df)
-                    st.success("已刪除！")
+                    st.success(f"已刪除專案：{row['Quote_Number']}")
+                    # 強制讀最新資料並刷新
+                    raw_df = conn.read(worksheet="supremacy_projects", ttl=0)
+                    projects_df = raw_df.iloc[1:].reset_index(drop=True) if len(raw_df) > 1 else pd.DataFrame(columns=["Date", "Quote_Number", "Project_Detail", "Status"])
+                    projects_df.columns = ["Date", "Quote_Number", "Project_Detail", "Status"]
                     del st.session_state[f"confirm_delete_{idx}"]
                     st.rerun()
-                if col_no.button("Cancel", key=f"no_{idx}"):
+                if col_no.button("Cancel", key=f"no_del_{idx}"):
                     del st.session_state[f"confirm_delete_{idx}"]
                     st.rerun()
 
