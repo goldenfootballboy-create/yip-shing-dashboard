@@ -122,9 +122,9 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # ==============================================
-# 專案卡片渲染函數
+# 專案卡片渲染函數（傳入 df）
 # ==============================================
-def render_project_card(row, idx):
+def render_project_card(row, idx, df):
     pct = calculate_progress(row)
     color = get_color(pct)
 
@@ -243,8 +243,8 @@ def render_project_card(row, idx):
     col_spec, col_delete = st.columns(2)
     with col_spec:
         if st.button("Edit Project Spec.", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
-            st.session_state[f"edit_spec_idx"] = idx  # 儲存要編輯的 idx
-            st.session_state[f"edit_spec_dialog"] = True
+            st.session_state["edit_spec_idx"] = idx
+            st.session_state["edit_spec_dialog"] = True
     with col_delete:
         if st.button("Delete", key=f"del_{idx}", type="secondary", use_container_width=True):
             st.session_state[f"confirm_delete_{idx}"] = True
@@ -658,13 +658,13 @@ else:
             if i < len(rows):
                 row = rows[i]
                 idx = filtered_df.index[i]
-                render_project_card(row, idx)
+                render_project_card(row, idx, df)
 
         with col2:
             if i + 1 < len(rows):
                 row = rows[i + 1]
                 idx = filtered_df.index[i + 1]
-                render_project_card(row, idx)
+                render_project_card(row, idx, df)
 
 st.markdown("---")
 st.caption("Projects Management System")
