@@ -171,77 +171,14 @@ def render_project_card(row, idx):
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander(f"Details • {row['Project_Name']}", expanded=False):
-        st.markdown(f"**Year:** {row['Year']} | **Lead Time:** {fmt(row['Lead_Time'])}")
-        st.markdown(f"**Customer:** {row.get('Customer','—')} | **Supervisor:** {row.get('Supervisor','—')} | **Qty:** {row.get('Qty',0)}")
-
-        if row.get("Project_Spec"):
-            st.markdown("**Project Specification:**")
-            for line in row["Project_Spec"].split("\n"):
-                if line.strip():
-                    key, val = line.split(": ",1) if ": " in line else ("", line)
-                    st.markdown(f"• **{key}:** {val}")
-
-        if row.get("Description"):
-            st.markdown(f"**Description:** {row['Description']}")
-
-        if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
-            st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
-
-        if st.session_state.get(f"cl_open_{idx}", False):
-            current = checklist_db.get(project_name, {"purchase": [],"done_p": [],"drawing": [],"done_d": []})
-
-            st.markdown("<h4 style='text-align:center;'>Purchase List        Drawings Submission</h4>", unsafe_allow_html=True)
-
-            new_purchase = []
-            new_done_p = set()
-            new_drawing = []
-            new_done_d = set()
-
-            max_rows = max(len(current["purchase"]), len(current["drawing"]), 6)
-
-            for i in range(max_rows):
-                c1, c2 = st.columns(2)
-                with c1:
-                    text = current["purchase"][i] if i < len(current["purchase"]) else ""
-                    checked = text in current["done_p"]
-                    col_chk, col_txt = st.columns([1,7])
-                    with col_chk:
-                        chk = st.checkbox("", value=checked, key=f"p_{idx}_{i}")
-                    with col_txt:
-                        txt = st.text_input("", value=text, key=f"pt_{idx}_{i}", label_visibility="collapsed")
-                    if txt.strip():
-                        new_purchase.append(txt.strip())
-                        if chk:
-                            new_done_p.add(txt.strip())
-                with c2:
-                    text = current["drawing"][i] if i < len(current["drawing"]) else ""
-                    checked = text in current["done_d"]
-                    col_chk, col_txt = st.columns([1,7])
-                    with col_chk:
-                        chk = st.checkbox("", value=checked, key=f"d_{idx}_{i}")
-                    with col_txt:
-                        txt = st.text_input("", value=text, key=f"dt_{idx}_{i}", label_visibility="collapsed")
-                    if txt.strip():
-                        new_drawing.append(txt.strip())
-                        if chk:
-                            new_done_d.add(txt.strip())
-
-            if st.button("SAVE CHECKLIST", key=f"save_cl_{idx}", type="primary", use_container_width=True):
-                checklist_db[project_name] = {
-                    "purchase": new_purchase,
-                    "done_p": list(new_done_p),
-                    "drawing": new_drawing,
-                    "done_d": list(new_done_d)
-                }
-                save_checklist()
-                st.cache_data.clear()
-                st.success("Checklist 已永久儲存到 Google Sheets！")
-                st.rerun()
-
-    # 改成 Project Specification 按鈕（取代 Edit）
-    if st.button("Project Specification", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
-        st.session_state[f"spec_dialog_{idx}"] = True
+    # Project Specification + Delete 按鈕
+    col_spec, col_delete = st.columns(2)
+    with col_spec:
+        if st.button("Project Specification", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
+            st.session_state[f"spec_dialog_{idx}"] = True
+    with col_delete:
+        if st.button("Delete", key=f"del_{idx}", type="secondary", use_container_width=True):
+            st.session_state[f"confirm_delete_{idx}"] = True
 
     # Project Specification 彈出視窗（可編輯）
     @st.dialog("Project Specification", width="large")
@@ -300,6 +237,23 @@ def render_project_card(row, idx):
 
     if st.session_state.get(f"spec_dialog_{idx}", False):
         spec_dialog(row, idx)
+
+    # Delete 確認對話框
+    if st.session_state.get(f"confirm_delete_{idx}", False):
+        st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
+        col_yes, col_no = st.columns(2)
+        if col_yes.button("Yes, Delete", type="primary"):
+            df = df.drop(idx).reset_index(drop=True)
+            save_projects()
+            checklist_db.pop(row["Project_Name"], None)
+            save_checklist()
+            st.cache_data.clear()
+            del st.session_state[f"confirm_delete_{idx}"]
+            st.success("已刪除！")
+            st.rerun()
+        if col_no.button("Cancel"):
+            del st.session_state[f"confirm_delete_{idx}"]
+            st.rerun()
 
 # ==============================================
 # 左側側邊欄
@@ -409,7 +363,7 @@ with st.sidebar:
                 st.success(f"Added: {new_name}")
                 st.rerun()
 
-    # Project Specification 按鈕（放在 form 外面）
+    # New Project 的 Project Specification 按鈕
     if st.button("Project Specification", type="primary", use_container_width=True):
         st.session_state.spec_dialog_open = True
 
