@@ -266,7 +266,6 @@ def render_project_card(row, idx):
 
     # 每個卡片獨立的 Delete 確認容器
     delete_placeholder = st.empty()
-
     if st.session_state.get("show_delete_confirm", False) and st.session_state.get("delete_idx") == idx:
         with delete_placeholder.container():
             st.markdown("---")
@@ -274,6 +273,7 @@ def render_project_card(row, idx):
             col_yes, col_no = st.columns(2)
             with col_yes:
                 if st.button("確認刪除", type="primary", key=f"confirm_del_{idx}"):
+                    global df  # 明確使用全域 df
                     df = df.drop(idx).reset_index(drop=True)
                     save_projects()
                     checklist_db.pop(row["Project_Name"], None)
