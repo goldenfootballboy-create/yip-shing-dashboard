@@ -486,7 +486,7 @@ with st.sidebar:
         st.markdown("**Specification**")
         row1 = st.columns(2)
         with row1[0]:
-            s_genset = st.text_input("Genset model", key="dlg_new_genset")
+            s_genset = st.text_input("Genset model(發電機型號)", key="dlg_new_genset")
         with row1[1]:
             s_genset_sn = st.text_input("S/N", key="dlg_new_genset_sn")
 
