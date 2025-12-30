@@ -339,7 +339,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# 統一處理 Delete 確認對話框
+# 統一處理 Delete 確認對話框（放在主流程中）
 # ==============================================
 if st.session_state.get("show_delete_confirm", False):
     idx_to_delete = st.session_state["delete_idx"]
