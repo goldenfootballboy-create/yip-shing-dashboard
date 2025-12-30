@@ -261,27 +261,11 @@ def render_project_card(row, idx):
             st.session_state["show_edit_spec_dialog"] = True
     with col_delete:
         if st.button("Delete", key=f"del_{idx}", type="secondary", use_container_width=True):
-            st.session_state[f"confirm_delete_{idx}"] = True
-
-    # Delete 確認對話框
-    if st.session_state.get(f"confirm_delete_{idx}", False):
-        st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？")
-        col_yes, col_no = st.columns(2)
-        if col_yes.button("Yes, Delete", type="primary"):
-            df = df.drop(idx).reset_index(drop=True)
-            save_projects()
-            checklist_db.pop(row["Project_Name"], None)
-            save_checklist()
-            st.cache_data.clear()
-            del st.session_state[f"confirm_delete_{idx}"]
-            st.success("已刪除！")
-            st.rerun()
-        if col_no.button("Cancel"):
-            del st.session_state[f"confirm_delete_{idx}"]
-            st.rerun()
+            st.session_state["delete_idx"] = idx
+            st.session_state["confirm_delete"] = True
 
 # ==============================================
-# 統一處理 Edit Project Spec. 彈出視窗（只開一個）
+# 統一處理 Edit Project Spec. 彈出視窗
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -301,7 +285,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     model = model_part.split(": ", 1)[1] if ": " in model_part else model_part
                     sn = parts[1] if len(parts) > 1 else "—"
                     lines.append([model, sn])
-        # 補齊到 5 行
         while len(lines) < 5:
             lines.append(["", ""])
 
@@ -355,6 +338,27 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
     edit_spec_dialog()
 
+# ==============================================
+# 統一處理 Delete 確認對話框
+# ==============================================
+if st.session_state.get("confirm_delete", False):
+    idx_to_delete = st.session_state["delete_idx"]
+    row_to_delete = df.loc[idx_to_delete]
+
+    st.warning(f"確定要刪除專案 **{row_to_delete['Project_Name']}** 嗎？")
+    col_yes, col_no = st.columns(2)
+    if col_yes.button("Yes, Delete", type="primary"):
+        df = df.drop(idx_to_delete).reset_index(drop=True)
+        save_projects()
+        checklist_db.pop(row_to_delete["Project_Name"], None)
+        save_checklist()
+        st.cache_data.clear()
+        st.session_state["confirm_delete"] = False
+        st.success("已刪除！")
+        st.rerun()
+    if col_no.button("Cancel"):
+        st.session_state["confirm_delete"] = False
+        st.rerun()
 # ==============================================
 # 左側側邊欄 & New Project（保持不變）
 # ==============================================
