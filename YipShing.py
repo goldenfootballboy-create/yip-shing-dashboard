@@ -316,31 +316,31 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
         row1 = st.columns(2)
         with row1[0]:
-            e_s1 = st.text_input("Genset model(發電機型號)", value=lines[0][0], key=f"edit_genset_{idx_to_edit}")
+            e_s1 = st.text_input("Genset model(發動機型號)", value=lines[0][0], key=f"edit_genset_{idx_to_edit}")
         with row1[1]:
             e_s1_sn = st.text_input("S/N", value=lines[0][1], key=f"edit_genset_sn_{idx_to_edit}")
 
         row2 = st.columns(2)
         with row2[0]:
-            e_s2 = st.text_input("Alternator Model", value=lines[1][0], key=f"edit_alternator_{idx_to_edit}")
+            e_s2 = st.text_input("Alternator Model(電球)", value=lines[1][0], key=f"edit_alternator_{idx_to_edit}")
         with row2[1]:
             e_s2_sn = st.text_input("S/N", value=lines[1][1], key=f"edit_alternator_sn_{idx_to_edit}")
 
         row3 = st.columns(2)
         with row3[0]:
-            e_s3 = st.text_input("Controller", value=lines[2][0], key=f"edit_controller_{idx_to_edit}")
+            e_s3 = st.text_input("Controller(控制器)", value=lines[2][0], key=f"edit_controller_{idx_to_edit}")
         with row3[1]:
             e_s3_sn = st.text_input("S/N", value=lines[2][1], key=f"edit_controller_sn_{idx_to_edit}")
 
         row4 = st.columns(2)
         with row4[0]:
-            e_s4 = st.text_input("Circuit breaker Size", value=lines[3][0], key=f"edit_breaker_{idx_to_edit}")
+            e_s4 = st.text_input("Circuit breaker Size(斷路器)", value=lines[3][0], key=f"edit_breaker_{idx_to_edit}")
         with row4[1]:
             e_s4_sn = st.text_input("S/N", value=lines[3][1], key=f"edit_breaker_sn_{idx_to_edit}")
 
         row5 = st.columns(2)
         with row5[0]:
-            e_s5 = st.text_input("Charger", value=lines[4][0], key=f"edit_charger_{idx_to_edit}")
+            e_s5 = st.text_input("Charger(充電機)", value=lines[4][0], key=f"edit_charger_{idx_to_edit}")
         with row5[1]:
             e_s5_sn = st.text_input("S/N", value=lines[4][1], key=f"edit_charger_sn_{idx_to_edit}")
 
