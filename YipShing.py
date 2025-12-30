@@ -173,31 +173,31 @@ def render_project_card(row, idx):
     """, unsafe_allow_html=True)
 
     with st.expander(f"Details • {row['Project_Name']}", expanded=False):
-        # 第一行：Year & Lead Time
         st.markdown(f"**Year:** {row['Year']} | **Lead Time:** {fmt(row['Lead_Time'])}")
-        # 第二行：Customer, Supervisor, Qty
         st.markdown(f"**Customer:** {row.get('Customer','—')} | **Supervisor:** {row.get('Supervisor','—')} | **Qty:** {row.get('Qty',0)}")
 
         # Project Specification 解析
         spec_text = row.get("Project_Spec", "")
-        power_line = "— — — —"  # Prime Standby Hz Voltage 預設
+        power_line = "Prime: — Standby: — — —"
         genset_line = alternator_line = controller_line = breaker_line = charger_line = "— | S/N: —"
 
         if spec_text and spec_text.strip():
-            if "||EXTRA||" in spec_text:
-                visible_part, extra_part = spec_text.split("||EXTRA||", 1)
-                try:
-                    extra_data = json.loads(extra_part.strip())
-                    prime = extra_data.get("prime", "").strip() + "kW" if extra_data.get("prime", "").strip() else "—"
-                    standby = extra_data.get("standby", "").strip() + "kW" if extra_data.get("standby", "").strip() else "—"
-                    hz = extra_data.get("hz", "—") + "Hz" if extra_data.get("hz") else "—"
-                    voltage = extra_data.get("voltage", "—") + "V" if extra_data.get("voltage") else "—"
-                    power_line = f"{prime} {standby} {hz} {voltage}"
-                except:
-                    power_line = "— — — —"
-            else:
-                visible_part = spec_text
+            visible_part = spec_text.split("||EXTRA||")[0] if "||EXTRA||" in spec_text else spec_text
 
+            # 提取功率規格
+            if "||EXTRA||" in spec_text:
+                try:
+                    extra_part = spec_text.split("||EXTRA||")[1]
+                    extra_data = json.loads(extra_part.strip())
+                    prime = f"{extra_data.get('prime','').strip()}kW" if extra_data.get('prime','').strip() else "—"
+                    standby = f"{extra_data.get('standby','').strip()}kW" if extra_data.get('standby','').strip() else "—"
+                    hz = f"{extra_data.get('hz','')}Hz" if extra_data.get('hz') else "—"
+                    voltage = f"{extra_data.get('voltage','')}V" if extra_data.get('voltage') else "—"
+                    power_line = f"Prime: {prime} Standby: {standby} {hz} {voltage}"
+                except:
+                    power_line = "Prime: — Standby: — — —"
+
+            # 提取五項規格
             lines = visible_part.strip().split("\n")
             items = ["Genset model", "Alternator Model", "Controller", "Circuit breaker Size", "Charger"]
             for i, line in enumerate(lines):
@@ -227,7 +227,7 @@ def render_project_card(row, idx):
         else:
             st.markdown(f"**Description:** {desc}")
 
-        # Checklist Panel (保持不變)
+        # Checklist Panel
         if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
             st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
 
