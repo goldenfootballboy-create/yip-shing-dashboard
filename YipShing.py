@@ -149,7 +149,7 @@ def render_project_card(row, idx):
     reminder_display = f'<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:bold; font-size:0.8rem; color:white; text-shadow:1px 1px 3px black; pointer-events:none; z-index:10;">{reminder_text}</div>'
 
     st.markdown(f"""
-    <div style="background: linear-gradient(to right, {color} {pct}%, #f0f0f0 {pct}%); 
+    <div style="background: linear_gradient(to right, {color} {pct}%, #f0f0f0 {pct}%); 
                 border-radius: 8px; padding: 10px 15px; margin: 10px 0; 
                 box-shadow: 0 2px 6px rgba(0,0,0,0.1); position: relative; overflow:hidden;">
         {reminder_display}
