@@ -289,7 +289,7 @@ def render_project_card(row, idx):
         delete_placeholder.empty()
 
 # ==============================================
-# 統一處理 Edit Project Spec. 彈出視窗
+# 統一處理 Edit Project Spec. 彈出視窗（修正版：X 關閉也不會重開）
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -309,58 +309,74 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     model = model_part.split(": ", 1)[1] if ": " in model_part else model_part
                     sn = parts[1] if len(parts) > 1 else "—"
                     lines.append([model, sn])
+        # 補齊到 5 行
         while len(lines) < 5:
             lines.append(["", ""])
 
+        # 使用唯一 key（加 idx_to_edit）
         row1 = st.columns(2)
         with row1[0]:
-            e_s1 = st.text_input("Genset model", value=lines[0][0], key="edit_genset")
+            e_s1 = st.text_input("Genset model", value=lines[0][0], key=f"edit_genset_{idx_to_edit}")
         with row1[1]:
-            e_s1_sn = st.text_input("S/N", value=lines[0][1], key="edit_genset_sn")
+            e_s1_sn = st.text_input("S/N", value=lines[0][1], key=f"edit_genset_sn_{idx_to_edit}")
 
         row2 = st.columns(2)
         with row2[0]:
-            e_s2 = st.text_input("Alternator Model", value=lines[1][0], key="edit_alternator")
+            e_s2 = st.text_input("Alternator Model", value=lines[1][0], key=f"edit_alternator_{idx_to_edit}")
         with row2[1]:
-            e_s2_sn = st.text_input("S/N", value=lines[1][1], key="edit_alternator_sn")
+            e_s2_sn = st.text_input("S/N", value=lines[1][1], key=f"edit_alternator_sn_{idx_to_edit}")
 
         row3 = st.columns(2)
         with row3[0]:
-            e_s3 = st.text_input("Controller", value=lines[2][0], key="edit_controller")
+            e_s3 = st.text_input("Controller", value=lines[2][0], key=f"edit_controller_{idx_to_edit}")
         with row3[1]:
-            e_s3_sn = st.text_input("S/N", value=lines[2][1], key="edit_controller_sn")
+            e_s3_sn = st.text_input("S/N", value=lines[2][1], key=f"edit_controller_sn_{idx_to_edit}")
 
         row4 = st.columns(2)
         with row4[0]:
-            e_s4 = st.text_input("Circuit breaker Size", value=lines[3][0], key="edit_breaker")
+            e_s4 = st.text_input("Circuit breaker Size", value=lines[3][0], key=f"edit_breaker_{idx_to_edit}")
         with row4[1]:
-            e_s4_sn = st.text_input("S/N", value=lines[3][1], key="edit_breaker_sn")
+            e_s4_sn = st.text_input("S/N", value=lines[3][1], key=f"edit_breaker_sn_{idx_to_edit}")
 
         row5 = st.columns(2)
         with row5[0]:
-            e_s5 = st.text_input("Charger", value=lines[4][0], key="edit_charger")
+            e_s5 = st.text_input("Charger", value=lines[4][0], key=f"edit_charger_{idx_to_edit}")
         with row5[1]:
-            e_s5_sn = st.text_input("S/N", value=lines[4][1], key="edit_charger_sn")
+            e_s5_sn = st.text_input("S/N", value=lines[4][1], key=f"edit_charger_sn_{idx_to_edit}")
 
-        e_desc = st.text_area("Description", value=row_to_edit.get("Description","") or "", height=150, key="edit_desc")
+        e_desc = st.text_area("Description", value=row_to_edit.get("Description","") or "", height=150, key=f"edit_desc_{idx_to_edit}")
 
-        if st.button("Save & Close", type="primary"):
-            new_spec = "\n".join([
-                f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
-                f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
-                f"Controller: {e_s3 or '—'} | S/N: {e_s3_sn or '—'}",
-                f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
-                f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
-            ])
-            df.at[idx_to_edit, "Project_Spec"] = new_spec
-            df.at[idx_to_edit, "Description"] = e_desc or ""
-            save_projects()
-            st.cache_data.clear()
-            st.success("Specification 已更新！")
-            st.session_state["show_edit_spec_dialog"] = False
-            st.rerun()
+        # 按鈕區域
+        col_save, col_cancel = st.columns([3, 2])
+        with col_save:
+            if st.button("Save & Close", type="primary", use_container_width=True):
+                new_spec = "\n".join([
+                    f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
+                    f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
+                    f"Controller: {e_s3 or '—'} | S/N: {e_s3_sn or '—'}",
+                    f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
+                    f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
+                ])
+                df.at[idx_to_edit, "Project_Spec"] = new_spec
+                df.at[idx_to_edit, "Description"] = e_desc or ""
+                save_projects()
+                st.cache_data.clear()
+                st.success("Specification 已更新！")
+                st.session_state["show_edit_spec_dialog"] = False
+                st.rerun()
 
-    edit_spec_dialog()
+        with col_cancel:
+            if st.button("Cancel", type="secondary", use_container_width=True):
+                st.session_state["show_edit_spec_dialog"] = False
+                st.rerun()
+
+    # 呼叫 dialog
+    result = edit_spec_dialog()
+
+    # 關鍵：偵測到用戶點右上角 X 關閉（result 為 None）
+    if result is None:
+        st.session_state["show_edit_spec_dialog"] = False
+        st.rerun()
 
 # ==============================================
 # 左側側邊欄 & New Project
