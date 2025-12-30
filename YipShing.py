@@ -316,7 +316,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
         row1 = st.columns(2)
         with row1[0]:
-            e_s1 = st.text_input("Genset model", value=lines[0][0], key=f"edit_genset_{idx_to_edit}")
+            e_s1 = st.text_input("Genset model(發電機型號)", value=lines[0][0], key=f"edit_genset_{idx_to_edit}")
         with row1[1]:
             e_s1_sn = st.text_input("S/N", value=lines[0][1], key=f"edit_genset_sn_{idx_to_edit}")
 
