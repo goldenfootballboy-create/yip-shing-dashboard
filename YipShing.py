@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # ==============================================
-# Google Sheets 連接 + 讀取（快取 + 重試）
+# Google Sheets 連接 + 讀取
 # ==============================================
 conn = st.connection('gsheets', type=GSheetsConnection)
 
@@ -95,7 +95,7 @@ def save_checklist():
     time.sleep(2)
 
 # ==============================================
-# 進度計算 + 顏色
+# 進度計算 + 顏色 + fmt
 # ==============================================
 def calculate_progress(row):
     p = 0
@@ -176,7 +176,7 @@ def render_project_card(row, idx):
         st.markdown(f"**Year:** {row['Year']} | **Lead Time:** {fmt(row['Lead_Time'])}")
         st.markdown(f"**Customer:** {row.get('Customer','—')} | **Supervisor:** {row.get('Supervisor','—')} | **Qty:** {row.get('Qty',0)}")
 
-        # Project Specification 解析
+        # 解析 Project_Spec
         spec_text = row.get("Project_Spec", "")
         power_line = "Prime: — Standby: — — —"
         genset_line = alternator_line = controller_line = breaker_line = charger_line = "— | S/N: —"
@@ -184,7 +184,7 @@ def render_project_card(row, idx):
         if spec_text and spec_text.strip():
             visible_part = spec_text.split("||EXTRA||")[0] if "||EXTRA||" in spec_text else spec_text
 
-            # 提取功率規格
+            # 提取 Prime / Standby / Hz / Voltage
             if "||EXTRA||" in spec_text:
                 try:
                     extra_part = spec_text.split("||EXTRA||")[1]
@@ -197,7 +197,7 @@ def render_project_card(row, idx):
                 except:
                     power_line = "Prime: — Standby: — — —"
 
-            # 提取五項規格
+            # 提取 5 項規格
             lines = visible_part.strip().split("\n")
             items = ["Genset model", "Alternator Model", "Controller", "Circuit breaker Size", "Charger"]
             for i, line in enumerate(lines):
@@ -222,18 +222,14 @@ def render_project_card(row, idx):
 
         # Description
         desc = row.get("Description", "")
-        if pd.isna(desc) or not str(desc).strip():
-            st.markdown("**Description:** —")
-        else:
-            st.markdown(f"**Description:** {desc}")
+        st.markdown(f"**Description:** {desc.strip() if not pd.isna(desc) and desc.strip() else '—'}")
 
-        # Checklist Panel
+        # Checklist Panel（保持不變）
         if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
             st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
 
         if st.session_state.get(f"cl_open_{idx}", False):
-            current = checklist_db.get(project_name, {"purchase": [],"done_p": [],"drawing": [],"done_d": []})
-
+            current = checklist_db.get(project_name, {"purchase": [], "done_p": [], "drawing": [], "done_d": []})
             st.markdown("<h4 style='text-align:center;'>Purchase List        Drawings Submission</h4>", unsafe_allow_html=True)
 
             new_purchase = []
@@ -319,7 +315,7 @@ def render_project_card(row, idx):
         delete_placeholder.empty()
 
 # ==============================================
-# Edit Project Specification Dialog（所有欄位統一在上）
+# Edit Project Specification Dialog
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -364,7 +360,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
         st.markdown("---")
 
-        # 原本 5 項
+        # 原本 5 項規格
         row1 = st.columns(2)
         with row1[0]: e_s1 = st.text_input("Genset model(發動機型號)", value=lines[0][0], key=f"edit_genset_{idx_to_edit}")
         with row1[1]: e_s1_sn = st.text_input("S/N", value=lines[0][1], key=f"edit_genset_sn_{idx_to_edit}")
@@ -404,7 +400,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
             df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_json
             df.at[idx_to_edit, "Description"] = e_desc.strip()
 
-            # 加入載入動畫
             with st.spinner("正在儲存至 Google Sheets，請稍候..."):
                 save_projects()
                 st.cache_data.clear()
@@ -514,13 +509,17 @@ with st.sidebar:
                     "Testing_Complete": d3, "Cleaning_Complete": d4, "Delivery_Complete": d5
                 }
                 df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
-                save_projects()
-                st.cache_data.clear()
+
+                with st.spinner("正在新增專案並儲存至 Google Sheets，請稍候..."):
+                    save_projects()
+                    st.cache_data.clear()
+
                 if "spec_data" in st.session_state:
                     del st.session_state.spec_data
                 if "spec_dialog_open" in st.session_state:
                     del st.session_state.spec_dialog_open
-                st.success(f"Added: {new_name}")
+
+                st.success(f"已成功新增專案：{new_name}")
                 st.rerun()
 
     if st.button("Project Specification", type="primary", use_container_width=True):
@@ -530,7 +529,6 @@ with st.sidebar:
     def spec_dialog():
         st.markdown("**請填寫專案規格**")
 
-        # Prime / Standby / Hz / Voltage 在最上面
         col_p1, col_p2 = st.columns(2)
         with col_p1:
             s_prime = st.text_input("Prime (KW)", key="dlg_prime")
@@ -573,6 +571,11 @@ with st.sidebar:
                 "prime": s_prime.strip(), "standby": s_standby.strip(),
                 "hz": s_hz, "voltage": s_voltage, "desc": desc.strip()
             }
+
+            with st.spinner("正在儲存規格，請稍候..."):
+                time.sleep(0.3)  # 讓 spinner 至少顯示一下
+
+            st.success("規格已暫存，可繼續新增專案！")
             st.session_state.spec_dialog_open = False
             st.rerun()
 
@@ -580,7 +583,7 @@ with st.sidebar:
         spec_dialog()
 
 # ==============================================
-# 篩選邏輯 & 主畫面（保持不變）
+# 篩選與主畫面
 # ==============================================
 today = date.today()
 filtered_df = df.copy()
@@ -611,10 +614,9 @@ else:
     page_title = "YIP SHING Project Dashboard"
 
 if st.session_state.view_mode == "calendar":
-    # 原日曆程式碼（保持不變）
+    # 原日曆程式碼保持不變
     st.stop()
 
-# 主畫面
 st.markdown(f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>", unsafe_allow_html=True)
 
 if len(filtered_df) == 0:
