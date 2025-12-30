@@ -492,25 +492,25 @@ with st.sidebar:
 
         row2 = st.columns(2)
         with row2[0]:
-            s_alternator = st.text_input("Alternator Model", key="dlg_new_alternator")
+            s_alternator = st.text_input("Alternator Model(電球)", key="dlg_new_alternator")
         with row2[1]:
             s_alternator_sn = st.text_input("S/N", key="dlg_new_alternator_sn")
 
         row3 = st.columns(2)
         with row3[0]:
-            s_controller = st.text_input("Controller", key="dlg_new_controller")
+            s_controller = st.text_input("Controller(控制器)", key="dlg_new_controller")
         with row3[1]:
             s_controller_sn = st.text_input("S/N", key="dlg_new_controller_sn")
 
         row4 = st.columns(2)
         with row4[0]:
-            s_breaker = st.text_input("Circuit breaker Size", key="dlg_new_breaker")
+            s_breaker = st.text_input("Circuit breaker Size(斷路器)", key="dlg_new_breaker")
         with row4[1]:
             s_breaker_sn = st.text_input("S/N", key="dlg_new_breaker_sn")
 
         row5 = st.columns(2)
         with row5[0]:
-            s_charger = st.text_input("Charger", key="dlg_new_charger")
+            s_charger = st.text_input("Charger(充電機)", key="dlg_new_charger")
         with row5[1]:
             s_charger_sn = st.text_input("S/N", key="dlg_new_charger_sn")
 
