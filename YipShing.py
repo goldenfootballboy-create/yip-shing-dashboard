@@ -259,6 +259,7 @@ def render_project_card(row, idx):
         if st.button("Edit Project Spec.", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
             st.session_state["current_edit_idx"] = idx
             st.session_state["show_edit_spec_dialog"] = True
+            st.rerun()  # 強制刷新以開啟 dialog
     with col_delete:
         if st.button("Delete", key=f"del_{idx}", type="secondary", use_container_width=True):
             st.session_state["delete_idx"] = idx
@@ -289,7 +290,7 @@ def render_project_card(row, idx):
         delete_placeholder.empty()
 
 # ==============================================
-# 統一處理 Edit Project Spec. 彈出視窗（修正版：X 關閉也不會重開）
+# 統一處理 Edit Project Spec. 彈出視窗（支援 X 關閉不儲存）
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -309,11 +310,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     model = model_part.split(": ", 1)[1] if ": " in model_part else model_part
                     sn = parts[1] if len(parts) > 1 else "—"
                     lines.append([model, sn])
-        # 補齊到 5 行
         while len(lines) < 5:
             lines.append(["", ""])
 
-        # 使用唯一 key（加 idx_to_edit）
         row1 = st.columns(2)
         with row1[0]:
             e_s1 = st.text_input("Genset model", value=lines[0][0], key=f"edit_genset_{idx_to_edit}")
@@ -346,8 +345,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
         e_desc = st.text_area("Description", value=row_to_edit.get("Description","") or "", height=150, key=f"edit_desc_{idx_to_edit}")
 
-        # 按鈕區域
-        col_save, col_cancel = st.columns([3, 2])
+        col_save, col_cancel = st.columns(2)
         with col_save:
             if st.button("Save & Close", type="primary", use_container_width=True):
                 new_spec = "\n".join([
@@ -370,10 +368,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.session_state["show_edit_spec_dialog"] = False
                 st.rerun()
 
-    # 呼叫 dialog
     result = edit_spec_dialog()
 
-    # 關鍵：偵測到用戶點右上角 X 關閉（result 為 None）
+    # 點右上角 X 關閉時，result = None，清除狀態
     if result is None:
         st.session_state["show_edit_spec_dialog"] = False
         st.rerun()
