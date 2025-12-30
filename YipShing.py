@@ -262,7 +262,7 @@ def render_project_card(row, idx):
     with col_delete:
         if st.button("Delete", key=f"del_{idx}", type="secondary", use_container_width=True):
             st.session_state["delete_idx"] = idx
-            st.session_state["confirm_delete"] = True
+            st.session_state["show_delete_confirm"] = True
 
 # ==============================================
 # 統一處理 Edit Project Spec. 彈出視窗
@@ -341,26 +341,30 @@ if st.session_state.get("show_edit_spec_dialog", False):
 # ==============================================
 # 統一處理 Delete 確認對話框
 # ==============================================
-if st.session_state.get("confirm_delete", False):
+if st.session_state.get("show_delete_confirm", False):
     idx_to_delete = st.session_state["delete_idx"]
     row_to_delete = df.loc[idx_to_delete]
+    project_name_to_delete = row_to_delete["Project_Name"]
 
-    st.warning(f"確定要刪除專案 **{row_to_delete['Project_Name']}** 嗎？")
+    st.warning(f"確定要刪除專案 **{project_name_to_delete}** 嗎？此動作無法復原！")
     col_yes, col_no = st.columns(2)
-    if col_yes.button("Yes, Delete", type="primary"):
-        df = df.drop(idx_to_delete).reset_index(drop=True)
-        save_projects()
-        checklist_db.pop(row_to_delete["Project_Name"], None)
-        save_checklist()
-        st.cache_data.clear()
-        st.session_state["confirm_delete"] = False
-        st.success("已刪除！")
-        st.rerun()
-    if col_no.button("Cancel"):
-        st.session_state["confirm_delete"] = False
-        st.rerun()
+    with col_yes:
+        if st.button("確認刪除", type="primary", use_container_width=True):
+            df = df.drop(idx_to_delete).reset_index(drop=True)
+            save_projects()
+            checklist_db.pop(project_name_to_delete, None)
+            save_checklist()
+            st.cache_data.clear()
+            st.session_state["show_delete_confirm"] = False
+            st.success(f"已成功刪除專案：{project_name_to_delete}")
+            st.rerun()
+    with col_no:
+        if st.button("取消", use_container_width=True):
+            st.session_state["show_delete_confirm"] = False
+            st.rerun()
+
 # ==============================================
-# 左側側邊欄 & New Project（保持不變）
+# 左側側邊欄 & New Project
 # ==============================================
 with st.sidebar:
     st.header("View Controls")
@@ -526,10 +530,8 @@ with st.sidebar:
         spec_dialog()
 
 # ==============================================
-# 篩選邏輯 & 主畫面渲染
+# 篩選邏輯
 # ==============================================
-# (保持原有篩選邏輯和主畫面渲染不變)
-
 today = date.today()
 filtered_df = df.copy()
 
@@ -558,7 +560,105 @@ else:
             ]
     page_title = "YIP SHING Project Dashboard"
 
+# ==============================================
+# 日曆模式
+# ==============================================
+if st.session_state.view_mode == "calendar":
+    page_title = "專案日曆視圖"
+
+    try:
+        events_df = conn.read(worksheet="calendar_events", ttl=300)
+        if events_df.empty:
+            events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
+    except:
+        events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
+        conn.update(worksheet="calendar_events", data=events_df)
+
+    events = []
+    for _, row in events_df.iterrows():
+        events.append({
+            "id": str(row["id"]),
+            "title": row["title"],
+            "start": row["start"],
+            "end": row["end"] if pd.notna(row["end"]) else row["start"],
+            "description": row["description"] if pd.notna(row["description"]) else "",
+            "extendedProps": {"project_name": row["project_name"] if pd.notna(row["project_name"]) else ""}
+        })
+
+    for _, proj in df.iterrows():
+        if pd.notna(proj["Parts_Arrival"]):
+            events.append({
+                "title": f"零件到貨: {proj['Project_Name']}",
+                "start": proj["Parts_Arrival"].strftime("%Y-%m-%d"),
+                "color": "#a8e6cf",
+                "extendedProps": {"project_name": proj["Project_Name"]}
+            })
+        if pd.notna(proj["Testing_Complete"]):
+            events.append({
+                "title": f"測試完成: {proj['Project_Name']}",
+                "start": proj["Testing_Complete"].strftime("%Y-%m-%d"),
+                "color": "#ff9f89",
+                "extendedProps": {"project_name": proj["Project_Name"]}
+            })
+
+    calendar_options = {
+        "initialView": "dayGridMonth",
+        "headerToolbar": {
+            "left": "prev,next today",
+            "center": "title",
+            "right": "dayGridMonth,timeGridWeek,timeGridDay"
+        },
+        "selectable": True,
+        "selectMirror": True,
+        "selectOverlap": False,
+        "selectAllow": "function(selectInfo) { return true; }",
+        "editable": True,
+        "dayMaxEvents": True,
+        "height": "800px",
+        "locale": "zh-hk",
+    }
+
+    calendar_events = calendar(events=events, options=calendar_options, key="project_calendar")
+
+    if calendar_events.get("eventClick"):
+        event = calendar_events["eventClick"]["event"]
+        st.subheader(f"編輯事件: {event['title']}")
+        new_title = st.text_input("標題", event['title'])
+        new_date = st.date_input("日期", pd.to_datetime(event['start']).date())
+        new_desc = st.text_area("描述", event.get('extendedProps', {}).get('description', ''))
+        if st.button("儲存修改"):
+            events_df.loc[events_df["id"] == event["id"], ["title", "start", "description"]] = [new_title, new_date.strftime("%Y-%m-%d"), new_desc]
+            conn.update(worksheet="calendar_events", data=events_df)
+            st.success("事件已更新！")
+            st.rerun()
+
+    select_info = calendar_events.get("select")
+    if select_info and isinstance(select_info, dict):
+        st.subheader("新增事件")
+        title = st.text_input("事件標題", value="新工作")
+        desc = st.text_area("描述", value="")
+        if st.button("新增"):
+            new_id = str(int(events_df["id"].max()) + 1) if not events_df.empty and pd.notna(events_df["id"].max()) else "1"
+            start_date = select_info["startStr"][:10]
+            end_date = select_info.get("endStr", "")[:10] if select_info.get("endStr") else start_date
+            new_row = pd.DataFrame([{
+                "id": new_id,
+                "title": title,
+                "start": start_date,
+                "end": end_date,
+                "description": desc,
+                "project_name": ""
+            }])
+            events_df = pd.concat([events_df, new_row], ignore_index=True)
+            conn.update(worksheet="calendar_events", data=events_df)
+            st.success("事件已新增！")
+            st.rerun()
+
+    st.stop()
+
+# ==============================================
 # 主畫面
+# ==============================================
 st.markdown(
     f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>",
     unsafe_allow_html=True
