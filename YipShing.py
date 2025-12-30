@@ -273,7 +273,6 @@ def render_project_card(row, idx):
             col_yes, col_no = st.columns(2)
             with col_yes:
                 if st.button("確認刪除", type="primary", key=f"confirm_del_{idx}"):
-                    global df  # 明確使用全域 df
                     df = df.drop(idx).reset_index(drop=True)
                     save_projects()
                     checklist_db.pop(row["Project_Name"], None)
