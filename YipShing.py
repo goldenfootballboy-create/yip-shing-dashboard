@@ -264,6 +264,31 @@ def render_project_card(row, idx):
             st.session_state["delete_idx"] = idx
             st.session_state["show_delete_confirm"] = True
 
+    # 每個卡片獨立的 Delete 確認容器
+    delete_placeholder = st.empty()
+
+    if st.session_state.get("show_delete_confirm", False) and st.session_state.get("delete_idx") == idx:
+        with delete_placeholder.container():
+            st.markdown("---")
+            st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？此動作無法復原！")
+            col_yes, col_no = st.columns(2)
+            with col_yes:
+                if st.button("確認刪除", type="primary", key=f"confirm_del_{idx}"):
+                    df = df.drop(idx).reset_index(drop=True)
+                    save_projects()
+                    checklist_db.pop(row["Project_Name"], None)
+                    save_checklist()
+                    st.cache_data.clear()
+                    st.session_state["show_delete_confirm"] = False
+                    st.success(f"已成功刪除專案：{row['Project_Name']}")
+                    st.rerun()
+            with col_no:
+                if st.button("取消", key=f"cancel_del_{idx}"):
+                    st.session_state["show_delete_confirm"] = False
+                    st.rerun()
+    else:
+        delete_placeholder.empty()
+
 # ==============================================
 # 統一處理 Edit Project Spec. 彈出視窗
 # ==============================================
@@ -337,31 +362,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.rerun()
 
     edit_spec_dialog()
-
-# ==============================================
-# 統一處理 Delete 確認對話框（放在主流程中）
-# ==============================================
-if st.session_state.get("show_delete_confirm", False):
-    idx_to_delete = st.session_state["delete_idx"]
-    row_to_delete = df.loc[idx_to_delete]
-    project_name_to_delete = row_to_delete["Project_Name"]
-
-    st.warning(f"確定要刪除專案 **{project_name_to_delete}** 嗎？此動作無法復原！")
-    col_yes, col_no = st.columns(2)
-    with col_yes:
-        if st.button("確認刪除", type="primary", use_container_width=True):
-            df = df.drop(idx_to_delete).reset_index(drop=True)
-            save_projects()
-            checklist_db.pop(project_name_to_delete, None)
-            save_checklist()
-            st.cache_data.clear()
-            st.session_state["show_delete_confirm"] = False
-            st.success(f"已成功刪除專案：{project_name_to_delete}")
-            st.rerun()
-    with col_no:
-        if st.button("取消", use_container_width=True):
-            st.session_state["show_delete_confirm"] = False
-            st.rerun()
 
 # ==============================================
 # 左側側邊欄 & New Project
