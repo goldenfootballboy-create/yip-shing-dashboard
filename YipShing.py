@@ -403,9 +403,13 @@ if st.session_state.get("show_edit_spec_dialog", False):
             })
             df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_json
             df.at[idx_to_edit, "Description"] = e_desc.strip()
-            save_projects()
-            st.cache_data.clear()
-            st.success("Specification 已更新！")
+
+            # 加入載入動畫
+            with st.spinner("正在儲存至 Google Sheets，請稍候..."):
+                save_projects()
+                st.cache_data.clear()
+
+            st.success("Specification 已成功更新！")
             st.session_state["show_edit_spec_dialog"] = False
             st.rerun()
 
