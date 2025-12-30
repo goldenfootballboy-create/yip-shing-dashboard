@@ -173,28 +173,52 @@ def render_project_card(row, idx):
     """, unsafe_allow_html=True)
 
     with st.expander(f"Details • {row['Project_Name']}", expanded=False):
+        # 第一行：Year & Lead Time
         st.markdown(f"**Year:** {row['Year']} | **Lead Time:** {fmt(row['Lead_Time'])}")
+        # 第二行：Customer, Supervisor, Qty
         st.markdown(f"**Customer:** {row.get('Customer','—')} | **Supervisor:** {row.get('Supervisor','—')} | **Qty:** {row.get('Qty',0)}")
 
-        # 只顯示原本的 5 項規格（隱藏額外資料）
+        # Project Specification 解析
         spec_text = row.get("Project_Spec", "")
-        if "||EXTRA||" in spec_text:
-            spec_text = spec_text.split("||EXTRA||")[0]
+        power_line = "— — — —"  # Prime Standby Hz Voltage 預設
+        genset_line = alternator_line = controller_line = breaker_line = charger_line = "— | S/N: —"
 
         if spec_text and spec_text.strip():
-            st.markdown("**Project Specification:**")
-            lines = spec_text.strip().split("\n")
+            if "||EXTRA||" in spec_text:
+                visible_part, extra_part = spec_text.split("||EXTRA||", 1)
+                try:
+                    extra_data = json.loads(extra_part.strip())
+                    prime = extra_data.get("prime", "").strip() + "kW" if extra_data.get("prime", "").strip() else "—"
+                    standby = extra_data.get("standby", "").strip() + "kW" if extra_data.get("standby", "").strip() else "—"
+                    hz = extra_data.get("hz", "—") + "Hz" if extra_data.get("hz") else "—"
+                    voltage = extra_data.get("voltage", "—") + "V" if extra_data.get("voltage") else "—"
+                    power_line = f"{prime} {standby} {hz} {voltage}"
+                except:
+                    power_line = "— — — —"
+            else:
+                visible_part = spec_text
+
+            lines = visible_part.strip().split("\n")
             items = ["Genset model", "Alternator Model", "Controller", "Circuit breaker Size", "Charger"]
             for i, line in enumerate(lines):
                 if i < len(items) and line.strip():
                     parts = line.split(" | S/N: ")
                     model_part = parts[0]
-                    model = model_part.split(": ", 1)[1] if ": " in model_part else model_part
+                    model = model_part.split(": ", 1)[1] if ": " in model_part else "—"
                     sn = parts[1] if len(parts) > 1 else "—"
-                    item_name = items[i]
-                    st.markdown(f"• **{item_name}:** {model} | S/N: {sn}")
-        else:
-            st.markdown("**Project Specification:** 未填寫")
+                    if i == 0: genset_line = f"{model} | S/N: {sn}"
+                    elif i == 1: alternator_line = f"{model} | S/N: {sn}"
+                    elif i == 2: controller_line = f"{model} | S/N: {sn}"
+                    elif i == 3: breaker_line = f"{model} | S/N: {sn}"
+                    elif i == 4: charger_line = f"{model} | S/N: {sn}"
+
+        st.markdown("**Project Specification:**")
+        st.markdown(f"• {power_line}")
+        st.markdown(f"• **Genset model:** {genset_line}")
+        st.markdown(f"• **Alternator Model:** {alternator_line}")
+        st.markdown(f"• **Controller:** {controller_line}")
+        st.markdown(f"• **Circuit breaker Size:** {breaker_line}")
+        st.markdown(f"• **Charger:** {charger_line}")
 
         # Description
         desc = row.get("Description", "")
@@ -270,7 +294,6 @@ def render_project_card(row, idx):
             st.session_state["delete_idx"] = idx
             st.session_state["show_delete_confirm"] = True
 
-    # Delete 確認
     delete_placeholder = st.empty()
     if st.session_state.get("show_delete_confirm", False) and st.session_state.get("delete_idx") == idx:
         with delete_placeholder.container():
@@ -296,7 +319,7 @@ def render_project_card(row, idx):
         delete_placeholder.empty()
 
 # ==============================================
-# Edit Project Specification Dialog（加入額外欄位）
+# Edit Project Specification Dialog（所有欄位統一在上）
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -309,10 +332,10 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
         curr_spec = row_to_edit.get("Project_Spec", "")
         visible_spec = curr_spec.split("||EXTRA||")[0] if "||EXTRA||" in curr_spec else curr_spec
-        hidden_extra = {}
+        extra_data = {"prime": "", "standby": "", "hz": "50", "voltage": "400"}
         if "||EXTRA||" in curr_spec:
             try:
-                hidden_extra = json.loads(curr_spec.split("||EXTRA||")[1])
+                extra_data = json.loads(curr_spec.split("||EXTRA||")[1])
             except:
                 pass
 
@@ -322,13 +345,26 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 if line.strip():
                     parts = line.split(" | S/N: ")
                     model_part = parts[0]
-                    model = model_part.split(": ", 1)[1] if ": " in model_part else model_part
+                    model = model_part.split(": ", 1)[1] if ": " in model_part else "—"
                     sn = parts[1] if len(parts) > 1 else "—"
                     lines.append([model, sn])
         while len(lines) < 5:
-            lines.append(["", "—"])
+            lines.append(["—", "—"])
 
-        # 主要 5 項
+        # Prime / Standby / Hz / Voltage 在最上面
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            e_prime = st.text_input("Prime (KW)", value=extra_data.get("prime", ""), key=f"edit_prime_{idx_to_edit}")
+            e_hz = st.selectbox("Hz", ["50", "60"], index=0 if extra_data.get("hz","50")=="50" else 1, key=f"edit_hz_{idx_to_edit}")
+        with col_p2:
+            e_standby = st.text_input("Standby (KW)", value=extra_data.get("standby", ""), key=f"edit_standby_{idx_to_edit}")
+            e_voltage = st.selectbox("Voltage", ["380","400","415","440","480"],
+                                     index=["380","400","415","440","480"].index(extra_data.get("voltage","400")),
+                                     key=f"edit_voltage_{idx_to_edit}")
+
+        st.markdown("---")
+
+        # 原本 5 項
         row1 = st.columns(2)
         with row1[0]: e_s1 = st.text_input("Genset model(發動機型號)", value=lines[0][0], key=f"edit_genset_{idx_to_edit}")
         with row1[1]: e_s1_sn = st.text_input("S/N", value=lines[0][1], key=f"edit_genset_sn_{idx_to_edit}")
@@ -349,19 +385,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
         with row5[0]: e_s5 = st.text_input("Charger(充電機)", value=lines[4][0], key=f"edit_charger_{idx_to_edit}")
         with row5[1]: e_s5_sn = st.text_input("S/N", value=lines[4][1], key=f"edit_charger_sn_{idx_to_edit}")
 
-        st.markdown("---")
-        st.markdown("**額外規格（僅供內部記錄，不會顯示在卡片上）**")
-
-        col_extra1, col_extra2 = st.columns(2)
-        with col_extra1:
-            e_prime = st.text_input("Prime (KW)", value=hidden_extra.get("prime", ""), key=f"edit_prime_{idx_to_edit}")
-            e_hz = st.selectbox("Hz", ["50", "60"], index=0 if hidden_extra.get("hz", "50") == "50" else 1, key=f"edit_hz_{idx_to_edit}")
-        with col_extra2:
-            e_standby = st.text_input("Standby (KW)", value=hidden_extra.get("standby", ""), key=f"edit_standby_{idx_to_edit}")
-            e_voltage = st.selectbox("Voltage", ["380", "400", "415", "440", "480"],
-                                     index=["380", "400", "415", "440", "480"].index(hidden_extra.get("voltage", "400")),
-                                     key=f"edit_voltage_{idx_to_edit}")
-
         e_desc = st.text_area("Description", value=row_to_edit.get("Description","") or "", height=150, key=f"edit_desc_{idx_to_edit}")
 
         if st.button("Save & Close", type="primary", use_container_width=True):
@@ -372,13 +395,13 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
                 f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
             ])
-            extra_data = json.dumps({
+            extra_json = json.dumps({
                 "prime": e_prime.strip(),
                 "standby": e_standby.strip(),
                 "hz": e_hz,
                 "voltage": e_voltage
             })
-            df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_data
+            df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_json
             df.at[idx_to_edit, "Description"] = e_desc.strip()
             save_projects()
             st.cache_data.clear()
@@ -471,13 +494,13 @@ with st.sidebar:
                     f"Circuit breaker Size: {spec_data['breaker']} | S/N: {spec_data['breaker_sn']}",
                     f"Charger: {spec_data['charger']} | S/N: {spec_data['charger_sn']}"
                 ]
-                extra_data = json.dumps({
+                extra_json = json.dumps({
                     "prime": spec_data.get("prime", ""),
                     "standby": spec_data.get("standby", ""),
                     "hz": spec_data.get("hz", "50"),
                     "voltage": spec_data.get("voltage", "400")
                 })
-                spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_data
+                spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_json
 
                 new_project = {
                     "Project_Type": new_type, "Project_Name": new_name, "Year": int(new_year),
@@ -503,6 +526,17 @@ with st.sidebar:
     def spec_dialog():
         st.markdown("**請填寫專案規格**")
 
+        # Prime / Standby / Hz / Voltage 在最上面
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            s_prime = st.text_input("Prime (KW)", key="dlg_prime")
+            s_hz = st.selectbox("Hz", ["50", "60"], key="dlg_hz")
+        with col_p2:
+            s_standby = st.text_input("Standby (KW)", key="dlg_standby")
+            s_voltage = st.selectbox("Voltage", ["380","400","415","440","480"], key="dlg_voltage")
+
+        st.markdown("---")
+
         row1 = st.columns(2)
         with row1[0]: s_genset = st.text_input("Genset model(發動機型號)", key="dlg_new_genset")
         with row1[1]: s_genset_sn = st.text_input("S/N", key="dlg_new_genset_sn")
@@ -522,16 +556,6 @@ with st.sidebar:
         row5 = st.columns(2)
         with row5[0]: s_charger = st.text_input("Charger(充電機)", key="dlg_new_charger")
         with row5[1]: s_charger_sn = st.text_input("S/N", key="dlg_new_charger_sn")
-
-        st.markdown("---")
-        st.markdown("**額外規格（僅供內部記錄）**")
-        col_e1, col_e2 = st.columns(2)
-        with col_e1:
-            s_prime = st.text_input("Prime (KW)", key="dlg_prime")
-            s_hz = st.selectbox("Hz", ["50", "60"], key="dlg_hz")
-        with col_e2:
-            s_standby = st.text_input("Standby (KW)", key="dlg_standby")
-            s_voltage = st.selectbox("Voltage", ["380", "400", "415", "440", "480"], key="dlg_voltage")
 
         desc = st.text_area("Description", height=150, key="dlg_new_desc")
 
@@ -582,12 +606,11 @@ else:
             ]
     page_title = "YIP SHING Project Dashboard"
 
-# 日曆模式（保持不變）
 if st.session_state.view_mode == "calendar":
-    # ...（原程式碼不變）
+    # 原日曆程式碼（保持不變）
     st.stop()
 
-# 主畫面顯示
+# 主畫面
 st.markdown(f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>", unsafe_allow_html=True)
 
 if len(filtered_df) == 0:
