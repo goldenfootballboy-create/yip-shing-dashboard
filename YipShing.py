@@ -149,7 +149,7 @@ def render_project_card(row, idx):
     reminder_display = f'<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:bold; font-size:0.8rem; color:white; text-shadow:1px 1px 3px black; pointer-events:none; z-index:10;">{reminder_text}</div>'
 
     st.markdown(f"""
-    <div style="background: linear_gradient(to right, {color} {pct}%, #f0f0f0 {pct}%); 
+    <div style="background: linear-gradient(to right, {color} {pct}%, #f0f0f0 {pct}%); 
                 border-radius: 8px; padding: 10px 15px; margin: 10px 0; 
                 box-shadow: 0 2px 6px rgba(0,0,0,0.1); position: relative; overflow:hidden;">
         {reminder_display}
@@ -259,7 +259,7 @@ def render_project_card(row, idx):
         if st.button("Edit Project Spec.", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
             st.session_state["current_edit_idx"] = idx
             st.session_state["show_edit_spec_dialog"] = True
-            st.rerun()  # 強制刷新以開啟 dialog
+            st.rerun()
     with col_delete:
         if st.button("Delete", key=f"del_{idx}", type="secondary", use_container_width=True):
             st.session_state["delete_idx"] = idx
@@ -290,7 +290,7 @@ def render_project_card(row, idx):
         delete_placeholder.empty()
 
 # ==============================================
-# 統一處理 Edit Project Spec. 彈出視窗（支援 X 關閉不儲存）
+# 統一處理 Edit Project Spec. 彈出視窗（強制只能按 Save & Close 關閉）
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -299,6 +299,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     @st.dialog("Edit Project Specification", width="large")
     def edit_spec_dialog():
         st.markdown(f"**Editing Specification for: {row_to_edit['Project_Name']}**")
+        st.markdown("**請填寫完畢後按「Save & Close」儲存並關閉**")
 
         curr_spec = row_to_edit.get("Project_Spec", "")
         lines = []
@@ -345,35 +346,29 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
         e_desc = st.text_area("Description", value=row_to_edit.get("Description","") or "", height=150, key=f"edit_desc_{idx_to_edit}")
 
-        col_save, col_cancel = st.columns(2)
-        with col_save:
-            if st.button("Save & Close", type="primary", use_container_width=True):
-                new_spec = "\n".join([
-                    f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
-                    f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
-                    f"Controller: {e_s3 or '—'} | S/N: {e_s3_sn or '—'}",
-                    f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
-                    f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
-                ])
-                df.at[idx_to_edit, "Project_Spec"] = new_spec
-                df.at[idx_to_edit, "Description"] = e_desc or ""
-                save_projects()
-                st.cache_data.clear()
-                st.success("Specification 已更新！")
-                st.session_state["show_edit_spec_dialog"] = False
-                st.rerun()
+        st.markdown("**注意：必須按下方「Save & Close」才能儲存並關閉視窗**")
+        if st.button("Save & Close", type="primary", use_container_width=True):
+            new_spec = "\n".join([
+                f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
+                f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
+                f"Controller: {e_s3 or '—'} | S/N: {e_s3_sn or '—'}",
+                f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
+                f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
+            ])
+            df.at[idx_to_edit, "Project_Spec"] = new_spec
+            df.at[idx_to_edit, "Description"] = e_desc or ""
+            save_projects()
+            st.cache_data.clear()
+            st.success("Specification 已更新！")
+            st.session_state["show_edit_spec_dialog"] = False
+            st.rerun()
 
-        with col_cancel:
-            if st.button("Cancel", type="secondary", use_container_width=True):
-                st.session_state["show_edit_spec_dialog"] = False
-                st.rerun()
-
+    # 呼叫 dialog
     result = edit_spec_dialog()
 
-    # 點右上角 X 關閉時，result = None，清除狀態
+    # 點右上角 X 時，result = None，什麼都不做（保持視窗開啟）
     if result is None:
-        st.session_state["show_edit_spec_dialog"] = False
-        st.rerun()
+        pass  # 強制保持開啟，直到按 Save & Close
 
 # ==============================================
 # 左側側邊欄 & New Project
