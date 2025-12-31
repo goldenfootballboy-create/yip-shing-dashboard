@@ -222,8 +222,13 @@ def render_project_card(row, idx):
         st.markdown(f"• **Breaker Type:** {breaker_type} | S/N: —")
         st.markdown(f"• **Charger:** SmartGen 8A | S/N: — Breaker Rating: {breaker_rating} Poles: {poles} Spring Charging: {spring_charging} Control Voltage: {control_voltage}")
 
-        desc = row.get("Description", "")
-        st.markdown(f"**Description:** {desc.strip() if desc.strip() else '—'}")
+        # Description
+        desc_raw = row.get("Description")
+        if pd.isna(desc_raw):
+            desc = "—"
+        else:
+            desc = str(desc_raw).strip() or "—"
+        st.markdown(f"**Description:** {desc}")
 
         # Checklist Panel
         if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
