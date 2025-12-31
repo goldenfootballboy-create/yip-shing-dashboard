@@ -704,15 +704,65 @@ if st.session_state.get("spec_dialog_open", False):
     spec_dialog()
 
 # ==============================================
-# New Project Form
+# New Project Form - 加上唯一 key
 # ==============================================
 with st.sidebar:
     st.header("View Controls")
-    # ... (原有的 View Controls 按鈕)
+    if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
+        st.session_state.view_mode = "all"
+    if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
+        st.session_state.view_mode = "delay"
+    if st.button("📅Calendar", use_container_width=True, type="primary", key="btn_calendar"):
+        st.session_state.view_mode = "calendar"
 
+    if "view_mode" not in st.session_state:
+        st.session_state.view_mode = "all"
+
+    st.markdown("---")
+    st.markdown("### Search Project Name")
+    search_term = st.text_input("Enter Project Name (partial match)", value="", key="search_input", label_visibility="collapsed")
+
+    st.markdown("---")
+    project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
+    years = [2024, 2025, 2026]
+    month_names = ["All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    if st.session_state.view_mode == "all":
+        st.markdown("### Filters")
+        selected_type = st.selectbox("Project Type", project_types, index=project_types.index("All"), key="filter_type")
+        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="filter_year")
+        selected_month = st.selectbox("Month", month_names, index=month_names.index("All"), key="filter_month")
+    else:
+        selected_type = "All"
+        selected_year = date.today().year
+        selected_month = "All"
+
+    st.markdown("---")
     st.header("New Project")
+
     with st.form("add_form", clear_on_submit=True):
-        # ... (原有欄位)
+        c1, c2 = st.columns(2)
+        with c1:
+            new_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"], key="new_type")
+            new_name = st.text_input("Project Name*", key="new_name")
+            new_year = st.selectbox("Year*", [2024,2025,2026], index=1, key="new_year")
+            new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
+        with c2:
+            new_customer = st.text_input("Customer", key="new_customer")
+            new_supervisor = st.text_input("Supervisor", key="new_supervisor")
+            new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
+
+        st.markdown("**Progress Dates**")
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            d1 = st.date_input("Parts Arrival", value=None, key="d1")
+            d2 = st.date_input("Installation Complete", value=None, key="d2")
+            d3 = st.date_input("Testing Complete", value=None, key="d3")
+        with col_d2:
+            d4 = st.date_input("Cleaning Complete", value=None, key="d4")
+            d5 = st.date_input("Delivery Complete", value=None, key="d5")
+
+        reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
 
         if st.form_submit_button("Add", type="primary", use_container_width=True):
             if not new_name.strip():
@@ -753,9 +803,69 @@ with st.sidebar:
                 st.rerun()
 
 # ==============================================
-# 篩選與主畫面
+# 篩選邏輯 & 主畫面
 # ==============================================
-# ... (原有的篩選、日曆、主畫面程式碼保持不變)
+today = date.today()
+filtered_df = df.copy()
+
+has_search = search_term.strip() != ""
+if has_search:
+    search_term_lower = search_term.strip().lower()
+    filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
+
+if st.session_state.view_mode == "delay":
+    filtered_df = filtered_df[
+        filtered_df["Lead_Time"].notna() &
+        (filtered_df["Lead_Time"] < pd.Timestamp(today)) &
+        (filtered_df.apply(calculate_progress, axis=1) < 100)
+    ]
+    page_title = "Delay Projects"
+else:
+    if not has_search:
+        if selected_type != "All":
+            filtered_df = filtered_df[filtered_df["Project_Type"] == selected_type]
+        filtered_df = filtered_df[filtered_df["Year"] == selected_year]
+        if selected_month != "All":
+            month_map = {"Jan":1,"Feb":2,"Mar":3,"Apr":4,"May":5,"Jun":6,"Jul":7,"Aug":8,"Sep":9,"Oct":10,"Nov":11,"Dec":12}
+            filtered_df = filtered_df[
+                filtered_df["Lead_Time"].notna() &
+                (filtered_df["Lead_Time"].dt.month == month_map[selected_month])
+            ]
+    page_title = "YIP SHING Project Dashboard"
+
+if st.session_state.view_mode == "calendar":
+    st.stop()
+
+st.markdown(f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>", unsafe_allow_html=True)
+
+if len(filtered_df) == 0:
+    if st.session_state.view_mode == "delay":
+        st.success("No delay projects! All on time!")
+    else:
+        st.info("No projects match the selected filters or search term.")
+else:
+    progress_series = filtered_df.apply(calculate_progress, axis=1)
+    filtered_df = filtered_df.assign(Progress=progress_series).sort_values(by="Progress", ascending=False).drop(columns="Progress")
+
+    counter = filtered_df.groupby("Project_Type")["Qty"].sum().astype(int).sort_index()
+    total_qty = int(filtered_df["Qty"].sum())
+    st.markdown(f"""
+    <div style="position:fixed; top:70px; right:20px; background:#1e3a8a; color:white; padding:12px 18px; 
+                border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:1000; font-size:0.9rem; text-align:center;">
+        <strong style="font-size:1.1rem;">Total: {total_qty}</strong><br>
+        {"<br>".join([f"<strong>{k}:</strong> {v}" for k, v in counter.items()])}
+    </div>
+    """, unsafe_allow_html=True)
+
+    rows = filtered_df.to_dict('records')
+    for i in range(0, len(rows), 2):
+        col1, col2 = st.columns(2)
+        with col1:
+            if i < len(rows):
+                render_project_card(rows[i], filtered_df.index[i])
+        with col2:
+            if i + 1 < len(rows):
+                render_project_card(rows[i + 1], filtered_df.index[i + 1])
 
 st.markdown("---")
 st.caption("Projects Management System")
