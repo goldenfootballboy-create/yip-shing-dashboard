@@ -672,7 +672,7 @@ with st.sidebar:
         st.session_state.spec_dialog_open = True
 
 # ==============================================
-# New Project Specification Dialog - 用橫線分區 + "--" 選項
+# Edit Project Info Dialog - 修正 date_input NaT 問題
 # ==============================================
 if st.session_state.get("show_edit_info_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -698,12 +698,20 @@ if st.session_state.get("show_edit_info_dialog", False):
         st.markdown("**Progress Dates**")
         col_d1, col_d2 = st.columns(2)
         with col_d1:
-            e_parts_arrival = st.date_input("Parts Arrival", value=row_to_edit.get("Parts_Arrival"), key=f"edit_info_parts_{idx_to_edit}")
-            e_install_complete = st.date_input("Installation Complete", value=row_to_edit.get("Installation_Complete"), key=f"edit_info_install_{idx_to_edit}")
-            e_testing_complete = st.date_input("Testing Complete", value=row_to_edit.get("Testing_Complete"), key=f"edit_info_testing_{idx_to_edit}")
+            parts_val = None if pd.isna(row_to_edit.get("Parts_Arrival")) else row_to_edit["Parts_Arrival"]
+            e_parts_arrival = st.date_input("Parts Arrival", value=parts_val, key=f"edit_info_parts_{idx_to_edit}")
+
+            install_val = None if pd.isna(row_to_edit.get("Installation_Complete")) else row_to_edit["Installation_Complete"]
+            e_install_complete = st.date_input("Installation Complete", value=install_val, key=f"edit_info_install_{idx_to_edit}")
+
+            testing_val = None if pd.isna(row_to_edit.get("Testing_Complete")) else row_to_edit["Testing_Complete"]
+            e_testing_complete = st.date_input("Testing Complete", value=testing_val, key=f"edit_info_testing_{idx_to_edit}")
         with col_d2:
-            e_cleaning_complete = st.date_input("Cleaning Complete", value=row_to_edit.get("Cleaning_Complete"), key=f"edit_info_cleaning_{idx_to_edit}")
-            e_delivery_complete = st.date_input("Delivery Complete", value=row_to_edit.get("Delivery_Complete"), key=f"edit_info_delivery_{idx_to_edit}")
+            cleaning_val = None if pd.isna(row_to_edit.get("Cleaning_Complete")) else row_to_edit["Cleaning_Complete"]
+            e_cleaning_complete = st.date_input("Cleaning Complete", value=cleaning_val, key=f"edit_info_cleaning_{idx_to_edit}")
+
+            delivery_val = None if pd.isna(row_to_edit.get("Delivery_Complete")) else row_to_edit["Delivery_Complete"]
+            e_delivery_complete = st.date_input("Delivery Complete", value=delivery_val, key=f"edit_info_delivery_{idx_to_edit}")
 
         e_reminder = st.text_input("Progress Reminder (顯示在進度條中間)", value=row_to_edit.get("Progress_Reminder", ""), key=f"edit_info_reminder_{idx_to_edit}")
 
@@ -722,11 +730,11 @@ if st.session_state.get("show_edit_info_dialog", False):
                 df.at[idx_to_edit, "Qty"] = e_qty
                 df.at[idx_to_edit, "Real_Count"] = e_qty
                 df.at[idx_to_edit, "Progress_Reminder"] = e_reminder
-                df.at[idx_to_edit, "Parts_Arrival"] = e_parts_arrival
-                df.at[idx_to_edit, "Installation_Complete"] = e_install_complete
-                df.at[idx_to_edit, "Testing_Complete"] = e_testing_complete
-                df.at[idx_to_edit, "Cleaning_Complete"] = e_cleaning_complete
-                df.at[idx_to_edit, "Delivery_Complete"] = e_delivery_complete
+                df.at[idx_to_edit, "Parts_Arrival"] = e_parts_arrival if e_parts_arrival else None
+                df.at[idx_to_edit, "Installation_Complete"] = e_install_complete if e_install_complete else None
+                df.at[idx_to_edit, "Testing_Complete"] = e_testing_complete if e_testing_complete else None
+                df.at[idx_to_edit, "Cleaning_Complete"] = e_cleaning_complete if e_cleaning_complete else None
+                df.at[idx_to_edit, "Delivery_Complete"] = e_delivery_complete if e_delivery_complete else None
 
                 with st.spinner("正在儲存至 Google Sheets，請稍候..."):
                     save_projects()
