@@ -140,7 +140,7 @@ def render_project_card(row, idx):
     reminder_display = f'<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:bold; font-size:0.8rem; color:white; text-shadow:1px 1px 3px black; pointer-events:none; z-index:10;">{reminder_text}</div>'
 
     st.markdown(f"""
-    <div style="background: linear_gradient(to right, {color} {pct}%, #f0f0f0 {pct}%); 
+    <div style="background: linear-gradient(to right, {color} {pct}%, #f0f0f0 {pct}%); 
                 border-radius: 8px; padding: 10px 15px; margin: 10px 0; 
                 box-shadow: 0 2px 6px rgba(0,0,0,0.1); position: relative; overflow:hidden;">
         {reminder_display}
@@ -274,7 +274,7 @@ def render_project_card(row, idx):
                 st.success("Checklist 已永久儲存到 Google Sheets！")
                 st.rerun()
 
-    # 按鈕區域 - 三個按鈕
+    # 按鈕區域
     col_edit_spec, col_edit_info, col_delete = st.columns(3)
     with col_edit_spec:
         if st.button("Edit Project Spec.", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
@@ -291,7 +291,6 @@ def render_project_card(row, idx):
             st.session_state["delete_idx"] = idx
             st.session_state["show_delete_confirm"] = True
 
-    # Delete 確認
     delete_placeholder = st.empty()
     if st.session_state.get("show_delete_confirm", False) and st.session_state.get("delete_idx") == idx:
         with delete_placeholder.container():
@@ -636,113 +635,42 @@ with st.sidebar:
             elif new_name in df["Project_Name"].values:
                 st.error("Name exists!")
             else:
-                # 暫存基本資訊
-                st.session_state.temp_project = {
-                    "Project_Type": new_type,
-                    "Project_Name": new_name,
-                    "Year": int(new_year),
-                    "Lead_Time": new_leadtime,
-                    "Customer": new_customer or "",
-                    "Supervisor": new_supervisor or "",
-                    "Qty": new_qty,
-                    "Real_Count": new_qty,
-                    "Progress_Reminder": reminder or "",
-                    "Parts_Arrival": d1 if d1 else None,
-                    "Installation_Complete": d2 if d2 else None,
-                    "Testing_Complete": d3 if d3 else None,
-                    "Cleaning_Complete": d4 if d4 else None,
-                    "Delivery_Complete": d5 if d5 else None
+                spec_data = st.session_state.get("spec_data", {})
+
+                visible_lines = [
+                    f"Genset model: {spec_data.get('genset_model', '—')} | S/N: {spec_data.get('genset_sn', '—')}",
+                    f"Alternator Model: {spec_data.get('alt_model', '—')} | S/N: {spec_data.get('alt_sn', '—')}",
+                    f"Panel model: {spec_data.get('panel_model', '—')} | S/N: {spec_data.get('panel_sn', '—')}",
+                    f"Breaker Type: {spec_data.get('breaker_type', '—') if spec_data.get('breaker_type', '') != '--' else '—'}"
+                ]
+                extra_json = json.dumps(spec_data, ensure_ascii=False)
+                spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_json
+
+                new_project = {
+                    "Project_Type": new_type, "Project_Name": new_name, "Year": int(new_year),
+                    "Lead_Time": new_leadtime, "Customer": new_customer or "", "Supervisor": new_supervisor or "",
+                    "Qty": new_qty, "Real_Count": new_qty, "Project_Spec": spec_text, "Description": spec_data.get("desc", ""),
+                    "Progress_Reminder": reminder or "", "Parts_Arrival": d1, "Installation_Complete": d2,
+                    "Testing_Complete": d3, "Cleaning_Complete": d4, "Delivery_Complete": d5
                 }
-                # 清除舊規格資料
+                df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
+
+                with st.spinner("正在新增專案並儲存至 Google Sheets，請稍候..."):
+                    save_projects()
+                    st.cache_data.clear()
+
                 if "spec_data" in st.session_state:
                     del st.session_state.spec_data
-                # 自動開啟 Specification dialog
-                st.session_state.spec_dialog_open = True
+                if "spec_dialog_open" in st.session_state:
+                    del st.session_state.spec_dialog_open
+
+                st.success(f"已成功新增專案：{new_name}")
                 st.rerun()
 
     st.markdown("---")
-    # 手動開啟 Specification（備用）
-    if st.button("Project Specification (手動)", type="secondary", use_container_width=True):
+    if st.button("Project Specification", type="primary", use_container_width=True):
         st.session_state.spec_dialog_open = True
-        st.rerun()
 
-# ==============================================
-# Project Specification Dialog - Add 後自動彈出
-# ==============================================
-if st.session_state.get("spec_dialog_open", False):
-    @st.dialog("Project Specification", width="large")
-    def spec_dialog():
-        st.markdown("**請填寫專案規格**")
-
-        # (你的完整規格輸入介面，保持不變)
-
-        # Prime & Standby + Voltage/Frequency/RPM
-        st.markdown("### Prime & Standby Power")
-        col1, col2 = st.columns(2)
-        with col1:
-            s_prime = st.text_input("Prime (kW)", key="dlg_prime")
-            s_voltage = st.selectbox("Voltage(電壓)", ["--", "380", "400", "415", "440", "480"], key="dlg_voltage")
-            s_frequency = st.selectbox("Frequency(頻率)", ["--", "50Hz", "60Hz"], key="dlg_frequency")
-        with col2:
-            s_standby = st.text_input("Standby (kW)", key="dlg_standby")
-            s_rpm = st.selectbox("RPM(轉速)", ["--", "1500", "1800"], key="dlg_rpm")
-
-        st.markdown("---")
-
-        # 其他區塊（保持你之前的完整程式碼）
-
-        desc = st.text_area("Description", height=150, key="dlg_desc")
-
-        if st.button("Save & Close", type="primary", use_container_width=True):
-            # 建立規格資料
-            spec_data = {
-                "prime": s_prime.strip(),
-                "standby": s_standby.strip(),
-                "voltage": s_voltage if s_voltage != "--" else "",
-                "frequency": s_frequency if s_frequency != "--" else "",
-                "rpm": s_rpm if s_rpm != "--" else "",
-                # (其他欄位同樣處理)
-                "desc": desc.strip()
-            }
-
-            # 取得暫存的基本資訊
-            temp_project = st.session_state.get("temp_project")
-            if not temp_project:
-                st.error("基本資訊遺失，請重新開始新增")
-                st.stop()
-
-            # 建立 visible 規格
-            visible_lines = [
-                f"Genset model: {spec_data.get('genset_model', '—')} | S/N: {spec_data.get('genset_sn', '—')}",
-                f"Alternator Model: {spec_data.get('alt_model', '—')} | S/N: {spec_data.get('alt_sn', '—')}",
-                f"Panel model: {spec_data.get('panel_model', '—')} | S/N: {spec_data.get('panel_sn', '—')}",
-                f"Breaker Type: {spec_data.get('breaker_type', '—') if spec_data.get('breaker_type', '') != '--' else '—'}"
-            ]
-            extra_json = json.dumps(spec_data, ensure_ascii=False)
-            spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_json
-
-            # 合併最終專案
-            new_project = {
-                **temp_project,
-                "Project_Spec": spec_text,
-                "Description": spec_data.get("desc", "")
-            }
-
-            global df
-            df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
-
-            with st.spinner("正在儲存專案至 Google Sheets，請稍候..."):
-                save_projects()
-                st.cache_data.clear()
-
-            st.success(f"已成功新增專案：{new_project['Project_Name']}")
-            # 清除暫存
-            if "temp_project" in st.session_state:
-                del st.session_state.temp_project
-            st.session_state.spec_dialog_open = False
-            st.rerun()
-
-    spec_dialog()
 # ==============================================
 # Edit Project Info Dialog - 修正 date_input NaT 問題
 # ==============================================
