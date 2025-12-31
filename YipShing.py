@@ -178,58 +178,60 @@ def render_project_card(row, idx):
 
         # 解析 Project_Spec
         spec_text = row.get("Project_Spec", "")
-        power_line = "Prime: — Standby: — — —"
-        genset_line = alternator_line = controller_line = breaker_line = charger_line = "— | S/N: —"
+        visible_spec = spec_text.split("||EXTRA||")[0] if "||EXTRA||" in spec_text else spec_text
+        extra_data = {}
+        if "||EXTRA||" in spec_text:
+            try:
+                extra_data = json.loads(spec_text.split("||EXTRA||")[1])
+            except:
+                pass
 
-        if spec_text and spec_text.strip():
-            visible_part = spec_text.split("||EXTRA||")[0] if "||EXTRA||" in spec_text else spec_text
+        prime = extra_data.get("prime", "").strip() or "—"
+        standby = extra_data.get("standby", "").strip() or "—"
 
-            # 提取 Prime / Standby / Hz / Voltage
-            if "||EXTRA||" in spec_text:
-                try:
-                    extra_part = spec_text.split("||EXTRA||")[1]
-                    extra_data = json.loads(extra_part.strip())
-                    prime = f"{extra_data.get('prime','').strip()}kW" if extra_data.get('prime','').strip() else "—"
-                    standby = f"{extra_data.get('standby','').strip()}kW" if extra_data.get('standby','').strip() else "—"
-                    hz = f"{extra_data.get('hz','')}Hz" if extra_data.get('hz') else "—"
-                    voltage = f"{extra_data.get('voltage','')}V" if extra_data.get('voltage') else "—"
-                    power_line = f"Prime: {prime} Standby: {standby} {hz} {voltage}"
-                except:
-                    power_line = "Prime: — Standby: — — —"
+        genset = alternator = panel = breaker_type = "—"
+        genset_sn = alternator_sn = panel_sn = "—"
 
-            # 提取 5 項規格
-            lines = visible_part.strip().split("\n")
-            items = ["Genset model", "Alternator Model", "Controller", "Circuit breaker Size", "Charger"]
-            for i, line in enumerate(lines):
-                if i < len(items) and line.strip():
-                    parts = line.split(" | S/N: ")
-                    model_part = parts[0]
-                    model = model_part.split(": ", 1)[1] if ": " in model_part else "—"
-                    sn = parts[1] if len(parts) > 1 else "—"
-                    if i == 0: genset_line = f"{model} | S/N: {sn}"
-                    elif i == 1: alternator_line = f"{model} | S/N: {sn}"
-                    elif i == 2: controller_line = f"{model} | S/N: {sn}"
-                    elif i == 3: breaker_line = f"{model} | S/N: {sn}"
-                    elif i == 4: charger_line = f"{model} | S/N: {sn}"
+        breaker_rating = extra_data.get("breaker_rating", "—")
+        poles = extra_data.get("poles", "—")
+        spring_charging = extra_data.get("spring_charging", "—")
+        control_voltage = extra_data.get("control_voltage", "—")
+
+        lines = visible_spec.strip().split("\n") if visible_spec.strip() else []
+        for line in lines:
+            if "Genset model:" in line:
+                parts = line.split(" | S/N: ")
+                genset = parts[0].split(": ")[1] if ": " in parts[0] else "—"
+                genset_sn = parts[1] if len(parts) > 1 else "—"
+            elif "Alternator Model:" in line:
+                parts = line.split(" | S/N: ")
+                alternator = parts[0].split(": ")[1] if ": " in parts[0] else "—"
+                alternator_sn = parts[1] if len(parts) > 1 else "—"
+            elif "Panel model:" in line:
+                parts = line.split(" | S/N: ")
+                panel = parts[0].split(": ")[1] if ": " in parts[0] else "—"
+                panel_sn = parts[1] if len(parts) > 1 else "—"
+            elif "Breaker Type:" in line:
+                breaker_type = line.split(": ")[1] if ": " in line else "—"
 
         st.markdown("**Project Specification:**")
-        st.markdown(f"• {power_line}")
-        st.markdown(f"• **Genset model:** {genset_line}")
-        st.markdown(f"• **Alternator Model:** {alternator_line}")
-        st.markdown(f"• **Controller:** {controller_line}")
-        st.markdown(f"• **Circuit breaker Size:** {breaker_line}")
-        st.markdown(f"• **Charger:** {charger_line}")
+        st.markdown(f"• Prime: {prime} Standby: {standby}")
+        st.markdown(f"• **Genset model:** {genset} | S/N: {genset_sn}")
+        st.markdown(f"• **Alternator Model:** {alternator} | S/N: {alternator_sn}")
+        st.markdown(f"• **Panel model:** {panel} | S/N: {panel_sn}")
+        st.markdown(f"• **Breaker Type:** {breaker_type} | S/N: —")
+        st.markdown(f"• **Charger:** SmartGen 8A | S/N: — Breaker Rating: {breaker_rating} Poles: {poles} Spring Charging: {spring_charging} Control Voltage: {control_voltage}")
 
-        # Description
         desc = row.get("Description", "")
-        st.markdown(f"**Description:** {desc.strip() if not pd.isna(desc) and desc.strip() else '—'}")
+        st.markdown(f"**Description:** {desc.strip() if desc.strip() else '—'}")
 
-        # Checklist Panel（保持不變）
+        # Checklist Panel
         if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
             st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
 
         if st.session_state.get(f"cl_open_{idx}", False):
-            current = checklist_db.get(project_name, {"purchase": [], "done_p": [], "drawing": [], "done_d": []})
+            current = checklist_db.get(project_name, {"purchase": [],"done_p": [],"drawing": [],"done_d": []})
+
             st.markdown("<h4 style='text-align:center;'>Purchase List        Drawings Submission</h4>", unsafe_allow_html=True)
 
             new_purchase = []
@@ -315,7 +317,7 @@ def render_project_card(row, idx):
         delete_placeholder.empty()
 
 # ==============================================
-# Edit Project Specification Dialog
+# Edit Project Specification Dialog - 用橫線分區
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -324,79 +326,192 @@ if st.session_state.get("show_edit_spec_dialog", False):
     @st.dialog("Edit Project Specification", width="large")
     def edit_spec_dialog():
         st.markdown(f"**Editing Specification for: {row_to_edit['Project_Name']}**")
-        st.markdown("**請填寫完畢後按「Save & Close」儲存並關閉**")
 
         curr_spec = row_to_edit.get("Project_Spec", "")
         visible_spec = curr_spec.split("||EXTRA||")[0] if "||EXTRA||" in curr_spec else curr_spec
-        extra_data = {"prime": "", "standby": "", "hz": "50", "voltage": "400"}
+        extra_data = {}
         if "||EXTRA||" in curr_spec:
             try:
                 extra_data = json.loads(curr_spec.split("||EXTRA||")[1])
             except:
                 pass
 
-        lines = []
-        if visible_spec.strip():
-            for line in visible_spec.strip().split("\n"):
-                if line.strip():
-                    parts = line.split(" | S/N: ")
-                    model_part = parts[0]
-                    model = model_part.split(": ", 1)[1] if ": " in model_part else "—"
-                    sn = parts[1] if len(parts) > 1 else "—"
-                    lines.append([model, sn])
-        while len(lines) < 5:
-            lines.append(["—", "—"])
+        def get(key, default=""):
+            return extra_data.get(key, default)
 
-        # Prime / Standby / Hz / Voltage 在最上面
-        col_p1, col_p2 = st.columns(2)
-        with col_p1:
-            e_prime = st.text_input("Prime (KW)", value=extra_data.get("prime", ""), key=f"edit_prime_{idx_to_edit}")
-            e_hz = st.selectbox("Hz", ["50", "60"], index=0 if extra_data.get("hz","50")=="50" else 1, key=f"edit_hz_{idx_to_edit}")
-        with col_p2:
-            e_standby = st.text_input("Standby (KW)", value=extra_data.get("standby", ""), key=f"edit_standby_{idx_to_edit}")
-            e_voltage = st.selectbox("Voltage", ["380","400","415","440","480"],
-                                     index=["380","400","415","440","480"].index(extra_data.get("voltage","400")),
-                                     key=f"edit_voltage_{idx_to_edit}")
+        # Prime & Standby
+        st.markdown("### Prime & Standby Power")
+        col_ps = st.columns(2)
+        with col_ps[0]:
+            e_prime = st.text_input("Prime (kW)", value=get("prime", ""))
+        with col_ps[1]:
+            e_standby = st.text_input("Standby (kW)", value=get("standby", ""))
 
         st.markdown("---")
 
-        # 原本 5 項規格
-        row1 = st.columns(2)
-        with row1[0]: e_s1 = st.text_input("Genset model(發動機型號)", value=lines[0][0], key=f"edit_genset_{idx_to_edit}")
-        with row1[1]: e_s1_sn = st.text_input("S/N", value=lines[0][1], key=f"edit_genset_sn_{idx_to_edit}")
+        # Engine 發動機
+        st.markdown("**Engine 發動機**")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            e_genset_model = st.text_input("Genset model(發動機型號)", value=get("genset_model", ""))
+        with col2:
+            e_genset_sn = st.text_input("S/N", value=get("genset_sn", ""))
+        with col3:
+            e_engine_color = st.text_input("Color(顏色)", value=get("engine_color", ""))
+        with col4:
+            e_engine_year = st.text_input("Year(年份)", value=get("engine_year", ""))
+        e_engine_heater = st.text_input("Engine Heater(發動機加熱器) kW", value=get("engine_heater", ""))
 
-        row2 = st.columns(2)
-        with row2[0]: e_s2 = st.text_input("Alternator Model(電球)", value=lines[1][0], key=f"edit_alternator_{idx_to_edit}")
-        with row2[1]: e_s2_sn = st.text_input("S/N", value=lines[1][1], key=f"edit_alternator_sn_{idx_to_edit}")
+        st.markdown("---")
 
-        row3 = st.columns(2)
-        with row3[0]: e_s3 = st.text_input("Controller(控制器)", value=lines[2][0], key=f"edit_controller_{idx_to_edit}")
-        with row3[1]: e_s3_sn = st.text_input("S/N", value=lines[2][1], key=f"edit_controller_sn_{idx_to_edit}")
+        # Alternator (電球)
+        st.markdown("**Alternator (電球)**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            e_alt_model = st.text_input("Alternator Model(電球型號)", value=get("alt_model", ""))
+        with col2:
+            e_alt_sn = st.text_input("S/N", value=get("alt_sn", ""))
+        with col3:
+            e_alt_color = st.text_input("Color(顏色)", value=get("alt_color", ""))
+        col_d1, col_d2, col_d3 = st.columns(3)
+        with col_d1:
+            e_droop = st.selectbox("DroopKit", ["Include", "Not Include"], index=0 if get("droop", "Include") == "Include" else 1)
+        with col_d2:
+            e_pmg = st.text_input("PMG", value=get("pmg", ""))
+        with col_d3:
+            e_alt_heater = st.selectbox("Alternator Heater (交流發電機加熱器)", ["Include", "Not Include"], index=0 if get("alt_heater", "Include") == "Include" else 1)
 
-        row4 = st.columns(2)
-        with row4[0]: e_s4 = st.text_input("Circuit breaker Size(斷路器)", value=lines[3][0], key=f"edit_breaker_{idx_to_edit}")
-        with row4[1]: e_s4_sn = st.text_input("S/N", value=lines[3][1], key=f"edit_breaker_sn_{idx_to_edit}")
+        st.markdown("---")
 
-        row5 = st.columns(2)
-        with row5[0]: e_s5 = st.text_input("Charger(充電機)", value=lines[4][0], key=f"edit_charger_{idx_to_edit}")
-        with row5[1]: e_s5_sn = st.text_input("S/N", value=lines[4][1], key=f"edit_charger_sn_{idx_to_edit}")
+        # Radiator (水箱)
+        st.markdown("**Radiator (水箱)**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            e_rad_model = st.text_input("Radiator model(水箱型號)", value=get("rad_model", ""))
+        with col2:
+            e_rad_sn = st.text_input("S/N", value=get("rad_sn", ""))
+        with col3:
+            e_rad_temp = st.text_input("Temperature(温度)", value=get("rad_temp", ""))
+        e_fan_size = st.text_input("風扇呎吋", value=get("fan_size", ""))
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            e_coolant_sensor = st.selectbox("Coolant temperature sensor", ["Include", "Not Include"], index=0 if get("coolant_sensor", "Include") == "Include" else 1)
+        with col_s2:
+            e_low_water = st.selectbox("Low water level float switch", ["Include", "Not Include"], index=0 if get("low_water", "Include") == "Include" else 1)
 
-        e_desc = st.text_area("Description", value=row_to_edit.get("Description","") or "", height=150, key=f"edit_desc_{idx_to_edit}")
+        st.markdown("---")
+
+        # Base Frame (底架)
+        st.markdown("**Base Frame (底架)**")
+        e_base_model = st.text_input("Base Frame model(底架型號)", value=get("base_model", ""))
+        col_a1, col_a2 = st.columns(2)
+        with col_a1:
+            e_avm = st.text_input("Anti-Vibration Mount (避震腳)", value=get("avm", ""))
+        with col_a2:
+            e_avm_qty = st.number_input("Qty(數量)", min_value=0, value=int(get("avm_qty", 0)))
+
+        st.markdown("---")
+
+        # Container (貨櫃)
+        st.markdown("**Container (貨櫃)**")
+        col_c1, col_c2, col_c3 = st.columns(3)
+        with col_c1:
+            e_cont_size = st.selectbox("Size(呎吋)", ["20'ftHQ", "20'ftGP"], index=0 if get("cont_size", "20'ftHQ") == "20'ftHQ" else 1)
+        with col_c2:
+            e_cont_type = st.selectbox("Type(種類)", ["FIEO", "Motorized"], index=0 if get("cont_type", "FIEO") == "FIEO" else 1)
+        with col_c3:
+            e_cont_color = st.text_input("Color(顏色)", value=get("cont_color", ""))
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            e_fork_slot = st.selectbox("是否帶叉槽位", ["Yes", "No"], index=0 if get("fork_slot", "Yes") == "Yes" else 1)
+        with col_f2:
+            e_anti_noise = st.selectbox("Anti-Noise(78-80Dba @7M 75% loading)", ["Yes", "No"], index=0 if get("anti_noise", "Yes") == "Yes" else 1)
+        col_i1, col_i2 = st.columns(2)
+        with col_i1:
+            e_internal_silencer = st.selectbox("Internal Silencer (內部消聲器)", ["Include", "Not Include"], index=0 if get("internal_silencer", "Include") == "Include" else 1)
+        with col_i2:
+            e_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["Include", "Not Include"], index=0 if get("ss_locks", "Include") == "Include" else 1)
+        e_emergency_stop = st.selectbox("Emergency Stop Button (緊急暫停)", ["Include", "Not Include"], index=0 if get("emergency_stop", "Include") == "Include" else 1)
+
+        st.markdown("---")
+
+        # Panel (控制器)
+        st.markdown("**Panel (控制器)**")
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            e_panel_model = st.text_input("Panel model(控制器型號)", value=get("panel_model", ""))
+        with col_p2:
+            e_panel_sn = st.text_input("S/N", value=get("panel_sn", ""))
+        e_co_detector = st.selectbox("CO 探測器 (OLED)", ["Include", "Not Include"], index=0 if get("co_detector", "Include") == "Include" else 1)
+
+        st.markdown("---")
+
+        # Circuit Breaker (斷路器)
+        st.markdown("**Circuit Breaker (斷路器)**")
+        col_b1, col_b2 = st.columns(2)
+        with col_b1:
+            e_breaker_type = st.selectbox("Breaker Type (斷路器種類)", ["ACB", "MCCB"], index=0 if get("breaker_type", "ACB") == "ACB" else 1)
+        with col_b2:
+            e_breaker_rating = st.text_input("Breaker Rating (斷路器容量)", value=get("breaker_rating", ""))
+        col_p3, col_p4 = st.columns(2)
+        with col_p3:
+            e_poles = st.selectbox("Poles(極數)", ["3P", "4P"], index=0 if get("poles", "3P") == "3P" else 1)
+        with col_p4:
+            e_spring_charging = st.selectbox("Spring Charging(斷路器操作)", ["Motorized", "Single Usage"], index=0 if get("spring_charging", "Motorized") == "Motorized" else 1)
+        e_control_voltage = st.text_input("Control Voltage(控制電壓)", value=get("control_voltage", ""))
+
+        e_desc = st.text_area("Description", value=row_to_edit.get("Description","") or "", height=150)
 
         if st.button("Save & Close", type="primary", use_container_width=True):
             new_visible = "\n".join([
-                f"Genset model: {e_s1 or '—'} | S/N: {e_s1_sn or '—'}",
-                f"Alternator Model: {e_s2 or '—'} | S/N: {e_s2_sn or '—'}",
-                f"Controller: {e_s3 or '—'} | S/N: {e_s3_sn or '—'}",
-                f"Circuit breaker Size: {e_s4 or '—'} | S/N: {e_s4_sn or '—'}",
-                f"Charger: {e_s5 or '—'} | S/N: {e_s5_sn or '—'}"
+                f"Genset model: {e_genset_model or '—'} | S/N: {e_genset_sn or '—'}",
+                f"Alternator Model: {e_alt_model or '—'} | S/N: {e_alt_sn or '—'}",
+                f"Panel model: {e_panel_model or '—'} | S/N: {e_panel_sn or '—'}",
+                f"Breaker Type: {e_breaker_type or '—'}"
             ])
-            extra_json = json.dumps({
+
+            extra_dict = {
                 "prime": e_prime.strip(),
                 "standby": e_standby.strip(),
-                "hz": e_hz,
-                "voltage": e_voltage
-            })
+                "genset_model": e_genset_model,
+                "genset_sn": e_genset_sn,
+                "engine_color": e_engine_color,
+                "engine_year": e_engine_year,
+                "engine_heater": e_engine_heater,
+                "alt_model": e_alt_model,
+                "alt_sn": e_alt_sn,
+                "alt_color": e_alt_color,
+                "droop": e_droop,
+                "pmg": e_pmg,
+                "alt_heater": e_alt_heater,
+                "rad_model": e_rad_model,
+                "rad_sn": e_rad_sn,
+                "rad_temp": e_rad_temp,
+                "fan_size": e_fan_size,
+                "coolant_sensor": e_coolant_sensor,
+                "low_water": e_low_water,
+                "base_model": e_base_model,
+                "avm": e_avm,
+                "avm_qty": str(e_avm_qty),
+                "cont_size": e_cont_size,
+                "cont_type": e_cont_type,
+                "cont_color": e_cont_color,
+                "fork_slot": e_fork_slot,
+                "anti_noise": e_anti_noise,
+                "internal_silencer": e_internal_silencer,
+                "ss_locks": e_ss_locks,
+                "emergency_stop": e_emergency_stop,
+                "panel_model": e_panel_model,
+                "panel_sn": e_panel_sn,
+                "co_detector": e_co_detector,
+                "breaker_type": e_breaker_type,
+                "breaker_rating": e_breaker_rating,
+                "poles": e_poles,
+                "spring_charging": e_spring_charging,
+                "control_voltage": e_control_voltage
+            }
+            extra_json = json.dumps(extra_dict, ensure_ascii=False)
+
             df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_json
             df.at[idx_to_edit, "Description"] = e_desc.strip()
 
@@ -408,9 +523,190 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.session_state["show_edit_spec_dialog"] = False
             st.rerun()
 
-    result = edit_spec_dialog()
-    if result is None:
-        pass
+    edit_spec_dialog()
+
+# ==============================================
+# New Project Specification Dialog - 用橫線分區
+# ==============================================
+if st.sidebar.button("Project Specification", type="primary", use_container_width=True):
+    st.session_state.spec_dialog_open = True
+
+if st.session_state.get("spec_dialog_open", False):
+    @st.dialog("Project Specification", width="large")
+    def spec_dialog():
+        st.markdown("**請填寫專案規格**")
+
+        # Prime & Standby
+        st.markdown("### Prime & Standby Power")
+        col_ps = st.columns(2)
+        with col_ps[0]:
+            s_prime = st.text_input("Prime (kW)", key="dlg_prime")
+        with col_ps[1]:
+            s_standby = st.text_input("Standby (kW)", key="dlg_standby")
+
+        st.markdown("---")
+
+        # Engine 發動機
+        st.markdown("**Engine 發動機**")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            s_genset_model = st.text_input("Genset model(發動機型號)", key="dlg_genset_model")
+        with col2:
+            s_genset_sn = st.text_input("S/N", key="dlg_genset_sn")
+        with col3:
+            s_engine_color = st.text_input("Color(顏色)", key="dlg_engine_color")
+        with col4:
+            s_engine_year = st.text_input("Year(年份)", key="dlg_engine_year")
+        s_engine_heater = st.text_input("Engine Heater(發動機加熱器) kW", key="dlg_engine_heater")
+
+        st.markdown("---")
+
+        # Alternator (電球)
+        st.markdown("**Alternator (電球)**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            s_alt_model = st.text_input("Alternator Model(電球型號)", key="dlg_alt_model")
+        with col2:
+            s_alt_sn = st.text_input("S/N", key="dlg_alt_sn")
+        with col3:
+            s_alt_color = st.text_input("Color(顏色)", key="dlg_alt_color")
+        col_d1, col_d2, col_d3 = st.columns(3)
+        with col_d1:
+            s_droop = st.selectbox("DroopKit", ["Include", "Not Include"], key="dlg_droop")
+        with col_d2:
+            s_pmg = st.text_input("PMG", key="dlg_pmg")
+        with col_d3:
+            s_alt_heater = st.selectbox("Alternator Heater (交流發電機加熱器)", ["Include", "Not Include"], key="dlg_alt_heater")
+
+        st.markdown("---")
+
+        # Radiator (水箱)
+        st.markdown("**Radiator (水箱)**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            s_rad_model = st.text_input("Radiator model(水箱型號)", key="dlg_rad_model")
+        with col2:
+            s_rad_sn = st.text_input("S/N", key="dlg_rad_sn")
+        with col3:
+            s_rad_temp = st.text_input("Temperature(温度)", key="dlg_rad_temp")
+        s_fan_size = st.text_input("風扇呎吋", key="dlg_fan_size")
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            s_coolant_sensor = st.selectbox("Coolant temperature sensor", ["Include", "Not Include"], key="dlg_coolant_sensor")
+        with col_s2:
+            s_low_water = st.selectbox("Low water level float switch", ["Include", "Not Include"], key="dlg_low_water")
+
+        st.markdown("---")
+
+        # Base Frame (底架)
+        st.markdown("**Base Frame (底架)**")
+        s_base_model = st.text_input("Base Frame model(底架型號)", key="dlg_base_model")
+        col_a1, col_a2 = st.columns(2)
+        with col_a1:
+            s_avm = st.text_input("Anti-Vibration Mount (避震腳)", key="dlg_avm")
+        with col_a2:
+            s_avm_qty = st.number_input("Qty(數量)", min_value=0, value=0, key="dlg_avm_qty")
+
+        st.markdown("---")
+
+        # Container (貨櫃)
+        st.markdown("**Container (貨櫃)**")
+        col_c1, col_c2, col_c3 = st.columns(3)
+        with col_c1:
+            s_cont_size = st.selectbox("Size(呎吋)", ["20'ftHQ", "20'ftGP"], key="dlg_cont_size")
+        with col_c2:
+            s_cont_type = st.selectbox("Type(種類)", ["FIEO", "Motorized"], key="dlg_cont_type")
+        with col_c3:
+            s_cont_color = st.text_input("Color(顏色)", key="dlg_cont_color")
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            s_fork_slot = st.selectbox("是否帶叉槽位", ["Yes", "No"], key="dlg_fork_slot")
+        with col_f2:
+            s_anti_noise = st.selectbox("Anti-Noise(78-80Dba @7M 75% loading)", ["Yes", "No"], key="dlg_anti_noise")
+        col_i1, col_i2 = st.columns(2)
+        with col_i1:
+            s_internal_silencer = st.selectbox("Internal Silencer (內部消聲器)", ["Include", "Not Include"], key="dlg_internal_silencer")
+        with col_i2:
+            s_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["Include", "Not Include"], key="dlg_ss_locks")
+        s_emergency_stop = st.selectbox("Emergency Stop Button (緊急暫停)", ["Include", "Not Include"], key="dlg_emergency_stop")
+
+        st.markdown("---")
+
+        # Panel (控制器)
+        st.markdown("**Panel (控制器)**")
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            s_panel_model = st.text_input("Panel model(控制器型號)", key="dlg_panel_model")
+        with col_p2:
+            s_panel_sn = st.text_input("S/N", key="dlg_panel_sn")
+        s_co_detector = st.selectbox("CO 探測器 (OLED)", ["Include", "Not Include"], key="dlg_co_detector")
+
+        st.markdown("---")
+
+        # Circuit Breaker (斷路器)
+        st.markdown("**Circuit Breaker (斷路器)**")
+        col_b1, col_b2 = st.columns(2)
+        with col_b1:
+            s_breaker_type = st.selectbox("Breaker Type (斷路器種類)", ["ACB", "MCCB"], key="dlg_breaker_type")
+        with col_b2:
+            s_breaker_rating = st.text_input("Breaker Rating (斷路器容量)", key="dlg_breaker_rating")
+        col_p3, col_p4 = st.columns(2)
+        with col_p3:
+            s_poles = st.selectbox("Poles(極數)", ["3P", "4P"], key="dlg_poles")
+        with col_p4:
+            s_spring_charging = st.selectbox("Spring Charging(斷路器操作)", ["Motorized", "Single Usage"], key="dlg_spring_charging")
+        s_control_voltage = st.text_input("Control Voltage(控制電壓)", key="dlg_control_voltage")
+
+        desc = st.text_area("Description", height=150, key="dlg_desc")
+
+        if st.button("Save & Close", type="primary", use_container_width=True):
+            st.session_state.spec_data = {
+                "prime": s_prime.strip(),
+                "standby": s_standby.strip(),
+                "genset_model": s_genset_model,
+                "genset_sn": s_genset_sn,
+                "engine_color": s_engine_color,
+                "engine_year": s_engine_year,
+                "engine_heater": s_engine_heater,
+                "alt_model": s_alt_model,
+                "alt_sn": s_alt_sn,
+                "alt_color": s_alt_color,
+                "droop": s_droop,
+                "pmg": s_pmg,
+                "alt_heater": s_alt_heater,
+                "rad_model": s_rad_model,
+                "rad_sn": s_rad_sn,
+                "rad_temp": s_rad_temp,
+                "fan_size": s_fan_size,
+                "coolant_sensor": s_coolant_sensor,
+                "low_water": s_low_water,
+                "base_model": s_base_model,
+                "avm": s_avm,
+                "avm_qty": str(s_avm_qty),
+                "cont_size": s_cont_size,
+                "cont_type": s_cont_type,
+                "cont_color": s_cont_color,
+                "fork_slot": s_fork_slot,
+                "anti_noise": s_anti_noise,
+                "internal_silencer": s_internal_silencer,
+                "ss_locks": s_ss_locks,
+                "emergency_stop": s_emergency_stop,
+                "panel_model": s_panel_model,
+                "panel_sn": s_panel_sn,
+                "co_detector": s_co_detector,
+                "breaker_type": s_breaker_type,
+                "breaker_rating": s_breaker_rating,
+                "poles": s_poles,
+                "spring_charging": s_spring_charging,
+                "control_voltage": s_control_voltage,
+                "desc": desc.strip()
+            }
+
+            st.success("規格已暫存，可繼續新增專案！")
+            st.session_state.spec_dialog_open = False
+            st.rerun()
+
+    spec_dialog()
 
 # ==============================================
 # 左側側邊欄 & New Project
@@ -479,26 +775,15 @@ with st.sidebar:
             elif new_name in df["Project_Name"].values:
                 st.error("Name exists!")
             else:
-                spec_data = st.session_state.get("spec_data", {
-                    "genset": "—", "genset_sn": "—", "alternator": "—", "alternator_sn": "—",
-                    "controller": "—", "controller_sn": "—", "breaker": "—", "breaker_sn": "—",
-                    "charger": "—", "charger_sn": "—",
-                    "prime": "", "standby": "", "hz": "50", "voltage": "400", "desc": ""
-                })
+                spec_data = st.session_state.get("spec_data", {})
 
                 visible_lines = [
-                    f"Genset model: {spec_data['genset']} | S/N: {spec_data['genset_sn']}",
-                    f"Alternator Model: {spec_data['alternator']} | S/N: {spec_data['alternator_sn']}",
-                    f"Controller: {spec_data['controller']} | S/N: {spec_data['controller_sn']}",
-                    f"Circuit breaker Size: {spec_data['breaker']} | S/N: {spec_data['breaker_sn']}",
-                    f"Charger: {spec_data['charger']} | S/N: {spec_data['charger_sn']}"
+                    f"Genset model: {spec_data.get('genset_model', '—')} | S/N: {spec_data.get('genset_sn', '—')}",
+                    f"Alternator Model: {spec_data.get('alt_model', '—')} | S/N: {spec_data.get('alt_sn', '—')}",
+                    f"Panel model: {spec_data.get('panel_model', '—')} | S/N: {spec_data.get('panel_sn', '—')}",
+                    f"Breaker Type: {spec_data.get('breaker_type', '—')}"
                 ]
-                extra_json = json.dumps({
-                    "prime": spec_data.get("prime", ""),
-                    "standby": spec_data.get("standby", ""),
-                    "hz": spec_data.get("hz", "50"),
-                    "voltage": spec_data.get("voltage", "400")
-                })
+                extra_json = json.dumps(spec_data, ensure_ascii=False)
                 spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_json
 
                 new_project = {
@@ -522,68 +807,8 @@ with st.sidebar:
                 st.success(f"已成功新增專案：{new_name}")
                 st.rerun()
 
-    if st.button("Project Specification", type="primary", use_container_width=True):
-        st.session_state.spec_dialog_open = True
-
-    @st.dialog("Project Specification", width="large")
-    def spec_dialog():
-        st.markdown("**請填寫專案規格**")
-
-        col_p1, col_p2 = st.columns(2)
-        with col_p1:
-            s_prime = st.text_input("Prime (KW)", key="dlg_prime")
-            s_hz = st.selectbox("Hz", ["50", "60"], key="dlg_hz")
-        with col_p2:
-            s_standby = st.text_input("Standby (KW)", key="dlg_standby")
-            s_voltage = st.selectbox("Voltage", ["380","400","415","440","480"], key="dlg_voltage")
-
-        st.markdown("---")
-
-        row1 = st.columns(2)
-        with row1[0]: s_genset = st.text_input("Genset model(發動機型號)", key="dlg_new_genset")
-        with row1[1]: s_genset_sn = st.text_input("S/N", key="dlg_new_genset_sn")
-
-        row2 = st.columns(2)
-        with row2[0]: s_alternator = st.text_input("Alternator Model(電球)", key="dlg_new_alternator")
-        with row2[1]: s_alternator_sn = st.text_input("S/N", key="dlg_new_alternator_sn")
-
-        row3 = st.columns(2)
-        with row3[0]: s_controller = st.text_input("Controller(控制器)", key="dlg_new_controller")
-        with row3[1]: s_controller_sn = st.text_input("S/N", key="dlg_new_controller_sn")
-
-        row4 = st.columns(2)
-        with row4[0]: s_breaker = st.text_input("Circuit breaker Size(斷路器)", key="dlg_new_breaker")
-        with row4[1]: s_breaker_sn = st.text_input("S/N", key="dlg_new_breaker_sn")
-
-        row5 = st.columns(2)
-        with row5[0]: s_charger = st.text_input("Charger(充電機)", key="dlg_new_charger")
-        with row5[1]: s_charger_sn = st.text_input("S/N", key="dlg_new_charger_sn")
-
-        desc = st.text_area("Description", height=150, key="dlg_new_desc")
-
-        if st.button("Save & Close", type="primary", use_container_width=True):
-            st.session_state.spec_data = {
-                "genset": s_genset or '—', "genset_sn": s_genset_sn or '—',
-                "alternator": s_alternator or '—', "alternator_sn": s_alternator_sn or '—',
-                "controller": s_controller or '—', "controller_sn": s_controller_sn or '—',
-                "breaker": s_breaker or '—', "breaker_sn": s_breaker_sn or '—',
-                "charger": s_charger or '—', "charger_sn": s_charger_sn or '—',
-                "prime": s_prime.strip(), "standby": s_standby.strip(),
-                "hz": s_hz, "voltage": s_voltage, "desc": desc.strip()
-            }
-
-            with st.spinner("正在儲存規格，請稍候..."):
-                time.sleep(0.3)  # 讓 spinner 至少顯示一下
-
-            st.success("規格已暫存，可繼續新增專案！")
-            st.session_state.spec_dialog_open = False
-            st.rerun()
-
-    if st.session_state.get("spec_dialog_open", False):
-        spec_dialog()
-
 # ==============================================
-# 篩選與主畫面
+# 篩選邏輯 & 主畫面
 # ==============================================
 today = date.today()
 filtered_df = df.copy()
@@ -614,7 +839,7 @@ else:
     page_title = "YIP SHING Project Dashboard"
 
 if st.session_state.view_mode == "calendar":
-    # 原日曆程式碼保持不變
+    # 原日曆程式碼（保持不變）
     st.stop()
 
 st.markdown(f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>", unsafe_allow_html=True)
