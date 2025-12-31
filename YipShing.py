@@ -1,6 +1,5 @@
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
-from streamlit_calendar import calendar
 import pandas as pd
 import json
 from datetime import date
@@ -82,6 +81,16 @@ def save_projects():
     for c in date_cols:
         df_save[c] = df_save[c].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) else None)
     conn.update(worksheet="projects", data=df_save)
+    time.sleep(2)
+
+def save_checklist():
+    if not checklist_db:
+        empty_df = pd.DataFrame(columns=["Project_Name", "Checklist_Data"])
+        conn.update(worksheet="checklist", data=empty_df)
+    else:
+        checklist_list = [{"Project_Name": k, "Checklist_Data": json.dumps(v, ensure_ascii=False)} for k, v in checklist_db.items()]
+        checklist_save = pd.DataFrame(checklist_list)
+        conn.update(worksheet="checklist", data=checklist_save)
     time.sleep(2)
 
 # ==============================================
@@ -274,7 +283,7 @@ def render_project_card(row, idx):
                 st.success("Checklist 已永久儲存到 Google Sheets！")
                 st.rerun()
 
-    # 按鈕區域
+    # 按鈕區域 - 三個按鈕
     col_edit_spec, col_edit_info, col_delete = st.columns(3)
     with col_edit_spec:
         if st.button("Edit Project Spec.", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
@@ -291,6 +300,7 @@ def render_project_card(row, idx):
             st.session_state["delete_idx"] = idx
             st.session_state["show_delete_confirm"] = True
 
+    # Delete 確認
     delete_placeholder = st.empty()
     if st.session_state.get("show_delete_confirm", False) and st.session_state.get("delete_idx") == idx:
         with delete_placeholder.container():
@@ -316,7 +326,7 @@ def render_project_card(row, idx):
         delete_placeholder.empty()
 
 # ==============================================
-# Edit Project Specification Dialog - 用橫線分區 + "--" 選項
+# Edit Project Specification Dialog
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -359,10 +369,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
             elif "Breaker Type:" in line:
                 visible_dict["breaker_type"] = line.split(": ")[1] if ": " in line else ""
 
-        # 合併所有資料
         all_data = {**visible_dict, **extra_data}
 
-        # 輔助函數
         def get_text(key, default=""):
             return all_data.get(key, default)
 
@@ -569,110 +577,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# Sidebar - Project Specification 按鈕放在最下面
-# ==============================================
-with st.sidebar:
-    st.header("View Controls")
-    if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
-        st.session_state.view_mode = "all"
-    if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
-        st.session_state.view_mode = "delay"
-    if st.button("📅Calendar", use_container_width=True, type="primary", key="btn_calendar"):
-        st.session_state.view_mode = "calendar"
-
-    if "view_mode" not in st.session_state:
-        st.session_state.view_mode = "all"
-
-    st.markdown("---")
-    st.markdown("### Search Project Name")
-    search_term = st.text_input("Enter Project Name (partial match)", value="", key="search_input", label_visibility="collapsed")
-
-    st.markdown("---")
-    project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
-    years = [2024, 2025, 2026]
-    month_names = ["All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
-    if st.session_state.view_mode == "all":
-        st.markdown("### Filters")
-        selected_type = st.selectbox("Project Type", project_types, index=project_types.index("All"), key="filter_type")
-        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="filter_year")
-        selected_month = st.selectbox("Month", month_names, index=month_names.index("All"), key="filter_month")
-    else:
-        selected_type = "All"
-        selected_year = date.today().year
-        selected_month = "All"
-
-    st.markdown("---")
-    st.header("New Project")
-
-    with st.form("add_form", clear_on_submit=True):
-        c1, c2 = st.columns(2)
-        with c1:
-            new_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"], key="new_type")
-            new_name = st.text_input("Project Name*", key="new_name")
-            new_year = st.selectbox("Year*", [2024,2025,2026], index=1, key="new_year")
-            new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
-        with c2:
-            new_customer = st.text_input("Customer", key="new_customer")
-            new_supervisor = st.text_input("Supervisor", key="new_supervisor")
-            new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
-
-        st.markdown("**Progress Dates**")
-        col_d1, col_d2 = st.columns(2)
-        with col_d1:
-            d1 = st.date_input("Parts Arrival", value=None, key="d1")
-            d2 = st.date_input("Installation Complete", value=None, key="d2")
-            d3 = st.date_input("Testing Complete", value=None, key="d3")
-        with col_d2:
-            d4 = st.date_input("Cleaning Complete", value=None, key="d4")
-            d5 = st.date_input("Delivery Complete", value=None, key="d5")
-
-        reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
-
-        if st.form_submit_button("Add", type="primary", use_container_width=True):
-            if not new_name.strip():
-                st.error("Project Name required!")
-            elif new_name in df["Project_Name"].values:
-                st.error("Name exists!")
-            else:
-                spec_data = st.session_state.get("spec_data", {})
-
-                visible_lines = [
-                    f"Genset model: {spec_data.get('genset_model', '—')} | S/N: {spec_data.get('genset_sn', '—')}",
-                    f"Alternator Model: {spec_data.get('alt_model', '—')} | S/N: {spec_data.get('alt_sn', '—')}",
-                    f"Panel model: {spec_data.get('panel_model', '—')} | S/N: {spec_data.get('panel_sn', '—')}",
-                    f"Breaker Type: {spec_data.get('breaker_type', '—') if spec_data.get('breaker_type', '') != '--' else '—'}"
-                ]
-                extra_json = json.dumps(spec_data, ensure_ascii=False)
-                spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_json
-
-                new_project = {
-                    "Project_Type": new_type, "Project_Name": new_name, "Year": int(new_year),
-                    "Lead_Time": new_leadtime, "Customer": new_customer or "", "Supervisor": new_supervisor or "",
-                    "Qty": new_qty, "Real_Count": new_qty, "Project_Spec": spec_text, "Description": spec_data.get("desc", ""),
-                    "Progress_Reminder": reminder or "", "Parts_Arrival": d1, "Installation_Complete": d2,
-                    "Testing_Complete": d3, "Cleaning_Complete": d4, "Delivery_Complete": d5
-                }
-                df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
-
-                with st.spinner("正在新增專案並儲存至 Google Sheets，請稍候..."):
-                    save_projects()
-                    st.cache_data.clear()
-
-                if "spec_data" in st.session_state:
-                    del st.session_state.spec_data
-                if "spec_dialog_open" in st.session_state:
-                    del st.session_state.spec_dialog_open
-
-                st.success(f"已成功新增專案：{new_name}")
-                st.rerun()
-
-    st.markdown("---")
-    if st.button("Project Specification", type="primary", use_container_width=True):
-        st.session_state.spec_dialog_open = True
-
-# ==============================================
-# Edit Project Info Dialog - 修正 date_input NaT 問題
+# Edit Project Info Dialog
 # ==============================================
 if st.session_state.get("show_edit_info_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -745,6 +650,312 @@ if st.session_state.get("show_edit_info_dialog", False):
                 st.rerun()
 
     edit_info_dialog()
+
+# ==============================================
+# Sidebar - New Project + Add 後自動彈出 Specification
+# ==============================================
+with st.sidebar:
+    st.header("View Controls")
+    if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
+        st.session_state.view_mode = "all"
+    if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
+        st.session_state.view_mode = "delay"
+    if st.button("📅Calendar", use_container_width=True, type="primary", key="btn_calendar"):
+        st.session_state.view_mode = "calendar"
+
+    if "view_mode" not in st.session_state:
+        st.session_state.view_mode = "all"
+
+    st.markdown("---")
+    st.markdown("### Search Project Name")
+    search_term = st.text_input("Enter Project Name (partial match)", value="", key="search_input", label_visibility="collapsed")
+
+    st.markdown("---")
+    project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
+    years = [2024, 2025, 2026]
+    month_names = ["All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    if st.session_state.view_mode == "all":
+        st.markdown("### Filters")
+        selected_type = st.selectbox("Project Type", project_types, index=project_types.index("All"), key="filter_type")
+        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="filter_year")
+        selected_month = st.selectbox("Month", month_names, index=month_names.index("All"), key="filter_month")
+    else:
+        selected_type = "All"
+        selected_year = date.today().year
+        selected_month = "All"
+
+    st.markdown("---")
+    st.header("New Project")
+
+    with st.form("add_form", clear_on_submit=True):
+        c1, c2 = st.columns(2)
+        with c1:
+            new_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"], key="new_type")
+            new_name = st.text_input("Project Name*", key="new_name")
+            new_year = st.selectbox("Year*", [2024,2025,2026], index=1, key="new_year")
+            new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
+        with c2:
+            new_customer = st.text_input("Customer", key="new_customer")
+            new_supervisor = st.text_input("Supervisor", key="new_supervisor")
+            new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
+
+        st.markdown("**Progress Dates**")
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            d1 = st.date_input("Parts Arrival", value=None, key="d1")
+            d2 = st.date_input("Installation Complete", value=None, key="d2")
+            d3 = st.date_input("Testing Complete", value=None, key="d3")
+        with col_d2:
+            d4 = st.date_input("Cleaning Complete", value=None, key="d4")
+            d5 = st.date_input("Delivery Complete", value=None, key="d5")
+
+        reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
+
+        if st.form_submit_button("Add", type="primary", use_container_width=True):
+            if not new_name.strip():
+                st.error("Project Name required!")
+            elif new_name in df["Project_Name"].values:
+                st.error("Name exists!")
+            else:
+                st.session_state.temp_project = {
+                    "Project_Type": new_type,
+                    "Project_Name": new_name,
+                    "Year": int(new_year),
+                    "Lead_Time": new_leadtime,
+                    "Customer": new_customer or "",
+                    "Supervisor": new_supervisor or "",
+                    "Qty": new_qty,
+                    "Real_Count": new_qty,
+                    "Progress_Reminder": reminder or "",
+                    "Parts_Arrival": d1 if d1 else None,
+                    "Installation_Complete": d2 if d2 else None,
+                    "Testing_Complete": d3 if d3 else None,
+                    "Cleaning_Complete": d4 if d4 else None,
+                    "Delivery_Complete": d5 if d5 else None
+                }
+                st.session_state.spec_dialog_open = True
+                st.rerun()
+
+    st.markdown("---")
+    if st.button("Project Specification (手動)", type="secondary", use_container_width=True):
+        st.session_state.spec_dialog_open = True
+        st.rerun()
+
+# ==============================================
+# Project Specification Dialog
+# ==============================================
+if st.session_state.get("spec_dialog_open", False):
+    @st.dialog("Project Specification", width="large")
+    def spec_dialog():
+        st.markdown("**請填寫專案規格**")
+
+        # Prime & Standby Power + Voltage/Frequency/RPM
+        st.markdown("### Prime & Standby Power")
+        col1, col2 = st.columns(2)
+        with col1:
+            s_prime = st.text_input("Prime (kW)", key="dlg_prime")
+            s_voltage = st.selectbox("Voltage(電壓)", ["--", "380", "400", "415", "440", "480"], key="dlg_voltage")
+            s_frequency = st.selectbox("Frequency(頻率)", ["--", "50Hz", "60Hz"], key="dlg_frequency")
+        with col2:
+            s_standby = st.text_input("Standby (kW)", key="dlg_standby")
+            s_rpm = st.selectbox("RPM(轉速)", ["--", "1500", "1800"], key="dlg_rpm")
+
+        st.markdown("---")
+
+        # Engine 發動機
+        st.markdown("**Engine 發動機**")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            s_genset_model = st.text_input("Genset model(發動機型號)", key="dlg_genset_model")
+        with col2:
+            s_genset_sn = st.text_input("S/N", key="dlg_genset_sn")
+        with col3:
+            s_engine_color = st.text_input("Color(顏色)", key="dlg_engine_color")
+        with col4:
+            s_engine_year = st.text_input("Year(年份)", key="dlg_engine_year")
+        s_engine_heater = st.text_input("Engine Heater(發動機加熱器) kW", key="dlg_engine_heater")
+
+        st.markdown("---")
+
+        # Alternator (電球)
+        st.markdown("**Alternator (電球)**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            s_alt_model = st.text_input("Alternator Model(電球型號)", key="dlg_alt_model")
+        with col2:
+            s_alt_sn = st.text_input("S/N", key="dlg_alt_sn")
+        with col3:
+            s_alt_color = st.text_input("Color(顏色)", key="dlg_alt_color")
+        col_d1, col_d2, col_d3 = st.columns(3)
+        with col_d1:
+            s_droop = st.selectbox("DroopKit", ["--", "Include", "Not Include"], key="dlg_droop")
+        with col_d2:
+            s_pmg = st.text_input("PMG", key="dlg_pmg")
+        with col_d3:
+            s_alt_heater = st.selectbox("Alternator Heater (交流發電機加熱器)", ["--", "Include", "Not Include"], key="dlg_alt_heater")
+
+        st.markdown("---")
+
+        # Radiator (水箱)
+        st.markdown("**Radiator (水箱)**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            s_rad_model = st.text_input("Radiator model(水箱型號)", key="dlg_rad_model")
+        with col2:
+            s_rad_sn = st.text_input("S/N", key="dlg_rad_sn")
+        with col3:
+            s_rad_temp = st.text_input("Temperature(温度)", key="dlg_rad_temp")
+        s_fan_size = st.text_input("風扇呎吋", key="dlg_fan_size")
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            s_coolant_sensor = st.selectbox("Coolant temperature sensor", ["--", "Include", "Not Include"], key="dlg_coolant_sensor")
+        with col_s2:
+            s_low_water = st.selectbox("Low water level float switch", ["--", "Include", "Not Include"], key="dlg_low_water")
+
+        st.markdown("---")
+
+        # Base Frame (底架)
+        st.markdown("**Base Frame (底架)**")
+        s_base_model = st.text_input("Base Frame model(底架型號)", key="dlg_base_model")
+        col_a1, col_a2 = st.columns(2)
+        with col_a1:
+            s_avm = st.text_input("Anti-Vibration Mount (避震腳)", key="dlg_avm")
+        with col_a2:
+            s_avm_qty = st.number_input("Qty(數量)", min_value=0, value=0, key="dlg_avm_qty")
+
+        st.markdown("---")
+
+        # Container (貨櫃)
+        st.markdown("**Container (貨櫃)**")
+        col_c1, col_c2, col_c3 = st.columns(3)
+        with col_c1:
+            s_cont_size = st.selectbox("Size(呎吋)", ["--", "20'ftHQ", "20'ftGP"], key="dlg_cont_size")
+        with col_c2:
+            s_cont_type = st.selectbox("Type(種類)", ["--", "FIEO", "Motorized"], key="dlg_cont_type")
+        with col_c3:
+            s_cont_color = st.text_input("Color(顏色)", key="dlg_cont_color")
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            s_fork_slot = st.selectbox("是否帶叉槽位", ["--", "Yes", "No"], key="dlg_fork_slot")
+        with col_f2:
+            s_anti_noise = st.selectbox("Anti-Noise(78-80Dba @7M 75% loading)", ["--", "Yes", "No"], key="dlg_anti_noise")
+        col_i1, col_i2 = st.columns(2)
+        with col_i1:
+            s_internal_silencer = st.selectbox("Internal Silencer (內部消聲器)", ["--", "Include", "Not Include"], key="dlg_internal_silencer")
+        with col_i2:
+            s_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["--", "Include", "Not Include"], key="dlg_ss_locks")
+        s_emergency_stop = st.selectbox("Emergency Stop Button (緊急暫停)", ["--", "Include", "Not Include"], key="dlg_emergency_stop")
+
+        st.markdown("---")
+
+        # Panel (控制器)
+        st.markdown("**Panel (控制器)**")
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            s_panel_model = st.text_input("Panel model(控制器型號)", key="dlg_panel_model")
+        with col_p2:
+            s_panel_sn = st.text_input("S/N", key="dlg_panel_sn")
+        s_co_detector = st.selectbox("CO 探測器 (OLED)", ["--", "Include", "Not Include"], key="dlg_co_detector")
+
+        st.markdown("---")
+
+        # Circuit Breaker (斷路器)
+        st.markdown("**Circuit Breaker (斷路器)**")
+        col_b1, col_b2 = st.columns(2)
+        with col_b1:
+            s_breaker_type = st.selectbox("Breaker Type (斷路器種類)", ["--", "ACB", "MCCB"], key="dlg_breaker_type")
+        with col_b2:
+            s_breaker_rating = st.text_input("Breaker Rating (斷路器容量)", key="dlg_breaker_rating")
+        col_p3, col_p4 = st.columns(2)
+        with col_p3:
+            s_poles = st.selectbox("Poles(極數)", ["--", "3P", "4P"], key="dlg_poles")
+        with col_p4:
+            s_spring_charging = st.selectbox("Spring Charging(斷路器操作)", ["--", "Motorized", "Single Usage"], key="dlg_spring_charging")
+        s_control_voltage = st.text_input("Control Voltage(控制電壓)", key="dlg_control_voltage")
+
+        desc = st.text_area("Description", height=150, key="dlg_desc")
+
+        if st.button("Save & Close", type="primary", use_container_width=True):
+            spec_data = {
+                "prime": s_prime.strip(),
+                "standby": s_standby.strip(),
+                "voltage": s_voltage if s_voltage != "--" else "",
+                "frequency": s_frequency if s_frequency != "--" else "",
+                "rpm": s_rpm if s_rpm != "--" else "",
+                "genset_model": s_genset_model,
+                "genset_sn": s_genset_sn,
+                "engine_color": s_engine_color,
+                "engine_year": s_engine_year,
+                "engine_heater": s_engine_heater,
+                "alt_model": s_alt_model,
+                "alt_sn": s_alt_sn,
+                "alt_color": s_alt_color,
+                "droop": s_droop if s_droop != "--" else "",
+                "pmg": s_pmg,
+                "alt_heater": s_alt_heater if s_alt_heater != "--" else "",
+                "rad_model": s_rad_model,
+                "rad_sn": s_rad_sn,
+                "rad_temp": s_rad_temp,
+                "fan_size": s_fan_size,
+                "coolant_sensor": s_coolant_sensor if s_coolant_sensor != "--" else "",
+                "low_water": s_low_water if s_low_water != "--" else "",
+                "base_model": s_base_model,
+                "avm": s_avm,
+                "avm_qty": str(s_avm_qty),
+                "cont_size": s_cont_size if s_cont_size != "--" else "",
+                "cont_type": s_cont_type if s_cont_type != "--" else "",
+                "cont_color": s_cont_color,
+                "fork_slot": s_fork_slot if s_fork_slot != "--" else "",
+                "anti_noise": s_anti_noise if s_anti_noise != "--" else "",
+                "internal_silencer": s_internal_silencer if s_internal_silencer != "--" else "",
+                "ss_locks": s_ss_locks if s_ss_locks != "--" else "",
+                "emergency_stop": s_emergency_stop if s_emergency_stop != "--" else "",
+                "panel_model": s_panel_model,
+                "panel_sn": s_panel_sn,
+                "co_detector": s_co_detector if s_co_detector != "--" else "",
+                "breaker_type": s_breaker_type if s_breaker_type != "--" else "",
+                "breaker_rating": s_breaker_rating,
+                "poles": s_poles if s_poles != "--" else "",
+                "spring_charging": s_spring_charging if s_spring_charging != "--" else "",
+                "control_voltage": s_control_voltage,
+                "desc": desc.strip()
+            }
+
+            temp_project = st.session_state.get("temp_project")
+            if not temp_project:
+                st.error("基本資訊遺失，請重新開始新增")
+                st.stop()
+
+            visible_lines = [
+                f"Genset model: {spec_data.get('genset_model', '—')} | S/N: {spec_data.get('genset_sn', '—')}",
+                f"Alternator Model: {spec_data.get('alt_model', '—')} | S/N: {spec_data.get('alt_sn', '—')}",
+                f"Panel model: {spec_data.get('panel_model', '—')} | S/N: {spec_data.get('panel_sn', '—')}",
+                f"Breaker Type: {spec_data.get('breaker_type', '—') if spec_data.get('breaker_type', '') != '--' else '—'}"
+            ]
+            extra_json = json.dumps(spec_data, ensure_ascii=False)
+            spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_json
+
+            new_project = {
+                **temp_project,
+                "Project_Spec": spec_text,
+                "Description": spec_data.get("desc", "")
+            }
+
+            global df
+            df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
+
+            with st.spinner("正在儲存專案至 Google Sheets，請稍候..."):
+                save_projects()
+                st.cache_data.clear()
+
+            st.success(f"已成功新增專案：{new_project['Project_Name']}")
+            if "temp_project" in st.session_state:
+                del st.session_state.temp_project
+            st.session_state.spec_dialog_open = False
+            st.rerun()
+
+    spec_dialog()
 
 # ==============================================
 # 篩選邏輯 & 主畫面
