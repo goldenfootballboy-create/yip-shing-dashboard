@@ -737,10 +737,6 @@ with st.sidebar:
                 st.session_state.spec_dialog_open = True
                 st.rerun()
 
-    st.markdown("---")
-    if st.button("Project Specification (手動)", type="secondary", use_container_width=True):
-        st.session_state.spec_dialog_open = True
-        st.rerun()
 
 # ==============================================
 # Project Specification Dialog
