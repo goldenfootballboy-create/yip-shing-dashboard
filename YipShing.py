@@ -14,6 +14,11 @@ st.set_page_config(
     layout="wide"
 )
 
+# 初始化 dialog active flags（必須放在最上方，避免 AttributeError）
+st.session_state.edit_spec_active = st.session_state.get("edit_spec_active", False)
+st.session_state.edit_info_active = st.session_state.get("edit_info_active", False)
+st.session_state.spec_active = st.session_state.get("spec_active", False)
+
 # ==============================================
 # Google Sheets 連接 + 讀取
 # ==============================================
@@ -332,6 +337,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     if not st.session_state.edit_spec_active:
         st.session_state.edit_spec_active = True
         st.rerun()
+
     idx_to_edit = st.session_state["current_edit_idx"]
     row_to_edit = df.loc[idx_to_edit]
 
@@ -576,17 +582,15 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.success("Specification 已成功更新！")
                 st.session_state["show_edit_spec_dialog"] = False
+                st.session_state.edit_spec_active = False
                 st.rerun()
         with col_cancel:
             if st.button("Cancel", type="secondary", use_container_width=True):
                 st.session_state["show_edit_spec_dialog"] = False
+                st.session_state.edit_spec_active = False
                 st.rerun()
 
-    dialog = edit_spec_dialog()
-    # 安全偵測 X 關閉
-    if hasattr(dialog, 'closed') and dialog.closed:
-        st.session_state["show_edit_spec_dialog"] = False
-        st.rerun()
+    edit_spec_dialog()
 
 # ==============================================
 # Edit Project Info Dialog
@@ -595,6 +599,7 @@ if st.session_state.get("show_edit_info_dialog", False):
     if not st.session_state.edit_info_active:
         st.session_state.edit_info_active = True
         st.rerun()
+
     idx_to_edit = st.session_state["current_edit_idx"]
     row_to_edit = df.loc[idx_to_edit]
 
@@ -664,16 +669,15 @@ if st.session_state.get("show_edit_info_dialog", False):
 
                     st.success("基本資訊已成功更新！")
                     st.session_state["show_edit_info_dialog"] = False
+                    st.session_state.edit_info_active = False
                     st.rerun()
         with col_cancel:
             if st.button("Cancel", type="secondary", use_container_width=True):
                 st.session_state["show_edit_info_dialog"] = False
+                st.session_state.edit_info_active = False
                 st.rerun()
 
-    dialog = edit_info_dialog()
-    if hasattr(dialog, 'closed') and dialog.closed:
-        st.session_state["show_edit_info_dialog"] = False
-        st.rerun()
+    edit_info_dialog()
 
 # ==============================================
 # Project Specification Dialog (新增用)
@@ -682,6 +686,7 @@ if st.session_state.get("spec_dialog_open", False):
     if not st.session_state.spec_active:
         st.session_state.spec_active = True
         st.rerun()
+
     @st.dialog("Project Specification", width="large")
     def spec_dialog():
         st.markdown("**請填寫專案規格**")
@@ -891,20 +896,17 @@ if st.session_state.get("spec_dialog_open", False):
                 if "temp_project" in st.session_state:
                     del st.session_state.temp_project
                 st.session_state.spec_dialog_open = False
+                st.session_state.spec_active = False
                 st.rerun()
         with col_cancel:
             if st.button("Cancel", type="secondary", use_container_width=True):
                 st.session_state.spec_dialog_open = False
+                st.session_state.spec_active = False
                 if "temp_project" in st.session_state:
                     del st.session_state.temp_project
                 st.rerun()
 
-    dialog = spec_dialog()
-    if hasattr(dialog, 'closed') and dialog.closed:
-        st.session_state.spec_dialog_open = False
-        if "temp_project" in st.session_state:
-            del st.session_state.temp_project
-        st.rerun()
+    spec_dialog()
 
 # ==============================================
 # Sidebar
