@@ -14,10 +14,17 @@ st.set_page_config(
     layout="wide"
 )
 
-# 初始化 dialog active flags（必須放在最上方，避免 AttributeError）
-st.session_state.edit_spec_active = st.session_state.get("edit_spec_active", False)
-st.session_state.edit_info_active = st.session_state.get("edit_info_active", False)
-st.session_state.spec_active = st.session_state.get("spec_active", False)
+# 初始化所有 dialog 旗標（避免 AttributeError）
+if "show_edit_spec_dialog" not in st.session_state:
+    st.session_state.show_edit_spec_dialog = False
+if "show_edit_info_dialog" not in st.session_state:
+    st.session_state.show_edit_info_dialog = False
+if "spec_dialog_open" not in st.session_state:
+    st.session_state.spec_dialog_open = False
+
+# 新增：標記剛關閉 dialog（解決按 X 重複彈出）
+if "dialog_just_closed" not in st.session_state:
+    st.session_state.dialog_just_closed = False
 
 # ==============================================
 # Google Sheets 連接 + 讀取
@@ -331,9 +338,10 @@ def render_project_card(row, idx):
         delete_placeholder.empty()
 
 # ==============================================
-# Edit Project Specification Dialog
+# Edit Project Specification Dialog - 最終版
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
+    # 防止重複開啟
     if not st.session_state.edit_spec_active:
         st.session_state.edit_spec_active = True
         st.rerun()
@@ -341,7 +349,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
     row_to_edit = df.loc[idx_to_edit]
 
-    @st.dialog("Edit Project Specification", width="large", enable_close_button=False)
+    @st.dialog("Edit Project Specification", width="large")
     def edit_spec_dialog():
         st.markdown(f"**Editing Specification for: {row_to_edit['Project_Name']}**")
 
@@ -603,7 +611,7 @@ if st.session_state.get("show_edit_info_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
     row_to_edit = df.loc[idx_to_edit]
 
-    @st.dialog("Edit Project Info", width="large", enable_close_button=False)
+    @st.dialog("Edit Project Info", width="large")
     def edit_info_dialog():
         st.markdown(f"**Editing Basic Info for: {row_to_edit['Project_Name']}**")
 
@@ -687,7 +695,7 @@ if st.session_state.get("spec_dialog_open", False):
         st.session_state.spec_active = True
         st.rerun()
 
-    @st.dialog("Project Specification", width="large", enable_close_button=False)
+    @st.dialog("Project Specification", width="large")
     def spec_dialog():
         st.markdown("**請填寫專案規格**")
 
@@ -907,92 +915,6 @@ if st.session_state.get("spec_dialog_open", False):
                 st.rerun()
 
     spec_dialog()
-
-# ==============================================
-# Sidebar
-# ==============================================
-with st.sidebar:
-    st.header("View Controls")
-    if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
-        st.session_state.view_mode = "all"
-    if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
-        st.session_state.view_mode = "delay"
-    if st.button("📅Calendar", use_container_width=True, type="primary", key="btn_calendar"):
-        st.session_state.view_mode = "calendar"
-
-    if "view_mode" not in st.session_state:
-        st.session_state.view_mode = "all"
-
-    st.markdown("---")
-    st.markdown("### Search Project Name")
-    search_term = st.text_input("Enter Project Name (partial match)", value="", key="search_input", label_visibility="collapsed")
-
-    st.markdown("---")
-    project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
-    years = [2024, 2025, 2026]
-    month_names = ["All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
-    if st.session_state.view_mode == "all":
-        st.markdown("### Filters")
-        selected_type = st.selectbox("Project Type", project_types, index=project_types.index("All"), key="filter_type")
-        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="filter_year")
-        selected_month = st.selectbox("Month", month_names, index=month_names.index("All"), key="filter_month")
-    else:
-        selected_type = "All"
-        selected_year = date.today().year
-        selected_month = "All"
-
-    st.markdown("---")
-    st.header("New Project")
-
-    with st.form("add_form", clear_on_submit=True):
-        c1, c2 = st.columns(2)
-        with c1:
-            new_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"], key="new_type")
-            new_name = st.text_input("Project Name*", key="new_name")
-            new_year = st.selectbox("Year*", [2024,2025,2026], index=1, key="new_year")
-            new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
-        with c2:
-            new_customer = st.text_input("Customer", key="new_customer")
-            new_supervisor = st.text_input("Supervisor", key="new_supervisor")
-            new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
-
-        st.markdown("**Progress Dates**")
-        col_d1, col_d2 = st.columns(2)
-        with col_d1:
-            d1 = st.date_input("Parts Arrival", value=None, key="d1")
-            d2 = st.date_input("Installation Complete", value=None, key="d2")
-            d3 = st.date_input("Testing Complete", value=None, key="d3")
-        with col_d2:
-            d4 = st.date_input("Cleaning Complete", value=None, key="d4")
-            d5 = st.date_input("Delivery Complete", value=None, key="d5")
-
-        reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
-
-        if st.form_submit_button("Add", type="primary", use_container_width=True):
-            if not new_name.strip():
-                st.error("Project Name required!")
-            elif new_name in df["Project_Name"].values:
-                st.error("Name exists!")
-            else:
-                st.session_state.temp_project = {
-                    "Project_Type": new_type,
-                    "Project_Name": new_name,
-                    "Year": int(new_year),
-                    "Lead_Time": new_leadtime,
-                    "Customer": new_customer or "",
-                    "Supervisor": new_supervisor or "",
-                    "Qty": new_qty,
-                    "Real_Count": new_qty,
-                    "Progress_Reminder": reminder or "",
-                    "Parts_Arrival": d1 if d1 else None,
-                    "Installation_Complete": d2 if d2 else None,
-                    "Testing_Complete": d3 if d3 else None,
-                    "Cleaning_Complete": d4 if d4 else None,
-                    "Delivery_Complete": d5 if d5 else None
-                }
-                st.session_state.spec_dialog_open = True
-                st.rerun()
 
 # ==============================================
 # 篩選邏輯 & 主畫面
