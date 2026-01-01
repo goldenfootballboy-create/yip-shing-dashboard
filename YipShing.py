@@ -946,12 +946,26 @@ if st.session_state.get("spec_dialog_open", False):
                 st.cache_data.clear()
 
             st.success(f"已成功新增專案：{new_project['Project_Name']}")
+            # 清除暫存
             if "temp_project" in st.session_state:
                 del st.session_state.temp_project
             st.session_state.spec_dialog_open = False
             st.rerun()
 
-    spec_dialog()
+            # 新增：如果按 Cancel 或 X 關閉
+        if st.button("Cancel", type="secondary"):
+            st.session_state.spec_dialog_open = False
+            if "temp_project" in st.session_state:
+                del st.session_state.temp_project
+            st.rerun()
+
+            # 關鍵修正：加入 on_close 回調
+        dialog = spec_dialog()
+        if dialog.closed:  # 當用戶按 X 關閉時觸發
+            st.session_state.spec_dialog_open = False
+            if "temp_project" in st.session_state:
+                del st.session_state.temp_project
+            st.rerun()
 
 # ==============================================
 # 篩選邏輯 & 主畫面
