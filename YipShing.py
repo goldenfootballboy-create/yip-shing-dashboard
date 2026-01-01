@@ -341,7 +341,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
     row_to_edit = df.loc[idx_to_edit]
 
-    @st.dialog("Edit Project Specification", width="large")
+    @st.dialog("Edit Project Specification", width="large", enable_close_button=False)
     def edit_spec_dialog():
         st.markdown(f"**Editing Specification for: {row_to_edit['Project_Name']}**")
 
@@ -603,7 +603,7 @@ if st.session_state.get("show_edit_info_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
     row_to_edit = df.loc[idx_to_edit]
 
-    @st.dialog("Edit Project Info", width="large")
+    @st.dialog("Edit Project Info", width="large", enable_close_button=False)
     def edit_info_dialog():
         st.markdown(f"**Editing Basic Info for: {row_to_edit['Project_Name']}**")
 
@@ -687,7 +687,7 @@ if st.session_state.get("spec_dialog_open", False):
         st.session_state.spec_active = True
         st.rerun()
 
-    @st.dialog("Project Specification", width="large")
+    @st.dialog("Project Specification", width="large", enable_close_button=False)
     def spec_dialog():
         st.markdown("**請填寫專案規格**")
 
