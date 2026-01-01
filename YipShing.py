@@ -178,32 +178,66 @@ def render_project_card(row, idx):
 
     with st.expander(f"Details • {row['Project_Name']}", expanded=False):
         st.markdown(f"**Year:** {row['Year']} | **Lead Time:** {fmt(row['Lead_Time'])}")
-        st.markdown(f"**Customer:** {row.get('Customer','—')} | **Supervisor:** {row.get('Supervisor','—')} | **Qty:** {row.get('Qty',0)}")
+        st.markdown(
+            f"**Customer:** {row.get('Customer', '—')} | **Supervisor:** {row.get('Supervisor', '—')} | **Qty:** {row.get('Qty', 0)}")
 
-        # 顯示多台規格摘要（簡單顯示第一台）
+        # 讀取規格
         spec_text = row.get("Project_Spec", "")
+        specs = []
         if spec_text:
             try:
                 # 新格式：JSON 陣列
-                specs = json.loads(spec_text)
-                if isinstance(specs, list) and specs:
-                    first = specs[0]
-                    st.markdown("**Project Specification (第 1 台):**")
-                    st.markdown(f"• Prime: {first.get('prime', '—')} Standby: {first.get('standby', '—')}")
-                    st.markdown(f"• Voltage: {first.get('voltage', '—')} Frequency: {first.get('frequency', '—')} RPM: {first.get('rpm', '—')}")
-                    st.markdown(f"• **Genset model:** {first.get('genset_model', '—')} | S/N: {first.get('genset_sn', '—')}")
-                    st.markdown(f"• **Alternator Model:** {first.get('alt_model', '—')} | S/N: {first.get('alt_sn', '—')}")
-                    st.markdown(f"• **Panel model:** {first.get('panel_model', '—')} | S/N: {first.get('panel_sn', '—')}")
-                    if len(specs) > 1:
-                        st.markdown(f"_... 還有 {len(specs)-1} 台規格，請點 Edit Project Spec. 查看_")
+                if "||EXTRA||" in spec_text:
+                    extra_json = spec_text.split("||EXTRA||")[1]
+                    specs = json.loads(extra_json)
+                    if not isinstance(specs, list):
+                        specs = [specs]
                 else:
                     # 舊格式兼容
-                    extra_data = json.loads(spec_text.split("||EXTRA||")[1]) if "||EXTRA||" in spec_text else {}
-                    st.markdown("**Project Specification:**")
-                    st.markdown(f"• Prime: {extra_data.get('prime', '—')} Standby: {extra_data.get('standby', '—')}")
-                    # ... 其他顯示
+                    extra_data = json.loads(spec_text)
+                    specs = [extra_data]
             except:
-                st.markdown("**Project Specification:** —")
+                specs = []
+
+        qty = row.get("Qty", 1)
+        # 補足不足的台數（防止資料不齊）
+        if len(specs) < qty:
+            specs += [{}] * (qty - len(specs))
+
+        # 顯示規格
+        if qty == 1:
+            # Qty = 1：單頁顯示
+            spec = specs[0] if specs else {}
+            st.markdown("**Project Specification:**")
+            st.markdown(f"• Prime: {spec.get('prime', '—')} Standby: {spec.get('standby', '—')}")
+            st.markdown(
+                f"• Voltage: {spec.get('voltage', '—')} Frequency: {spec.get('frequency', '—')} RPM: {spec.get('rpm', '—')}")
+            st.markdown(f"• **Genset model:** {spec.get('genset_model', '—')} | S/N: {spec.get('genset_sn', '—')}")
+            st.markdown(f"• **Alternator Model:** {spec.get('alt_model', '—')} | S/N: {spec.get('alt_sn', '—')}")
+            st.markdown(f"• **Panel model:** {spec.get('panel_model', '—')} | S/N: {spec.get('panel_sn', '—')}")
+            st.markdown(
+                f"• **Breaker Type:** {spec.get('breaker_type', '—')} | Breaker Rating: {spec.get('breaker_rating', '—')} Poles: {spec.get('poles', '—')}")
+            st.markdown(
+                f"• Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}")
+        else:
+            # Qty ≥ 2：用 tabs 顯示每台
+            tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
+            for i in range(qty):
+                with tabs[i]:
+                    spec = specs[i] if i < len(specs) else {}
+                    st.markdown("**Project Specification:**")
+                    st.markdown(f"• Prime: {spec.get('prime', '—')} Standby: {spec.get('standby', '—')}")
+                    st.markdown(
+                        f"• Voltage: {spec.get('voltage', '—')} Frequency: {spec.get('frequency', '—')} RPM: {spec.get('rpm', '—')}")
+                    st.markdown(
+                        f"• **Genset model:** {spec.get('genset_model', '—')} | S/N: {spec.get('genset_sn', '—')}")
+                    st.markdown(
+                        f"• **Alternator Model:** {spec.get('alt_model', '—')} | S/N: {spec.get('alt_sn', '—')}")
+                    st.markdown(f"• **Panel model:** {spec.get('panel_model', '—')} | S/N: {spec.get('panel_sn', '—')}")
+                    st.markdown(
+                        f"• **Breaker Type:** {spec.get('breaker_type', '—')} | Breaker Rating: {spec.get('breaker_rating', '—')} Poles: {spec.get('poles', '—')}")
+                    st.markdown(
+                        f"• Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}")
 
         desc = str(row.get("Description", "")).strip() or "—"
         st.markdown(f"**Description:** {desc}")
