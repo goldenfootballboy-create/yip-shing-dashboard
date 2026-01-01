@@ -370,7 +370,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
     @st.dialog("Edit Project Specification", width="large")
     def edit_spec_dialog():
-        st.markdown(f"**編輯 {qty} 台機器的規格**")
 
         tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
