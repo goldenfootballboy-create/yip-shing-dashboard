@@ -574,7 +574,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.session_state["show_edit_spec_dialog"] = False
             st.rerun()
 
-    edit_spec_dialog()
+        # 關鍵：偵測 X 關閉
+        dialog = edit_spec_dialog()
+        if dialog.closed:
+            st.session_state["show_edit_spec_dialog"] = False
+            st.rerun()
 
 # ==============================================
 # Edit Project Info Dialog
@@ -649,7 +653,11 @@ if st.session_state.get("show_edit_info_dialog", False):
                 st.session_state["show_edit_info_dialog"] = False
                 st.rerun()
 
-    edit_info_dialog()
+        # 關鍵：偵測 X 關閉
+        dialog = edit_info_dialog()
+        if dialog.closed:
+            st.session_state["show_edit_info_dialog"] = False
+            st.rerun()
 
 # ==============================================
 # Sidebar - New Project + Add 後自動彈出 Specification
