@@ -580,7 +580,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.rerun()
 
     dialog = edit_spec_dialog()
-    if dialog.closed:
+    # 安全偵測 X 關閉
+    if hasattr(dialog, 'closed') and dialog.closed:
         st.session_state["show_edit_spec_dialog"] = False
         st.rerun()
 
@@ -664,7 +665,7 @@ if st.session_state.get("show_edit_info_dialog", False):
                 st.rerun()
 
     dialog = edit_info_dialog()
-    if dialog.closed:
+    if hasattr(dialog, 'closed') and dialog.closed:
         st.session_state["show_edit_info_dialog"] = False
         st.rerun()
 
@@ -890,7 +891,7 @@ if st.session_state.get("spec_dialog_open", False):
                 st.rerun()
 
     dialog = spec_dialog()
-    if dialog.closed:
+    if hasattr(dialog, 'closed') and dialog.closed:
         st.session_state.spec_dialog_open = False
         if "temp_project" in st.session_state:
             del st.session_state.temp_project
