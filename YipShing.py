@@ -283,7 +283,7 @@ def render_project_card(row, idx):
                 st.success("Checklist 已永久儲存到 Google Sheets！")
                 st.rerun()
 
-    # 按鈕區域 - 三個按鈕
+    # 按鈕區域
     col_edit_spec, col_edit_info, col_delete = st.columns(3)
     with col_edit_spec:
         if st.button("Edit Project Spec.", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
@@ -326,7 +326,7 @@ def render_project_card(row, idx):
         delete_placeholder.empty()
 
 # ==============================================
-# Edit Project Specification Dialog - 正確 dialog 處理
+# Edit Project Specification Dialog
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -585,7 +585,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
         st.rerun()
 
 # ==============================================
-# Edit Project Info Dialog - 正確 dialog 處理
+# Edit Project Info Dialog
 # ==============================================
 if st.session_state.get("show_edit_info_dialog", False):
     idx_to_edit = st.session_state["current_edit_idx"]
@@ -669,7 +669,7 @@ if st.session_state.get("show_edit_info_dialog", False):
         st.rerun()
 
 # ==============================================
-# Project Specification Dialog (New Project)
+# Project Specification Dialog (新增用)
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     @st.dialog("Project Specification", width="large")
