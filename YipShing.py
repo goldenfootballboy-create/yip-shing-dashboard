@@ -329,6 +329,9 @@ def render_project_card(row, idx):
 # Edit Project Specification Dialog
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
+    if not st.session_state.edit_spec_active:
+        st.session_state.edit_spec_active = True
+        st.rerun()
     idx_to_edit = st.session_state["current_edit_idx"]
     row_to_edit = df.loc[idx_to_edit]
 
@@ -589,6 +592,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
 # Edit Project Info Dialog
 # ==============================================
 if st.session_state.get("show_edit_info_dialog", False):
+    if not st.session_state.edit_info_active:
+        st.session_state.edit_info_active = True
+        st.rerun()
     idx_to_edit = st.session_state["current_edit_idx"]
     row_to_edit = df.loc[idx_to_edit]
 
@@ -673,6 +679,9 @@ if st.session_state.get("show_edit_info_dialog", False):
 # Project Specification Dialog (新增用)
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
+    if not st.session_state.spec_active:
+        st.session_state.spec_active = True
+        st.rerun()
     @st.dialog("Project Specification", width="large")
     def spec_dialog():
         st.markdown("**請填寫專案規格**")
