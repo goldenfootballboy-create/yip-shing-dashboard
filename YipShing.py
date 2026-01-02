@@ -330,9 +330,7 @@ def render_project_card(row, idx):
     else:
         delete_placeholder.empty()
 
-# ==============================================
-# Edit Project Specification Dialog
-# ==============================================
+
 # ==============================================
 # Edit Project Specification Dialog - 支持多台 Qty + Remarks
 # ==============================================
@@ -532,6 +530,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     e_spring_charging = st.selectbox("Spring Charging", ["--", "Motorized", "Single Usage"], index=safe_index(current.get("spring_charging", "--"), ["--", "Motorized", "Single Usage"]), key=f"edit_spring_charging_{idx_to_edit}_{i}")
                 e_control_voltage = st.text_input("Control Voltage", value=current.get("control_voltage", ""), key=f"edit_control_voltage_{idx_to_edit}_{i}")
 
+                st.markdown("---")
+                default_remark = ""
+                if i == 0:
+                    default_remark = row_to_edit.get("Remarks", "")
+                e_remarks = st.text_area("Remarks", value=current.get("remarks", default_remark), height=150, key=f"edit_remarks_{idx_to_edit}_{i}")
                 spec_data = {
                     "prime": e_prime.strip(),
                     "standby": e_standby.strip(),
@@ -574,6 +577,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "breaker_type": e_breaker_type if e_breaker_type != "--" else "",
                     "breaker_rating": e_breaker_rating,
                     "poles": e_poles if e_poles != "--" else "",
+                    "remarks": e_remarks.strip(),
                     "spring_charging": e_spring_charging if e_spring_charging != "--" else "",
                     "control_voltage": e_control_voltage
                 }
@@ -755,8 +759,6 @@ if st.session_state.get("spec_dialog_open", False):
                     s_panel_sn = st.text_input("S/N", key=f"dlg_panel_sn_{i}")
                 s_co_detector = st.selectbox("CO 探測器 (OLED)", ["--", "Include", "Not Include"], key=f"dlg_co_detector_{i}")
 
-                st.markdown("---")
-                s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
                 st.markdown("**Circuit Breaker (斷路器)**")
                 col_b1, col_b2 = st.columns(2)
                 with col_b1:
@@ -769,6 +771,9 @@ if st.session_state.get("spec_dialog_open", False):
                 with col_p4:
                     s_spring_charging = st.selectbox("Spring Charging(斷路器操作)", ["--", "Motorized", "Single Usage"], key=f"dlg_spring_charging_{i}")
                 s_control_voltage = st.text_input("Control Voltage(控制電壓)", key=f"dlg_control_voltage_{i}")
+
+                st.markdown("---")
+                s_remarks = st.text_area("Remarks(備注)", height=150, key=f"dlg_remarks_{i}")
 
                 spec_data = {
                     "prime": s_prime.strip(),
