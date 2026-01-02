@@ -394,17 +394,30 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.markdown("**Engine 發動機**")
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
-                    e_genset_model = st.text_input("Genset model(發動機型號)", value=current.get("genset_model", ""), key=f"edit_genset_model_{idx_to_edit}_{i}")
+                    e_genset_model = st.text_input("Genset model(發動機型號)", value=current.get("genset_model", ""),
+                                                   key=f"edit_genset_model_{idx_to_edit}_{i}")
                 with col2:
-                    e_genset_sn = st.text_input("S/N", value=current.get("genset_sn", ""), key=f"edit_genset_sn_{idx_to_edit}_{i}")
+                    e_genset_sn = st.text_input("S/N", value=current.get("genset_sn", ""),
+                                                key=f"edit_genset_sn_{idx_to_edit}_{i}")
                 with col3:
-                    e_engine_color = st.text_input("Color(顏色)", value=current.get("engine_color", ""), key=f"edit_engine_color_{idx_to_edit}_{i}")
+                    e_engine_color = st.text_input("Color(顏色)", value=current.get("engine_color", ""),
+                                                   key=f"edit_engine_color_{idx_to_edit}_{i}")
                 with col4:
-                    e_engine_year = st.text_input("Year(年份)", value=current.get("engine_year", ""), key=f"edit_engine_year_{idx_to_edit}_{i}")
-                e_engine_heater = st.text_input("Engine Heater(發動機加熱器) kW", value=current.get("engine_heater", ""), key=f"edit_engine_heater_{idx_to_edit}_{i}")
+                    e_engine_year = st.text_input("Year(年份)", value=current.get("engine_year", ""),
+                                                  key=f"edit_engine_year_{idx_to_edit}_{i}")
+                e_engine_heater = st.text_input("Engine Heater(發動機加熱器) kW",
+                                                value=current.get("engine_heater", ""),
+                                                key=f"edit_engine_heater_{idx_to_edit}_{i}")
+
+                # 新增：Engine 貨源
+                col_source = st.columns([3, 1])[1]
+                with col_source:
+                    e_engine_source = st.selectbox("貨源", ["--", "HK", "DG"],
+                                                   index=safe_index(current.get("engine_source", "--"),
+                                                                    ["--", "HK", "DG"]),
+                                                   key=f"edit_engine_source_{idx_to_edit}_{i}")
 
                 st.markdown("---")
-
                 st.markdown("**Alternator (電球)**")
                 col1, col2, col3 = st.columns(3)
                 with col1:
