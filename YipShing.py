@@ -402,7 +402,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                st.markdown("**Engine 發動機**")
+                st.markdown("**Engine (發動機)**")
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     e_genset_model = st.text_input("Genset model(發動機型號)", value=current.get("genset_model", ""), key=f"edit_genset_model_{idx_to_edit}_{i}")
@@ -617,7 +617,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                 st.markdown("---")
 
-                st.markdown("**Engine 發動機**")
+                st.markdown("**Engine (發動機)**")
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     s_genset_model = st.text_input("Genset model(發動機型號)", key=f"dlg_genset_model_{i}")
@@ -667,10 +667,10 @@ if st.session_state.get("spec_dialog_open", False):
                 st.markdown("---")
 
                 st.markdown("**Base Frame (底架)**")
-                s_base_model = st.text_input("Base Frame model", key=f"dlg_base_model_{i}")
+                s_base_model = st.text_input("Base Frame model(底架型號)", key=f"dlg_base_model_{i}")
                 col_a1, col_a2 = st.columns(2)
                 with col_a1:
-                    s_avm = st.text_input("Anti-Vibration Mount", key=f"dlg_avm_{i}")
+                    s_avm = st.text_input("Anti-Vibration Mount(避震腳)", key=f"dlg_avm_{i}")
                 with col_a2:
                     s_avm_qty = st.number_input("Qty", min_value=0, value=0, key=f"dlg_avm_qty_{i}")
 
@@ -923,7 +923,7 @@ if st.session_state.get("spec_dialog_open", False):
         st.markdown("---")
 
         # Engine 發動機
-        st.markdown("**Engine 發動機**")
+        st.markdown("**Engine (發動機)**")
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             s_genset_model = st.text_input("Genset model(發動機型號)", key="dlg_genset_model")
