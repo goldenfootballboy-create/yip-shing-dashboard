@@ -391,7 +391,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                col_title, col_spacer, col_source = st.columns([1, 3, 1])
+                col_title, col_spacer, col_source = st.columns([1, 1, 1])
                 with col_title:
                     st.markdown("**Engine 發動機**")
                 with col_source:
