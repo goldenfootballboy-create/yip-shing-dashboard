@@ -355,11 +355,16 @@ if st.session_state.get("show_edit_spec_dialog", False):
     if len(specs) < qty:
         specs += [{} for _ in range(qty - len(specs))]
 
+
     @st.dialog("Edit Project Specification", width="large")
     def edit_spec_dialog():
-        st.markdown(f"**編輯 {qty} 台機器的規格**")
+        # 改這裡：顯示專案名稱
+        st.markdown(
+            f"<h3 style='text-align:center; color:#1fb429;'>正在編輯專案：<br><strong>{row_to_edit['Project_Name']}</strong><br>({qty} 台機器)</h3>",
+            unsafe_allow_html=True)
+        st.markdown("---")
 
-        tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
+        tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
 
         new_specs = []
 
