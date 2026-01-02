@@ -653,7 +653,7 @@ if st.session_state.get("spec_dialog_open", False):
     temp_project = st.session_state.temp_project
     qty = temp_project.get("Qty", 1)
     project_type = temp_project["Project_Type"]
-    is_open_or_marine = project_type in ["Open Set", "Marine"]
+    is_open_or_marine = project_type in ["Open Set", "Marine"]  # 用來控制 Container 預設
 
     @st.dialog("Project Specification", width="large")
     def spec_dialog():
@@ -677,7 +677,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                 st.markdown("---")
 
-                st.markdown("**Engine (發動機)**")
+                st.markdown("**Engine 發動機**")
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     s_genset_model = st.text_input("Genset model(發動機型號)", key=f"dlg_genset_model_{i}")
@@ -705,31 +705,32 @@ if st.session_state.get("spec_dialog_open", False):
                 with col_d2:
                     s_pmg = st.text_input("PMG", key=f"dlg_pmg_{i}")
                 with col_d3:
-                    s_alt_heater = st.selectbox("Alternator Heater", ["--", "Include", "Not Include"], key=f"dlg_alt_heater_{i}")
+                    s_alt_heater = st.selectbox("Alternator Heater (交流發電機加熱器)", ["--", "Include", "Not Include"], key=f"dlg_alt_heater_{i}")
 
                 st.markdown("---")
 
+                # Radiator (水箱) - 新增兩個選項
                 st.markdown("**Radiator (水箱)**")
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    s_rad_model = st.text_input("Radiator model", key=f"dlg_rad_model_{i}")
+                    s_rad_model = st.text_input("Radiator model(水箱型號)", key=f"dlg_rad_model_{i}")
                 with col2:
                     s_rad_sn = st.text_input("S/N", key=f"dlg_rad_sn_{i}")
                 with col3:
-                    s_rad_temp = st.text_input("Temperature", key=f"dlg_rad_temp_{i}")
+                    s_rad_temp = st.text_input("Temperature(温度)", key=f"dlg_rad_temp_{i}")
                 s_fan_size = st.text_input("風扇呎吋", key=f"dlg_fan_size_{i}")
+
+                col_r1, col_r2 = st.columns(2)
+                with col_r1:
+                    s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"], key=f"dlg_radiator_guard_{i}")
+                with col_r2:
+                    s_fuel_cooler = st.selectbox("Fuel Cooler (燃油冷卻器)", ["--", "Include", "Not Include"], key=f"dlg_fuel_cooler_{i}")
+
                 col_s1, col_s2 = st.columns(2)
                 with col_s1:
                     s_coolant_sensor = st.selectbox("Coolant temperature sensor", ["--", "Include", "Not Include"], key=f"dlg_coolant_sensor_{i}")
                 with col_s2:
                     s_low_water = st.selectbox("Low water level float switch", ["--", "Include", "Not Include"], key=f"dlg_low_water_{i}")
-                col_r1, col_r2 = st.columns(2)
-                with col_r1:
-                    s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"],
-                                                    key=f"dlg_radiator_guard_{i}")
-                with col_r2:
-                    s_fuel_cooler = st.selectbox("Fuel Cooler (燃油冷卻器)", ["--", "Include", "Not Include"],
-                                                 key=f"dlg_fuel_cooler_{i}")
 
                 st.markdown("---")
 
@@ -737,40 +738,54 @@ if st.session_state.get("spec_dialog_open", False):
                 s_base_model = st.text_input("Base Frame model(底架型號)", key=f"dlg_base_model_{i}")
                 col_a1, col_a2 = st.columns(2)
                 with col_a1:
-                    s_avm = st.text_input("Anti-Vibration Mount(避震腳)", key=f"dlg_avm_{i}")
+                    s_avm = st.text_input("Anti-Vibration Mount (避震腳)", key=f"dlg_avm_{i}")
                 with col_a2:
-                    s_avm_qty = st.number_input("Qty", min_value=0, value=0, key=f"dlg_avm_qty_{i}")
+                    s_avm_qty = st.number_input("Qty(數量)", min_value=0, value=0, key=f"dlg_avm_qty_{i}")
 
                 st.markdown("---")
 
+                # Container (貨櫃) - Open Set / Marine 時強制預設 "--"
                 st.markdown("**Container (貨櫃)**")
-                default_cont = "--" if is_open_or_marine else "--"
-                default_cont_type = "--" if is_open_or_marine else "--"
                 col_c1, col_c2, col_c3 = st.columns(3)
                 with col_c1:
-                    s_cont_size = st.selectbox("Size", ["--", "20'ftHQ", "20'ftGP"], key=f"dlg_cont_size_{i}")
+                    s_cont_size = st.selectbox("Size(呎吋)", ["--", "20'ftHQ", "20'ftGP"],
+                                               index=0 if is_open_or_marine else 0,  # 強制 0 ("--")
+                                               key=f"dlg_cont_size_{i}")
                 with col_c2:
-                    s_cont_type = st.selectbox("Type", ["--", "FIEO", "Motorized"], key=f"dlg_cont_type_{i}")
+                    s_cont_type = st.selectbox("Type(種類)", ["--", "FIEO", "Motorized"],
+                                               index=0 if is_open_or_marine else 0,
+                                               key=f"dlg_cont_type_{i}")
                 with col_c3:
-                    s_cont_color = st.text_input("Color", key=f"dlg_cont_color_{i}")
+                    s_cont_color = st.text_input("Color(顏色)", key=f"dlg_cont_color_{i}")
+
                 col_f1, col_f2 = st.columns(2)
                 with col_f1:
-                    s_fork_slot = st.selectbox("是否帶叉槽位", ["--", "Yes", "No"], key=f"dlg_fork_slot_{i}")
+                    s_fork_slot = st.selectbox("是否帶叉槽位", ["--", "Yes", "No"],
+                                               index=0 if is_open_or_marine else 0,
+                                               key=f"dlg_fork_slot_{i}")
                 with col_f2:
-                    s_anti_noise = st.selectbox("Anti-Noise", ["--", "Yes", "No"], key=f"dlg_anti_noise_{i}")
+                    s_anti_noise = st.selectbox("Anti-Noise(78-80Dba @7M 75% loading)", ["--", "Yes", "No"],
+                                                index=0 if is_open_or_marine else 0,
+                                                key=f"dlg_anti_noise_{i}")
                 col_i1, col_i2 = st.columns(2)
                 with col_i1:
-                    s_internal_silencer = st.selectbox("Internal Silencer", ["--", "Include", "Not Include"], key=f"dlg_internal_silencer_{i}")
+                    s_internal_silencer = st.selectbox("Internal Silencer (內部消聲器)", ["--", "Include", "Not Include"],
+                                                       index=0 if is_open_or_marine else 0,
+                                                       key=f"dlg_internal_silencer_{i}")
                 with col_i2:
-                    s_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["--", "Include", "Not Include"], key=f"dlg_ss_locks_{i}")
-                s_emergency_stop = st.selectbox("Emergency Stop Button", ["--", "Include", "Not Include"], key=f"dlg_emergency_stop_{i}")
+                    s_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["--", "Include", "Not Include"],
+                                              index=0 if is_open_or_marine else 0,
+                                              key=f"dlg_ss_locks_{i}")
+                s_emergency_stop = st.selectbox("Emergency Stop Button (緊急暫停)", ["--", "Include", "Not Include"],
+                                                index=0 if is_open_or_marine else 0,
+                                                key=f"dlg_emergency_stop_{i}")
 
                 st.markdown("---")
 
                 st.markdown("**Panel (控制器)**")
                 col_p1, col_p2 = st.columns(2)
                 with col_p1:
-                    s_panel_model = st.text_input("Panel model", key=f"dlg_panel_model_{i}")
+                    s_panel_model = st.text_input("Panel model(控制器型號)", key=f"dlg_panel_model_{i}")
                 with col_p2:
                     s_panel_sn = st.text_input("S/N", key=f"dlg_panel_sn_{i}")
                 s_co_detector = st.selectbox("CO 探測器 (OLED)", ["--", "Include", "Not Include"], key=f"dlg_co_detector_{i}")
@@ -780,17 +795,17 @@ if st.session_state.get("spec_dialog_open", False):
                 st.markdown("**Circuit Breaker (斷路器)**")
                 col_b1, col_b2 = st.columns(2)
                 with col_b1:
-                    s_breaker_type = st.selectbox("Breaker Type", ["--", "ACB", "MCCB"], key=f"dlg_breaker_type_{i}")
+                    s_breaker_type = st.selectbox("Breaker Type (斷路器種類)", ["--", "ACB", "MCCB"], key=f"dlg_breaker_type_{i}")
                 with col_b2:
-                    s_breaker_rating = st.text_input("Breaker Rating", key=f"dlg_breaker_rating_{i}")
+                    s_breaker_rating = st.text_input("Breaker Rating (斷路器容量)", key=f"dlg_breaker_rating_{i}")
                 col_p3, col_p4 = st.columns(2)
                 with col_p3:
-                    s_poles = st.selectbox("Poles", ["--", "3P", "4P"], key=f"dlg_poles_{i}")
+                    s_poles = st.selectbox("Poles(極數)", ["--", "3P", "4P"], key=f"dlg_poles_{i}")
                 with col_p4:
-                    s_spring_charging = st.selectbox("Spring Charging", ["--", "Motorized", "Single Usage"], key=f"dlg_spring_charging_{i}")
-                s_control_voltage = st.text_input("Control Voltage", key=f"dlg_control_voltage_{i}")
+                    s_spring_charging = st.selectbox("Spring Charging(斷路器操作)", ["--", "Motorized", "Single Usage"], key=f"dlg_spring_charging_{i}")
+                s_control_voltage = st.text_input("Control Voltage(控制電壓)", key=f"dlg_control_voltage_{i}")
 
-                # 收集這台規格
+                # 收集這台規格（加入新欄位）
                 spec_data = {
                     "prime": s_prime.strip(),
                     "standby": s_standby.strip(),
@@ -814,9 +829,9 @@ if st.session_state.get("spec_dialog_open", False):
                     "fan_size": s_fan_size,
                     "coolant_sensor": s_coolant_sensor if s_coolant_sensor != "--" else "",
                     "low_water": s_low_water if s_low_water != "--" else "",
-                    "base_model": s_base_model,
                     "radiator_guard": s_radiator_guard if s_radiator_guard != "--" else "",
                     "fuel_cooler": s_fuel_cooler if s_fuel_cooler != "--" else "",
+                    "base_model": s_base_model,
                     "avm": s_avm,
                     "avm_qty": str(s_avm_qty),
                     "cont_size": s_cont_size if s_cont_size != "--" else "",
@@ -861,7 +876,7 @@ if st.session_state.get("spec_dialog_open", False):
                 global df
                 df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
 
-                with st.spinner("儲存中..."):
+                with st.spinner("正在儲存專案至 Google Sheets，請稍候..."):
                     save_projects()
                     st.cache_data.clear()
 
@@ -1072,22 +1087,14 @@ if st.session_state.get("spec_dialog_open", False):
 
                 # Container (貨櫃) - Open Set / Marine 時強制預設 "--"
                 st.markdown("**Container (貨櫃)**")
-                default_cont_size = "--" if is_open_or_marine else "--"
-                default_cont_type = "--" if is_open_or_marine else "--"
-                default_fork_slot = "--" if is_open_or_marine else "--"
-                default_anti_noise = "--" if is_open_or_marine else "--"
-                default_internal_silencer = "--" if is_open_or_marine else "--"
-                default_ss_locks = "--" if is_open_or_marine else "--"
-                default_emergency_stop = "--" if is_open_or_marine else "--"
-
                 col_c1, col_c2, col_c3 = st.columns(3)
                 with col_c1:
                     s_cont_size = st.selectbox("Size(呎吋)", ["--", "20'ftHQ", "20'ftGP"],
-                                               index=["--", "20'ftHQ", "20'ftGP"].index(default_cont_size),
+                                               index=0 if is_open_or_marine else 0,  # 強制 0 ("--")
                                                key=f"dlg_cont_size_{i}")
                 with col_c2:
                     s_cont_type = st.selectbox("Type(種類)", ["--", "FIEO", "Motorized"],
-                                               index=["--", "FIEO", "Motorized"].index(default_cont_type),
+                                               index=0 if is_open_or_marine else 0,
                                                key=f"dlg_cont_type_{i}")
                 with col_c3:
                     s_cont_color = st.text_input("Color(顏色)", key=f"dlg_cont_color_{i}")
@@ -1095,23 +1102,23 @@ if st.session_state.get("spec_dialog_open", False):
                 col_f1, col_f2 = st.columns(2)
                 with col_f1:
                     s_fork_slot = st.selectbox("是否帶叉槽位", ["--", "Yes", "No"],
-                                               index=["--", "Yes", "No"].index(default_fork_slot),
+                                               index=0 if is_open_or_marine else 0,
                                                key=f"dlg_fork_slot_{i}")
                 with col_f2:
                     s_anti_noise = st.selectbox("Anti-Noise(78-80Dba @7M 75% loading)", ["--", "Yes", "No"],
-                                                index=["--", "Yes", "No"].index(default_anti_noise),
+                                                index=0 if is_open_or_marine else 0,
                                                 key=f"dlg_anti_noise_{i}")
                 col_i1, col_i2 = st.columns(2)
                 with col_i1:
                     s_internal_silencer = st.selectbox("Internal Silencer (內部消聲器)", ["--", "Include", "Not Include"],
-                                                       index=["--", "Include", "Not Include"].index(default_internal_silencer),
+                                                       index=0 if is_open_or_marine else 0,
                                                        key=f"dlg_internal_silencer_{i}")
                 with col_i2:
                     s_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["--", "Include", "Not Include"],
-                                              index=["--", "Include", "Not Include"].index(default_ss_locks),
+                                              index=0 if is_open_or_marine else 0,
                                               key=f"dlg_ss_locks_{i}")
                 s_emergency_stop = st.selectbox("Emergency Stop Button (緊急暫停)", ["--", "Include", "Not Include"],
-                                                index=["--", "Include", "Not Include"].index(default_emergency_stop),
+                                                index=0 if is_open_or_marine else 0,
                                                 key=f"dlg_emergency_stop_{i}")
 
                 st.markdown("---")
@@ -1163,8 +1170,8 @@ if st.session_state.get("spec_dialog_open", False):
                     "fan_size": s_fan_size,
                     "coolant_sensor": s_coolant_sensor if s_coolant_sensor != "--" else "",
                     "low_water": s_low_water if s_low_water != "--" else "",
-                    "radiator_guard": s_radiator_guard if s_radiator_guard != "--" else "",  # 新增
-                    "fuel_cooler": s_fuel_cooler if s_fuel_cooler != "--" else "",  # 新增
+                    "radiator_guard": s_radiator_guard if s_radiator_guard != "--" else "",
+                    "fuel_cooler": s_fuel_cooler if s_fuel_cooler != "--" else "",
                     "base_model": s_base_model,
                     "avm": s_avm,
                     "avm_qty": str(s_avm_qty),
@@ -1190,7 +1197,7 @@ if st.session_state.get("spec_dialog_open", False):
         col_save, col_cancel = st.columns(2)
         with col_save:
             if st.button("Save & Close", type="primary", use_container_width=True):
-                # 生成 visible 部分（只顯示第一台）
+                # 生成 visible 部分（顯示第一台）
                 first_spec = specs[0] if specs else {}
                 visible_lines = [
                     f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
@@ -1229,7 +1236,6 @@ if st.session_state.get("spec_dialog_open", False):
                 st.rerun()
 
     spec_dialog()
-
 # ==============================================
 # Sidebar
 # ==============================================
