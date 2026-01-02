@@ -45,7 +45,7 @@ for attempt in range(max_retries):
             st.stop()
 
 required = ["Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
-            "Qty","Real_Count","Project_Spec","Remarks","Progress_Reminder",
+            "Qty","Real_Count","Project_Spec","Progress_Reminder",
             "Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete"]
 
 for c in required:
@@ -229,9 +229,6 @@ def render_project_card(row, idx):
                     st.markdown(f"• Radiator Guard: {spec.get('radiator_guard', '—')} | Fuel Cooler: {spec.get('fuel_cooler', '—')}")
                     st.markdown(f"**Remarks:**")
                     st.markdown(f"{spec.get('remarks', '—')}")
-
-        desc = str(row.get("Remarks", "")).strip() or "—"
-        st.markdown(f"**Remarks:** {desc}")
 
         # Checklist Panel
         if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
