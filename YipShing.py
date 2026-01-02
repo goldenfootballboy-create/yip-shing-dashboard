@@ -211,7 +211,6 @@ def render_project_card(row, idx):
             st.markdown(f"• **Breaker Type:** {spec.get('breaker_type', '—')} | Breaker Rating: {spec.get('breaker_rating', '—')} Poles: {spec.get('poles', '—')}")
             st.markdown(f"• Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}")
             st.markdown(f"• Radiator Guard: {spec.get('radiator_guard', '—')} | Fuel Cooler: {spec.get('fuel_cooler', '—')}")
-            st.markdown("---")
             st.markdown(f"**Remarks:**")
             st.markdown(f"{spec.get('remarks', '—')}")
         else:
@@ -228,7 +227,6 @@ def render_project_card(row, idx):
                     st.markdown(f"• **Breaker Type:** {spec.get('breaker_type', '—')} | Breaker Rating: {spec.get('breaker_rating', '—')} Poles: {spec.get('poles', '—')}")
                     st.markdown(f"• Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}")
                     st.markdown(f"• Radiator Guard: {spec.get('radiator_guard', '—')} | Fuel Cooler: {spec.get('fuel_cooler', '—')}")
-                    st.markdown("---")
                     st.markdown(f"**Remarks:**")
                     st.markdown(f"{spec.get('remarks', '—')}")
 
