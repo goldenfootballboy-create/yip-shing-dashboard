@@ -211,6 +211,9 @@ def render_project_card(row, idx):
             st.markdown(f"• **Breaker Type:** {spec.get('breaker_type', '—')} | Breaker Rating: {spec.get('breaker_rating', '—')} Poles: {spec.get('poles', '—')}")
             st.markdown(f"• Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}")
             st.markdown(f"• Radiator Guard: {spec.get('radiator_guard', '—')} | Fuel Cooler: {spec.get('fuel_cooler', '—')}")
+            st.markdown("---")
+            st.markdown(f"**Remarks:**")
+            st.markdown(f"{spec.get('remarks', '—')}")
         else:
             tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
             for i in range(qty):
@@ -225,18 +228,13 @@ def render_project_card(row, idx):
                     st.markdown(f"• **Breaker Type:** {spec.get('breaker_type', '—')} | Breaker Rating: {spec.get('breaker_rating', '—')} Poles: {spec.get('poles', '—')}")
                     st.markdown(f"• Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}")
                     st.markdown(f"• Radiator Guard: {spec.get('radiator_guard', '—')} | Fuel Cooler: {spec.get('fuel_cooler', '—')}")
+                    st.markdown("---")
+                    st.markdown(f"**Remarks:**")
+                    st.markdown(f"{spec.get('remarks', '—')}")
 
         desc = str(row.get("Remarks", "")).strip() or "—"
         st.markdown(f"**Remarks:** {desc}")
-        if qty == 1:
-            remark = specs[0].get("remarks", "") if specs else ""
-            st.markdown(f"**Remarks:** {remark.strip() or '—'}")
-        else:
-            tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
-            for i in range(qty):
-                with tabs[i]:
-                    remark = specs[i].get("remarks", "") if i < len(specs) else ""
-                    st.markdown(f"**Remarks:** {remark.strip() or '—'}")
+
         # Checklist Panel
         if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
             st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
