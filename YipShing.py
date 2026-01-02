@@ -359,10 +359,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     @st.dialog("Edit Project Specification", width="large")
     def edit_spec_dialog():
         # 改這裡：顯示專案名稱
-        st.markdown(
-            f"<h3 style='text-align:center; color:#1fb429;'>正在編輯專案：<br><strong>{row_to_edit['Project_Name']}</strong><br>({qty} 台機器)</h3>",
-            unsafe_allow_html=True)
-        st.markdown("---")
+        st.markdown(f"**正在編輯專案：{row_to_edit['Project_Name']} ({qty} 台機器)**")
 
         tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
 
