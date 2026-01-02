@@ -391,7 +391,17 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                st.markdown("**Engine 發動機**")
+                col_title, col_source = st.columns([4, 1])
+                with col_title:
+                    st.markdown("**Engine 發動機**")
+                with col_source:
+                    e_engine_source = st.selectbox("貨源", ["--", "HK", "DG"],
+                                                   index=safe_index(current.get("engine_source", "--"),
+                                                                    ["--", "HK", "DG"]),
+                                                   key=f"edit_engine_source_{idx_to_edit}_{i}",
+                                                   label_visibility="collapsed")
+
+                # 原本的 Engine 輸入欄位
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     e_genset_model = st.text_input("Genset model(發動機型號)", value=current.get("genset_model", ""),
@@ -409,15 +419,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                 value=current.get("engine_heater", ""),
                                                 key=f"edit_engine_heater_{idx_to_edit}_{i}")
 
-                # 新增：Engine 貨源
-                col_source = st.columns([3, 1])[1]
-                with col_source:
-                    e_engine_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                   index=safe_index(current.get("engine_source", "--"),
-                                                                    ["--", "HK", "DG"]),
-                                                   key=f"edit_engine_source_{idx_to_edit}_{i}")
-
                 st.markdown("---")
+
                 st.markdown("**Alternator (電球)**")
                 col1, col2, col3 = st.columns(3)
                 with col1:
