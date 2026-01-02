@@ -45,7 +45,7 @@ for attempt in range(max_retries):
             st.stop()
 
 required = ["Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
-            "Qty","Real_Count","Project_Spec","Description","Progress_Reminder",
+            "Qty","Real_Count","Project_Spec","Remarks","Progress_Reminder",
             "Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete"]
 
 for c in required:
@@ -226,9 +226,17 @@ def render_project_card(row, idx):
                     st.markdown(f"• Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}")
                     st.markdown(f"• Radiator Guard: {spec.get('radiator_guard', '—')} | Fuel Cooler: {spec.get('fuel_cooler', '—')}")
 
-        desc = str(row.get("Description", "")).strip() or "—"
-        st.markdown(f"**Description:** {desc}")
-
+        desc = str(row.get("Remarks", "")).strip() or "—"
+        st.markdown(f"**Remarks:** {desc}")
+        if qty == 1:
+            remark = specs[0].get("remarks", "") if specs else ""
+            st.markdown(f"**Remarks:** {remark.strip() or '—'}")
+        else:
+            tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
+            for i in range(qty):
+                with tabs[i]:
+                    remark = specs[i].get("remarks", "") if i < len(specs) else ""
+                    st.markdown(f"**Remarks:** {remark.strip() or '—'}")
         # Checklist Panel
         if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
             st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
@@ -329,6 +337,9 @@ def render_project_card(row, idx):
 # ==============================================
 # Edit Project Specification Dialog
 # ==============================================
+# ==============================================
+# Edit Project Specification Dialog - 支持多台 Qty + Remarks
+# ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     if st.session_state.dialog_active != "edit_spec":
         st.session_state.dialog_active = "edit_spec"
@@ -355,13 +366,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
     if len(specs) < qty:
         specs += [{} for _ in range(qty - len(specs))]
 
-
     @st.dialog("Edit Project Specification", width="large")
     def edit_spec_dialog():
-        # 改這裡：顯示專案名稱
         st.markdown(f"**正在編輯專案：{row_to_edit['Project_Name']} ({qty} 台機器)**")
 
-        tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
+        tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
         new_specs = []
 
@@ -751,7 +760,7 @@ if st.session_state.get("spec_dialog_open", False):
                 s_co_detector = st.selectbox("CO 探測器 (OLED)", ["--", "Include", "Not Include"], key=f"dlg_co_detector_{i}")
 
                 st.markdown("---")
-
+                s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
                 st.markdown("**Circuit Breaker (斷路器)**")
                 col_b1, col_b2 = st.columns(2)
                 with col_b1:
@@ -808,6 +817,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "breaker_rating": s_breaker_rating,
                     "poles": s_poles if s_poles != "--" else "",
                     "spring_charging": s_spring_charging if s_spring_charging != "--" else "",
+                    "remarks": s_remarks.strip(),
                     "control_voltage": s_control_voltage
                 }
                 specs.append(spec_data)
@@ -828,7 +838,6 @@ if st.session_state.get("spec_dialog_open", False):
                 new_project = {
                     **temp_project,
                     "Project_Spec": spec_text,
-                    "Description": ""
                 }
 
                 global df
