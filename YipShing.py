@@ -729,8 +729,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         st.session_state[part_key].append({"name": "", "source": "--"})
                         st.rerun()
 
-                    # 儲存到 spec_data
-                    spec_data["parts"] = [p for p in parts_list if p["name"].strip()]  # 只存有內容的
+
                 st.markdown("---")
 
                 # 最下面：Remarks
@@ -793,6 +792,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "control_voltage": e_control_voltage,
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
                     "parts": spec_data.get("parts", []),
+                    "parts": [p for p in parts_list if p["name"].strip()],
                     "remarks": e_remarks.strip()
                 }
                 new_specs.append(spec_data)
