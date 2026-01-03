@@ -357,8 +357,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
     @st.dialog("Edit Project Specification", width="large")
     def edit_spec_dialog():
-        st.markdown(f"<h3 style='text-align:center; color:#1fb429;'>正在編輯專案：<br><strong>{row_to_edit['Project_Name']}</strong><br>({qty} 台機器)</h3>", unsafe_allow_html=True)
-        st.markdown("---")
+        st.markdown(f"**正在編輯專案：{row_to_edit['Project_Name']} ({qty} 台機器)**")
 
         tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
@@ -392,39 +391,39 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # Engine 發動機 + 貨源
-                col_title, col_source = st.columns([6, 1])
+                col_title, col_source = st.columns([5, 1])  # 左5右1，讓選單靠右
                 with col_title:
                     st.markdown("**Engine 發動機**")
                 with col_source:
-                    e_engine_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                   index=safe_index(current.get("engine_source", "--"), ["--", "HK", "DG"]),
-                                                   key=f"edit_engine_source_{idx_to_edit}_{i}",
-                                                   label_visibility="collapsed")
+                    e_engine_source = st.selectbox(
+                        "貨源",
+                        options=["--", "HK", "DG"],
+                        index=safe_index(current.get("engine_source", "--"), ["--", "HK", "DG"]),  # Edit版用
+                        key=f"edit_engine_source_{idx_to_edit}_{i}",
+                        label_visibility="collapsed"  # 隱藏 label，因為標題已顯示「貨源」
+                    )
 
+                # 原本的 Engine 輸入欄位
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
-                    e_genset_model = st.text_input("Genset model(發動機型號)", value=current.get("genset_model", ""), key=f"edit_genset_model_{idx_to_edit}_{i}")
+                    e_genset_model = st.text_input("Genset model(發動機型號)", value=current.get("genset_model", ""),
+                                                   key=f"edit_genset_model_{idx_to_edit}_{i}")
                 with col2:
-                    e_genset_sn = st.text_input("S/N", value=current.get("genset_sn", ""), key=f"edit_genset_sn_{idx_to_edit}_{i}")
+                    e_genset_sn = st.text_input("S/N", value=current.get("genset_sn", ""),
+                                                key=f"edit_genset_sn_{idx_to_edit}_{i}")
                 with col3:
-                    e_engine_color = st.text_input("Color(顏色)", value=current.get("engine_color", ""), key=f"edit_engine_color_{idx_to_edit}_{i}")
+                    e_engine_color = st.text_input("Color(顏色)", value=current.get("engine_color", ""),
+                                                   key=f"edit_engine_color_{idx_to_edit}_{i}")
                 with col4:
-                    e_engine_year = st.text_input("Year(年份)", value=current.get("engine_year", ""), key=f"edit_engine_year_{idx_to_edit}_{i}")
-                e_engine_heater = st.text_input("Engine Heater(發動機加熱器) kW", value=current.get("engine_heater", ""), key=f"edit_engine_heater_{idx_to_edit}_{i}")
+                    e_engine_year = st.text_input("Year(年份)", value=current.get("engine_year", ""),
+                                                  key=f"edit_engine_year_{idx_to_edit}_{i}")
+                e_engine_heater = st.text_input("Engine Heater(發動機加熱器) kW",
+                                                value=current.get("engine_heater", ""),
+                                                key=f"edit_engine_heater_{idx_to_edit}_{i}")
 
                 st.markdown("---")
 
-                # Alternator (電球) + 貨源
-                col_title, col_source = st.columns([6, 1])
-                with col_title:
-                    st.markdown("**Alternator (電球)**")
-                with col_source:
-                    e_alt_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                index=safe_index(current.get("alt_source", "--"), ["--", "HK", "DG"]),
-                                                key=f"edit_alt_source_{idx_to_edit}_{i}",
-                                                label_visibility="collapsed")
-
+                st.markdown("**Alternator (電球)**")
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     e_alt_model = st.text_input("Alternator Model(電球型號)", value=current.get("alt_model", ""), key=f"edit_alt_model_{idx_to_edit}_{i}")
@@ -442,16 +441,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # Radiator (水箱) + 貨源
-                col_title, col_source = st.columns([6, 1])
-                with col_title:
-                    st.markdown("**Radiator (水箱)**")
-                with col_source:
-                    e_rad_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                index=safe_index(current.get("rad_source", "--"), ["--", "HK", "DG"]),
-                                                key=f"edit_rad_source_{idx_to_edit}_{i}",
-                                                label_visibility="collapsed")
-
+                st.markdown("**Radiator (水箱)**")
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     e_rad_model = st.text_input("Radiator model(水箱型號)", value=current.get("rad_model", ""), key=f"edit_rad_model_{idx_to_edit}_{i}")
@@ -483,16 +473,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # Base Frame (底架) + 貨源
-                col_title, col_source = st.columns([6, 1])
-                with col_title:
-                    st.markdown("**Base Frame (底架)**")
-                with col_source:
-                    e_base_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                 index=safe_index(current.get("base_source", "--"), ["--", "HK", "DG"]),
-                                                 key=f"edit_base_source_{idx_to_edit}_{i}",
-                                                 label_visibility="collapsed")
-
+                st.markdown("**Base Frame (底架)**")
                 e_base_model = st.text_input("Base Frame model", value=current.get("base_model", ""), key=f"edit_base_model_{idx_to_edit}_{i}")
                 col_a1, col_a2 = st.columns(2)
                 with col_a1:
@@ -500,28 +481,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 with col_a2:
                     e_avm_qty = st.number_input("Qty", min_value=0, value=int(current.get("avm_qty", 0)), key=f"edit_avm_qty_{idx_to_edit}_{i}")
 
-                # Anti-Vibration Mount + 貨源
-                col_title, col_source = st.columns([6, 1])
-                with col_title:
-                    st.markdown("Anti-Vibration Mount")
-                with col_source:
-                    e_avm_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                index=safe_index(current.get("avm_source", "--"), ["--", "HK", "DG"]),
-                                                key=f"edit_avm_source_{idx_to_edit}_{i}",
-                                                label_visibility="collapsed")
-
                 st.markdown("---")
 
-                # Container (貨櫃) + 貨源
-                col_title, col_source = st.columns([6, 1])
-                with col_title:
-                    st.markdown("**Container (貨櫃)**")
-                with col_source:
-                    e_cont_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                 index=safe_index("--" if is_open_or_marine else current.get("cont_source", "--"), ["--", "HK", "DG"]),
-                                                 key=f"edit_cont_source_{idx_to_edit}_{i}",
-                                                 label_visibility="collapsed")
-
+                st.markdown("**Container (貨櫃)**")
                 col_c1, col_c2, col_c3 = st.columns(3)
                 with col_c1:
                     e_cont_size = st.selectbox("Size(呎吋)", ["--", "20'ftHQ", "20'ftGP"],
@@ -558,46 +520,17 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # Panel (控制器) + 貨源
-                col_title, col_source = st.columns([6, 1])
-                with col_title:
-                    st.markdown("**Panel (控制器)**")
-                with col_source:
-                    e_panel_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                  index=safe_index(current.get("panel_source", "--"), ["--", "HK", "DG"]),
-                                                  key=f"edit_panel_source_{idx_to_edit}_{i}",
-                                                  label_visibility="collapsed")
-
+                st.markdown("**Panel (控制器)**")
                 col_p1, col_p2 = st.columns(2)
                 with col_p1:
                     e_panel_model = st.text_input("Panel model", value=current.get("panel_model", ""), key=f"edit_panel_model_{idx_to_edit}_{i}")
                 with col_p2:
                     e_panel_sn = st.text_input("S/N", value=current.get("panel_sn", ""), key=f"edit_panel_sn_{idx_to_edit}_{i}")
-
-                # CO 探測器 + 貨源
-                col_title, col_source = st.columns([6, 1])
-                with col_title:
-                    st.markdown("CO 探測器 (OLED)")
-                with col_source:
-                    e_co_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                               index=safe_index(current.get("co_source", "--"), ["--", "HK", "DG"]),
-                                               key=f"edit_co_source_{idx_to_edit}_{i}",
-                                               label_visibility="collapsed")
-
                 e_co_detector = st.selectbox("CO 探測器 (OLED)", ["--", "Include", "Not Include"], index=safe_index(current.get("co_detector", "--"), ["--", "Include", "Not Include"]), key=f"edit_co_detector_{idx_to_edit}_{i}")
 
                 st.markdown("---")
 
-                # Circuit Breaker (斷路器) + 貨源
-                col_title, col_source = st.columns([6, 1])
-                with col_title:
-                    st.markdown("**Circuit Breaker (斷路器)**")
-                with col_source:
-                    e_breaker_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                    index=safe_index(current.get("breaker_source", "--"), ["--", "HK", "DG"]),
-                                                    key=f"edit_breaker_source_{idx_to_edit}_{i}",
-                                                    label_visibility="collapsed")
-
+                st.markdown("**Circuit Breaker (斷路器)**")
                 col_b1, col_b2 = st.columns(2)
                 with col_b1:
                     e_breaker_type = st.selectbox("Breaker Type", ["--", "ACB", "MCCB"], index=safe_index(current.get("breaker_type", "--"), ["--", "ACB", "MCCB"]), key=f"edit_breaker_type_{idx_to_edit}_{i}")
@@ -611,11 +544,10 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 e_control_voltage = st.text_input("Control Voltage", value=current.get("control_voltage", ""), key=f"edit_control_voltage_{idx_to_edit}_{i}")
 
                 st.markdown("---")
-
-                # 最下面：Remarks 多行輸入
-                e_remarks = st.text_area("Remarks", value=current.get("remarks", ""), height=150, key=f"edit_remarks_{idx_to_edit}_{i}")
-
-                # 收集這台規格
+                default_remark = ""
+                if i == 0:
+                    default_remark = row_to_edit.get("Remarks", "")
+                e_remarks = st.text_area("Remarks", value=current.get("remarks", default_remark), height=150, key=f"edit_remarks_{idx_to_edit}_{i}")
                 spec_data = {
                     "prime": e_prime.strip(),
                     "standby": e_standby.strip(),
@@ -627,14 +559,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "engine_color": e_engine_color,
                     "engine_year": e_engine_year,
                     "engine_heater": e_engine_heater,
-                    "engine_source": e_engine_source if e_engine_source != "--" else "",
                     "alt_model": e_alt_model,
                     "alt_sn": e_alt_sn,
                     "alt_color": e_alt_color,
                     "droop": e_droop if e_droop != "--" else "",
                     "pmg": e_pmg,
                     "alt_heater": e_alt_heater if e_alt_heater != "--" else "",
-                    "alt_source": e_alt_source if e_alt_source != "--" else "",
                     "rad_model": e_rad_model,
                     "rad_sn": e_rad_sn,
                     "rad_temp": e_rad_temp,
@@ -643,12 +573,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "low_water": e_low_water if e_low_water != "--" else "",
                     "radiator_guard": e_radiator_guard if e_radiator_guard != "--" else "",
                     "fuel_cooler": e_fuel_cooler if e_fuel_cooler != "--" else "",
-                    "rad_source": e_rad_source if e_rad_source != "--" else "",
                     "base_model": e_base_model,
                     "avm": e_avm,
                     "avm_qty": str(e_avm_qty),
-                    "base_source": e_base_source if e_base_source != "--" else "",
-                    "avm_source": e_avm_source if e_avm_source != "--" else "",
                     "cont_size": e_cont_size if e_cont_size != "--" else "",
                     "cont_type": e_cont_type if e_cont_type != "--" else "",
                     "cont_color": e_cont_color,
@@ -657,19 +584,15 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "internal_silencer": e_internal_silencer if e_internal_silencer != "--" else "",
                     "ss_locks": e_ss_locks if e_ss_locks != "--" else "",
                     "emergency_stop": e_emergency_stop if e_emergency_stop != "--" else "",
-                    "cont_source": e_cont_source if e_cont_source != "--" else "",
                     "panel_model": e_panel_model,
                     "panel_sn": e_panel_sn,
                     "co_detector": e_co_detector if e_co_detector != "--" else "",
-                    "panel_source": e_panel_source if e_panel_source != "--" else "",
-                    "co_source": e_co_source if e_co_source != "--" else "",
                     "breaker_type": e_breaker_type if e_breaker_type != "--" else "",
                     "breaker_rating": e_breaker_rating,
                     "poles": e_poles if e_poles != "--" else "",
+                    "remarks": e_remarks.strip(),
                     "spring_charging": e_spring_charging if e_spring_charging != "--" else "",
-                    "control_voltage": e_control_voltage,
-                    "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
-                    "remarks": e_remarks.strip()
+                    "control_voltage": e_control_voltage
                 }
                 new_specs.append(spec_data)
 
