@@ -326,8 +326,9 @@ def render_project_card(row, idx):
         delete_placeholder.empty()
 
 
+
 # ==============================================
-# Edit Project Specification Dialog - 折疊式分组設計 + 貨源 + Remarks
+# Edit Project Specification Dialog - 最終修正版
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     if st.session_state.dialog_active != "edit_spec":
@@ -471,10 +472,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         e_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"],
                                                         index=safe_index(current.get("radiator_guard", "--"), ["--", "Include", "Not Include"]),
                                                         key=f"edit_radiator_guard_{idx_to_edit}_{i}")
-                    with col_r2:
-                        # 已刪除舊的 Fuel Cooler selectbox，避免 key 重複
 
-                    # Fuel Cooler - 三欄設計
+                    # Fuel Cooler - 三欄設計（已刪除舊版，避免 key 重複）
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**Fuel Cooler (燃油冷卻器)**")
@@ -532,13 +531,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                      label_visibility="collapsed")
 
                     e_base_model = st.text_input("Base Frame model", value=current.get("base_model", ""), key=f"edit_base_model_{idx_to_edit}_{i}")
-                    col_a1, col_a2 = st.columns(2)
-                    with col_a1:
-                        # 已刪除舊的 Anti-Vibration Mount text_input，避免 key 重複
-                    with col_a2:
-                        e_avm_qty = st.number_input("Qty", min_value=0, value=int(current.get("avm_qty", 0)), key=f"edit_avm_qty_{idx_to_edit}_{i}")
 
-                    # Anti-Vibration Mount - 三欄設計
+                    # Anti-Vibration Mount - 三欄設計（已刪除舊 text_input 和 number_input，避免 key 重複）
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**Anti-Vibration Mount**")
@@ -552,6 +546,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                     index=safe_index(current.get("avm_source", "--"), ["--", "HK", "DG"]),
                                                     key=f"edit_avm_source_{idx_to_edit}_{i}",
                                                     label_visibility="collapsed")
+
+                    # Qty 放在 Anti-Vibration Mount 下面
+                    e_avm_qty = st.number_input("Qty", min_value=0, value=int(current.get("avm_qty", 0)), key=f"edit_avm_qty_{idx_to_edit}_{i}")
 
                 st.markdown("---")
 
@@ -752,7 +749,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.rerun()
 
     edit_spec_dialog()
-
 # ==============================================
 # Edit Project Info Dialog
 # ==============================================
