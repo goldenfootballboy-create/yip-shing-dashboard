@@ -391,15 +391,17 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                col_title, col_source , col_spacer= st.columns([1, 1, 6])
+                col_title, col_source = st.columns([5, 1])  # 左5右1，讓選單靠右
                 with col_title:
                     st.markdown("**Engine 發動機**")
                 with col_source:
-                    e_engine_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                   index=safe_index(current.get("engine_source", "--"),
-                                                                    ["--", "HK", "DG"]),
-                                                   key=f"edit_engine_source_{idx_to_edit}_{i}",
-                                                   label_visibility="collapsed")
+                    e_engine_source = st.selectbox(
+                        "貨源",
+                        options=["--", "HK", "DG"],
+                        index=safe_index(current.get("engine_source", "--"), ["--", "HK", "DG"]),  # Edit版用
+                        key=f"edit_engine_source_{idx_to_edit}_{i}",
+                        label_visibility="collapsed"  # 隱藏 label，因為標題已顯示「貨源」
+                    )
 
                 # 原本的 Engine 輸入欄位
                 col1, col2, col3, col4 = st.columns(4)
