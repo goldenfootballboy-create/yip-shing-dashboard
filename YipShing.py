@@ -861,7 +861,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# Project Specification Dialog (新增用) - 完全同步 Edit Spec 最終完美版
+# Project Specification Dialog (新增用) - 配件垂直居中對齊修正版
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -877,17 +877,13 @@ if st.session_state.get("spec_dialog_open", False):
     def spec_dialog():
         st.markdown(f"**請填寫 {qty} 台機器的規格**")
 
-        # 全局 CSS：垂直居中對齊（讓輸入框和下拉選單同一水平線）
+        # 全局 CSS（其他部件用）
         st.markdown(
             """
             <style>
             div[data-testid="column"] {
                 display: flex;
                 align-items: center;
-            }
-            div[data-testid="column"] div[data-testid="stTextInput"] > div,
-            div[data-testid="column"] div[data-testid="stSelectbox"] > div {
-                width: 100%;
             }
             </style>
             """,
@@ -900,7 +896,7 @@ if st.session_state.get("spec_dialog_open", False):
 
         for i in range(qty):
             with tabs[i]:
-                # Prime & Standby Power (頂部不折疊)
+                # Prime & Standby Power
                 st.markdown("### Prime & Standby Power")
                 col1, col2 = st.columns(2)
                 with col1:
@@ -1108,7 +1104,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                 st.markdown("---")
 
-                # 第四組：Parts (配件)
+                # 第四組：Parts (配件) - 修正垂直對齊
                 with st.expander("Parts (配件) Group", expanded=False):
                     part_key = f"dlg_parts_{i}"
                     if part_key not in st.session_state:
@@ -1131,6 +1127,20 @@ if st.session_state.get("spec_dialog_open", False):
                                 st.rerun()
 
                         parts_list[j] = {"name": part_name.strip(), "source": part_source if part_source != "--" else ""}
+
+                        # 每行強制垂直居中（確保動態行也對齊）
+                        st.markdown(
+                            """
+                            <style>
+                            div[data-testid="column"]:nth-child(1) > div > div,
+                            div[data-testid="column"]:nth-child(2) > div > div {
+                                display: flex;
+                                align-items: center;
+                            }
+                            </style>
+                            """,
+                            unsafe_allow_html=True
+                        )
 
                     if st.button("+ 新增配件", key=f"add_dlg_part_{i}", type="secondary"):
                         parts_list.append({"name": "", "source": "--"})
