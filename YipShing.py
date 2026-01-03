@@ -705,24 +705,49 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     parts_list = st.session_state[part_key]
 
                     # 動態顯示所有配件行
-                    for j, part in enumerate(parts_list):
+                    for j in range(len(parts_list)):
+                        # 用 columns + CSS 垂直居中
                         col_name, col_source, col_delete = st.columns([4, 1, 1])
                         with col_name:
-                            part_name = st.text_input(f"配件名稱/描述 {j + 1}", value=part.get("name", ""),
-                                                      key=f"edit_part_name_{idx_to_edit}_{i}_{j}")
+                            part_name = st.text_input(
+                                f"配件名稱/描述 {j + 1}",
+                                value=parts_list[j].get("name", ""),
+                                key=f"edit_part_name_{idx_to_edit}_{i}_{j}",
+                                label_visibility="collapsed"
+                            )
                         with col_source:
-                            part_source = st.selectbox(f"貨源 {j + 1}", ["--", "HK", "DG"],
-                                                       index=safe_index(part.get("source", "--"), ["--", "HK", "DG"]),
-                                                       key=f"edit_part_source_{idx_to_edit}_{i}_{j}",
-                                                       label_visibility="collapsed")
+                            part_source = st.selectbox(
+                                "貨源",
+                                ["--", "HK", "DG"],
+                                index=safe_index(parts_list[j].get("source", "--"), ["--", "HK", "DG"]),
+                                key=f"edit_part_source_{idx_to_edit}_{i}_{j}",
+                                label_visibility="collapsed"
+                            )
                         with col_delete:
                             if st.button("刪除", key=f"delete_part_{idx_to_edit}_{i}_{j}", type="secondary"):
-                                st.session_state[part_key].pop(j)
+                                parts_list.pop(j)
                                 st.rerun()
 
-                        # 更新當前行
+                        # 更新資料
                         parts_list[j] = {"name": part_name.strip(),
                                          "source": part_source if part_source != "--" else ""}
+
+                        # 關鍵：加 CSS 讓這行垂直居中
+                        st.markdown(
+                            """
+                            <style>
+                            div[data-testid="column"]:has(div[data-testid="stTextInput"]) {
+                                display: flex;
+                                align-items: center;
+                            }
+                            div[data-testid="column"]:has(div[data-testid="stSelectbox"]) {
+                                display: flex;
+                                align-items: center;
+                            }
+                            </style>
+                            """,
+                            unsafe_allow_html=True
+                        )
 
                     # 新增一行按鈕
                     if st.button("+ 新增配件", key=f"add_part_{idx_to_edit}_{i}", type="secondary"):
