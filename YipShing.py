@@ -327,7 +327,7 @@ def render_project_card(row, idx):
 
 
 # ==============================================
-# Edit Project Specification Dialog - 折疊式分组 + 貨源 + Remarks
+# Edit Project Specification Dialog - 折疊式分组設計 + 貨源 + Remarks
 # ==============================================
 if st.session_state.get("show_edit_spec_dialog", False):
     if st.session_state.dialog_active != "edit_spec":
@@ -445,8 +445,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # 第二組：Chassis & Accessories
-                with st.expander("Chassis & Accessories Group", expanded=False):
+                # 第二組：Radiator & Base Frame Group
+                with st.expander("Radiator & Base Frame Group", expanded=False):
                     # Radiator
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
@@ -476,17 +476,22 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                      index=safe_index(current.get("fuel_cooler", "--"), ["--", "Include", "Not Include"]),
                                                      key=f"edit_fuel_cooler_{idx_to_edit}_{i}")
 
-                    # Fuel Cooler 貨源
-                    col_title, col_source = st.columns([6, 1])
+                    # Fuel Cooler - 三欄設計
+                    col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
-                        st.markdown("Fuel Cooler (燃油冷卻器)")
+                        st.markdown("**Fuel Cooler (燃油冷卻器)**")
+                    with col_include:
+                        e_fuel_cooler = st.selectbox("", ["--", "Include", "Not Include"],
+                                                     index=safe_index(current.get("fuel_cooler", "--"), ["--", "Include", "Not Include"]),
+                                                     key=f"edit_fuel_cooler_{idx_to_edit}_{i}",
+                                                     label_visibility="collapsed")
                     with col_source:
                         e_fuel_cooler_source = st.selectbox("貨源", ["--", "HK", "DG"],
                                                             index=safe_index(current.get("fuel_cooler_source", "--"), ["--", "HK", "DG"]),
                                                             key=f"edit_fuel_cooler_source_{idx_to_edit}_{i}",
                                                             label_visibility="collapsed")
 
-                    # Coolant temperature sensor
+                    # Coolant temperature sensor - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**Coolant temperature sensor**")
@@ -501,7 +506,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                key=f"edit_coolant_sensor_source_{idx_to_edit}_{i}",
                                                                label_visibility="collapsed")
 
-                    # Low water level float switch
+                    # Low water level float switch - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**Low water level float switch**")
@@ -535,10 +540,15 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     with col_a2:
                         e_avm_qty = st.number_input("Qty", min_value=0, value=int(current.get("avm_qty", 0)), key=f"edit_avm_qty_{idx_to_edit}_{i}")
 
-                    # Anti-Vibration Mount 貨源
-                    col_title, col_source = st.columns([6, 1])
+                    # Anti-Vibration Mount - 三欄設計
+                    col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
-                        st.markdown("Anti-Vibration Mount")
+                        st.markdown("**Anti-Vibration Mount**")
+                    with col_include:
+                        e_avm = st.selectbox("", ["--", "Include", "Not Include"],
+                                             index=safe_index(current.get("avm", "--"), ["--", "Include", "Not Include"]),
+                                             key=f"edit_avm_{idx_to_edit}_{i}",
+                                             label_visibility="collapsed")
                     with col_source:
                         e_avm_source = st.selectbox("貨源", ["--", "HK", "DG"],
                                                     index=safe_index(current.get("avm_source", "--"), ["--", "HK", "DG"]),
@@ -547,8 +557,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # 第三組：Enclosure & Control
-                with st.expander("Enclosure & Control Group", expanded=False):
+                # 第三組：Container & Control & Circuit Breaker
+                with st.expander("Container & Control & Circuit Breaker Group", expanded=False):
                     # Container
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
