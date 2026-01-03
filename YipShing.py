@@ -1090,7 +1090,36 @@ if st.session_state.get("spec_dialog_open", False):
                     s_control_voltage = st.text_input("Control Voltage(控制電壓)", key=f"dlg_control_voltage_{i}")
 
                 st.markdown("---")
+                # 第四組：Parts (配件) - 自定義多行 + 貨源
+                with st.expander("Parts (配件) Group", expanded=False):
+                    part_key = f"dlg_parts_{i}"
+                    if part_key not in st.session_state:
+                        st.session_state[part_key] = [{"name": "", "source": "--"}]
 
+                    parts_list = st.session_state[part_key]
+
+                    for j in range(len(parts_list)):
+                        col_name, col_source, col_delete = st.columns([4, 1, 1])
+                        with col_name:
+                            part_name = st.text_input(f"配件名稱/描述 {j + 1}", value=parts_list[j].get("name", ""),
+                                                      key=f"dlg_part_name_{i}_{j}")
+                        with col_source:
+                            part_source = st.selectbox(f"貨源 {j + 1}", ["--", "HK", "DG"],
+                                                       index=safe_index(parts_list[j].get("source", "--"),
+                                                                        ["--", "HK", "DG"]),
+                                                       key=f"dlg_part_source_{i}_{j}",
+                                                       label_visibility="collapsed")
+                        with col_delete:
+                            if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
+                                parts_list.pop(j)
+                                st.rerun()
+
+                        parts_list[j] = {"name": part_name.strip(),
+                                         "source": part_source if part_source != "--" else ""}
+
+                    if st.button("+ 新增配件", key=f"add_dlg_part_{i}", type="secondary"):
+                        parts_list.append({"name": "", "source": "--"})
+                        st.rerun()
                 # 最下面：Remarks
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
@@ -1150,6 +1179,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "spring_charging": s_spring_charging if s_spring_charging != "--" else "",
                     "control_voltage": s_control_voltage,
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
+                    "parts": [p for p in parts_list if p.get("name", "").strip()] if 'parts_list' in locals() else [],
                     "remarks": s_remarks.strip()
                 }
                 specs.append(spec_data)
