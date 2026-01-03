@@ -764,7 +764,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
             save_disabled = st.session_state.get("edit_saving", False)
             if st.button("Save & Close", type="primary", use_container_width=True, disabled=save_disabled):
                 st.session_state.edit_saving = True
-                st.rerun()
+                st.rerun()  # 立即刷新，讓 loading 出現
 
         with col_cancel:
             if st.button("Cancel", type="secondary", use_container_width=True):
@@ -772,28 +772,29 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.session_state.dialog_active = None
                 st.rerun()
 
-        # 顯示 loading + 執行儲存
+        # 全屏大動畫 + 執行儲存
         if st.session_state.get("edit_saving", False):
-            with st.spinner("正在儲存規格至 Google Sheets，請稍候...（可能需要10-30秒）"):
-                # 你的儲存邏輯
-                first_spec = new_specs[0] if new_specs else {}
-                new_visible = "\n".join([
-                    f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
-                    f"Alternator Model: {first_spec.get('alt_model', '—')} | S/N: {first_spec.get('alt_sn', '—')}",
-                    f"Panel model: {first_spec.get('panel_model', '—')} | S/N: {first_spec.get('panel_sn', '—')}",
-                    f"Breaker Type: {first_spec.get('breaker_type', '—')}"
-                ])
+            fullscreen_loading("正在儲存規格至 Google Sheets，請稍候...☺️")
 
-                extra_json = json.dumps(new_specs, ensure_ascii=False)
-                df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_json
+            # 執行真正的儲存邏輯
+            first_spec = new_specs[0] if new_specs else {}
+            new_visible = "\n".join([
+                f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
+                f"Alternator Model: {first_spec.get('alt_model', '—')} | S/N: {first_spec.get('alt_sn', '—')}",
+                f"Panel model: {first_spec.get('panel_model', '—')} | S/N: {first_spec.get('panel_sn', '—')}",
+                f"Breaker Type: {first_spec.get('breaker_type', '—')}"
+            ])
 
-                save_projects()  # 這行可能要等較久
-                st.cache_data.clear()
+            extra_json = json.dumps(new_specs, ensure_ascii=False)
+            df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_json
+
+            save_projects()
+            st.cache_data.clear()
 
             st.success("所有規格已成功更新！")
             st.session_state["show_edit_spec_dialog"] = False
             st.session_state.dialog_active = None
-            del st.session_state.edit_saving
+            st.session_state.edit_saving = False
             st.rerun()
     edit_spec_dialog()
 
