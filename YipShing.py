@@ -791,7 +791,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "spring_charging": e_spring_charging if e_spring_charging != "--" else "",
                     "control_voltage": e_control_voltage,
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
-                    "parts": spec_data.get("parts", []),
                     "parts": [p for p in parts_list if p["name"].strip()],
                     "remarks": e_remarks.strip()
                 }
