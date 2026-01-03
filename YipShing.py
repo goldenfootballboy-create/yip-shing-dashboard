@@ -1099,48 +1099,23 @@ if st.session_state.get("spec_dialog_open", False):
                     parts_list = st.session_state[part_key]
 
                     for j in range(len(parts_list)):
-                        # 用 columns + CSS 垂直居中
                         col_name, col_source, col_delete = st.columns([4, 1, 1])
                         with col_name:
-                            part_name = st.text_input(
-                                f"配件名稱/描述 {j + 1}",
-                                value=parts_list[j].get("name", ""),
-                                key=f"edit_part_name_{idx_to_edit}_{i}_{j}",
-                                label_visibility="collapsed"
-                            )
+                            part_name = st.text_input(f"配件名稱/描述 {j + 1}", value=parts_list[j].get("name", ""),
+                                                      key=f"dlg_part_name_{i}_{j}")
                         with col_source:
-                            part_source = st.selectbox(
-                                "貨源",
-                                ["--", "HK", "DG"],
-                                index=safe_index(parts_list[j].get("source", "--"), ["--", "HK", "DG"]),
-                                key=f"edit_part_source_{idx_to_edit}_{i}_{j}",
-                                label_visibility="collapsed"
-                            )
+                            part_source = st.selectbox("貨源", ["--", "HK", "DG"],
+                                                       index=safe_index(parts_list[j].get("source", "--"),
+                                                                        ["--", "HK", "DG"]),
+                                                       key=f"dlg_part_source_{i}_{j}",
+                                                       label_visibility="collapsed")
                         with col_delete:
-                            if st.button("刪除", key=f"delete_part_{idx_to_edit}_{i}_{j}", type="secondary"):
+                            if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
                                 parts_list.pop(j)
                                 st.rerun()
 
-                        # 更新資料
                         parts_list[j] = {"name": part_name.strip(),
                                          "source": part_source if part_source != "--" else ""}
-
-                        # 關鍵：加 CSS 讓這行垂直居中
-                        st.markdown(
-                            """
-                            <style>
-                            div[data-testid="column"]:has(div[data-testid="stTextInput"]) {
-                                display: flex;
-                                align-items: center;
-                            }
-                            div[data-testid="column"]:has(div[data-testid="stSelectbox"]) {
-                                display: flex;
-                                align-items: center;
-                            }
-                            </style>
-                            """,
-                            unsafe_allow_html=True
-                        )
 
                     if st.button("+ 新增配件", key=f"add_dlg_part_{i}", type="secondary"):
                         parts_list.append({"name": "", "source": "--"})
@@ -1204,7 +1179,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "spring_charging": s_spring_charging if s_spring_charging != "--" else "",
                     "control_voltage": s_control_voltage,
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
-                    "parts": [p for p in parts_list if p.get("name", "").strip()] if 'parts_list' in locals() else [],
+                    "parts": [p for p in parts_list if p["name"].strip()],
                     "remarks": s_remarks.strip()
                 }
                 specs.append(spec_data)
