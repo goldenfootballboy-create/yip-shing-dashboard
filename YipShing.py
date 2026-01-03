@@ -885,26 +885,6 @@ if st.session_state.get("spec_dialog_open", False):
     def spec_dialog():
         st.markdown(f"**請填寫 {qty} 台機器的規格**")
 
-        # 強制全局垂直居中（讓 New Spec 的所有輸入框和下拉選單完美對齊）
-        st.markdown(
-            """
-            <style>
-            /* 強制所有 column 垂直居中 */
-            div[data-testid="column"] {
-                display: flex !important;
-                align-items: center !important;
-                min-height: 50px !important; /* 固定高度，避免高度不一致 */
-            }
-            /* 確保輸入框和下拉選單填滿欄位 */
-            div[data-testid="column"] div[data-testid="stTextInput"] > div > div,
-            div[data-testid="column"] div[data-testid="stSelectbox"] > div > div {
-                width: 100% !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-
         tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
         specs = []
