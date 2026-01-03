@@ -472,9 +472,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                         index=safe_index(current.get("radiator_guard", "--"), ["--", "Include", "Not Include"]),
                                                         key=f"edit_radiator_guard_{idx_to_edit}_{i}")
                     with col_r2:
-                        e_fuel_cooler = st.selectbox("Fuel Cooler (燃油冷卻器)", ["--", "Include", "Not Include"],
-                                                     index=safe_index(current.get("fuel_cooler", "--"), ["--", "Include", "Not Include"]),
-                                                     key=f"edit_fuel_cooler_{idx_to_edit}_{i}")
+                        # 已刪除舊的 Fuel Cooler selectbox，避免 key 重複
 
                     # Fuel Cooler - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
@@ -536,7 +534,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     e_base_model = st.text_input("Base Frame model", value=current.get("base_model", ""), key=f"edit_base_model_{idx_to_edit}_{i}")
                     col_a1, col_a2 = st.columns(2)
                     with col_a1:
-                        e_avm = st.text_input("Anti-Vibration Mount", value=current.get("avm", ""), key=f"edit_avm_{idx_to_edit}_{i}")
+                        # 已刪除舊的 Anti-Vibration Mount text_input，避免 key 重複
                     with col_a2:
                         e_avm_qty = st.number_input("Qty", min_value=0, value=int(current.get("avm_qty", 0)), key=f"edit_avm_qty_{idx_to_edit}_{i}")
 
@@ -697,7 +695,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "coolant_sensor_source": e_coolant_sensor_source if e_coolant_sensor_source != "--" else "",
                     "low_water_source": e_low_water_source if e_low_water_source != "--" else "",
                     "base_model": e_base_model,
-                    "avm": e_avm,
+                    "avm": e_avm if e_avm != "--" else "",
                     "avm_qty": str(e_avm_qty),
                     "base_source": e_base_source if e_base_source != "--" else "",
                     "avm_source": e_avm_source if e_avm_source != "--" else "",
