@@ -861,7 +861,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# Project Specification Dialog (新增用) - 折疊式分组設計 + 貨源 + Remarks
+# Project Specification Dialog (新增用) - 完全同步 Edit Spec 最終完美版
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -876,6 +876,23 @@ if st.session_state.get("spec_dialog_open", False):
     @st.dialog("Project Specification", width="large")
     def spec_dialog():
         st.markdown(f"**請填寫 {qty} 台機器的規格**")
+
+        # 全局 CSS：垂直居中對齊（讓輸入框和下拉選單同一水平線）
+        st.markdown(
+            """
+            <style>
+            div[data-testid="column"] {
+                display: flex;
+                align-items: center;
+            }
+            div[data-testid="column"] div[data-testid="stTextInput"] > div,
+            div[data-testid="column"] div[data-testid="stSelectbox"] > div {
+                width: 100%;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
 
         tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
@@ -1059,7 +1076,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_p2:
                         s_panel_sn = st.text_input("S/N", key=f"dlg_panel_sn_{i}")
 
-                    # CO 探測器
+                    # CO 探測器 - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**CO 探測器 (OLED)**")
@@ -1090,7 +1107,8 @@ if st.session_state.get("spec_dialog_open", False):
                     s_control_voltage = st.text_input("Control Voltage(控制電壓)", key=f"dlg_control_voltage_{i}")
 
                 st.markdown("---")
-                # 第四組：Parts (配件) - 自定義多行 + 貨源
+
+                # 第四組：Parts (配件)
                 with st.expander("Parts (配件) Group", expanded=False):
                     part_key = f"dlg_parts_{i}"
                     if part_key not in st.session_state:
@@ -1101,12 +1119,10 @@ if st.session_state.get("spec_dialog_open", False):
                     for j in range(len(parts_list)):
                         col_name, col_source, col_delete = st.columns([4, 1, 1])
                         with col_name:
-                            part_name = st.text_input(f"配件名稱/描述 {j + 1}", value=parts_list[j].get("name", ""),
-                                                      key=f"dlg_part_name_{i}_{j}")
+                            part_name = st.text_input(f"配件名稱/描述 {j+1}", value=parts_list[j].get("name", ""), key=f"dlg_part_name_{i}_{j}")
                         with col_source:
-                            part_source = st.selectbox(f"貨源 {j + 1}", ["--", "HK", "DG"],
-                                                       index=safe_index(parts_list[j].get("source", "--"),
-                                                                        ["--", "HK", "DG"]),
+                            part_source = st.selectbox("貨源", ["--", "HK", "DG"],
+                                                       index=safe_index(parts_list[j].get("source", "--"), ["--", "HK", "DG"]),
                                                        key=f"dlg_part_source_{i}_{j}",
                                                        label_visibility="collapsed")
                         with col_delete:
@@ -1114,14 +1130,21 @@ if st.session_state.get("spec_dialog_open", False):
                                 parts_list.pop(j)
                                 st.rerun()
 
-                        parts_list[j] = {"name": part_name.strip(),
-                                         "source": part_source if part_source != "--" else ""}
+                        parts_list[j] = {"name": part_name.strip(), "source": part_source if part_source != "--" else ""}
 
                     if st.button("+ 新增配件", key=f"add_dlg_part_{i}", type="secondary"):
                         parts_list.append({"name": "", "source": "--"})
                         st.rerun()
+
+                st.markdown("---")
+
                 # 最下面：Remarks
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
+
+                # 處理 Parts（安全過濾空行）
+                cleaned_parts = []
+                if 'parts_list' in locals() and parts_list:
+                    cleaned_parts = [p for p in parts_list if p.get("name", "").strip()]
 
                 spec_data = {
                     "prime": s_prime.strip(),
@@ -1179,8 +1202,8 @@ if st.session_state.get("spec_dialog_open", False):
                     "spring_charging": s_spring_charging if s_spring_charging != "--" else "",
                     "control_voltage": s_control_voltage,
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
-                    "parts": [p for p in parts_list if p.get("name", "").strip()] if 'parts_list' in locals() else [],
-                    "remarks": s_remarks.strip()
+                    "remarks": s_remarks.strip(),
+                    "parts": cleaned_parts
                 }
                 specs.append(spec_data)
 
@@ -1203,7 +1226,6 @@ if st.session_state.get("spec_dialog_open", False):
         if st.session_state.get("new_spec_saving", False):
             fullscreen_loading("正在新增專案並儲存規格，請稍候...")
 
-            # 執行儲存邏輯
             first_spec = specs[0] if specs else {}
             visible_lines = [
                 f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
@@ -1234,7 +1256,6 @@ if st.session_state.get("spec_dialog_open", False):
             st.rerun()
 
     spec_dialog()
-
 # ==============================================
 # Edit Project Info Dialog
 # ==============================================
