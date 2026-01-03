@@ -5,6 +5,40 @@ import json
 from datetime import date
 import time
 
+def fullscreen_loading(message="正在處理，請稍候..."):
+    st.markdown(f"""
+    <div style="
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        color: white;
+        font-size: 1.8rem;
+        font-weight: bold;
+    ">
+        <div style="
+            border: 12px solid #f3f3f3;
+            border-top: 12px solid #1fb429;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 30px;
+        "></div>
+        <div>{message}</div>
+    </div>
+    <style>
+        @keyframes spin {{
+            0% {{ transform: rotate(0deg); }}
+            100% {{ transform: rotate(360deg); }}
+        }}
+    </style>
+    """, unsafe_allow_html=True)
 # ==============================================
 # 頁面設定
 # ==============================================
@@ -721,32 +755,42 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
         col_save, col_cancel = st.columns(2)
         with col_save:
-            if st.button("Save & Close", type="primary", use_container_width=True):
-                first_spec = new_specs[0] if new_specs else {}
-                new_visible = "\n".join([
-                    f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
-                    f"Alternator Model: {first_spec.get('alt_model', '—')} | S/N: {first_spec.get('alt_sn', '—')}",
-                    f"Panel model: {first_spec.get('panel_model', '—')} | S/N: {first_spec.get('panel_sn', '—')}",
-                    f"Breaker Type: {first_spec.get('breaker_type', '—')}"
-                ])
-
-                extra_json = json.dumps(new_specs, ensure_ascii=False)
-                df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_json
-
-                with st.spinner("儲存中..."):
-                    save_projects()
-                    st.cache_data.clear()
-
-                st.success("所有規格已成功更新！")
-                st.session_state["show_edit_spec_dialog"] = False
-                st.session_state.dialog_active = None
+            if st.button("Save & Close", type="primary", use_container_width=True,
+                         disabled=st.session_state.get("edit_saving", False)):
+                st.session_state.edit_saving = True
                 st.rerun()
+
         with col_cancel:
             if st.button("Cancel", type="secondary", use_container_width=True):
                 st.session_state["show_edit_spec_dialog"] = False
                 st.session_state.dialog_active = None
                 st.rerun()
 
+        # 全屏 loading + 執行儲存邏輯（放在按鈕下面）
+        if st.session_state.get("edit_saving", False):
+            fullscreen_loading("正在儲存規格至 Google Sheets，請稍候...")
+            st.rerun()  # 確保 overlay 顯示
+
+            # 這裡放真正的儲存邏輯
+            first_spec = new_specs[0] if new_specs else {}
+            new_visible = "\n".join([
+                f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
+                f"Alternator Model: {first_spec.get('alt_model', '—')} | S/N: {first_spec.get('alt_sn', '—')}",
+                f"Panel model: {first_spec.get('panel_model', '—')} | S/N: {first_spec.get('panel_sn', '—')}",
+                f"Breaker Type: {first_spec.get('breaker_type', '—')}"
+            ])
+
+            extra_json = json.dumps(new_specs, ensure_ascii=False)
+            df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_json
+
+            save_projects()
+            st.cache_data.clear()
+
+            st.success("所有規格已成功更新！")
+            st.session_state["show_edit_spec_dialog"] = False
+            st.session_state.dialog_active = None
+            st.session_state.edit_saving = False
+            st.rerun()
     edit_spec_dialog()
 
 # ==============================================
