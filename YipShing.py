@@ -731,7 +731,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                     # 儲存到 spec_data
                     spec_data["parts"] = [p for p in parts_list if p["name"].strip()]  # 只存有內容的
-                    st.markdown("---")
+                st.markdown("---")
 
                 # 最下面：Remarks
                 e_remarks = st.text_area("Remarks", value=current.get("remarks", ""), height=150, key=f"edit_remarks_{idx_to_edit}_{i}")
