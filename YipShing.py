@@ -405,7 +405,22 @@ if st.session_state.get("show_edit_spec_dialog", False):
     def edit_spec_dialog():
 
         st.markdown(f"**正在編輯專案：{row_to_edit['Project_Name']} ({qty} 台機器)**")
-
+        # 強制全局垂直居中（確保 New Spec 也對齊）
+        st.markdown(
+            """
+            <style>
+            div[data-testid="column"] {
+                display: flex !important;
+                align-items: center !important;
+            }
+            div[data-testid="column"] div[data-testid="stTextInput"],
+            div[data-testid="column"] div[data-testid="stSelectbox"] {
+                width: 100%;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
         tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
         new_specs = []
@@ -696,23 +711,21 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
                 # 第四組：Parts (配件) - 自定義多行 + 貨源
+                # 第四組：Parts (配件) - 完全同步 Edit Spec
                 with st.expander("Parts (配件) Group", expanded=False):
-                    # 從 session_state 讀取當前行的配件列表（每台獨立）
-                    part_key = f"parts_{idx_to_edit}_{i}"
+                    part_key = f"dlg_parts_{i}"
                     if part_key not in st.session_state:
-                        st.session_state[part_key] = current.get("parts", [{"name": "", "source": "--"}])  # 預設一空行
+                        st.session_state[part_key] = [{"name": "", "source": "--"}]
 
                     parts_list = st.session_state[part_key]
 
-                    # 動態顯示所有配件行
                     for j in range(len(parts_list)):
-                        # 用 columns + CSS 垂直居中
                         col_name, col_source, col_delete = st.columns([4, 1, 1])
                         with col_name:
                             part_name = st.text_input(
                                 f"配件名稱/描述 {j + 1}",
                                 value=parts_list[j].get("name", ""),
-                                key=f"edit_part_name_{idx_to_edit}_{i}_{j}",
+                                key=f"dlg_part_name_{i}_{j}",
                                 label_visibility="collapsed"
                             )
                         with col_source:
@@ -720,19 +733,17 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                 "貨源",
                                 ["--", "HK", "DG"],
                                 index=safe_index(parts_list[j].get("source", "--"), ["--", "HK", "DG"]),
-                                key=f"edit_part_source_{idx_to_edit}_{i}_{j}",
+                                key=f"dlg_part_source_{i}_{j}",
                                 label_visibility="collapsed"
                             )
                         with col_delete:
-                            if st.button("刪除", key=f"delete_part_{idx_to_edit}_{i}_{j}", type="secondary"):
+                            if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
                                 parts_list.pop(j)
                                 st.rerun()
 
-                        # 更新資料
-                        parts_list[j] = {"name": part_name.strip(),
-                                         "source": part_source if part_source != "--" else ""}
+                        parts_list[j] = {"name": part_name.strip(), "source": part_source if part_source != "--" else ""}
 
-                        # 關鍵：加 CSS 讓這行垂直居中
+                        # 每行加 CSS（和 Edit Spec 一樣）
                         st.markdown(
                             """
                             <style>
@@ -749,11 +760,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             unsafe_allow_html=True
                         )
 
-                    # 新增一行按鈕
-                    if st.button("+ 新增配件", key=f"add_part_{idx_to_edit}_{i}", type="secondary"):
-                        st.session_state[part_key].append({"name": "", "source": "--"})
+                    if st.button("+ 新增配件", key=f"add_dlg_part_{i}", type="secondary"):
+                        parts_list.append({"name": "", "source": "--"})
                         st.rerun()
-
 
                 st.markdown("---")
 
