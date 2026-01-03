@@ -4,6 +4,12 @@ import pandas as pd
 import json
 from datetime import date
 import time
+# 全局安全 index 函數（防止 selectbox index 錯誤）
+def safe_index(val, options, default=0):
+    try:
+        return options.index(val)
+    except ValueError:
+        return default
 
 def fullscreen_loading(message="正在處理，請稍候..."):
     st.markdown(f"""
@@ -408,12 +414,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
             with tabs[i]:
                 current = specs[i] if i < len(specs) else {}
 
-                def safe_index(val, options):
-                    try:
-                        return options.index(val)
-                    except ValueError:
-                        return 0
-
                 # Prime & Standby Power (頂部不折疊)
                 st.markdown("### Prime & Standby Power")
                 col1, col2 = st.columns(2)
@@ -695,6 +695,43 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     e_control_voltage = st.text_input("Control Voltage", value=current.get("control_voltage", ""), key=f"edit_control_voltage_{idx_to_edit}_{i}")
 
                 st.markdown("---")
+                # 第四組：Parts (配件) - 自定義多行 + 貨源
+                with st.expander("Parts (配件) Group", expanded=False):
+                    # 從 session_state 讀取當前行的配件列表（每台獨立）
+                    part_key = f"parts_{idx_to_edit}_{i}"
+                    if part_key not in st.session_state:
+                        st.session_state[part_key] = current.get("parts", [{"name": "", "source": "--"}])  # 預設一空行
+
+                    parts_list = st.session_state[part_key]
+
+                    # 動態顯示所有配件行
+                    for j, part in enumerate(parts_list):
+                        col_name, col_source, col_delete = st.columns([4, 1, 1])
+                        with col_name:
+                            part_name = st.text_input(f"配件名稱/描述 {j + 1}", value=part.get("name", ""),
+                                                      key=f"edit_part_name_{idx_to_edit}_{i}_{j}")
+                        with col_source:
+                            part_source = st.selectbox(f"貨源 {j + 1}", ["--", "HK", "DG"],
+                                                       index=safe_index(part.get("source", "--"), ["--", "HK", "DG"]),
+                                                       key=f"edit_part_source_{idx_to_edit}_{i}_{j}",
+                                                       label_visibility="collapsed")
+                        with col_delete:
+                            if st.button("刪除", key=f"delete_part_{idx_to_edit}_{i}_{j}", type="secondary"):
+                                st.session_state[part_key].pop(j)
+                                st.rerun()
+
+                        # 更新當前行
+                        parts_list[j] = {"name": part_name.strip(),
+                                         "source": part_source if part_source != "--" else ""}
+
+                    # 新增一行按鈕
+                    if st.button("+ 新增配件", key=f"add_part_{idx_to_edit}_{i}", type="secondary"):
+                        st.session_state[part_key].append({"name": "", "source": "--"})
+                        st.rerun()
+
+                    # 儲存到 spec_data
+                    spec_data["parts"] = [p for p in parts_list if p["name"].strip()]  # 只存有內容的
+                    st.markdown("---")
 
                 # 最下面：Remarks
                 e_remarks = st.text_area("Remarks", value=current.get("remarks", ""), height=150, key=f"edit_remarks_{idx_to_edit}_{i}")
@@ -755,6 +792,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "spring_charging": e_spring_charging if e_spring_charging != "--" else "",
                     "control_voltage": e_control_voltage,
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
+                    "parts": spec_data.get("parts", []),
                     "remarks": e_remarks.strip()
                 }
                 new_specs.append(spec_data)
