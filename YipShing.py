@@ -397,8 +397,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
     @st.dialog("Edit Project Specification", width="large")
     def edit_spec_dialog():
-        st.markdown(f"<h3 style='text-align:center; color:#1fb429;'>正在編輯專案：<br><strong>{row_to_edit['Project_Name']}</strong><br>({qty} 台機器)</h3>", unsafe_allow_html=True)
-        st.markdown("---")
+
+        st.markdown(f"**正在編輯專案：{row_to_edit['Project_Name']} ({qty} 台機器)**")
 
         tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
@@ -1278,7 +1278,7 @@ with st.sidebar:
         with c1:
             new_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"], key="new_type")
             new_name = st.text_input("Project Name*", key="new_name")
-            new_year = st.selectbox("Year*", [2024,2025,2026], index=1, key="new_year")
+            new_year = st.selectbox("Year*", [2024,2025,2026], index=2, key="new_year")
             new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
         with c2:
             new_customer = st.text_input("Customer", key="new_customer")
