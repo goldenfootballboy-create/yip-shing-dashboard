@@ -342,23 +342,29 @@ def render_project_card(row, idx):
             st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？此動作無法復原！")
             col_yes, col_no = st.columns(2)
             with col_yes:
-                if st.button("確認刪除", type="primary", key=f"confirm_del_{idx}"):
-                    df.drop(idx, inplace=True)
-                    df.reset_index(drop=True, inplace=True)
-                    save_projects()
-                    checklist_db.pop(row["Project_Name"], None)
-                    save_checklist()
-                    st.cache_data.clear()
-                    st.session_state["show_delete_confirm"] = False
-                    st.success(f"已成功刪除專案：{row['Project_Name']}")
+                delete_disabled = st.session_state.get(f"deleting_{idx}", False)
+                if st.button("確認刪除", type="primary", key=f"confirm_del_{idx}", disabled=delete_disabled):
+                    st.session_state[f"deleting_{idx}"] = True
                     st.rerun()
             with col_no:
                 if st.button("取消", key=f"cancel_del_{idx}"):
                     st.session_state["show_delete_confirm"] = False
                     st.rerun()
-    else:
-        delete_placeholder.empty()
 
+        # 全屏 loading + 執行刪除
+        if st.session_state.get(f"deleting_{idx}", False):
+            fullscreen_loading("正在刪除專案，請稍候...")
+
+            df.drop(idx, inplace=True)
+            df.reset_index(drop=True, inplace=True)
+            save_projects()
+            checklist_db.pop(row["Project_Name"], None)
+            save_checklist()
+            st.cache_data.clear()
+            st.session_state["show_delete_confirm"] = False
+            st.session_state[f"deleting_{idx}"] = False
+            st.success(f"已成功刪除專案：{row['Project_Name']}")
+            st.rerun()
 
 # ==============================================
 # Edit Project Specification Dialog - 最終修正版
@@ -1087,35 +1093,11 @@ if st.session_state.get("spec_dialog_open", False):
 
         col_save, col_cancel = st.columns(2)
         with col_save:
-            if st.button("Save & Close", type="primary", use_container_width=True):
-                first_spec = specs[0] if specs else {}
-                visible_lines = [
-                    f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
-                    f"Alternator Model: {first_spec.get('alt_model', '—')} | S/N: {first_spec.get('alt_sn', '—')}",
-                    f"Panel model: {first_spec.get('panel_model', '—')} | S/N: {first_spec.get('panel_sn', '—')}",
-                    f"Breaker Type: {first_spec.get('breaker_type', '—')}"
-                ]
-                extra_json = json.dumps(specs, ensure_ascii=False)
-                spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_json
-
-                new_project = {
-                    **temp_project,
-                    "Project_Spec": spec_text,
-                }
-
-                global df
-                df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
-
-                with st.spinner("正在儲存專案至 Google Sheets，請稍候..."):
-                    save_projects()
-                    st.cache_data.clear()
-
-                st.success(f"已成功新增專案（{qty} 台機器）！")
-                if "temp_project" in st.session_state:
-                    del st.session_state.temp_project
-                st.session_state.spec_dialog_open = False
-                st.session_state.dialog_active = None
+            save_disabled = st.session_state.get("new_spec_saving", False)
+            if st.button("Save & Close", type="primary", use_container_width=True, disabled=save_disabled):
+                st.session_state.new_spec_saving = True
                 st.rerun()
+
         with col_cancel:
             if st.button("Cancel", type="secondary", use_container_width=True):
                 st.session_state.spec_dialog_open = False
@@ -1123,6 +1105,40 @@ if st.session_state.get("spec_dialog_open", False):
                 if "temp_project" in st.session_state:
                     del st.session_state.temp_project
                 st.rerun()
+
+        # 全屏 loading + 執行儲存
+        if st.session_state.get("new_spec_saving", False):
+            fullscreen_loading("正在新增專案並儲存規格，請稍候...")
+
+            # 執行儲存邏輯
+            first_spec = specs[0] if specs else {}
+            visible_lines = [
+                f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
+                f"Alternator Model: {first_spec.get('alt_model', '—')} | S/N: {first_spec.get('alt_sn', '—')}",
+                f"Panel model: {first_spec.get('panel_model', '—')} | S/N: {first_spec.get('panel_sn', '—')}",
+                f"Breaker Type: {first_spec.get('breaker_type', '—')}"
+            ]
+            extra_json = json.dumps(specs, ensure_ascii=False)
+            spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_json
+
+            new_project = {
+                **temp_project,
+                "Project_Spec": spec_text,
+            }
+
+            global df
+            df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
+
+            save_projects()
+            st.cache_data.clear()
+
+            st.success(f"已成功新增專案（{qty} 台機器）！")
+            if "temp_project" in st.session_state:
+                del st.session_state.temp_project
+            st.session_state.spec_dialog_open = False
+            st.session_state.dialog_active = None
+            st.session_state.new_spec_saving = False
+            st.rerun()
 
     spec_dialog()
 
@@ -1176,41 +1192,49 @@ if st.session_state.get("show_edit_info_dialog", False):
 
         col_save, col_cancel = st.columns(2)
         with col_save:
-            if st.button("Save & Close", type="primary", use_container_width=True):
-                if not e_name.strip():
-                    st.error("Project Name required!")
-                elif e_name != row_to_edit["Project_Name"] and e_name in df["Project_Name"].values:
-                    st.error("Name exists!")
-                else:
-                    df.at[idx_to_edit, "Project_Type"] = e_type
-                    df.at[idx_to_edit, "Project_Name"] = e_name
-                    df.at[idx_to_edit, "Year"] = int(e_year)
-                    df.at[idx_to_edit, "Lead_Time"] = e_leadtime
-                    df.at[idx_to_edit, "Customer"] = e_customer
-                    df.at[idx_to_edit, "Supervisor"] = e_supervisor
-                    df.at[idx_to_edit, "Qty"] = e_qty
-                    df.at[idx_to_edit, "Real_Count"] = e_qty
-                    df.at[idx_to_edit, "Progress_Reminder"] = e_reminder
-                    df.at[idx_to_edit, "Parts_Arrival"] = e_parts_arrival if e_parts_arrival else None
-                    df.at[idx_to_edit, "Installation_Complete"] = e_install_complete if e_install_complete else None
-                    df.at[idx_to_edit, "Testing_Complete"] = e_testing_complete if e_testing_complete else None
-                    df.at[idx_to_edit, "Cleaning_Complete"] = e_cleaning_complete if e_cleaning_complete else None
-                    df.at[idx_to_edit, "Delivery_Complete"] = e_delivery_complete if e_delivery_complete else None
+            save_disabled = st.session_state.get("edit_info_saving", False)
+            if st.button("Save & Close", type="primary", use_container_width=True, disabled=save_disabled):
+                st.session_state.edit_info_saving = True
+                st.rerun()
 
-                    with st.spinner("正在儲存至 Google Sheets，請稍候..."):
-                        save_projects()
-                        st.cache_data.clear()
-
-                    st.success("基本資訊已成功更新！")
-                    st.session_state["show_edit_info_dialog"] = False
-                    st.session_state.dialog_active = None
-                    st.rerun()
         with col_cancel:
             if st.button("Cancel", type="secondary", use_container_width=True):
                 st.session_state["show_edit_info_dialog"] = False
-                st.session_state.dialog_active = None
+                st.session_state.edit_info_active = False
                 st.rerun()
 
+        # 全屏 loading + 執行儲存
+        if st.session_state.get("edit_info_saving", False):
+            fullscreen_loading("正在儲存基本資訊，請稍候...")
+
+            if not e_name.strip():
+                st.error("Project Name required!")
+            elif e_name != row_to_edit["Project_Name"] and e_name in df["Project_Name"].values:
+                st.error("Name exists!")
+            else:
+                df.at[idx_to_edit, "Project_Type"] = e_type
+                df.at[idx_to_edit, "Project_Name"] = e_name
+                df.at[idx_to_edit, "Year"] = int(e_year)
+                df.at[idx_to_edit, "Lead_Time"] = e_leadtime
+                df.at[idx_to_edit, "Customer"] = e_customer
+                df.at[idx_to_edit, "Supervisor"] = e_supervisor
+                df.at[idx_to_edit, "Qty"] = e_qty
+                df.at[idx_to_edit, "Real_Count"] = e_qty
+                df.at[idx_to_edit, "Progress_Reminder"] = e_reminder
+                df.at[idx_to_edit, "Parts_Arrival"] = e_parts_arrival if e_parts_arrival else None
+                df.at[idx_to_edit, "Installation_Complete"] = e_install_complete if e_install_complete else None
+                df.at[idx_to_edit, "Testing_Complete"] = e_testing_complete if e_testing_complete else None
+                df.at[idx_to_edit, "Cleaning_Complete"] = e_cleaning_complete if e_cleaning_complete else None
+                df.at[idx_to_edit, "Delivery_Complete"] = e_delivery_complete if e_delivery_complete else None
+
+                save_projects()
+                st.cache_data.clear()
+
+                st.success("基本資訊已成功更新！")
+                st.session_state["show_edit_info_dialog"] = False
+                st.session_state.edit_info_active = False
+                st.session_state.edit_info_saving = False
+                st.rerun()
     edit_info_dialog()
 # ==============================================
 # Sidebar
