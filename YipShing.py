@@ -825,8 +825,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         checklist.append({"name": "", "checked": False})
                         st.rerun()
 
-                    # 儲存到 spec_data（過濾空行）
-                    spec_data["delivery_checklist"] = [item for item in checklist if item["name"].strip()]
                     st.markdown("---")
                 # 最下面：Remarks
                 e_remarks = st.text_area("Remarks", value=current.get("remarks", ""), height=150, key=f"edit_remarks_{idx_to_edit}_{i}")
@@ -888,6 +886,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "control_voltage": e_control_voltage,
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
                     "parts": [p for p in parts_list if p["name"].strip()],
+                    "delivery_checklist": [item for item in checklist if item.get("name", "").strip()],
                     "remarks": e_remarks.strip()
                 }
                 new_specs.append(spec_data)
