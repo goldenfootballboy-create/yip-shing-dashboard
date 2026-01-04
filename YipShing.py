@@ -1199,7 +1199,63 @@ if st.session_state.get("spec_dialog_open", False):
                         st.rerun()
 
                 st.markdown("---")
+                # 第五組：Delivery Checklist (出貨檢查清單)
+                with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
+                    checklist_key = f"dlg_delivery_checklist_{i}"
+                    if checklist_key not in st.session_state:
+                        default_items = [
+                            "Load Test",
+                            "No load test",
+                            "灑水測試",
+                            "放油放水 Drain out all liquid",
+                            "Anti Freezer",
+                            "壓缸",
+                            "膠片(防uv茶式/透明)",
+                            "電球檔板(K50)",
+                            "隔熱棉",
+                            "Turbo 棉",
+                            "Cummins 鐵牌",
+                            "Warning 鐵牌",
+                            "Danger Label(415V/400V)",
+                            "Top One Power貼紙",
+                            "Warning 貼紙",
+                            "Standard Tools Kit 工具箱",
+                            "Test Report測試報告",
+                            "Test Video",
+                            "Manuals說明書",
+                            "Certificate證書",
+                            "Genset Label",
+                            "電球Label",
+                            "Sales photos",
+                            "Marketing photos",
+                            "Autocad drawing",
+                            "Wiring diagram"
+                        ]
+                        st.session_state[checklist_key] = [{"name": item, "checked": False} for item in default_items]
 
+                    checklist = st.session_state[checklist_key]
+
+                    for j in range(len(checklist)):
+                        col_check, col_name, col_delete = st.columns([1, 5, 1])
+                        with col_check:
+                            checked = st.checkbox("", value=checklist[j].get("checked", False),
+                                                  key=f"dlg_check_{i}_{j}")
+                        with col_name:
+                            name = st.text_input("", value=checklist[j].get("name", ""), key=f"dlg_check_name_{i}_{j}",
+                                                 label_visibility="collapsed")
+                        with col_delete:
+                            if len(checklist) > 1:
+                                if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
+                                    checklist.pop(j)
+                                    st.rerun()
+
+                        checklist[j] = {"name": name.strip(), "checked": checked}
+
+                    if st.button("+ 新增自定義項目", key=f"dlg_add_check_{i}", type="secondary"):
+                        checklist.append({"name": "", "checked": False})
+                        st.rerun()
+
+                st.markdown("---")
                 # 最下面：Remarks
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
@@ -1265,7 +1321,8 @@ if st.session_state.get("spec_dialog_open", False):
                     "control_voltage": s_control_voltage,
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
-                    "parts": cleaned_parts
+                    "parts": cleaned_parts,
+                    "delivery_checklist": [item for item in checklist if item.get("name", "").strip()]
                 }
                 specs.append(spec_data)
 
