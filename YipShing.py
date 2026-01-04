@@ -449,7 +449,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.markdown("---")
 
                 # 第一組：Engine & Alternator
-                with st.expander("Engine & Alternator Group", expanded=True):
+                with st.expander("Engine & Alternator Group(發動機＆電球)", expanded=True):
                     # Engine
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
@@ -501,7 +501,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.markdown("---")
 
                 # 第二組：Radiator & Base Frame Group
-                with st.expander("Radiator & Base Frame Group", expanded=False):
+                with st.expander("Radiator & Base Frame Group(水箱＆底架)", expanded=False):
                     # Radiator
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
@@ -607,7 +607,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.markdown("---")
 
                 # 第三組：Container & Control & Circuit Breaker
-                with st.expander("Container & Control & Circuit Breaker Group", expanded=False):
+                with st.expander("Container & Control & Circuit Breaker Group(貨櫃&控制器&斷路器)", expanded=False):
                     # Container
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
@@ -711,7 +711,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
                 # 第四組：Parts (配件) - 完全同步 Edit Spec
-                with st.expander("Parts (配件) Group", expanded=False):
+                with st.expander("Parts Group(配件)", expanded=False):
                     part_key = f"dlg_parts_{i}"
                     if part_key not in st.session_state:
                         st.session_state[part_key] = [{"name": "", "source": "--"}]
@@ -905,7 +905,7 @@ if st.session_state.get("spec_dialog_open", False):
                 st.markdown("---")
 
                 # 第一組：Engine & Alternator
-                with st.expander("Engine & Alternator Group", expanded=True):
+                with st.expander("Engine & Alternator Group(發動機＆電球)", expanded=True):
                     # Engine
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
@@ -951,7 +951,7 @@ if st.session_state.get("spec_dialog_open", False):
                 st.markdown("---")
 
                 # 第二組：Radiator & Base Frame Group
-                with st.expander("Radiator & Base Frame Group", expanded=False):
+                with st.expander("Radiator & Base Frame Group(水箱＆底架)", expanded=False):
                     # Radiator
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
@@ -1024,7 +1024,7 @@ if st.session_state.get("spec_dialog_open", False):
                 st.markdown("---")
 
                 # 第三組：Container & Control & Circuit Breaker
-                with st.expander("Container & Control & Circuit Breaker Group", expanded=False):
+                with st.expander("Container & Control & Circuit Breaker Group(貨櫃&控制器&斷路器)", expanded=False):
                     # Container
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
@@ -1100,7 +1100,7 @@ if st.session_state.get("spec_dialog_open", False):
                 st.markdown("---")
 
                 # 第四組：Parts (配件) - 強制每行垂直居中
-                with st.expander("Parts (配件) Group", expanded=False):
+                with st.expander("Parts Group(配件)", expanded=False):
                     part_key = f"dlg_parts_{i}"
                     if part_key not in st.session_state:
                         st.session_state[part_key] = [{"name": "", "source": "--"}]
