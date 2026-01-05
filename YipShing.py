@@ -953,7 +953,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# Project Specification Dialog (新增用) - 配件垂直居中對齊修正版
+# Project Specification Dialog (新增用) - 完全同步 Edit Spec 最終完美版
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -975,7 +975,7 @@ if st.session_state.get("spec_dialog_open", False):
 
         for i in range(qty):
             with tabs[i]:
-                # Prime & Standby Power
+                # Prime & Standby Power (頂部不折疊)
                 st.markdown("### Prime & Standby Power")
                 col1, col2 = st.columns(2)
                 with col1:
@@ -1098,6 +1098,7 @@ if st.session_state.get("spec_dialog_open", False):
                         s_base_model = st.text_input("Base Frame model(底架型號)", key=f"dlg_base_model_{i}")
                     with col_sn:
                         s_base_sn = st.text_input("S/N", key=f"dlg_base_sn_{i}")
+
                     # Anti-Vibration Mount - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
@@ -1187,9 +1188,9 @@ if st.session_state.get("spec_dialog_open", False):
 
                 st.markdown("---")
 
-                # 第四組：Parts (配件) - 強制每行垂直居中
-                with st.expander("Parts Group(配件)", expanded=False):
-                    part_key = f"dlg_parts_{i}"
+                # 第四組：Parts (配件)
+                with st.expander("Parts (配件) Group", expanded=False):
+                    part_key = f"parts_new_{temp_project['Project_Name']}_{i}"
                     if part_key not in st.session_state:
                         st.session_state[part_key] = [{"name": "", "source": "--"}]
 
@@ -1198,36 +1199,28 @@ if st.session_state.get("spec_dialog_open", False):
                     for j in range(len(parts_list)):
                         col_name, col_source, col_delete = st.columns([4, 1, 1])
                         with col_name:
-                            part_name = st.text_input(
-                                f"配件名稱/描述 {j + 1}",
-                                value=parts_list[j].get("name", ""),
-                                key=f"dlg_part_name_{i}_{j}",
-                                label_visibility="collapsed"  # 隱藏 label，讓輸入框和下拉選單對齊
-                            )
+                            part_name = st.text_input(f"配件名稱/描述 {j+1}", value=parts_list[j].get("name", ""), key=f"dlg_part_name_{i}_{j}", label_visibility="collapsed")
                         with col_source:
-                            part_source = st.selectbox(
-                                "貨源",
-                                ["--", "HK", "DG"],
-                                index=safe_index(parts_list[j].get("source", "--"), ["--", "HK", "DG"]),
-                                key=f"dlg_part_source_{i}_{j}",
-                                label_visibility="collapsed"
-                            )
+                            part_source = st.selectbox("貨源", ["--", "HK", "DG"],
+                                                       index=safe_index(parts_list[j].get("source", "--"), ["--", "HK", "DG"]),
+                                                       key=f"dlg_part_source_{i}_{j}",
+                                                       label_visibility="collapsed")
                         with col_delete:
                             if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
                                 parts_list.pop(j)
                                 st.rerun()
 
-                        parts_list[j] = {"name": part_name.strip(),
-                                         "source": part_source if part_source != "--" else ""}
+                        parts_list[j] = {"name": part_name.strip(), "source": part_source if part_source != "--" else ""}
 
                     if st.button("+ 新增配件", key=f"add_dlg_part_{i}", type="secondary"):
                         parts_list.append({"name": "", "source": "--"})
                         st.rerun()
 
                 st.markdown("---")
+
                 # 第五組：Delivery Checklist (出貨檢查清單)
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
-                    checklist_key = f"dlg_delivery_checklist_{i}"
+                    checklist_key = f"delivery_checklist_new_{temp_project['Project_Name']}_{i}"
                     if checklist_key not in st.session_state:
                         default_items = [
                             "Load Test",
@@ -1264,12 +1257,9 @@ if st.session_state.get("spec_dialog_open", False):
                     for j in range(len(checklist)):
                         col_check, col_name, col_delete = st.columns([1, 5, 1])
                         with col_check:
-                            current_checked = checklist[j].get("checked", False)
-                            checked = st.checkbox("", value=current_checked, key=f"dlg_check_{i}_{j}")
+                            checked = st.checkbox("", value=checklist[j].get("checked", False), key=f"dlg_check_{i}_{j}")
                         with col_name:
-                            current_name = checklist[j].get("name", "")
-                            name = st.text_input("", value=current_name, key=f"dlg_check_name_{i}_{j}",
-                                                 label_visibility="collapsed")
+                            name = st.text_input("", value=checklist[j].get("name", ""), key=f"dlg_check_name_{i}_{j}", label_visibility="collapsed")
                         with col_delete:
                             if len(checklist) > 1:
                                 if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
@@ -1283,13 +1273,13 @@ if st.session_state.get("spec_dialog_open", False):
                         st.rerun()
 
                 st.markdown("---")
+
                 # 最下面：Remarks
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
-                # 處理 Parts（安全過濾空行）
-                cleaned_parts = []
-                if 'parts_list' in locals() and parts_list:
-                    cleaned_parts = [p for p in parts_list if p.get("name", "").strip()]
+                # 處理 Parts 和 Delivery Checklist
+                cleaned_parts = [p for p in parts_list if p.get("name", "").strip()] if 'parts_list' in locals() and parts_list else []
+                cleaned_checklist = [item for item in checklist if item.get("name", "").strip()] if 'checklist' in locals() and checklist else []
 
                 spec_data = {
                     "prime": s_prime.strip(),
@@ -1323,9 +1313,10 @@ if st.session_state.get("spec_dialog_open", False):
                     "coolant_sensor_source": s_coolant_sensor_source if s_coolant_sensor_source != "--" else "",
                     "low_water_source": s_low_water_source if s_low_water_source != "--" else "",
                     "base_model": s_base_model,
+                    "base_sn": s_base_sn,
+                    "base_source": s_base_source if s_base_source != "--" else "",
                     "avm": s_avm if s_avm != "--" else "",
                     "avm_qty": str(s_avm_qty),
-                    "base_source": s_base_source if s_base_source != "--" else "",
                     "avm_source": s_avm_source if s_avm_source != "--" else "",
                     "cont_size": s_cont_size if s_cont_size != "--" else "",
                     "cont_type": s_cont_type if s_cont_type != "--" else "",
@@ -1349,33 +1340,29 @@ if st.session_state.get("spec_dialog_open", False):
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
                     "parts": cleaned_parts,
-                    "base_model": s_base_model,
-                    "base_sn": s_base_sn,
-                    "base_source": s_base_source if s_base_source != "--" else "",
-                    "delivery_checklist": [item for item in checklist if item.get("name", "").strip()]
+                    "delivery_checklist": [item for item in checklist if item.get("name", "").strip()],
                 }
                 specs.append(spec_data)
 
         col_save, col_cancel = st.columns(2)
         with col_save:
-            save_disabled = st.session_state.get("new_spec_saving", False)
+            save_disabled = st.session_state.get("edit_saving", False)
             if st.button("Save & Close", type="primary", use_container_width=True, disabled=save_disabled):
-                st.session_state.new_spec_saving = True
+                st.session_state.edit_saving = True
                 st.rerun()
 
         with col_cancel:
             if st.button("Cancel", type="secondary", use_container_width=True):
-                st.session_state.spec_dialog_open = False
+                st.session_state["show_edit_spec_dialog"] = False
                 st.session_state.dialog_active = None
-                if "temp_project" in st.session_state:
-                    del st.session_state.temp_project
                 st.rerun()
 
-        # 全屏 loading + 執行儲存
         if st.session_state.get("new_spec_saving", False):
             fullscreen_loading("正在新增專案並儲存規格，請稍候...")
 
+            # 只定義一次
             first_spec = specs[0] if specs else {}
+
             visible_lines = [
                 f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
                 f"Alternator Model: {first_spec.get('alt_model', '—')} | S/N: {first_spec.get('alt_sn', '—')}",
@@ -1404,7 +1391,92 @@ if st.session_state.get("spec_dialog_open", False):
             st.session_state.new_spec_saving = False
             st.rerun()
 
-    spec_dialog()
+    edit_spec_dialog()
+# ==============================================
+# Sidebar
+# ==============================================
+with st.sidebar:
+    st.header("View Controls")
+    if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
+        st.session_state.view_mode = "all"
+    if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
+        st.session_state.view_mode = "delay"
+    if st.button("📅Calendar", use_container_width=True, type="primary", key="btn_calendar"):
+        st.session_state.view_mode = "calendar"
+
+    if "view_mode" not in st.session_state:
+        st.session_state.view_mode = "all"
+
+    st.markdown("---")
+    st.markdown("### Search Project Name")
+    search_term = st.text_input("Enter Project Name (partial match)", value="", key="search_input", label_visibility="collapsed")
+
+    st.markdown("---")
+    project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
+    years = [2024, 2025, 2026]
+    month_names = ["All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    if st.session_state.view_mode == "all":
+        st.markdown("### Filters")
+        selected_type = st.selectbox("Project Type", project_types, index=project_types.index("All"), key="global_filter_type")
+        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="global_filter_year")
+        selected_month = st.selectbox("Month", month_names, index=month_names.index("All"), key="global_filter_month")
+    else:
+        selected_type = "All"
+        selected_year = date.today().year
+        selected_month = "All"
+
+    st.markdown("---")
+    st.header("New Project")
+
+    with st.form("add_form", clear_on_submit=True):
+        c1, c2 = st.columns(2)
+        with c1:
+            new_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"], key="new_type")
+            new_name = st.text_input("Project Name*", key="new_name")
+            new_year = st.selectbox("Year*", [2024,2025,2026], index=2, key="new_year")
+            new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
+        with c2:
+            new_customer = st.text_input("Customer", key="new_customer")
+            new_supervisor = st.text_input("Supervisor", key="new_supervisor")
+            new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
+
+        st.markdown("**Progress Dates**")
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            d1 = st.date_input("Parts Arrival", value=None, key="d1")
+            d2 = st.date_input("Installation Complete", value=None, key="d2")
+            d3 = st.date_input("Testing Complete", value=None, key="d3")
+        with col_d2:
+            d4 = st.date_input("Cleaning Complete", value=None, key="d4")
+            d5 = st.date_input("Delivery Complete", value=None, key="d5")
+
+        reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
+
+        if st.form_submit_button("Add", type="primary", use_container_width=True):
+            if not new_name.strip():
+                st.error("Project Name required!")
+            elif new_name in df["Project_Name"].values:
+                st.error("Name exists!")
+            else:
+                st.session_state.temp_project = {
+                    "Project_Type": new_type,
+                    "Project_Name": new_name,
+                    "Year": int(new_year),
+                    "Lead_Time": new_leadtime,
+                    "Customer": new_customer or "",
+                    "Supervisor": new_supervisor or "",
+                    "Qty": new_qty,
+                    "Real_Count": new_qty,
+                    "Progress_Reminder": reminder or "",
+                    "Parts_Arrival": d1 if d1 else None,
+                    "Installation_Complete": d2 if d2 else None,
+                    "Testing_Complete": d3 if d3 else None,
+                    "Cleaning_Complete": d4 if d4 else None,
+                    "Delivery_Complete": d5 if d5 else None
+                }
+                st.session_state.spec_dialog_open = True
+                st.rerun()
 # ==============================================
 # Edit Project Info Dialog
 # ==============================================
@@ -1679,6 +1751,8 @@ else:
         with col2:
             if i + 1 < len(rows):
                 render_project_card(rows[i + 1], filtered_df.index[i + 1])
+
+
 
 st.markdown("---")
 st.caption("Projects Management System")
