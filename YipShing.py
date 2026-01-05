@@ -711,10 +711,13 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
                 # 第四組：Parts (配件) - 完全同步 Edit Spec
-                with st.expander("Parts Group(配件)", expanded=False):
-                    part_key = f"dlg_parts_{i}"
+                with st.expander("Parts (配件) Group", expanded=False):
+                    part_key = f"parts_edit_{row_to_edit['Project_Name']}_{i}"  # 用 Project_Name + 台數
                     if part_key not in st.session_state:
-                        st.session_state[part_key] = [{"name": "", "source": "--"}]
+                        old_parts = current.get("parts", [])
+                        if not old_parts:
+                            old_parts = [{"name": "", "source": "--"}]
+                        st.session_state[part_key] = [p.copy() for p in old_parts]
 
                     parts_list = st.session_state[part_key]
 
@@ -768,7 +771,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 # 第五組：Delivery Checklist (出貨檢查清單)
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
-                    checklist_key = f"delivery_checklist_{idx_to_edit}_{i}" if 'idx_to_edit' in locals() else f"dlg_delivery_checklist_{i}"
+                    checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{i}"  # 用 Project_Name + 台數
                     if checklist_key not in st.session_state:
                         # 預設固定項目（未勾選）
                         default_items = [
@@ -803,9 +806,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         old_checklist = current.get("delivery_checklist", []) if 'current' in locals() else []
                         # 如果舊資料有，就用舊的；沒有就用預設
                         initial_list = old_checklist if old_checklist else [{"name": item, "checked": False} for item in default_items]
-                        st.session_state[checklist_key] = initial_list
+                        st.session_state[checklist_key] = [{"name": item, "checked": False} for item in default_items]
 
-                    checklist = st.session_state[checklist_key]
+                        checklist = st.session_state[checklist_key]
 
                     for j in range(len(checklist)):
                         col_check, col_name, col_delete = st.columns([1, 5, 1])
