@@ -953,7 +953,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# Project Specification Dialog (新增用) - 手動套用資料功能（最終成功版）
+# Project Specification Dialog (新增用) - 手動套用資料功能（最終完美版 - 只輸入1個數字也能複製）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -990,27 +990,70 @@ if st.session_state.get("spec_dialog_open", False):
 
         specs = []
 
-        # 手動套用區域（放在 tabs 上面，所有台都能看到）
+        # 手動套用區域（Qty > 1 時顯示）
         if qty > 1:
             st.markdown("### 🔄 手動套用第 1 台資料至其他台")
-            st.markdown("**步驟：** 1. 在第 1 台輸入資料 → 2. 點下面「複製第 1 台資料」 → 3. 切換到其他台 → 4. 點「貼上資料到本台」")
+            st.markdown("**步驟：** 1. 在第 1 台輸入任意欄位 → 2. 點「複製第 1 台資料」 → 3. 切換到其他台 → 4. 點「貼上資料到本台」")
             st.markdown("**S/N 欄位不會複製，讓你手動填每台獨立序號**")
 
             col_copy = st.columns(1)[0]
             with col_copy:
                 if st.button("複製第 1 台資料", type="secondary", use_container_width=True, key="copy_first"):
-                    if len(specs) > 0 and specs[0]:
-                        copy_spec = specs[0].copy()
-                        # 強制 S/N 留空
-                        copy_spec["genset_sn"] = ""
-                        copy_spec["alt_sn"] = ""
-                        copy_spec["rad_sn"] = ""
-                        copy_spec["panel_sn"] = ""
-                        copy_spec["base_sn"] = ""
-                        st.session_state.copy_from_first = copy_spec
-                        st.success("已複製第 1 台資料！現在切換到其他台點「貼上」")
-                    else:
-                        st.warning("請先在第 1 台輸入資料")
+                    # 直接從第 1 台 widget 讀取當前值（哪怕只輸入1個數字）
+                    copy_spec = {
+                        "prime": st.session_state.get(f"dlg_prime_0", ""),
+                        "standby": st.session_state.get(f"dlg_standby_0", ""),
+                        "voltage": st.session_state.get(f"dlg_voltage_0", "--"),
+                        "frequency": st.session_state.get(f"dlg_frequency_0", "--"),
+                        "rpm": st.session_state.get(f"dlg_rpm_0", "--"),
+                        "genset_model": st.session_state.get(f"dlg_genset_model_0", ""),
+                        "engine_color": st.session_state.get(f"dlg_engine_color_0", ""),
+                        "engine_year": st.session_state.get(f"dlg_engine_year_0", ""),
+                        "engine_heater": st.session_state.get(f"dlg_engine_heater_0", ""),
+                        "engine_source": st.session_state.get(f"dlg_engine_source_0", "--"),
+                        "alt_model": st.session_state.get(f"dlg_alt_model_0", ""),
+                        "alt_color": st.session_state.get(f"dlg_alt_color_0", ""),
+                        "pmg": st.session_state.get(f"dlg_pmg_0", ""),
+                        "droop": st.session_state.get(f"dlg_droop_0", "--"),
+                        "alt_heater": st.session_state.get(f"dlg_alt_heater_0", "--"),
+                        "alt_source": st.session_state.get(f"dlg_alt_source_0", "--"),
+                        "rad_model": st.session_state.get(f"dlg_rad_model_0", ""),
+                        "rad_temp": st.session_state.get(f"dlg_rad_temp_0", ""),
+                        "fan_size": st.session_state.get(f"dlg_fan_size_0", ""),
+                        "radiator_guard": st.session_state.get(f"dlg_radiator_guard_0", "--"),
+                        "fuel_cooler": st.session_state.get(f"dlg_fuel_cooler_0", "--"),
+                        "fuel_cooler_source": st.session_state.get(f"dlg_fuel_cooler_source_0", "--"),
+                        "coolant_sensor": st.session_state.get(f"dlg_coolant_sensor_0", "--"),
+                        "coolant_sensor_source": st.session_state.get(f"dlg_coolant_sensor_source_0", "--"),
+                        "low_water": st.session_state.get(f"dlg_low_water_0", "--"),
+                        "low_water_source": st.session_state.get(f"dlg_low_water_source_0", "--"),
+                        "base_model": st.session_state.get(f"dlg_base_model_0", ""),
+                        "base_source": st.session_state.get(f"dlg_base_source_0", "--"),
+                        "avm": st.session_state.get(f"dlg_avm_0", "--"),
+                        "avm_qty": st.session_state.get(f"dlg_avm_qty_0", 0),
+                        "avm_source": st.session_state.get(f"dlg_avm_source_0", "--"),
+                        "cont_size": st.session_state.get(f"dlg_cont_size_0", "--"),
+                        "cont_type": st.session_state.get(f"dlg_cont_type_0", "--"),
+                        "cont_color": st.session_state.get(f"dlg_cont_color_0", ""),
+                        "fork_slot": st.session_state.get(f"dlg_fork_slot_0", "--"),
+                        "anti_noise": st.session_state.get(f"dlg_anti_noise_0", "--"),
+                        "internal_silencer": st.session_state.get(f"dlg_internal_silencer_0", "--"),
+                        "ss_locks": st.session_state.get(f"dlg_ss_locks_0", "--"),
+                        "emergency_stop": st.session_state.get(f"dlg_emergency_stop_0", "--"),
+                        "cont_source": st.session_state.get(f"dlg_cont_source_0", "--"),
+                        "panel_model": st.session_state.get(f"dlg_panel_model_0", ""),
+                        "co_detector": st.session_state.get(f"dlg_co_detector_0", "--"),
+                        "co_source": st.session_state.get(f"dlg_co_source_0", "--"),
+                        "breaker_type": st.session_state.get(f"dlg_breaker_type_0", "--"),
+                        "breaker_rating": st.session_state.get(f"dlg_breaker_rating_0", ""),
+                        "poles": st.session_state.get(f"dlg_poles_0", "--"),
+                        "spring_charging": st.session_state.get(f"dlg_spring_charging_0", "--"),
+                        "control_voltage": st.session_state.get(f"dlg_control_voltage_0", ""),
+                        "breaker_source": st.session_state.get(f"dlg_breaker_source_0", "--"),
+                        "remarks": st.session_state.get(f"dlg_remarks_0", ""),
+                    }
+                    st.session_state.copy_from_first = copy_spec
+                    st.success("已複製第 1 台目前輸入的資料！現在切換到其他台點「貼上」")
                     st.rerun()
 
         for i in range(qty):
@@ -1310,10 +1353,7 @@ if st.session_state.get("spec_dialog_open", False):
                 with st.expander("Parts (配件) Group", expanded=False):
                     part_key = f"dlg_parts_{i}"
                     if part_key not in st.session_state:
-                        if use_copy and "parts" in copy_spec:
-                            st.session_state[part_key] = [p.copy() for p in copy_spec["parts"]]
-                        else:
-                            st.session_state[part_key] = [{"name": "", "source": "--"}]
+                        st.session_state[part_key] = [{"name": "", "source": "--"}]
 
                     parts_list = st.session_state[part_key]
 
@@ -1343,38 +1383,35 @@ if st.session_state.get("spec_dialog_open", False):
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
                     checklist_key = f"dlg_delivery_checklist_{i}"
                     if checklist_key not in st.session_state:
-                        if use_copy and "delivery_checklist" in copy_spec:
-                            st.session_state[checklist_key] = [item.copy() for item in copy_spec["delivery_checklist"]]
-                        else:
-                            default_items = [
-                                "Load Test",
-                                "No load test",
-                                "灑水測試",
-                                "放油放水 Drain out all liquid",
-                                "Anti Freezer",
-                                "壓缸",
-                                "膠片(防uv茶式/透明)",
-                                "電球檔板(K50)",
-                                "隔熱棉",
-                                "Turbo 棉",
-                                "Cummins 鐵牌",
-                                "Warning 鐵牌",
-                                "Danger Label(415V/400V)",
-                                "Top One Power貼紙",
-                                "Warning 貼紙",
-                                "Standard Tools Kit 工具箱",
-                                "Test Report測試報告",
-                                "Test Video",
-                                "Manuals說明書",
-                                "Certificate證書",
-                                "Genset Label",
-                                "電球Label",
-                                "Sales photos",
-                                "Marketing photos",
-                                "Autocad drawing",
-                                "Wiring diagram"
-                            ]
-                            st.session_state[checklist_key] = [{"name": item, "checked": False} for item in default_items]
+                        default_items = [
+                            "Load Test",
+                            "No load test",
+                            "灑水測試",
+                            "放油放水 Drain out all liquid",
+                            "Anti Freezer",
+                            "壓缸",
+                            "膠片(防uv茶式/透明)",
+                            "電球檔板(K50)",
+                            "隔熱棉",
+                            "Turbo 棉",
+                            "Cummins 鐵牌",
+                            "Warning 鐵牌",
+                            "Danger Label(415V/400V)",
+                            "Top One Power貼紙",
+                            "Warning 貼紙",
+                            "Standard Tools Kit 工具箱",
+                            "Test Report測試報告",
+                            "Test Video",
+                            "Manuals說明書",
+                            "Certificate證書",
+                            "Genset Label",
+                            "電球Label",
+                            "Sales photos",
+                            "Marketing photos",
+                            "Autocad drawing",
+                            "Wiring diagram"
+                        ]
+                        st.session_state[checklist_key] = [{"name": item, "checked": False} for item in default_items]
 
                     checklist = st.session_state[checklist_key]
 
@@ -1481,8 +1518,8 @@ if st.session_state.get("spec_dialog_open", False):
                 st.session_state.dialog_active = None
                 if "temp_project" in st.session_state:
                     del st.session_state.temp_project
-                if "manual_copy_spec" in st.session_state:
-                    del st.session_state.manual_copy_spec
+                if "copy_from_first" in st.session_state:
+                    del st.session_state.copy_from_first
                 st.rerun()
 
         # 全屏 loading + 執行儲存
@@ -1513,8 +1550,8 @@ if st.session_state.get("spec_dialog_open", False):
             st.success(f"已成功新增專案（{qty} 台機器）！")
             if "temp_project" in st.session_state:
                 del st.session_state.temp_project
-            if "manual_copy_spec" in st.session_state:
-                del st.session_state.manual_copy_spec
+            if "copy_from_first" in st.session_state:
+                del st.session_state.copy_from_first
             st.session_state.spec_dialog_open = False
             st.session_state.dialog_active = None
             st.session_state.new_spec_saving = False
