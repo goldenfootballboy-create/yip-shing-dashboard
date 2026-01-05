@@ -4,6 +4,7 @@ import pandas as pd
 import json
 from datetime import date
 import time
+from streamlit_fullcalendar import fullcalendar
 # 全局安全 index 函數（防止 selectbox index 錯誤）
 def safe_index(val, options, default=0):
     try:
@@ -1653,23 +1654,28 @@ else:
 if st.session_state.view_mode == "calendar":
     st.title("專案日曆視圖")
 
-    # 準備事件
-    events = []
-
-    # 從 Google Sheets 讀取自定義事件
+    # 讀取自定義事件
     try:
         events_df = conn.read(worksheet="calendar_events", ttl=300)
-    except:
-        events_df = pd.DataFrame()
+        if events_df.empty:
+            events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
+    except Exception as e:
+        st.warning("無法讀取日曆事件，將使用空日曆")
+        events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
 
-    if not events_df.empty:
-        for _, row in events_df.iterrows():
-            events.append({
-                "title": row.get("title", "無標題"),
-                "start": row.get("start", ""),
-                "end": row.get("end", row.get("start", "")),
-                "color": "#3788d8",
-            })
+    events = []
+
+    # 加入自定義事件
+    for _, row in events_df.iterrows():
+        events.append({
+            "id": str(row.get("id", "")),
+            "title": row.get("title", "無標題"),
+            "start": row.get("start", ""),
+            "end": row.get("end") or row.get("start", ""),
+            "description": row.get("description", ""),
+            "backgroundColor": "#3788d8",
+            "borderColor": "#3788d8",
+        })
 
     # 加入專案關鍵日期
     for _, proj in df.iterrows():
@@ -1677,20 +1683,38 @@ if st.session_state.view_mode == "calendar":
             events.append({
                 "title": f"零件到貨: {proj['Project_Name']}",
                 "start": proj["Parts_Arrival"].strftime("%Y-%m-%d"),
-                "color": "#a8e6cf",
+                "backgroundColor": "#a8e6cf",
+                "borderColor": "#a8e6cf",
             })
         if pd.notna(proj["Testing_Complete"]):
             events.append({
                 "title": f"測試完成: {proj['Project_Name']}",
                 "start": proj["Testing_Complete"].strftime("%Y-%m-%d"),
-                "color": "#ff9f89",
+                "backgroundColor": "#ff9f89",
+                "borderColor": "#ff9f89",
             })
 
-    # 使用 Streamlit 內建 calendar（實驗功能）
-    st.calendar(events=events, key="project_calendar")
+    # 日曆設定
+    config = {
+        "initialView": "dayGridMonth",
+        "headerToolbar": {
+            "left": "prev,next today",
+            "center": "title",
+            "right": "dayGridMonth,timeGridWeek,timeGridDay"
+        },
+        "height": 800,
+        "locale": "zh-tw",
+        "editable": True,
+        "selectable": True,
+        "dayMaxEvents": True,
+    }
 
-    st.caption("點擊日期可查看事件（目前僅支援查看，無法編輯）")
-    st.stop()
+    # 渲染日曆
+    fullcalendar(events=events, config=config, key="fullcalendar")
+
+    st.caption("🗓️ 點擊事件可查看詳情 | 可拖曳調整日期 | 點擊日期可新增事件（進階功能需額外開發）")
+
+    st.stop()  # 阻止渲染下方專案卡片
 
 st.markdown(f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>", unsafe_allow_html=True)
 
