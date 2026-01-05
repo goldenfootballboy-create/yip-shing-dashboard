@@ -953,7 +953,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# Project Specification Dialog (新增用) - 手動套用資料功能（最終完整版）
+# Project Specification Dialog (新增用) - 手動套用資料功能（最終完美版）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -988,12 +988,15 @@ if st.session_state.get("spec_dialog_open", False):
 
         tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
+        # 先定義 specs
         specs = []
 
-        # 複製按鈕（放在 dialog 頂部）
+        # 手動套用資料區域（Qty > 1 時顯示）
         if qty > 1:
             st.markdown("### 🔄 手動套用第 1 台資料至其他台")
-            st.markdown("**步驟：** 1. 在第 1 台輸入資料 → 2. 點下面「複製」 → 3. 切換到其他台 → 4. 點「貼上」")
+            st.markdown("**步驟：** 1. 在第 1 台輸入資料 → 2. 點「複製第 1 台資料」 → 3. 切換到其他台 → 4. 點「貼上資料到本台」")
+            st.markdown("**S/N 欄位不會複製，讓你手動填每台獨立序號**")
+
             if st.button("複製第 1 台資料", type="secondary", use_container_width=True, key="manual_copy"):
                 if len(specs) > 0 and specs[0]:
                     copy_spec = specs[0].copy()
@@ -1006,7 +1009,7 @@ if st.session_state.get("spec_dialog_open", False):
                     st.session_state.manual_copy_spec = copy_spec
                     st.success("已複製第 1 台資料！現在切換到其他台點「貼上」")
                 else:
-                    st.warning("請先在第 1 台輸入資料")
+                    st.warning("請先在第 1 台輸入部分資料後再點複製")
                 st.rerun()
 
         for i in range(qty):
