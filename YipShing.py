@@ -1255,10 +1255,11 @@ if st.session_state.get("spec_dialog_open", False):
                     for j in range(len(checklist)):
                         col_check, col_name, col_delete = st.columns([1, 5, 1])
                         with col_check:
-                            checked = st.checkbox("", value=checklist[j].get("checked", False),
-                                                  key=f"dlg_check_{i}_{j}")
+                            current_checked = checklist[j].get("checked", False)
+                            checked = st.checkbox("", value=current_checked, key=f"dlg_check_{i}_{j}")
                         with col_name:
-                            name = st.text_input("", value=checklist[j].get("name", ""), key=f"dlg_check_name_{i}_{j}",
+                            current_name = checklist[j].get("name", "")
+                            name = st.text_input("", value=current_name, key=f"dlg_check_name_{i}_{j}",
                                                  label_visibility="collapsed")
                         with col_delete:
                             if len(checklist) > 1:
