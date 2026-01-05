@@ -953,7 +953,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# Project Specification Dialog (新增用) - 手動套用資料功能（最終完美版 - 只輸入1個數字也能複製）
+# Project Specification Dialog (新增用) - 手動套用資料功能（最終成功版）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -990,16 +990,16 @@ if st.session_state.get("spec_dialog_open", False):
 
         specs = []
 
-        # 手動套用區域（Qty > 1 時顯示）
+        # 手動套用區域（放在 dialog 頂部，所有台都能看到）
         if qty > 1:
             st.markdown("### 🔄 手動套用第 1 台資料至其他台")
-            st.markdown("**步驟：** 1. 在第 1 台輸入任意欄位 → 2. 點「複製第 1 台資料」 → 3. 切換到其他台 → 4. 點「貼上資料到本台」")
+            st.markdown("**步驟：** 1. 在第 1 台輸入資料 → 2. 點「複製第 1 台資料」 → 3. 切換到其他台 → 4. 點「貼上資料到本台」")
             st.markdown("**S/N 欄位不會複製，讓你手動填每台獨立序號**")
 
             col_copy = st.columns(1)[0]
             with col_copy:
                 if st.button("複製第 1 台資料", type="secondary", use_container_width=True, key="copy_first"):
-                    # 直接從第 1 台 widget 讀取當前值（哪怕只輸入1個數字）
+                    # 直接從第 1 台 widget 讀取當前值（哪怕只輸入1個欄位）
                     copy_spec = {
                         "prime": st.session_state.get(f"dlg_prime_0", ""),
                         "standby": st.session_state.get(f"dlg_standby_0", ""),
@@ -1053,7 +1053,7 @@ if st.session_state.get("spec_dialog_open", False):
                         "remarks": st.session_state.get(f"dlg_remarks_0", ""),
                     }
                     st.session_state.copy_from_first = copy_spec
-                    st.success("已複製第 1 台目前輸入的資料！現在切換到其他台點「貼上」")
+                    st.success("已複製第 1 台資料！現在切換到其他台點「貼上」")
                     st.rerun()
 
         for i in range(qty):
