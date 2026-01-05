@@ -586,23 +586,31 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                     e_base_model = st.text_input("Base Frame model", value=current.get("base_model", ""), key=f"edit_base_model_{idx_to_edit}_{i}")
 
-                    # Anti-Vibration Mount - 三欄設計（已刪除舊 text_input 和 number_input，避免 key 重複）
+                    # Anti-Vibration Mount - 三欄設計 + 恢復 model 輸入框
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**Anti-Vibration Mount**")
                     with col_include:
                         e_avm = st.selectbox("", ["--", "Include", "Not Include"],
-                                             index=safe_index(current.get("avm", "--"), ["--", "Include", "Not Include"]),
+                                             index=safe_index(current.get("avm", "--"),
+                                                              ["--", "Include", "Not Include"]),
                                              key=f"edit_avm_{idx_to_edit}_{i}",
                                              label_visibility="collapsed")
                     with col_source:
                         e_avm_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                    index=safe_index(current.get("avm_source", "--"), ["--", "HK", "DG"]),
+                                                    index=safe_index(current.get("avm_source", "--"),
+                                                                     ["--", "HK", "DG"]),
                                                     key=f"edit_avm_source_{idx_to_edit}_{i}",
                                                     label_visibility="collapsed")
 
-                    # Qty 放在 Anti-Vibration Mount 下面
-                    e_avm_qty = st.number_input("Qty", min_value=0, value=int(current.get("avm_qty", 0)), key=f"edit_avm_qty_{idx_to_edit}_{i}")
+                    # 恢復 Anti-Vibration Mount model 輸入框
+                    e_avm_model = st.text_input("Anti-Vibration Mount model(避震器型號)",
+                                                value=current.get("avm_model", ""),
+                                                key=f"edit_avm_model_{idx_to_edit}_{i}")
+
+                    # Qty 放在下面
+                    e_avm_qty = st.number_input("Qty", min_value=0, value=int(current.get("avm_qty", 0)),
+                                                key=f"edit_avm_qty_{idx_to_edit}_{i}")
 
                 st.markdown("---")
 
@@ -865,6 +873,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "low_water_source": e_low_water_source if e_low_water_source != "--" else "",
                     "base_model": e_base_model,
                     "avm": e_avm if e_avm != "--" else "",
+                    "avm_model": e_avm_model,
                     "avm_qty": str(e_avm_qty),
                     "base_source": e_base_source if e_base_source != "--" else "",
                     "avm_source": e_avm_source if e_avm_source != "--" else "",
