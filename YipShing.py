@@ -584,8 +584,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                      key=f"edit_base_source_{idx_to_edit}_{i}",
                                                      label_visibility="collapsed")
 
-                    e_base_model = st.text_input("Base Frame model", value=current.get("base_model", ""), key=f"edit_base_model_{idx_to_edit}_{i}")
-
+                    # Base Frame model 和 S/N 並排
+                    col_model, col_sn = st.columns(2)
+                    with col_model:
+                        e_base_model = st.text_input("Base Frame model(底架型號)", value=current.get("base_model", ""), key=f"edit_base_model_{idx_to_edit}_{i}")
+                    with col_sn:
+                        e_base_sn = st.text_input("S/N", value=current.get("base_sn", ""), key=f"edit_base_sn_{idx_to_edit}_{i}")
                     # Anti-Vibration Mount - 三欄設計 + 恢復 model 輸入框
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
@@ -904,6 +908,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
                     "parts": [p for p in parts_list if p["name"].strip()],
                     "delivery_checklist": [item for item in checklist if item.get("name", "").strip()],
+                    "base_sn": e_base_sn,
                     "remarks": e_remarks.strip()
                 }
                 new_specs.append(spec_data)
@@ -1087,8 +1092,12 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_source:
                         s_base_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_base_source_{i}", label_visibility="collapsed")
 
-                    s_base_model = st.text_input("Base Frame model(底架型號)", key=f"dlg_base_model_{i}")
-
+                    # Base Frame model 和 S/N 並排
+                    col_model, col_sn = st.columns(2)
+                    with col_model:
+                        s_base_model = st.text_input("Base Frame model(底架型號)", key=f"dlg_base_model_{i}")
+                    with col_sn:
+                        s_base_sn = st.text_input("S/N", key=f"dlg_base_sn_{i}")
                     # Anti-Vibration Mount - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
@@ -1340,6 +1349,9 @@ if st.session_state.get("spec_dialog_open", False):
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
                     "parts": cleaned_parts,
+                    "base_model": s_base_model,
+                    "base_sn": s_base_sn,
+                    "base_source": s_base_source if s_base_source != "--" else "",
                     "delivery_checklist": [item for item in checklist if item.get("name", "").strip()]
                 }
                 specs.append(spec_data)
