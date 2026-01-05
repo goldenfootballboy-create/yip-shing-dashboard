@@ -808,7 +808,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         initial_list = old_checklist if old_checklist else [{"name": item, "checked": False} for item in default_items]
                         st.session_state[checklist_key] = [{"name": item, "checked": False} for item in default_items]
 
-                        checklist = st.session_state[checklist_key]
+                    checklist = st.session_state[checklist_key]
 
                     for j in range(len(checklist)):
                         col_check, col_name, col_delete = st.columns([1, 5, 1])
