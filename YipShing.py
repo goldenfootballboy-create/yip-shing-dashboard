@@ -1492,15 +1492,18 @@ with st.sidebar:
     search_term = st.text_input("Enter Project Name (partial match)", value="", key="search_input", label_visibility="collapsed")
 
     st.markdown("---")
+
     project_types = ["All", "Enclosure", "Open Set", "Scania", "Marine", "K50G3"]
     years = [2024, 2025, 2026]
     month_names = ["All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
+    # 修正：filter selectbox 只定義一次，並用全局唯一 key
+    # 只在 view_mode == "all" 時顯示 filter，其餘模式用預設值
     if st.session_state.view_mode == "all":
         st.markdown("### Filters")
-        selected_type = st.selectbox("Project Type", project_types, index=project_types.index("All"), key="filter_type")
-        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="filter_year")
-        selected_month = st.selectbox("Month", month_names, index=month_names.index("All"), key="filter_month")
+        selected_type = st.selectbox("Project Type", project_types, index=project_types.index("All"), key="global_filter_type")
+        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="global_filter_year")
+        selected_month = st.selectbox("Month", month_names, index=month_names.index("All"), key="global_filter_month")
     else:
         selected_type = "All"
         selected_year = date.today().year
