@@ -4,7 +4,6 @@ import pandas as pd
 import json
 from datetime import date
 import time
-from streamlit_calendar import calendar
 # 全局安全 index 函數（防止 selectbox index 錯誤）
 def safe_index(val, options, default=0):
     try:
@@ -1652,6 +1651,45 @@ else:
     page_title = "YIP SHING Project Dashboard"
 
 if st.session_state.view_mode == "calendar":
+    st.title("專案日曆視圖")
+
+    # 準備事件
+    events = []
+
+    # 從 Google Sheets 讀取自定義事件
+    try:
+        events_df = conn.read(worksheet="calendar_events", ttl=300)
+    except:
+        events_df = pd.DataFrame()
+
+    if not events_df.empty:
+        for _, row in events_df.iterrows():
+            events.append({
+                "title": row.get("title", "無標題"),
+                "start": row.get("start", ""),
+                "end": row.get("end", row.get("start", "")),
+                "color": "#3788d8",
+            })
+
+    # 加入專案關鍵日期
+    for _, proj in df.iterrows():
+        if pd.notna(proj["Parts_Arrival"]):
+            events.append({
+                "title": f"零件到貨: {proj['Project_Name']}",
+                "start": proj["Parts_Arrival"].strftime("%Y-%m-%d"),
+                "color": "#a8e6cf",
+            })
+        if pd.notna(proj["Testing_Complete"]):
+            events.append({
+                "title": f"測試完成: {proj['Project_Name']}",
+                "start": proj["Testing_Complete"].strftime("%Y-%m-%d"),
+                "color": "#ff9f89",
+            })
+
+    # 使用 Streamlit 內建 calendar（實驗功能）
+    st.calendar(events=events, key="project_calendar")
+
+    st.caption("點擊日期可查看事件（目前僅支援查看，無法編輯）")
     st.stop()
 
 st.markdown(f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>", unsafe_allow_html=True)
@@ -1685,108 +1723,7 @@ else:
             if i + 1 < len(rows):
                 render_project_card(rows[i + 1], filtered_df.index[i + 1])
 
-# ... 前面的所有程式碼（sidebar、篩選、專案卡片等） ...
 
-# ==============================================
-# 篩選邏輯 & 主畫面
-# ==============================================
-# ... 你的篩選邏輯 ...
-
-if st.session_state.view_mode == "calendar":
-    # 日曆模式程式碼（你提供的完整內容）
-    page_title = "專案日曆視圖"
-
-    try:
-        events_df = conn.read(worksheet="calendar_events", ttl=300)
-        if events_df.empty:
-            events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
-    except:
-        events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name"])
-        conn.update(worksheet="calendar_events", data=events_df)
-
-    events = []
-    for _, row in events_df.iterrows():
-        events.append({
-            "id": str(row["id"]),
-            "title": row["title"],
-            "start": row["start"],
-            "end": row["end"] if pd.notna(row["end"]) else row["start"],
-            "description": row["description"] if pd.notna(row["description"]) else "",
-            "extendedProps": {"project_name": row["project_name"] if pd.notna(row["project_name"]) else ""}
-        })
-
-    # 專案日期事件
-    for _, proj in df.iterrows():
-        if pd.notna(proj["Parts_Arrival"]):
-            events.append({
-                "title": f"零件到貨: {proj['Project_Name']}",
-                "start": proj["Parts_Arrival"].strftime("%Y-%m-%d"),
-                "color": "#a8e6cf",
-                "extendedProps": {"project_name": proj["Project_Name"]}
-            })
-        if pd.notna(proj["Testing_Complete"]):
-            events.append({
-                "title": f"測試完成: {proj['Project_Name']}",
-                "start": proj["Testing_Complete"].strftime("%Y-%m-%d"),
-                "color": "#ff9f89",
-                "extendedProps": {"project_name": proj["Project_Name"]}
-            })
-
-    calendar_options = {
-        "initialView": "dayGridMonth",
-        "headerToolbar": {
-            "left": "prev,next today",
-            "center": "title",
-            "right": "dayGridMonth,timeGridWeek,timeGridDay"
-        },
-        "selectable": True,
-        "selectMirror": True,
-        "selectOverlap": False,
-        "editable": True,
-        "dayMaxEvents": True,
-        "height": "800px",
-        "locale": "zh-hk",
-    }
-
-    calendar_events = calendar(events=events, options=calendar_options, key="project_calendar")
-
-    # 事件點擊編輯
-    if calendar_events.get("eventClick"):
-        event = calendar_events["eventClick"]["event"]
-        st.subheader(f"編輯事件: {event['title']}")
-        new_title = st.text_input("標題", event['title'])
-        new_date = st.date_input("日期", pd.to_datetime(event['start']).date())
-        new_desc = st.text_area("描述", event.get('extendedProps', {}).get('description', ''))
-        if st.button("儲存修改"):
-            events_df.loc[events_df["id"] == event["id"], ["title", "start", "description"]] = [new_title, new_date.strftime("%Y-%m-%d"), new_desc]
-            conn.update(worksheet="calendar_events", data=events_df)
-            st.success("事件已更新！")
-            st.rerun()
-
-    # 新增事件
-    select_info = calendar_events.get("select")
-    if select_info and isinstance(select_info, dict):
-        st.subheader("新增事件")
-        title = st.text_input("事件標題", value="新工作")
-        desc = st.text_area("描述", value="")
-        if st.button("新增"):
-            new_id = str(int(events_df["id"].max()) + 1) if not events_df.empty and pd.notna(events_df["id"].max()) else "1"
-            start_date = select_info["startStr"][:10]
-            end_date = select_info.get("endStr", "")[:10] if select_info.get("endStr") else start_date
-            new_row = pd.DataFrame([{
-                "id": new_id,
-                "title": title,
-                "start": start_date,
-                "end": end_date,
-                "description": desc,
-                "project_name": ""
-            }])
-            events_df = pd.concat([events_df, new_row], ignore_index=True)
-            conn.update(worksheet="calendar_events", data=events_df)
-            st.success("事件已新增！")
-            st.rerun()
-
-    st.stop()  # 重要：阻止後面專案卡片繼續渲染
 
 st.markdown("---")
 st.caption("Projects Management System")
