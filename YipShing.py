@@ -953,7 +953,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# Project Specification Dialog (新增用) - 完全同步 Edit Spec + 套用至所有機器功能（已修正）
+# Project Specification Dialog (新增用) - 最終完美版（套用資料功能正常）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -994,7 +994,7 @@ if st.session_state.get("spec_dialog_open", False):
         # 套用按鈕（Qty > 1 時顯示）
         if qty > 1:
             if st.button("🔄 套用第 1 台資料至所有機器（S/N 除外）", type="secondary", use_container_width=True, key="copy_to_all"):
-                if len(specs) > 0 and specs[0]:  # 確保第 1 台已有資料
+                if len(specs) > 0 and specs[0]:
                     copy_spec = specs[0].copy()
                     # 強制 S/N 留空
                     copy_spec["genset_sn"] = ""
@@ -1297,7 +1297,6 @@ if st.session_state.get("spec_dialog_open", False):
                 with st.expander("Parts (配件) Group", expanded=False):
                     part_key = f"dlg_parts_{i}"
                     if part_key not in st.session_state:
-                        # 如果有複製資料，優先用複製的 Parts
                         if use_copy and "parts" in copy_spec:
                             st.session_state[part_key] = [p.copy() for p in copy_spec["parts"]]
                         else:
@@ -1331,7 +1330,6 @@ if st.session_state.get("spec_dialog_open", False):
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
                     checklist_key = f"dlg_delivery_checklist_{i}"
                     if checklist_key not in st.session_state:
-                        # 如果有複製資料，優先用複製的 Checklist
                         if use_copy and "delivery_checklist" in copy_spec:
                             st.session_state[checklist_key] = [item.copy() for item in copy_spec["delivery_checklist"]]
                         else:
