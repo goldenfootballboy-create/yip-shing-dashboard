@@ -953,7 +953,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# Project Specification Dialog (新增用) - 套用資料功能正常版
+# Project Specification Dialog (新增用) - 手動複製套用資料功能
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -988,31 +988,44 @@ if st.session_state.get("spec_dialog_open", False):
 
         tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
-        # 先定義 specs
         specs = []
 
-        # 套用按鈕（Qty > 1 時顯示）
+        # 手動複製套用區域（Qty > 1 時顯示）
         if qty > 1:
-            if st.button("🔄 套用第 1 台資料至所有機器（S/N 除外）", type="secondary", use_container_width=True, key="copy_to_all"):
-                # 檢查第 1 台是否有資料
-                if len(specs) > 0 and specs[0]:
-                    copy_spec = specs[0].copy()
-                    # 強制 S/N 留空
-                    copy_spec["genset_sn"] = ""
-                    copy_spec["alt_sn"] = ""
-                    copy_spec["rad_sn"] = ""
-                    copy_spec["panel_sn"] = ""
-                    copy_spec["base_sn"] = ""
-                    st.session_state.temp_copy_spec = copy_spec
-                    st.success("已成功套用第 1 台資料至所有機器（S/N 已留空）！")
-                else:
-                    st.warning("請先在第 1 台輸入資料後再點套用")
-                st.rerun()
+            with st.expander("🔄 手動套用第 1 台資料至其他台", expanded=False):
+                st.markdown("**使用說明：**")
+                st.markdown("1. 在第 1 台完整輸入所有資料")
+                st.markdown("2. 點「複製第 1 台資料」")
+                st.markdown("3. 切換到其他台，點「貼上資料到本台」")
+                st.markdown("**S/N 欄位不會複製，讓你手動填每台獨立序號**")
 
-        # 迴圈處理每台
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("複製第 1 台資料", type="secondary", use_container_width=True, key="manual_copy_spec"):
+                        if len(specs) > 0 and specs[0]:
+                            copy_spec = specs[0].copy()
+                            # 強制 S/N 留空
+                            copy_spec["genset_sn"] = ""
+                            copy_spec["alt_sn"] = ""
+                            copy_spec["rad_sn"] = ""
+                            copy_spec["panel_sn"] = ""
+                            copy_spec["base_sn"] = ""
+                            st.session_state.manual_copy_spec = copy_spec
+                            st.success("已複製第 1 台資料！現在切換到其他台點「貼上」")
+                        else:
+                            st.warning("第 1 台還沒有資料，請先輸入")
+                with col2:
+                    if st.button("貼上資料到本台", type="primary", use_container_width=True, key="manual_paste_spec"):
+                        if "manual_copy_spec" in st.session_state:
+                            st.session_state.temp_copy_spec = st.session_state.manual_copy_spec
+                            st.success("已貼上資料！S/N 欄位請手動填寫")
+                            st.rerun()
+                        else:
+                            st.warning("沒有可貼上的資料，請先複製第 1 台")
+
         for i in range(qty):
             with tabs[i]:
-                # 讀取複製資料
+                # 讀取貼上資料（如果有）
                 copy_spec = st.session_state.get("temp_copy_spec", {})
                 use_copy = i > 0 and copy_spec
 
@@ -1050,7 +1063,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col1:
                         s_genset_model = st.text_input("Genset model(發動機型號)", value=copy_spec.get("genset_model", "") if use_copy else "", key=f"dlg_genset_model_{i}")
                     with col2:
-                        s_genset_sn = st.text_input("S/N", value="", key=f"dlg_genset_sn_{i}")
+                        s_genset_sn = st.text_input("S/N", value="", key=f"dlg_genset_sn_{i}")  # S/N 留空
                     with col3:
                         s_engine_color = st.text_input("Color(顏色)", value=copy_spec.get("engine_color", "") if use_copy else "", key=f"dlg_engine_color_{i}")
                     with col4:
@@ -1072,7 +1085,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col1:
                         s_alt_model = st.text_input("Alternator Model(電球型號)", value=copy_spec.get("alt_model", "") if use_copy else "", key=f"dlg_alt_model_{i}")
                     with col2:
-                        s_alt_sn = st.text_input("S/N", value="", key=f"dlg_alt_sn_{i}")
+                        s_alt_sn = st.text_input("S/N", value="", key=f"dlg_alt_sn_{i}")  # S/N 留空
                     with col3:
                         s_alt_color = st.text_input("Color(顏色)", value=copy_spec.get("alt_color", "") if use_copy else "", key=f"dlg_alt_color_{i}")
                     col_d1, col_d2, col_d3 = st.columns(3)
@@ -1104,7 +1117,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col1:
                         s_rad_model = st.text_input("Radiator model(水箱型號)", value=copy_spec.get("rad_model", "") if use_copy else "", key=f"dlg_rad_model_{i}")
                     with col2:
-                        s_rad_sn = st.text_input("S/N", value="", key=f"dlg_rad_sn_{i}")
+                        s_rad_sn = st.text_input("S/N", value="", key=f"dlg_rad_sn_{i}")  # S/N 留空
                     with col3:
                         s_rad_temp = st.text_input("Temperature(温度)", value=copy_spec.get("rad_temp", "") if use_copy else "", key=f"dlg_rad_temp_{i}")
                     s_fan_size = st.text_input("風扇呎吋", value=copy_spec.get("fan_size", "") if use_copy else "", key=f"dlg_fan_size_{i}")
@@ -1169,7 +1182,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_model:
                         s_base_model = st.text_input("Base Frame model(底架型號)", value=copy_spec.get("base_model", "") if use_copy else "", key=f"dlg_base_model_{i}")
                     with col_sn:
-                        s_base_sn = st.text_input("S/N", value="", key=f"dlg_base_sn_{i}")
+                        s_base_sn = st.text_input("S/N", value="", key=f"dlg_base_sn_{i}")  # S/N 留空
 
                     # Anti-Vibration Mount - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
@@ -1248,7 +1261,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_p1:
                         s_panel_model = st.text_input("Panel model(控制器型號)", value=copy_spec.get("panel_model", "") if use_copy else "", key=f"dlg_panel_model_{i}")
                     with col_p2:
-                        s_panel_sn = st.text_input("S/N", value="", key=f"dlg_panel_sn_{i}")
+                        s_panel_sn = st.text_input("S/N", value="", key=f"dlg_panel_sn_{i}")  # S/N 留空
 
                     # CO 探測器 - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
