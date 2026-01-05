@@ -1479,10 +1479,13 @@ with st.sidebar:
     st.header("View Controls")
     if st.button("All Projects", use_container_width=True, type="primary", key="btn_all"):
         st.session_state.view_mode = "all"
+        st.rerun()  # 切換模式後立即刷新
     if st.button("Delay Projects", use_container_width=True, type="secondary", key="btn_delay"):
         st.session_state.view_mode = "delay"
+        st.rerun()
     if st.button("📅Calendar", use_container_width=True, type="primary", key="btn_calendar"):
         st.session_state.view_mode = "calendar"
+        st.rerun()
 
     if "view_mode" not in st.session_state:
         st.session_state.view_mode = "all"
@@ -1497,16 +1500,41 @@ with st.sidebar:
     years = [2024, 2025, 2026]
     month_names = ["All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-    # 修正：filter selectbox 只定義一次，並用全局唯一 key
-    # 只在 view_mode == "all" 時顯示 filter，其餘模式用預設值
+    # 修正：filter 只定義一次，並保存用戶選擇
     if st.session_state.view_mode == "all":
         st.markdown("### Filters")
-        selected_type = st.selectbox("Project Type", project_types, index=project_types.index("All"), key="global_filter_type")
-        selected_year = st.selectbox("Year", years, index=years.index(date.today().year), key="global_filter_year")
-        selected_month = st.selectbox("Month", month_names, index=month_names.index("All"), key="global_filter_month")
+
+        # 從 session_state 讀取上次選擇，沒有就用預設
+        default_type = st.session_state.get("last_filter_type", "All")
+        default_year = st.session_state.get("last_filter_year", date.today().year)
+        default_month = st.session_state.get("last_filter_month", "All")
+
+        selected_type = st.selectbox(
+            "Project Type",
+            project_types,
+            index=project_types.index(default_type),
+            key="global_filter_type"
+        )
+        selected_year = st.selectbox(
+            "Year",
+            years,
+            index=years.index(default_year),
+            key="global_filter_year"
+        )
+        selected_month = st.selectbox(
+            "Month",
+            month_names,
+            index=month_names.index(default_month),
+            key="global_filter_month"
+        )
+
+        # 保存本次選擇（Save 後保持）
+        st.session_state.last_filter_type = selected_type
+        st.session_state.last_filter_year = selected_year
+        st.session_state.last_filter_month = selected_month
     else:
         selected_type = "All"
-        selected_year = date.today().year
+        selected_year = date.today().year  # 2026
         selected_month = "All"
 
     st.markdown("---")
@@ -1517,7 +1545,7 @@ with st.sidebar:
         with c1:
             new_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"], key="new_type")
             new_name = st.text_input("Project Name*", key="new_name")
-            new_year = st.selectbox("Year*", [2024,2025,2026], index=2, key="new_year")
+            new_year = st.selectbox("Year*", [2024,2025,2026], index=2, key="new_year")  # 預設 2026
             new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
         with c2:
             new_customer = st.text_input("Customer", key="new_customer")
@@ -1560,7 +1588,6 @@ with st.sidebar:
                 }
                 st.session_state.spec_dialog_open = True
                 st.rerun()
-
 # ==============================================
 # 篩選邏輯 & 主畫面
 # ==============================================
