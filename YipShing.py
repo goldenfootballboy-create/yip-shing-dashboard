@@ -776,12 +776,10 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-
                 # 第五組：Delivery Checklist (出貨檢查清單)
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
-                    checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{i}"  # 用 Project_Name + 台數
+                    checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{i}"
                     if checklist_key not in st.session_state:
-                        # 預設固定項目（未勾選）
                         default_items = [
                             "Load Test",
                             "No load test",
@@ -810,31 +808,38 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             "Autocad drawing",
                             "Wiring diagram"
                         ]
-                        # 從舊資料讀取（如果有）
-                        old_checklist = current.get("delivery_checklist", []) if 'current' in locals() else []
-                        # 如果舊資料有，就用舊的；沒有就用預設
-                        initial_list = old_checklist if old_checklist else [{"name": item, "checked": False} for item in default_items]
-                        st.session_state[checklist_key] = [{"name": item, "checked": False} for item in default_items]
+                        old_checklist = current.get("delivery_checklist", [])
+                        initial_list = old_checklist if old_checklist else [{"name": item, "checked": False} for item in
+                                                                            default_items]
+                        st.session_state[checklist_key] = initial_list
 
-                    checklist = st.session_state[checklist_key]
+                    checklist = st.session_state.get(checklist_key, [{"name": "", "checked": False}])
 
                     for j in range(len(checklist)):
                         col_check, col_name, col_delete = st.columns([1, 5, 1])
                         with col_check:
-                            checked = st.checkbox("", value=checklist[j].get("checked", False), key=f"check_{checklist_key}_{j}")
+                            # 讀取當前勾選狀態
+                            current_checked = checklist[j].get("checked", False)
+                            checked = st.checkbox("", value=current_checked, key=f"check_{checklist_key}_{j}")
                         with col_name:
-                            name = st.text_input("", value=checklist[j].get("name", ""), key=f"name_{checklist_key}_{j}", label_visibility="collapsed")
+                            current_name = checklist[j].get("name", "")
+                            name = st.text_input("", value=current_name, key=f"name_{checklist_key}_{j}",
+                                                 label_visibility="collapsed")
                         with col_delete:
-                            if len(checklist) > 1:  # 至少留一行
-                                if st.button("刪除", key=f"del_check_{checklist_key}_{j}"):
+                            if len(checklist) > 1:
+                                if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
                                     checklist.pop(j)
                                     st.rerun()
 
+                        # 正確更新 name 和 checked
                         checklist[j] = {"name": name.strip(), "checked": checked}
 
-                    if st.button("+ 新增自定義項目", key=f"add_check_{checklist_key}"):
+                    if st.button("+ 新增自定義項目", key=f"add_check_{checklist_key}", type="secondary"):
                         checklist.append({"name": "", "checked": False})
                         st.rerun()
+
+                    # 安全過濾空行
+                    cleaned_checklist = [item for item in checklist if item.get("name", "").strip()]
 
                     st.markdown("---")
                 # 最下面：Remarks
