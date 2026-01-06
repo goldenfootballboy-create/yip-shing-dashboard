@@ -143,7 +143,7 @@ if len(display_df) > 0:
                 padding: 18px; 
                 margin-bottom: 20px; 
                 box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-                min-height: 180px; 
+                min-height: 100px; 
                 display: flex; 
                 flex-direction: column; 
                 justify-content: space-between;
