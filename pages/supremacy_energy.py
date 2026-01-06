@@ -18,7 +18,7 @@ st.set_page_config(
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 # ==============================================
-# 讀取或建立 supremacy_projects worksheet（支援 Work Order）
+# 讀取或建立 supremacy_projects worksheet
 # ==============================================
 try:
     raw_df = conn.read(worksheet="supremacy_projects", ttl=300)
@@ -42,7 +42,23 @@ except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
 
 # ==============================================
-# Sidebar - 新增專案 + 搜尋功能
+# 讀取或建立 supremacy_manpower worksheet（儲存 Man Power 資料）
+# ==============================================
+try:
+    manpower_raw = conn.read(worksheet="supremacy_manpower", ttl=300)
+    if manpower_raw.empty:
+        manpower_header = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
+        conn.update(worksheet="supremacy_manpower", data=manpower_header)
+        manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
+    else:
+        manpower_df = manpower_raw.copy()
+except Exception:
+    manpower_header = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
+    conn.update(worksheet="supremacy_manpower", data=manpower_header)
+    manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
+
+# ==============================================
+# Sidebar - 新增專案 + 搜尋
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -115,7 +131,7 @@ if search_query:
         st.success(f"找到 {len(display_df)} 個符合的專案")
 
 # ==============================================
-# 卡片式顯示專案
+# 卡片顯示 + Man Power 按鈕
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -123,7 +139,6 @@ if len(display_df) > 0:
     cols = st.columns(4)
     for idx, row in sorted_df.iterrows():
         with cols[idx % 4]:
-            # Status 顏色（與 YIP SHING 一致）
             status_color = {
                 "Quoting": "#ffaa00",
                 "Confirmed": "#00aa00",
@@ -131,55 +146,72 @@ if len(display_df) > 0:
                 "Completed": "#66cc66"
             }.get(row["Status"], "#888888")
 
-            # Work Order 標籤（只有存在才顯示）
-            work_order_tag = ""
-            if row["Work_Order"]:
-                work_order_tag = f'<span style="background:#e9ecef; color:#495057; padding:4px 10px; border-radius:12px; font-size:0.85rem; font-weight:600; margin-top:8px; display:inline-block;">WO: {row["Work_Order"]}</span>'
+            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
             st.markdown(f"""
-            <div style="
-                background: white; 
-                border-radius: 12px; 
-                padding: 18px; 
-                margin-bottom: 20px; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-                min-height: 100px; 
-                display: flex; 
-                flex-direction: column; 
-                justify-content: space-between;
-                transition: all 0.3s ease;
-                border-left: 5px solid {status_color};
-            " 
-            onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.12)'" 
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'">
+            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 250px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div>
-                            <h5 style="margin:0 0 6px 0; color:#1fb429; font-size:1.1rem;">{row["Quote_Number"]}</h5>
-                            {work_order_tag}
-                        </div>
-                        <span style="background:{status_color}; color:white; padding:6px 14px; border-radius:20px; font-weight:bold; font-size:0.9rem;">
-                            {row["Status"]}
-                        </span>
-                    </div>
-                    <p style="margin:12px 0 0 0; font-size:0.95rem; color:#333; line-height:1.5; flex-grow:1;">
-                        {row["Project_Detail"]}
-                    </p>
+                    <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
+                    {work_order_display}
+                    <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; flex-grow:1;">{row["Project_Detail"]}</p>
                 </div>
-                <div style="text-align:right; margin-top:12px;">
-                    <small style="color:#888; font-weight:500;">📅 {row["Date"]}</small>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+                    <span style="background:{status_color}; color:white; padding:6px 16px; border-radius:20px; font-size:0.95rem; font-weight:bold;">
+                        {row["Status"]}
+                    </span>
+                    <small style="color:#888;">{row["Date"]}</small>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            # 按鈕區域（保持不變）
-            col_edit, col_delete = st.columns(2)
-            with col_edit:
+            # 按鈕區域：Edit, Delete, Man Power
+            col1, col2, col3 = st.columns(3)
+            with col1:
                 if st.button("Edit", key=f"edit_sup_{idx}", use_container_width=True):
                     st.session_state[f"edit_mode_sup_{idx}"] = True
-            with col_delete:
+            with col2:
                 if st.button("Delete", key=f"delete_sup_{idx}", type="secondary", use_container_width=True):
                     st.session_state[f"confirm_delete_sup_{idx}"] = True
+            with col3:
+                if st.button("Man Power", key=f"manpower_sup_{idx}", type="secondary", use_container_width=True):
+                    st.session_state[f"manpower_mode_sup_{idx}"] = not st.session_state.get(f"manpower_mode_sup_{idx}", False)
+
+            # Man Power 輸入與顯示區
+            if st.session_state.get(f"manpower_mode_sup_{idx}", False):
+                quote_num = row["Quote_Number"]
+
+                # 顯示已有派工記錄
+                existing_records = manpower_df[manpower_df["Quote_Number"] == quote_num]
+                if len(existing_records) > 0:
+                    st.markdown("**現有人手派工記錄**")
+                    for _, rec in existing_records.iterrows():
+                        end_display = rec["End_Date"] if rec["End_Date"] else "進行中"
+                        st.markdown(f"• **{rec['Staff']}**：{rec['Start_Date']} ~ {end_display}")
+
+                st.markdown("**新增人手派工**")
+                with st.form(key=f"manpower_form_sup_{idx}", clear_on_submit=True):
+                    staff_name = st.text_input("Staff (員工姓名)", placeholder="例如：張三")
+                    col_start, col_end = st.columns(2)
+                    with col_start:
+                        start_date = st.date_input("Start Date (開始日期)", value=date.today())
+                    with col_end:
+                        end_date = st.date_input("End Date (結束日期)", value=None, help="留空表示進行中")
+
+                    if st.form_submit_button("新增派工", type="primary", use_container_width=True):
+                        if not staff_name.strip():
+                            st.error("員工姓名不能為空！")
+                        else:
+                            new_record = pd.DataFrame([{
+                                "Quote_Number": quote_num,
+                                "Staff": staff_name.strip(),
+                                "Start_Date": start_date.strftime("%Y-%m-%d"),
+                                "End_Date": end_date.strftime("%Y-%m-%d") if end_date else ""
+                            }])
+                            updated_manpower = pd.concat([manpower_df, new_record], ignore_index=True)
+                            conn.update(worksheet="supremacy_manpower", data=updated_manpower)
+                            st.success(f"已為 {quote_num} 新增派工：{staff_name}")
+                            st.rerun()
+
             # Edit 表單
             if st.session_state.get(f"edit_mode_sup_{idx}", False):
                 original_idx = sorted_df.index[idx]
