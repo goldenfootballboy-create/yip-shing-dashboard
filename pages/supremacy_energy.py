@@ -23,21 +23,16 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 try:
     raw_df = conn.read(worksheet="supremacy_projects", ttl=300)
     if raw_df.empty or len(raw_df.columns) < 5:
-        # 建立標準欄位
         header_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
         conn.update(worksheet="supremacy_projects", data=header_df)
         projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
     else:
-        # 安全取前5欄
         raw_df = raw_df.iloc[:, :5]
         raw_df.columns = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
-        # 移除可能存在的標題行
         if len(raw_df) > 0 and str(raw_df.iloc[0]["Date"]).strip().lower() in ["date", "日期"]:
             raw_df = raw_df.iloc[1:].reset_index(drop=True)
         projects_df = raw_df.copy()
-        # 清理 Quote_Number
         projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
-        # 確保 Work_Order 存在
         if "Work_Order" not in projects_df.columns:
             projects_df["Work_Order"] = ""
         projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
@@ -47,7 +42,7 @@ except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
 
 # ==============================================
-# Sidebar - 新增專案（新增 Work Order 輸入欄）
+# Sidebar - 新增專案 + 搜尋功能
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -57,7 +52,7 @@ with st.sidebar:
     with st.form(key="supremacy_new_project", clear_on_submit=True):
         project_date = st.date_input("Date *", value=date.today())
         quote_number = st.text_input("Quote Number *")
-        work_order = st.text_input("Work Order")  # ← 新增欄位
+        work_order = st.text_input("Work Order")
         project_detail = st.text_area("Project Detail *", height=150, placeholder="描述專案內容、客戶需求、規格等")
         status_options = ["Quoting", "Confirmed", "In Production", "Completed"]
         status = st.selectbox("Status", status_options, index=0)
@@ -75,7 +70,6 @@ with st.sidebar:
                     "Project_Detail": project_detail.strip(),
                     "Status": status
                 }])
-                # 安全合併（避免覆蓋舊資料）
                 current_raw = conn.read(worksheet="supremacy_projects", ttl=0)
                 if len(current_raw) > 0 and str(current_raw.iloc[0,0]).strip().lower() in ["date", "日期"]:
                     current_raw = current_raw.iloc[1:]
@@ -84,31 +78,29 @@ with st.sidebar:
                 st.success(f"已新增專案：{quote_number} (Work Order: {work_order or '無'})")
                 st.rerun()
 
+    st.markdown("---")
+
+    st.markdown("### 🔍 搜尋專案")
+    search_query = st.text_input(
+        "輸入 Quote Number 或 Work Order",
+        placeholder="例如：Q2025-001 或 WO-456",
+        key="supremacy_search",
+        label_visibility="collapsed"
+    )
+
+    if st.button("清除搜尋", type="secondary", use_container_width=True):
+        if "supremacy_search" in st.session_state:
+            del st.session_state.supremacy_search
+        st.rerun()
+
 # ==============================================
 # 主畫面標題
 # ==============================================
 st.title("SUPREMACY ENERGY - 副業專案管理")
 
 # ==============================================
-# 搜尋功能（支援 Quote Number 和 Work Order）
+# 應用搜尋邏輯
 # ==============================================
-st.markdown("### 🔍 搜尋專案")
-col_search, col_clear = st.columns([4, 1])
-with col_search:
-    search_query = st.text_input(
-        "輸入 Quote Number 或 Work Order 搜尋",
-        placeholder="例如：Q2025-001 或 WO-456",
-        key="supremacy_search",
-        label_visibility="collapsed"
-    )
-with col_clear:
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("清除搜尋", type="secondary", use_container_width=True):
-        if "supremacy_search" in st.session_state:
-            del st.session_state.supremacy_search
-        st.rerun()
-
-# 應用搜尋
 display_df = projects_df.copy()
 if search_query:
     query = search_query.strip().lower()
@@ -123,7 +115,7 @@ if search_query:
         st.success(f"找到 {len(display_df)} 個符合的專案")
 
 # ==============================================
-# 卡片式顯示專案（顯示 Work Order + Edit + Delete）
+# 卡片式顯示專案
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -166,9 +158,9 @@ if len(display_df) > 0:
                 if st.button("Delete", key=f"delete_sup_{idx}", type="secondary", use_container_width=True):
                     st.session_state[f"confirm_delete_sup_{idx}"] = True
 
-            # Edit 表單（支援 Work Order 編輯）
+            # Edit 表單
             if st.session_state.get(f"edit_mode_sup_{idx}", False):
-                original_idx = sorted_df.index[idx]  # 原始 projects_df 的 index
+                original_idx = sorted_df.index[idx]
                 with st.form(key=f"edit_form_sup_{idx}"):
                     new_quote = st.text_input("Quote Number", value=row["Quote_Number"])
                     new_work_order = st.text_input("Work Order", value=row["Work_Order"])
