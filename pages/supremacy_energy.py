@@ -152,17 +152,17 @@ if len(display_df) > 0:
 
             work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
-            # Man Power 記錄
+            # Man Power 記錄顯示
             manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
             manpower_display = ""
             if len(manpower_records) > 0:
                 manpower_display = "<div style='margin-top:16px; padding-top:12px; border-top:1px dashed #ddd; font-size:0.9rem;'><strong>🧑‍🔧 人手派工：</strong><br>"
                 for _, rec in manpower_records.iterrows():
                     end = rec["End_Date"] if rec["End_Date"] else "進行中"
-                    manpower_display += f"• {rec['Staff']} ({rec['Start_Date']} ~ {end})<br>"
+                    manpower_display += f"• <strong>{rec['Staff']}</strong> ({rec['Start_Date']} ~ {end})<br>"
                 manpower_display += "</div>"
 
-            # 完整卡片（用 components.html 渲染）
+            # 使用 components.html 渲染完整卡片（最穩定！）
             components.html(f"""
             <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 250px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
@@ -178,9 +178,9 @@ if len(display_df) > 0:
                     <small style="color:#888;">{row["Date"]}</small>
                 </div>
             </div>
-            """, height=280)
+            """, height=300)
 
-            # 按鈕區域（Edit, Delete, Man Power）
+            # 按鈕區域
             col1, col2, col3 = st.columns(3)
             with col1:
                 if st.button("Edit", key=f"edit_sup_{idx}", use_container_width=True):
