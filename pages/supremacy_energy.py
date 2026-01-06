@@ -190,7 +190,7 @@ if len(display_df) > 0:
 
                 st.markdown("**新增人手派工**")
                 with st.form(key=f"manpower_form_sup_{idx}", clear_on_submit=True):
-                    staff_name = st.text_input("Staff (員工姓名)", placeholder="例如：張三")
+                    staff_name = st.text_input("Staff (員工姓名)")
                     col_start, col_end = st.columns(2)
                     with col_start:
                         start_date = st.date_input("Start Date (開始日期)", value=date.today())
