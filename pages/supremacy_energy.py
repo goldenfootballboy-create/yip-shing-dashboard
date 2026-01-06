@@ -222,45 +222,32 @@ if len(display_df) > 0:
                         projects_df.at[original_idx, "Status"] = new_status
                         conn.update(worksheet="supremacy_projects", data=projects_df)
 
-                        # 更新派工記錄（刪除 + 修改 + 新增）
+                        # 更新派工記錄（安全處理空資料）
                         latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
                         if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip() == "Quote_Number":
                             latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
 
-                        # 刪除選中的記錄
-                        if deleted_indices:
-                            latest_manpower = latest_manpower.drop(deleted_indices)
-
-                        # 修改現有記錄（重新寫入所有）
-                        updated_records = []
-                        for m_idx, rec in current_manpower.iterrows():
-                            if m_idx not in deleted_indices:
-                                updated_records.append({
-                                    "Quote_Number": new_quote.strip(),
-                                    "Staff": st.session_state.get(f"staff_edit_{row['Quote_Number']}_{m_idx}", rec["Staff"]),
-                                    "Start_Date": st.session_state.get(f"start_edit_{row['Quote_Number']}_{m_idx}", rec["Start_Date"]).strftime("%Y-%m-%d"),
-                                    "End_Date": st.session_state.get(f"end_edit_{row['Quote_Number']}_{m_idx}", "").strftime("%Y-%m-%d") if st.session_state.get(f"end_edit_{row['Quote_Number']}_{m_idx}") else ""
-                                })
+                        # 過濾掉舊的該專案派工記錄
+                        if latest_manpower.empty:
+                            filtered = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
+                        else:
+                            filtered = latest_manpower[latest_manpower["Quote_Number"] != new_quote.strip()]
 
                         # 新增新派工
                         if new_staff.strip():
-                            updated_records.append({
+                            new_rec = pd.DataFrame([{
                                 "Quote_Number": new_quote.strip(),
                                 "Staff": new_staff.strip(),
                                 "Start_Date": new_start.strftime("%Y-%m-%d"),
                                 "End_Date": new_end.strftime("%Y-%m-%d") if new_end else ""
-                            })
-
-                        # 合併並寫回
-                        if updated_records:
-                            new_df = pd.DataFrame(updated_records)
-                            final_df = pd.concat([latest_manpower[~latest_manpower["Quote_Number"] == row["Quote_Number"]], new_df], ignore_index=True)
+                            }])
+                            final_df = pd.concat([filtered, new_rec], ignore_index=True)
                         else:
-                            final_df = latest_manpower[latest_manpower["Quote_Number"] != row["Quote_Number"]]
+                            final_df = filtered
 
                         conn.update(worksheet="supremacy_manpower", data=final_df)
 
-                        st.success("已更新專案與派工記錄！")
+                        st.success("已更新專案與派工！")
                         st.rerun()
 
                     if col_cancel.form_submit_button("Cancel", use_container_width=True):
