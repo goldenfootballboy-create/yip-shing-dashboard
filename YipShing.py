@@ -4,7 +4,7 @@ import pandas as pd
 import json
 from datetime import date
 import time
-from streamlit_calendar import calendar
+from streamlit_fullcalendar import fullcalendar
 # 全局安全 index 函數（防止 selectbox index 錯誤）
 def safe_index(val, options, default=0):
     try:
@@ -1655,197 +1655,143 @@ else:
 # 日曆模式 - 雙向同步版（可直接修改專案進度日期！）
 # ==============================================
 if st.session_state.view_mode == "calendar":
-    st.title("專案日曆視圖 - 可拖曳修改進度日期")
-
-    # 讀取自定義事件
-    try:
-        custom_events_df = conn.read(worksheet="calendar_events", ttl=300)
-        if custom_events_df.empty:
-            custom_events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name", "type"])
-    except:
-        custom_events_df = pd.DataFrame(columns=["id", "title", "start", "end", "description", "project_name", "type"])
+    st.title("專案日曆視圖 - 可拖曳或點擊修改進度日期")
 
     events = []
 
-    # 加入自定義事件
-    for _, row in custom_events_df.iterrows():
-        events.append({
-            "id": f"custom_{row['id']}",
-            "title": row["title"],
-            "start": row["start"],
-            "end": row.get("end") or row["start"],
-            "description": row.get("description", ""),
-            "backgroundColor": "#3788d8",
-            "borderColor": "#3788d8",
-            "textColor": "white",
-            "extendedProps": {"type": "custom", "original_id": row["id"]}
-        })
-
-    # 加入專案進度事件（帶專案名稱 + 類型）
-    project_event_map = {}  # 用來快速查找 df 的 index
+    # 加入專案進度事件（不同顏色 + 帶 index 資訊，讓拖曳/點擊能更新）
     for idx, proj in df.iterrows():
         project_name = proj["Project_Name"]
-        project_event_map[f"零件到貨: {project_name}"] = ("Parts_Arrival", idx)
-        project_event_map[f"安裝完成: {project_name}"] = ("Installation_Complete", idx)
-        project_event_map[f"測試完成: {project_name}"] = ("Testing_Complete", idx)
-        project_event_map[f"清潔完成: {project_name}"] = ("Cleaning_Complete", idx)
-        project_event_map[f"交付完成: {project_name}"] = ("Delivery_Complete", idx)
 
         if pd.notna(proj["Parts_Arrival"]):
             events.append({
-                "id": f"proj_{idx}_parts",
+                "id": f"parts_{idx}",
                 "title": f"零件到貨: {project_name}",
                 "start": proj["Parts_Arrival"].strftime("%Y-%m-%d"),
                 "backgroundColor": "#a8e6cf",
                 "borderColor": "#a8e6cf",
                 "textColor": "black",
-                "extendedProps": {"type": "project", "field": "Parts_Arrival", "project_idx": idx, "project_name": project_name}
             })
+
         if pd.notna(proj["Installation_Complete"]):
             events.append({
-                "id": f"proj_{idx}_install",
+                "id": f"install_{idx}",
                 "title": f"安裝完成: {project_name}",
                 "start": proj["Installation_Complete"].strftime("%Y-%m-%d"),
                 "backgroundColor": "#ffd93d",
                 "borderColor": "#ffd93d",
                 "textColor": "black",
-                "extendedProps": {"type": "project", "field": "Installation_Complete", "project_idx": idx, "project_name": project_name}
             })
+
         if pd.notna(proj["Testing_Complete"]):
             events.append({
-                "id": f"proj_{idx}_testing",
+                "id": f"testing_{idx}",
                 "title": f"測試完成: {project_name}",
                 "start": proj["Testing_Complete"].strftime("%Y-%m-%d"),
                 "backgroundColor": "#ff9f89",
                 "borderColor": "#ff9f89",
                 "textColor": "black",
-                "extendedProps": {"type": "project", "field": "Testing_Complete", "project_idx": idx, "project_name": project_name}
             })
+
         if pd.notna(proj["Cleaning_Complete"]):
             events.append({
-                "id": f"proj_{idx}_cleaning",
+                "id": f"cleaning_{idx}",
                 "title": f"清潔完成: {project_name}",
                 "start": proj["Cleaning_Complete"].strftime("%Y-%m-%d"),
                 "backgroundColor": "#6bcf7f",
                 "borderColor": "#6bcf7f",
                 "textColor": "black",
-                "extendedProps": {"type": "project", "field": "Cleaning_Complete", "project_idx": idx, "project_name": project_name}
             })
+
         if pd.notna(proj["Delivery_Complete"]):
             events.append({
-                "id": f"proj_{idx}_delivery",
+                "id": f"delivery_{idx}",
                 "title": f"交付完成: {project_name}",
                 "start": proj["Delivery_Complete"].strftime("%Y-%m-%d"),
                 "backgroundColor": "#ff6b6b",
                 "borderColor": "#ff6b6b",
                 "textColor": "white",
-                "extendedProps": {"type": "project", "field": "Delivery_Complete", "project_idx": idx, "project_name": project_name}
             })
 
-    calendar_options = {
+    # 日曆設定
+    config = {
         "initialView": "dayGridMonth",
         "headerToolbar": {
             "left": "prev,next today",
             "center": "title",
             "right": "dayGridMonth,timeGridWeek,timeGridDay"
         },
-        "height": "800px",
-        "locale": "zh-hk",
-        "editable": True,
+        "height": 800,
+        "locale": "zh-tw",
+        "editable": True,   # 允許拖曳
         "selectable": True,
-        "dayMaxEvents": True,
-        "navLinks": True,
     }
 
-    state = calendar(events=events, options=calendar_options, key="project_calendar")
+    # 渲染日曆
+    returned = fullcalendar(events=events, config=config, key="project_calendar")
 
-    # 處理拖曳調整日期（自動更新專案進度）
-    if state.get("eventDrop"):
-        drop_info = state["eventDrop"]["event"]
-        event_id = drop_info["id"]
-        new_start = drop_info["start"][:10]
+    # 處理拖曳更新
+    if returned.get("eventDrop"):
+        event = returned["eventDrop"]
+        event_id = event["id"]
+        new_date = event["start"][:10]
 
-        if event_id.startswith("proj_"):
-            # 解析專案事件
-            parts = event_id.split("_")
-            idx = int(parts[1])
-            field = {
+        if "_" in event_id:
+            field_key, idx_str = event_id.split("_", 1)
+            idx = int(idx_str)
+            field_map = {
                 "parts": "Parts_Arrival",
                 "install": "Installation_Complete",
                 "testing": "Testing_Complete",
                 "cleaning": "Cleaning_Complete",
                 "delivery": "Delivery_Complete",
-            }[parts[2]]
+            }
+            field = field_map.get(field_key)
+            if field and idx in df.index:
+                df.at[idx, field] = pd.to_datetime(new_date)
+                save_projects()
+                st.success(f"已拖曳更新「{df.at[idx, 'Project_Name']}」的 {field.replace('_', ' ')} 為 {new_date}")
+                st.rerun()
 
-            df.at[idx, field] = pd.to_datetime(new_start)
-            save_projects()
-            st.success(f"已更新專案「{df.at[idx, 'Project_Name']}」的 {field.replace('_', ' ')} 為 {new_start}")
-            st.rerun()
+    # 處理點擊更新
+    if returned.get("eventClick"):
+        event = returned["eventClick"]
+        event_id = event["id"]
 
-    # 處理點擊事件（可編輯專案進度或自定義事件）
-    if state.get("eventClick"):
-        clicked = state["eventClick"]["event"]
-        event_id = clicked.get("id", "")
-
-        if event_id.startswith("proj_"):
-            # 專案進度事件
-            parts = event_id.split("_")
-            idx = int(parts[1])
-            field_name = {
+        if "_" in event_id:
+            field_key, idx_str = event_id.split("_", 1)
+            idx = int(idx_str)
+            field_map = {
                 "parts": "零件到貨",
                 "install": "安裝完成",
                 "testing": "測試完成",
                 "cleaning": "清潔完成",
                 "delivery": "交付完成",
-            }[parts[2]]
+            }
+            field_name = field_map.get(field_key, "進度")
             project_name = df.at[idx, "Project_Name"]
 
             st.subheader(f"修改專案進度：{project_name} - {field_name}")
 
-            current_date = pd.to_datetime(clicked["start"][:10]).date()
-            new_date = st.date_input("新日期", value=current_date)
+            current_date = pd.to_datetime(event["start"][:10]).date()
+            new_date = st.date_input("選擇新日期", value=current_date, key=f"cal_edit_date_{idx}_{field_key}")
 
-            if st.button("確認更新進度", type="primary"):
-                field_map = {
+            if st.button("確認更新", type="primary", key=f"cal_save_{idx}_{field_key}"):
+                field_db_map = {
                     "parts": "Parts_Arrival",
                     "install": "Installation_Complete",
                     "testing": "Testing_Complete",
                     "cleaning": "Cleaning_Complete",
                     "delivery": "Delivery_Complete",
                 }
-                df.at[idx, field_map[parts[2]]] = pd.to_datetime(new_date)
-                save_projects()
-                st.success(f"已更新「{project_name}」的 {field_name} 為 {new_date}")
-                st.rerun()
-
-        elif event_id.startswith("custom_"):
-            # 自定義事件（原有編輯邏輯）
-            original_id = clicked["extendedProps"]["original_id"]
-            current_row = custom_events_df[custom_events_df["id"] == original_id].iloc[0]
-
-            st.subheader(f"編輯自定義事件：{clicked['title']}")
-            new_title = st.text_input("標題", value=clicked["title"])
-            new_start = st.date_input("開始日期", value=pd.to_datetime(clicked["start"]).date())
-            new_end = st.date_input("結束日期", value=pd.to_datetime(clicked["end"]).date() if clicked.get("end") else new_start)
-            new_desc = st.text_area("描述", value=current_row.get("description", ""))
-
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("儲存修改", type="primary"):
-                    custom_events_df.loc[custom_events_df["id"] == original_id, ["title", "start", "end", "description"]] = [
-                        new_title, new_start.strftime("%Y-%m-%d"), new_end.strftime("%Y-%m-%d"), new_desc
-                    ]
-                    conn.update(worksheet="calendar_events", data=custom_events_df)
-                    st.success("自定義事件已更新")
-                    st.rerun()
-            with col2:
-                if st.button("刪除事件", type="secondary"):
-                    custom_events_df = custom_events_df[custom_events_df["id"] != original_id]
-                    conn.update(worksheet="calendar_events", data=custom_events_df)
-                    st.success("自定義事件已刪除")
+                db_field = field_db_map.get(field_key)
+                if db_field:
+                    df.at[idx, db_field] = pd.to_datetime(new_date)
+                    save_projects()
+                    st.success(f"已更新「{project_name}」的 {field_name} 為 {new_date}")
                     st.rerun()
 
-    st.caption("🗓️ 拖曳事件可直接調整日期 | 點擊事件可修改 | 所有變更會即時儲存到 Google Sheets")
+    st.caption("🗓️ 操作說明：拖曳事件直接調整日期 | 點擊事件修改日期 | 所有變更即時儲存到 Google Sheets")
     st.stop()
 
     # 處理日期選擇（新增事件）
