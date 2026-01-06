@@ -58,12 +58,12 @@ except Exception:
     manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
 # ==============================================
-# Sidebar - 新增專案 + 搜尋
+# Sidebar - 新增專案 + 搜尋 + Calendar 按鈕
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
 
-    st.markdown("### 新增副業專案")
+    st.markdown("### 新增Projects")
 
     with st.form(key="supremacy_new_project", clear_on_submit=True):
         project_date = st.date_input("Date *", value=date.today())
@@ -109,6 +109,13 @@ with st.sidebar:
             del st.session_state.supremacy_search
         st.rerun()
 
+    st.markdown("---")
+
+    # 新增：Calendar 按鈕（跳轉到主頁面日曆）
+    st.markdown("### 📅 快捷連結")
+    if st.button("📅 查看主日曆", type="primary", use_container_width=True):
+        st.session_state.view_mode = "calendar"  # 切換到主頁面日曆模式
+        st.rerun()  # 立即刷新跳轉
 # ==============================================
 # 主畫面標題
 # ==============================================
