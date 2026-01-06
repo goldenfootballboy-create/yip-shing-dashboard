@@ -1652,11 +1652,11 @@ else:
     page_title = "YIP SHING Project Dashboard"
 
 if st.session_state.view_mode == "calendar":
-    st.title("🗓️ 專案日曆視圖 - 可拖曳或點擊修改進度日期")
+    st.title("🗓️ 專案日曆視圖 - 拖曳或點擊即可修改進度日期")
 
     events = []
 
-    # 加入專案進度事件（不同顏色 + 帶 index 資訊）
+    # 加入專案進度事件（不同顏色 + 唯一 id）
     for idx, proj in df.iterrows():
         project_name = proj["Project_Name"]
 
@@ -1710,7 +1710,7 @@ if st.session_state.view_mode == "calendar":
                 "textColor": "white",
             })
 
-    # 日曆設定
+    # 日曆設定（關鍵：editable 必須是字串 "true"）
     calendar_options = {
         "initialView": "dayGridMonth",
         "headerToolbar": {
@@ -1720,15 +1720,20 @@ if st.session_state.view_mode == "calendar":
         },
         "height": "800px",
         "locale": "zh-hk",
-        "editable": True,
-        "selectable": True,
-        "dayMaxEvents": True,
+        "editable": "true",       # 必須是字串！
+        "selectable": "true",
+        "dayMaxEvents": "true",
+        "navLinks": "true",
     }
 
-    # 渲染日曆
-    state = calendar(events=events, options=calendar_options, key="project_calendar")
+    # 渲染日曆（固定 key，避免 state 丟失）
+    state = calendar(
+        events=events,
+        options=calendar_options,
+        key="stable_project_calendar"  # 固定 key！
+    )
 
-    # 處理拖曳更新（穩定版）
+    # 處理拖曳更新（穩定觸發）
     if state.get("eventDrop"):
         event = state["eventDrop"]["event"]
         event_id = event["id"]
@@ -1772,9 +1777,9 @@ if st.session_state.view_mode == "calendar":
             st.subheader(f"修改專案進度：{project_name} - {field_name}")
 
             current_date = pd.to_datetime(event["start"][:10]).date()
-            new_date = st.date_input("選擇新日期", value=current_date)
+            new_date = st.date_input("選擇新日期", value=current_date, key=f"edit_date_{event_id}")
 
-            if st.button("確認更新", type="primary"):
+            if st.button("確認更新", type="primary", key=f"save_date_{event_id}"):
                 field_db_map = {
                     "parts": "Parts_Arrival",
                     "install": "Installation_Complete",
@@ -1786,10 +1791,10 @@ if st.session_state.view_mode == "calendar":
                 if db_field:
                     df.at[idx, db_field] = pd.to_datetime(new_date)
                     save_projects()
-                    st.success(f"已更新「{project_name}」的 {field_name} 為 {new_date}")
+                    st.success(f"已更新「{project_name}」的 {field_name} 為 {new_date.strftime('%Y-%m-%d')}")
                     st.rerun()
 
-    st.caption("🗓️ 拖曳事件調整日期 | 點擊事件修改日期 | 變更即時儲存")
+    st.caption("🗓️ 操作說明：拖曳事件直接調整日期 | 點擊事件修改日期 | 所有變更即時儲存到 Google Sheets")
     st.stop()
 
 st.markdown(f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>", unsafe_allow_html=True)
