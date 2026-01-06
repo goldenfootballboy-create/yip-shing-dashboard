@@ -134,19 +134,9 @@ if search_query:
         st.success(f"找到 {len(display_df)} 個符合的專案")
 
 # ==============================================
-# 卡片顯示
+# 卡片顯示 + Man Power 展開功能
 # ==============================================
 if len(display_df) > 0:
-    # 強制讀取最新 Man Power 資料（關鍵修正！）
-    try:
-        latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
-        if not latest_manpower.empty:
-            if str(latest_manpower.iloc[0,0]).strip() == "Quote_Number":
-                latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
-            manpower_df = latest_manpower.copy()
-    except Exception:
-        pass
-
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
 
     cols = st.columns(4)
@@ -178,43 +168,20 @@ if len(display_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
-            # 顯示 Man Power 記錄
-            manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
-            if len(manpower_records) > 0:
-                manpower_html = "<div style='margin-top:8px; padding:12px; background:#f8f9fa; border-radius:8px; border-left:4px solid #6c757d;'><strong style='color:#495057;'>🧑‍🔧 人手派工：</strong><br>"
-                for _, rec in manpower_records.iterrows():
-                    end = rec["End_Date"] if rec["End_Date"] else "進行中"
-                    manpower_html += f"<small>• <strong>{rec['Staff']}</strong> ({rec['Start_Date']} ~ {end})</small><br>"
-                manpower_html += "</div>"
-                st.markdown(manpower_html, unsafe_allow_html=True)
-            else:
-                st.caption("尚未派工人手")
-
-            # 按鈕區域
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                if st.button("Edit", key=f"edit_sup_{idx}", use_container_width=True):
-                    st.session_state[f"edit_mode_sup_{idx}"] = True
-            with col2:
-                if st.button("Delete", key=f"delete_sup_{idx}", type="secondary", use_container_width=True):
-                    st.session_state[f"confirm_delete_sup_{idx}"] = True
-            with col3:
-                if st.button("Man Power", key=f"manpower_sup_{idx}", type="secondary", use_container_width=True):
-                    st.session_state[f"manpower_mode_sup_{idx}"] = not st.session_state.get(f"manpower_mode_sup_{idx}", False)
-
-            # Man Power 展開區（新增後自動關閉）
-            if st.session_state.get(f"manpower_mode_sup_{idx}", False):
+            # Man Power 展開區
+            with st.expander("🧑‍🔧 Man Power 派工管理", expanded=False):
                 quote_num = row["Quote_Number"]
 
-                # 顯示已有記錄（再次讀取最新，確保即時）
+                # 強制讀取最新 Man Power 記錄
                 try:
-                    latest_existing = conn.read(worksheet="supremacy_manpower", ttl=0)
-                    if not latest_existing.empty and str(latest_existing.iloc[0,0]).strip() == "Quote_Number":
-                        latest_existing = latest_existing.iloc[1:].reset_index(drop=True)
-                    current_records = latest_existing[latest_existing["Quote_Number"] == quote_num]
+                    latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
+                    if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip() == "Quote_Number":
+                        latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
+                    current_records = latest_manpower[latest_manpower["Quote_Number"] == quote_num]
                 except:
                     current_records = manpower_df[manpower_df["Quote_Number"] == quote_num]
 
+                # 顯示已有記錄
                 if len(current_records) > 0:
                     st.markdown("**現有人手派工記錄**")
                     for _, rec in current_records.iterrows():
@@ -223,8 +190,9 @@ if len(display_df) > 0:
                 else:
                     st.info("尚未派工人手")
 
+                # 新增派工表單
                 st.markdown("**新增派工**")
-                with st.form(key=f"manpower_form_sup_{idx}", clear_on_submit=True):
+                with st.form(key=f"manpower_form_sup_{quote_num}", clear_on_submit=True):
                     staff_name = st.text_input("員工姓名")
                     col_s, col_e = st.columns(2)
                     with col_s:
@@ -236,6 +204,7 @@ if len(display_df) > 0:
                         if not staff_name.strip():
                             st.error("員工姓名不能為空！")
                         else:
+                            # 讀最新資料追加
                             latest_all = conn.read(worksheet="supremacy_manpower", ttl=0)
                             if not latest_all.empty and str(latest_all.iloc[0,0]).strip() == "Quote_Number":
                                 latest_all = latest_all.iloc[1:].reset_index(drop=True)
@@ -250,23 +219,21 @@ if len(display_df) > 0:
                             conn.update(worksheet="supremacy_manpower", data=updated)
 
                             st.success(f"已新增派工：{staff_name}")
-                            # 自動關閉
-                            del st.session_state[f"manpower_mode_sup_{idx}"]
                             st.rerun()
 
-            # 按鈕區域
+            # 按鈕區域（Edit, Delete）
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("Edit", key=f"edit_sup_{idx}", use_container_width=True):
-                    st.session_state[f"edit_mode_sup_{idx}"] = True
+                if st.button("Edit", key=f"edit_sup_{row['Quote_Number']}", use_container_width=True):
+                    st.session_state[f"edit_mode_sup_{row['Quote_Number']}"] = True
             with col2:
-                if st.button("Delete", key=f"delete_sup_{idx}", type="secondary", use_container_width=True):
-                    st.session_state[f"confirm_delete_sup_{idx}"] = True
+                if st.button("Delete", key=f"delete_sup_{row['Quote_Number']}", type="secondary", use_container_width=True):
+                    st.session_state[f"confirm_delete_sup_{row['Quote_Number']}"] = True
 
             # Edit 表單
-            if st.session_state.get(f"edit_mode_sup_{idx}", False):
-                original_idx = sorted_df.index[idx]
-                with st.form(key=f"edit_form_sup_{idx}"):
+            if st.session_state.get(f"edit_mode_sup_{row['Quote_Number']}", False):
+                original_idx = projects_df[projects_df["Quote_Number"] == row["Quote_Number"]].index[0]
+                with st.form(key=f"edit_form_sup_{row['Quote_Number']}"):
                     new_quote = st.text_input("Quote Number", value=row["Quote_Number"])
                     new_work_order = st.text_input("Work Order", value=row["Work_Order"])
                     new_detail = st.text_area("Project Detail", value=row["Project_Detail"], height=120)
@@ -282,20 +249,20 @@ if len(display_df) > 0:
                         st.success("已更新專案！")
                         st.rerun()
                     if col_cancel.form_submit_button("Cancel", use_container_width=True):
-                        del st.session_state[f"edit_mode_sup_{idx}"]
+                        del st.session_state[f"edit_mode_sup_{row['Quote_Number']}"]
                         st.rerun()
 
             # Delete 確認
-            if st.session_state.get(f"confirm_delete_sup_{idx}", False):
+            if st.session_state.get(f"confirm_delete_sup_{row['Quote_Number']}", False):
                 st.warning(f"確定要刪除專案 **{row['Quote_Number']}** 嗎？")
                 col_yes, col_no = st.columns(2)
-                if col_yes.button("Yes, Delete", type="primary", key=f"yes_sup_{idx}"):
-                    projects_df = projects_df.drop(original_idx).reset_index(drop=True)
+                if col_yes.button("Yes, Delete", type="primary", key=f"yes_sup_{row['Quote_Number']}"):
+                    projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
                     conn.update(worksheet="supremacy_projects", data=projects_df)
                     st.success("已刪除專案！")
                     st.rerun()
-                if col_no.button("Cancel", key=f"no_sup_{idx}"):
-                    del st.session_state[f"confirm_delete_sup_{idx}"]
+                if col_no.button("Cancel", key=f"no_sup_{row['Quote_Number']}"):
+                    del st.session_state[f"confirm_delete_sup_{row['Quote_Number']}"]
                     st.rerun()
 
 else:
