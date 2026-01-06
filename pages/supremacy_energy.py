@@ -123,6 +123,7 @@ if len(display_df) > 0:
     cols = st.columns(4)
     for idx, row in sorted_df.iterrows():
         with cols[idx % 4]:
+            # Status 顏色（與 YIP SHING 一致）
             status_color = {
                 "Quoting": "#ffaa00",
                 "Confirmed": "#00aa00",
@@ -130,34 +131,55 @@ if len(display_df) > 0:
                 "Completed": "#66cc66"
             }.get(row["Status"], "#888888")
 
-            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
+            # Work Order 標籤（只有存在才顯示）
+            work_order_tag = ""
+            if row["Work_Order"]:
+                work_order_tag = f'<span style="background:#e9ecef; color:#495057; padding:4px 10px; border-radius:12px; font-size:0.85rem; font-weight:600; margin-top:8px; display:inline-block;">WO: {row["Work_Order"]}</span>'
 
             st.markdown(f"""
-            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 250px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="
+                background: white; 
+                border-radius: 12px; 
+                padding: 18px; 
+                margin-bottom: 20px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+                min-height: 180px; 
+                display: flex; 
+                flex-direction: column; 
+                justify-content: space-between;
+                transition: all 0.3s ease;
+                border-left: 5px solid {status_color};
+            " 
+            onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.12)'" 
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'">
                 <div>
-                    <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
-                    {work_order_display}
-                    <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; flex-grow:1;">{row["Project_Detail"]}</p>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <h5 style="margin:0 0 6px 0; color:#1fb429; font-size:1.1rem;">{row["Quote_Number"]}</h5>
+                            {work_order_tag}
+                        </div>
+                        <span style="background:{status_color}; color:white; padding:6px 14px; border-radius:20px; font-weight:bold; font-size:0.9rem;">
+                            {row["Status"]}
+                        </span>
+                    </div>
+                    <p style="margin:12px 0 0 0; font-size:0.95rem; color:#333; line-height:1.5; flex-grow:1;">
+                        {row["Project_Detail"]}
+                    </p>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-                    <span style="background:{status_color}; color:white; padding:6px 16px; border-radius:20px; font-size:0.95rem; font-weight:bold;">
-                        {row["Status"]}
-                    </span>
-                    <small style="color:#888;">{row["Date"]}</small>
+                <div style="text-align:right; margin-top:12px;">
+                    <small style="color:#888; font-weight:500;">📅 {row["Date"]}</small>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
+            # 按鈕區域（保持不變）
             col_edit, col_delete = st.columns(2)
-
             with col_edit:
                 if st.button("Edit", key=f"edit_sup_{idx}", use_container_width=True):
                     st.session_state[f"edit_mode_sup_{idx}"] = True
-
             with col_delete:
                 if st.button("Delete", key=f"delete_sup_{idx}", type="secondary", use_container_width=True):
                     st.session_state[f"confirm_delete_sup_{idx}"] = True
-
             # Edit 表單
             if st.session_state.get(f"edit_mode_sup_{idx}", False):
                 original_idx = sorted_df.index[idx]
