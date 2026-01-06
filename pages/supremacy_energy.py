@@ -208,14 +208,25 @@ if len(display_df) > 0:
                         if not staff_name.strip():
                             st.error("員工姓名不能為空！")
                         else:
-                            new_record = pd.DataFrame([{
+                            # 關鍵：每次都重新從 Google Sheets 讀取最新資料（ttl=0 強制不快取）
+                            latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
+
+                            new_record = {
                                 "Quote_Number": quote_num,
                                 "Staff": staff_name.strip(),
                                 "Start_Date": start_date.strftime("%Y-%m-%d"),
                                 "End_Date": end_date.strftime("%Y-%m-%d") if end_date else ""
-                            }])
-                            updated_manpower = pd.concat([manpower_df, new_record], ignore_index=True)
-                            conn.update(worksheet="supremacy_manpower", data=updated_manpower)
+                            }
+
+                            # 如果 worksheet 原本是空的，建立表頭 + 新記錄
+                            if latest_manpower.empty or len(latest_manpower.columns) < 4:
+                                updated_df = pd.DataFrame([new_record])
+                            else:
+                                updated_df = pd.concat([latest_manpower, pd.DataFrame([new_record])], ignore_index=True)
+
+                            # 寫回 Google Sheets
+                            conn.update(worksheet="supremacy_manpower", data=updated_df)
+
                             st.success(f"已為 {quote_num} 新增派工：{staff_name}")
                             st.rerun()
 
