@@ -176,7 +176,7 @@ if len(display_df) > 0:
                     </span>
                     <small style="color:#888;">{row["Date"]}</small>
                 </div>
-            </div>
+            </div>  <!-- 閉合外層 div 必須在 f-string 裡面 -->
             """, unsafe_allow_html=True)
 
             # 按鈕區域
