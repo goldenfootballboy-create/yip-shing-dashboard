@@ -4,7 +4,6 @@ import pandas as pd
 import json
 from datetime import date
 import time
-from streamlit_fullcalendar import fullcalendar
 # 全局安全 index 函數（防止 selectbox index 錯誤）
 def safe_index(val, options, default=0):
     try:
