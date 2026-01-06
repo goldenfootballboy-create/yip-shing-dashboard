@@ -134,7 +134,7 @@ if search_query:
         st.success(f"找到 {len(display_df)} 個符合的專案")
 
 # ==============================================
-# 卡片顯示 + Man Power 展開功能
+# 卡片顯示 + Man Power expander（參考 YIP SHING 風格）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -151,7 +151,7 @@ if len(display_df) > 0:
 
             work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
-            # 主卡片
+            # 主卡片（基本資訊）
             st.markdown(f"""
             <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 250px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
@@ -168,11 +168,11 @@ if len(display_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
-            # Man Power 展開區
-            with st.expander("🧑‍🔧 Man Power 派工管理", expanded=False):
+            # Man Power expander（參考 YIP SHING Details 風格）
+            with st.expander(f"🧑‍🔧 Man Power 派工管理 • {row['Quote_Number']}", expanded=False):
                 quote_num = row["Quote_Number"]
 
-                # 關鍵：展開時強制讀取最新 Man Power 資料
+                # 強制讀取最新 Man Power 記錄
                 try:
                     latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
                     if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip() == "Quote_Number":
@@ -204,7 +204,6 @@ if len(display_df) > 0:
                         if not staff_name.strip():
                             st.error("員工姓名不能為空！")
                         else:
-                            # 安全追加（讀最新資料）
                             latest_all = conn.read(worksheet="supremacy_manpower", ttl=0)
                             if not latest_all.empty and str(latest_all.iloc[0,0]).strip() == "Quote_Number":
                                 latest_all = latest_all.iloc[1:].reset_index(drop=True)
@@ -221,7 +220,7 @@ if len(display_df) > 0:
                             st.success(f"已新增派工：{staff_name}")
                             st.rerun()
 
-            # 按鈕區域
+            # 按鈕區域（Edit, Delete）
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Edit", key=f"edit_sup_{row['Quote_Number']}", use_container_width=True):
