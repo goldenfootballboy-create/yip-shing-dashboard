@@ -2,7 +2,6 @@ import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import date
-import streamlit.components.v1 as components
 
 # ==============================================
 # 頁面設定
@@ -110,7 +109,7 @@ with st.sidebar:
 
     st.markdown("### 📅 快捷連結")
     if st.button("📅 查看主日曆", type="primary", use_container_width=True):
-        st.switch_page("YipShing.py")  # 假設主頁面是 app.py，請改成你的主頁面檔名
+        st.switch_page("YipShing.py")  # 改成你的主頁面檔名
         st.session_state.view_mode = "calendar"
 
 # ==============================================
@@ -135,7 +134,7 @@ if search_query:
         st.success(f"找到 {len(display_df)} 個符合的專案")
 
 # ==============================================
-# 卡片顯示
+# 卡片顯示（Man Power 展開功能）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -152,7 +151,7 @@ if len(display_df) > 0:
 
             work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
-            # 主卡片（不包含 Man Power，先渲染基本資訊）
+            # 主卡片（基本資訊）
             st.markdown(f"""
             <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 250px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
@@ -169,40 +168,19 @@ if len(display_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
-            # 單獨渲染 Man Power 記錄（確保 HTML 正確渲染）
-            manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
-            if len(manpower_records) > 0:
-                manpower_html = "<div style='margin-top:8px; padding:12px; background:#f8f9fa; border-radius:8px; border-left:4px solid #6c757d;'><strong style='color:#495057;'>🧑‍🔧 人手派工：</strong><br>"
-                for _, rec in manpower_records.iterrows():
-                    end = rec["End_Date"] if rec["End_Date"] else "進行中"
-                    manpower_html += f"<small>• <strong>{rec['Staff']}</strong> ({rec['Start_Date']} ~ {end})</small><br>"
-                manpower_html += "</div>"
-                st.markdown(manpower_html, unsafe_allow_html=True)
-            else:
-                pass
-
-            # 按鈕區域
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                if st.button("Edit", key=f"edit_sup_{idx}", use_container_width=True):
-                    st.session_state[f"edit_mode_sup_{idx}"] = True
-            with col2:
-                if st.button("Delete", key=f"delete_sup_{idx}", type="secondary", use_container_width=True):
-                    st.session_state[f"confirm_delete_sup_{idx}"] = True
-            with col3:
-                if st.button("Man Power", key=f"manpower_sup_{idx}", type="secondary", use_container_width=True):
-                    st.session_state[f"manpower_mode_sup_{idx}"] = not st.session_state.get(f"manpower_mode_sup_{idx}", False)
-
-            # Man Power 輸入區（保持你原本的邏輯）
-            if st.session_state.get(f"manpower_mode_sup_{idx}", False):
+            # Man Power 展開區
+            with st.expander("🧑‍🔧 Man Power 派工管理", expanded=False):
                 quote_num = row["Quote_Number"]
 
+                # 顯示已有派工記錄
                 existing = manpower_df[manpower_df["Quote_Number"] == quote_num]
                 if len(existing) > 0:
-                    st.markdown("**現有人手派工**")
+                    st.markdown("**現有人手派工記錄**")
                     for _, rec in existing.iterrows():
                         end = rec["End_Date"] if rec["End_Date"] else "進行中"
                         st.markdown(f"• **{rec['Staff']}**：{rec['Start_Date']} ~ {end}")
+                else:
+                    st.info("尚未派工人手")
 
                 st.markdown("**新增派工**")
                 with st.form(key=f"manpower_form_sup_{idx}", clear_on_submit=True):
@@ -213,10 +191,11 @@ if len(display_df) > 0:
                     with col_e:
                         end_date = st.date_input("結束日期", value=None, help="留空表示進行中")
 
-                    if st.form_submit_button("新增並關閉", type="primary", use_container_width=True):
+                    if st.form_submit_button("新增派工", type="primary", use_container_width=True):
                         if not staff_name.strip():
                             st.error("員工姓名不能為空！")
                         else:
+                            # 安全追加（讀最新資料）
                             latest = conn.read(worksheet="supremacy_manpower", ttl=0)
                             if not latest.empty and str(latest.iloc[0,0]).strip() == "Quote_Number":
                                 latest = latest.iloc[1:].reset_index(drop=True)
@@ -231,8 +210,16 @@ if len(display_df) > 0:
                             conn.update(worksheet="supremacy_manpower", data=updated)
 
                             st.success(f"已新增派工：{staff_name}")
-                            del st.session_state[f"manpower_mode_sup_{idx}"]
                             st.rerun()
+
+            # 按鈕區域
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Edit", key=f"edit_sup_{idx}", use_container_width=True):
+                    st.session_state[f"edit_mode_sup_{idx}"] = True
+            with col2:
+                if st.button("Delete", key=f"delete_sup_{idx}", type="secondary", use_container_width=True):
+                    st.session_state[f"confirm_delete_sup_{idx}"] = True
 
             # Edit 表單
             if st.session_state.get(f"edit_mode_sup_{idx}", False):
