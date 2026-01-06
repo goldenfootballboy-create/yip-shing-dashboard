@@ -1652,7 +1652,7 @@ else:
     page_title = "YIP SHING Project Dashboard"
 
 if st.session_state.view_mode == "calendar":
-    st.title("🗓️ 專案日曆視圖 - 拖曳或點擊即可修改進度日期")
+    st.title("🗓️ 專案日曆-可點擊/拖曳修改日期")
 
     events = []
 
