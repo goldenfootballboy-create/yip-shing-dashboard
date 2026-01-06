@@ -1753,8 +1753,9 @@ if st.session_state.view_mode == "calendar":
             if field and idx in df.index:
                 df.at[idx, field] = pd.to_datetime(new_date)
                 save_projects()
+                st.cache_data.clear()  # 清除快取
                 st.success(f"已拖曳更新「{df.at[idx, 'Project_Name']}」的 {field.replace('_', ' ')} 為 {new_date}")
-                st.rerun()
+                st.rerun()  # 立即刷新畫面
 
     # 處理點擊更新
     if state.get("eventClick"):
@@ -1789,10 +1790,14 @@ if st.session_state.view_mode == "calendar":
                 }
                 db_field = field_db_map.get(field_key)
                 if db_field:
+                    old_date = df.at[idx, db_field]
                     df.at[idx, db_field] = pd.to_datetime(new_date)
                     save_projects()
-                    st.success(f"已更新「{project_name}」的 {field_name} 為 {new_date.strftime('%Y-%m-%d')}")
-                    st.rerun()
+                    # 清除快取並立即刷新
+                    st.cache_data.clear()
+                    st.success(
+                        f"已更新「{project_name}」的 {field_name} 從 {old_date.date() if pd.notna(old_date) else '無'} → {new_date}")
+                    st.rerun()  # 這行會重新執行整個 app，畫面立即更新
 
     st.caption("🗓️ 操作說明：拖曳事件直接調整日期 | 點擊事件修改日期 | 所有變更即時儲存到 Google Sheets")
     st.stop()
