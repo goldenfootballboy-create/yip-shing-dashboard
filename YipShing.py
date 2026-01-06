@@ -1652,175 +1652,104 @@ else:
     page_title = "YIP SHING Project Dashboard"
 
 # ==============================================
-# 日曆模式 - 雙向同步版（可直接修改專案進度日期！）
+# 日曆模式 - 純 Streamlit 自製版（100% 穩定，無需第三方套件）
 # ==============================================
 if st.session_state.view_mode == "calendar":
-    st.title("專案日曆視圖 - 可拖曳或點擊修改進度日期")
+    st.title("專案日曆視圖")
 
-    events = []
+    # 產生當前月份的日期列表
+    today = date.today()
+    year = today.year
+    month = today.month
 
-    # 加入專案進度事件（不同顏色 + 帶 index 資訊，讓拖曳/點擊能更新）
-    for idx, proj in df.iterrows():
+    # 取得該月第一天是星期幾（0=星期一）
+    first_day = date(year, month, 1)
+    weekday = first_day.weekday()  # 0=Mon, 6=Sun
+    days_in_month = (date(year + (month // 12), (month % 12) + 1, 1) - date(year, month, 1)).days
+
+    # 收集所有專案事件
+    event_dict = {}
+    for _, proj in df.iterrows():
         project_name = proj["Project_Name"]
-
         if pd.notna(proj["Parts_Arrival"]):
-            events.append({
-                "id": f"parts_{idx}",
-                "title": f"零件到貨: {project_name}",
-                "start": proj["Parts_Arrival"].strftime("%Y-%m-%d"),
-                "backgroundColor": "#a8e6cf",
-                "borderColor": "#a8e6cf",
-                "textColor": "black",
-            })
-
+            d = proj["Parts_Arrival"].date()
+            key = d.strftime("%Y-%m-%d")
+            event_dict.setdefault(key, []).append(f"🟢 零件到貨: {project_name}")
         if pd.notna(proj["Installation_Complete"]):
-            events.append({
-                "id": f"install_{idx}",
-                "title": f"安裝完成: {project_name}",
-                "start": proj["Installation_Complete"].strftime("%Y-%m-%d"),
-                "backgroundColor": "#ffd93d",
-                "borderColor": "#ffd93d",
-                "textColor": "black",
-            })
-
+            d = proj["Installation_Complete"].date()
+            key = d.strftime("%Y-%m-%d")
+            event_dict.setdefault(key, []).append(f"🟡 安裝完成: {project_name}")
         if pd.notna(proj["Testing_Complete"]):
-            events.append({
-                "id": f"testing_{idx}",
-                "title": f"測試完成: {project_name}",
-                "start": proj["Testing_Complete"].strftime("%Y-%m-%d"),
-                "backgroundColor": "#ff9f89",
-                "borderColor": "#ff9f89",
-                "textColor": "black",
-            })
-
+            d = proj["Testing_Complete"].date()
+            key = d.strftime("%Y-%m-%d")
+            event_dict.setdefault(key, []).append(f"🟠 測試完成: {project_name}")
         if pd.notna(proj["Cleaning_Complete"]):
-            events.append({
-                "id": f"cleaning_{idx}",
-                "title": f"清潔完成: {project_name}",
-                "start": proj["Cleaning_Complete"].strftime("%Y-%m-%d"),
-                "backgroundColor": "#6bcf7f",
-                "borderColor": "#6bcf7f",
-                "textColor": "black",
-            })
-
+            d = proj["Cleaning_Complete"].date()
+            key = d.strftime("%Y-%m-%d")
+            event_dict.setdefault(key, []).append(f"🟢 清潔完成: {project_name}")
         if pd.notna(proj["Delivery_Complete"]):
-            events.append({
-                "id": f"delivery_{idx}",
-                "title": f"交付完成: {project_name}",
-                "start": proj["Delivery_Complete"].strftime("%Y-%m-%d"),
-                "backgroundColor": "#ff6b6b",
-                "borderColor": "#ff6b6b",
-                "textColor": "white",
-            })
+            d = proj["Delivery_Complete"].date()
+            key = d.strftime("%Y-%m-%d")
+            event_dict.setdefault(key, []).append(f"🔴 交付完成: {project_name}")
 
-    # 日曆設定
-    config = {
-        "initialView": "dayGridMonth",
-        "headerToolbar": {
-            "left": "prev,next today",
-            "center": "title",
-            "right": "dayGridMonth,timeGridWeek,timeGridDay"
-        },
-        "height": 800,
-        "locale": "zh-tw",
-        "editable": True,   # 允許拖曳
-        "selectable": True,
-    }
+    # 標題
+    st.markdown(f"<h2 style='text-align:center;'>{year}年 {month}月</h2>", unsafe_allow_html=True)
 
-    # 渲染日曆
-    returned = fullcalendar(events=events, config=config, key="project_calendar")
+    # 星期標題
+    weekdays = ["一", "二", "三", "四", "五", "六", "日"]
+    cols = st.columns(7)
+    for i, day in enumerate(weekdays):
+        cols[i].markdown(f"<p style='text-align:center; font-weight:bold;'>{day}</p>", unsafe_allow_html=True)
 
-    # 處理拖曳更新
-    if returned.get("eventDrop"):
-        event = returned["eventDrop"]
-        event_id = event["id"]
-        new_date = event["start"][:10]
+    # 填入日期
+    cols = st.columns(7)
+    day = 1
+    for i in range(42):  # 6週 x 7天
+        col_idx = i % 7
+        with cols[col_idx]:
+            if i < weekday or day > days_in_month:
+                st.write("")  # 空白
+            else:
+                date_str = date(year, month, day).strftime("%Y-%m-%d")
+                events_today = event_dict.get(date_str, [])
+                bg_color = "#e6f3ff" if events_today else "#ffffff"
+                border = "2px solid #1fb429" if date_str == today.strftime("%Y-%m-%d") else "1px solid #ddd"
 
-        if "_" in event_id:
-            field_key, idx_str = event_id.split("_", 1)
-            idx = int(idx_str)
-            field_map = {
-                "parts": "Parts_Arrival",
-                "install": "Installation_Complete",
-                "testing": "Testing_Complete",
-                "cleaning": "Cleaning_Complete",
-                "delivery": "Delivery_Complete",
-            }
-            field = field_map.get(field_key)
-            if field and idx in df.index:
-                df.at[idx, field] = pd.to_datetime(new_date)
-                save_projects()
-                st.success(f"已拖曳更新「{df.at[idx, 'Project_Name']}」的 {field.replace('_', ' ')} 為 {new_date}")
-                st.rerun()
+                st.markdown(f"""
+                <div style="border: {border}; border-radius: 8px; padding: 10px; background: {bg_color}; min-height: 100px;">
+                    <p style="margin:0; font-weight:bold; text-align:right;">{day}</p>
+                    <small>
+                    {"<br>".join(events_today[:3])}
+                    {f"<br><i>+{len(events_today)-3} more</i>" if len(events_today) > 3 else ""}
+                    </small>
+                </div>
+                """, unsafe_allow_html=True)
 
-    # 處理點擊更新
-    if returned.get("eventClick"):
-        event = returned["eventClick"]
-        event_id = event["id"]
-
-        if "_" in event_id:
-            field_key, idx_str = event_id.split("_", 1)
-            idx = int(idx_str)
-            field_map = {
-                "parts": "零件到貨",
-                "install": "安裝完成",
-                "testing": "測試完成",
-                "cleaning": "清潔完成",
-                "delivery": "交付完成",
-            }
-            field_name = field_map.get(field_key, "進度")
-            project_name = df.at[idx, "Project_Name"]
-
-            st.subheader(f"修改專案進度：{project_name} - {field_name}")
-
-            current_date = pd.to_datetime(event["start"][:10]).date()
-            new_date = st.date_input("選擇新日期", value=current_date, key=f"cal_edit_date_{idx}_{field_key}")
-
-            if st.button("確認更新", type="primary", key=f"cal_save_{idx}_{field_key}"):
-                field_db_map = {
-                    "parts": "Parts_Arrival",
-                    "install": "Installation_Complete",
-                    "testing": "Testing_Complete",
-                    "cleaning": "Cleaning_Complete",
-                    "delivery": "Delivery_Complete",
-                }
-                db_field = field_db_map.get(field_key)
-                if db_field:
-                    df.at[idx, db_field] = pd.to_datetime(new_date)
-                    save_projects()
-                    st.success(f"已更新「{project_name}」的 {field_name} 為 {new_date}")
+                # 點擊日期顯示詳情
+                if st.button(f"查看 {day} 日事件", key=f"date_{date_str}", use_container_width=True):
+                    st.session_state.selected_date = date_str
                     st.rerun()
 
-    st.caption("🗓️ 操作說明：拖曳事件直接調整日期 | 點擊事件修改日期 | 所有變更即時儲存到 Google Sheets")
-    st.stop()
+                day += 1
 
-    # 處理日期選擇（新增事件）
-    if state.get("select"):
-        select_info = state["select"]
-        st.subheader("新增事件")
-        new_title = st.text_input("事件標題", value="新事件")
-        new_desc = st.text_area("描述", value="")
-        start_date = pd.to_datetime(select_info["startStr"][:10]).date()
-        end_date = pd.to_datetime(select_info.get("endStr", select_info["startStr"])[:10]).date()
-
-        if st.button("新增事件"):
-            new_id = str(events_df["id"].astype(int).max() + 1) if not events_df.empty and pd.notna(events_df["id"].max()) else "1"
-            new_row = pd.DataFrame([{
-                "id": new_id,
-                "title": new_title,
-                "start": start_date.strftime("%Y-%m-%d"),
-                "end": end_date.strftime("%Y-%m-%d"),
-                "description": new_desc,
-            }])
-            events_df = pd.concat([events_df, new_row], ignore_index=True)
-            conn.update(worksheet="calendar_events", data=events_df)
-            st.success("新事件已新增！")
+    # 顯示選中日期的詳細事件
+    if "selected_date" in st.session_state:
+        sel_date = st.session_state.selected_date
+        st.markdown(f"### {sel_date} 的專案事件")
+        events_sel = event_dict.get(sel_date, [])
+        if events_sel:
+            for e in events_sel:
+                st.markdown(f"- {e}")
+        else:
+            st.info("這天沒有專案事件")
+        if st.button("關閉"):
+            del st.session_state.selected_date
             st.rerun()
 
-    st.caption("🗓️ 顏色說明：綠色=零件到貨 | 黃色=安裝完成 | 橙色=測試完成 | 淺綠=清潔完成 | 紅色=交付完成 | 藍色=自定義事件")
-    st.caption("操作：點擊事件編輯/刪除 | 拖曳事件調整日期 | 選擇日期範圍新增事件")
+    st.caption("🗓️ 顏色說明：🟢 零件到貨 / 清潔完成 | 🟡 安裝完成 | 🟠 測試完成 | 🔴 交付完成")
+    st.caption("點擊日期可查看詳情")
 
-    st.stop()  # 阻止渲染下方專案卡片
+    st.stop()
 
 st.markdown(f"<h1 style='text-align: center; color: #1fb429; margin-bottom: 30px; font-weight: bold;'>{page_title}</h1>", unsafe_allow_html=True)
 
