@@ -42,31 +42,7 @@ except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
 
 # ==============================================
-# 讀取或建立 supremacy_manpower worksheet（儲存 Man Power 資料）
-# ==============================================
-try:
-    raw_df = conn.read(worksheet="supremacy_projects", ttl=300)
-    if raw_df.empty or len(raw_df.columns) < 5:
-        header_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
-        conn.update(worksheet="supremacy_projects", data=header_df)
-        projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
-    else:
-        raw_df = raw_df.iloc[:, :5]
-        raw_df.columns = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
-        if len(raw_df) > 0 and str(raw_df.iloc[0]["Date"]).strip().lower() in ["date", "日期"]:
-            raw_df = raw_df.iloc[1:].reset_index(drop=True)
-        projects_df = raw_df.copy()
-        projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
-        if "Work_Order" not in projects_df.columns:
-            projects_df["Work_Order"] = ""
-        projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
-except Exception:
-    header_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
-    conn.update(worksheet="supremacy_projects", data=header_df)
-    projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
-
-# ==============================================
-# 讀取 Man Power 資料
+# 讀取或建立 supremacy_manpower worksheet
 # ==============================================
 try:
     manpower_raw = conn.read(worksheet="supremacy_manpower", ttl=300)
@@ -78,7 +54,7 @@ except Exception:
     manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
 # ==============================================
-# Sidebar
+# Sidebar - 新增專案 + 搜尋 + 查看主日曆
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -111,10 +87,11 @@ with st.sidebar:
                     current_raw = current_raw.iloc[1:]
                 updated_df = pd.concat([current_raw, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=updated_df)
-                st.success(f"已新增專案：{quote_number}")
+                st.success(f"已新增專案：{quote_number} (Work Order: {work_order or '無'})")
                 st.rerun()
 
     st.markdown("---")
+
     st.markdown("### 🔍 搜尋專案")
     search_query = st.text_input(
         "輸入 Quote Number 或 Work Order",
@@ -122,16 +99,23 @@ with st.sidebar:
         key="supremacy_search",
         label_visibility="collapsed"
     )
+
     if st.button("清除搜尋", type="secondary", use_container_width=True):
         if "supremacy_search" in st.session_state:
             del st.session_state.supremacy_search
         st.rerun()
 
     st.markdown("---")
+
     st.markdown("### 📅 快捷連結")
     if st.button("📅 查看主日曆", type="primary", use_container_width=True):
-        st.switch_page("app.py")  # 跳轉到主頁面
+        st.switch_page("app.py")  # 假設主頁面是 app.py，請改成你的主頁面檔名
         st.session_state.view_mode = "calendar"
+
+# ==============================================
+# 主畫面標題
+# ==============================================
+st.title("SUPREMACY ENERGY - 副業專案管理")
 
 # ==============================================
 # 搜尋過濾
@@ -167,16 +151,17 @@ if len(display_df) > 0:
 
             work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
-            # 顯示 Man Power 記錄
+            # Man Power 記錄顯示
             manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
             manpower_display = ""
             if len(manpower_records) > 0:
-                manpower_display = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee; font-size:0.9rem;'><strong>人手派工：</strong><br>"
+                manpower_display = "<div style='margin-top:16px; padding-top:12px; border-top:1px dashed #ddd; font-size:0.9rem;'><strong>🧑‍🔧 人手派工：</strong><br>"
                 for _, rec in manpower_records.iterrows():
                     end = rec["End_Date"] if rec["End_Date"] else "進行中"
                     manpower_display += f"• {rec['Staff']} ({rec['Start_Date']} ~ {end})<br>"
                 manpower_display += "</div>"
 
+            # 完整卡片（已修正所有 HTML 閉合）
             st.markdown(f"""
             <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 250px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
@@ -191,10 +176,10 @@ if len(display_df) > 0:
                     </span>
                     <small style="color:#888;">{row["Date"]}</small>
                 </div>
-            </div>  <!-- 閉合外層 div（必須在 f-string 內！） -->
+            </div>
             """, unsafe_allow_html=True)
 
-            # 按鈕
+            # 按鈕區域
             col1, col2, col3 = st.columns(3)
             with col1:
                 if st.button("Edit", key=f"edit_sup_{idx}", use_container_width=True):
@@ -206,7 +191,7 @@ if len(display_df) > 0:
                 if st.button("Man Power", key=f"manpower_sup_{idx}", type="secondary", use_container_width=True):
                     st.session_state[f"manpower_mode_sup_{idx}"] = not st.session_state.get(f"manpower_mode_sup_{idx}", False)
 
-            # Man Power 區（新增後自動關閉）
+            # Man Power 輸入區（新增後自動關閉）
             if st.session_state.get(f"manpower_mode_sup_{idx}", False):
                 quote_num = row["Quote_Number"]
 
