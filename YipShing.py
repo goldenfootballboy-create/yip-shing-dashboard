@@ -1783,21 +1783,7 @@ if st.session_state.view_mode == "calendar":
                 st.success(f"已拖曳更新「{df.at[idx, 'Project_Name']}」的 {field.replace('_', ' ')} 為 {new_date}")
                 st.rerun()  # 立即刷新畫面
 
-    # 跳轉邏輯
-    if state.get("eventClick"):
-        event = state["eventClick"]["event"]
-        # 如果是副業派工事件
-        if event.get("title", "").startswith("🧑‍🔧"):
-            # 提取 Work Order 或 Quote Number
-            title = event["title"]
-            # 假設格式 "🧑‍🔧 派工開始: 員工 @ WO-123"
-            parts = title.split("@")
-            if len(parts) > 1:
-                search_term = parts[1].strip()
-                # 切換到副業頁面並傳搜尋參數
-                st.switch_page("pages/supremacy_energy.py")
-                st.session_state.supremacy_search = search_term
-                st.rerun()
+
     # 處理點擊事件
     if state.get("eventClick"):
         event = state["eventClick"]["event"]
