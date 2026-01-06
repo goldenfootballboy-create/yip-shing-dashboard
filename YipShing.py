@@ -1651,12 +1651,13 @@ else:
             ]
     page_title = "YIP SHING Project Dashboard"
 
+# ==============================================
 if st.session_state.view_mode == "calendar":
-    st.title("🗓️ 專案日曆-可點擊/拖曳修改日期")
+    st.title("🗓️ 專案日曆視圖 - 拖曳或點擊即可修改進度日期")
 
     events = []
 
-    # 加入專案進度事件（不同顏色 + 唯一 id）
+    # 原有專案進度事件（保持不變）
     for idx, proj in df.iterrows():
         project_name = proj["Project_Name"]
 
@@ -1710,7 +1711,38 @@ if st.session_state.view_mode == "calendar":
                 "textColor": "white",
             })
 
-    # 日曆設定（關鍵：editable 必須是字串 "true"）
+    # 新增：讀取 SUPREMACY ENERGY 的 Man Power 資料並標註到日曆
+    try:
+        manpower_raw = conn.read(worksheet="supremacy_manpower", ttl=300)
+        if not manpower_raw.empty:
+            for _, rec in manpower_raw.iterrows():
+                quote_num = rec.get("Quote_Number", "未知專案")
+                staff = rec.get("Staff", "未知員工")
+                start_date = rec.get("Start_Date", "")
+                end_date = rec.get("End_Date", "")
+
+                if start_date:
+                    events.append({
+                        "title": f"🧑‍🔧 派工開始: {staff} @ {quote_num}",
+                        "start": start_date,
+                        "backgroundColor": "#9d8aff",  # 藍紫色
+                        "borderColor": "#9d8aff",
+                        "textColor": "white",
+                    })
+
+                if end_date:
+                    events.append({
+                        "title": f"🧑‍🔧 派工結束: {staff} @ {quote_num}",
+                        "start": end_date,
+                        "backgroundColor": "#c0a0ff",  # 淺紫色
+                        "borderColor": "#c0a0ff",
+                        "textColor": "black",
+                    })
+    except Exception as e:
+        # 如果 worksheet 不存在或讀取失敗，不影響主日曆
+        pass
+
+    # 日曆設定（保持你原本的）
     calendar_options = {
         "initialView": "dayGridMonth",
         "headerToolbar": {
@@ -1720,18 +1752,12 @@ if st.session_state.view_mode == "calendar":
         },
         "height": "800px",
         "locale": "zh-hk",
-        "editable": "true",       # 必須是字串！
+        "editable": "true",
         "selectable": "true",
         "dayMaxEvents": "true",
-        "navLinks": "true",
     }
 
-    # 渲染日曆（固定 key，避免 state 丟失）
-    state = calendar(
-        events=events,
-        options=calendar_options,
-        key="stable_project_calendar"  # 固定 key！
-    )
+    state = calendar(events=events, options=calendar_options, key="stable_project_calendar")
 
     # 處理拖曳更新（穩定觸發）
     if state.get("eventDrop"):
