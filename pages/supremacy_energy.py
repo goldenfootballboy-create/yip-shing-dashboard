@@ -172,7 +172,7 @@ if len(display_df) > 0:
             with st.expander("🧑‍🔧 Man Power 派工管理", expanded=False):
                 quote_num = row["Quote_Number"]
 
-                # 強制讀取最新 Man Power 記錄
+                # 關鍵：展開時強制讀取最新 Man Power 資料
                 try:
                     latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
                     if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip() == "Quote_Number":
@@ -204,7 +204,7 @@ if len(display_df) > 0:
                         if not staff_name.strip():
                             st.error("員工姓名不能為空！")
                         else:
-                            # 讀最新資料追加
+                            # 安全追加（讀最新資料）
                             latest_all = conn.read(worksheet="supremacy_manpower", ttl=0)
                             if not latest_all.empty and str(latest_all.iloc[0,0]).strip() == "Quote_Number":
                                 latest_all = latest_all.iloc[1:].reset_index(drop=True)
@@ -221,7 +221,7 @@ if len(display_df) > 0:
                             st.success(f"已新增派工：{staff_name}")
                             st.rerun()
 
-            # 按鈕區域（Edit, Delete）
+            # 按鈕區域
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Edit", key=f"edit_sup_{row['Quote_Number']}", use_container_width=True):
