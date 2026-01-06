@@ -54,7 +54,7 @@ except Exception:
     manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
 # ==============================================
-# Sidebar - 新增專案 + 派工管理 + 搜尋
+# Sidebar - 新增專案 + 搜尋 + 查看主日曆
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -69,22 +69,13 @@ with st.sidebar:
         status_options = ["Quoting", "Confirmed", "In Production", "Completed"]
         status = st.selectbox("Status", status_options, index=0)
 
-        st.markdown("### 新增派工（可選）")
-        staff_name = st.text_input("員工姓名（新增派工）")
-        col_s, col_e = st.columns(2)
-        with col_s:
-            start_date = st.date_input("開始日期", value=date.today())
-        with col_e:
-            end_date = st.date_input("結束日期", value=None, help="留空表示進行中")
-
         submitted = st.form_submit_button("Add Project", type="primary", use_container_width=True)
 
         if submitted:
             if not quote_number.strip() or not project_detail.strip():
                 st.error("Quote Number 和 Project Detail 不能為空！")
             else:
-                # 新增專案
-                new_project = pd.DataFrame([{
+                new_row = pd.DataFrame([{
                     "Date": project_date.strftime("%Y-%m-%d"),
                     "Quote_Number": quote_number.strip(),
                     "Work_Order": work_order.strip(),
@@ -94,24 +85,9 @@ with st.sidebar:
                 current_raw = conn.read(worksheet="supremacy_projects", ttl=0)
                 if len(current_raw) > 0 and str(current_raw.iloc[0,0]).strip().lower() in ["date", "日期"]:
                     current_raw = current_raw.iloc[1:]
-                updated_projects = pd.concat([current_raw, new_project], ignore_index=True)
-                conn.update(worksheet="supremacy_projects", data=updated_projects)
-
-                # 如果有派工資料，新增派工記錄
-                if staff_name.strip():
-                    new_manpower = pd.DataFrame([{
-                        "Quote_Number": quote_number.strip(),
-                        "Staff": staff_name.strip(),
-                        "Start_Date": start_date.strftime("%Y-%m-%d"),
-                        "End_Date": end_date.strftime("%Y-%m-%d") if end_date else ""
-                    }])
-                    current_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
-                    if not current_manpower.empty and str(current_manpower.iloc[0,0]).strip() == "Quote_Number":
-                        current_manpower = current_manpower.iloc[1:]
-                    updated_manpower = pd.concat([current_manpower, new_manpower], ignore_index=True)
-                    conn.update(worksheet="supremacy_manpower", data=updated_manpower)
-
-                st.success(f"已新增專案：{quote_number}")
+                updated_df = pd.concat([current_raw, new_row], ignore_index=True)
+                conn.update(worksheet="supremacy_projects", data=updated_df)
+                st.success(f"已新增專案：{quote_number} (Work Order: {work_order or '無'})")
                 st.rerun()
 
     st.markdown("---")
@@ -158,7 +134,7 @@ if search_query:
         st.success(f"找到 {len(display_df)} 個符合的專案")
 
 # ==============================================
-# 卡片顯示 + Man Power 展開功能
+# 卡片顯示 + Man Power expander（參考 YIP SHING 風格）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -175,7 +151,7 @@ if len(display_df) > 0:
 
             work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
-            # 主卡片
+            # 主卡片（基本資訊）
             st.markdown(f"""
             <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 250px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
@@ -192,7 +168,7 @@ if len(display_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
-            # Man Power expander
+            # Man Power expander（參考 YIP SHING Details 風格）
             with st.expander(f"🧑‍🔧 Man Power 派工管理 • {row['Quote_Number']}", expanded=False):
                 quote_num = row["Quote_Number"]
 
@@ -244,7 +220,7 @@ if len(display_df) > 0:
                             st.success(f"已新增派工：{staff_name}")
                             st.rerun()
 
-            # 按鈕區域
+            # 按鈕區域（Edit, Delete）
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Edit", key=f"edit_sup_{row['Quote_Number']}", use_container_width=True):
