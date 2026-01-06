@@ -1783,36 +1783,22 @@ if st.session_state.view_mode == "calendar":
                 st.success(f"已拖曳更新「{df.at[idx, 'Project_Name']}」的 {field.replace('_', ' ')} 為 {new_date}")
                 st.rerun()  # 立即刷新畫面
 
-
-    # 處理點擊事件
+    # 跳轉邏輯
     if state.get("eventClick"):
         event = state["eventClick"]["event"]
-        event_id = event["id"]
-
-        # 如果是副業派工事件（以 "manpower_" 開頭）
-        if event_id.startswith("manpower_"):
-            # 提取 Quote_Number 和 index
-            parts = event_id.split("_")
-            quote_num = parts[1]
-            record_idx = int(parts[2])
-
-            st.subheader(f"派工記錄：{event['title']}")
-
-            st.markdown(f"**專案**：{quote_num}")
-            st.markdown(f"**員工**：{event['title'].split(': ')[1].split(' @')[0]}")
-            st.markdown(f"**日期**：{event['start']}")
-
-            if st.button("刪除此派工記錄", type="primary"):
-                # 讀最新資料並刪除該行
-                latest = conn.read(worksheet="supremacy_manpower", ttl=0)
-                if not latest.empty and str(latest.iloc[0,0]).strip() == "Quote_Number":
-                    latest = latest.iloc[1:].reset_index(drop=True)
-                latest = latest.drop(record_idx).reset_index(drop=True)
-                conn.update(worksheet="supremacy_manpower", data=latest)
-                st.success("已刪除派工記錄")
+        # 如果是副業派工事件
+        if event.get("title", "").startswith("🧑‍🔧"):
+            # 提取 Work Order 或 Quote Number
+            title = event["title"]
+            # 假設格式 "🧑‍🔧 派工開始: 員工 @ WO-123"
+            parts = title.split("@")
+            if len(parts) > 1:
+                search_term = parts[1].strip()
+                # 切換到副業頁面並傳搜尋參數
+                st.switch_page("pages/supremacy_energy.py")
+                st.session_state.supremacy_search = search_term
                 st.rerun()
 
-        # 其他事件點擊邏輯（專案進度修改）保持不變...
     # 處理點擊更新
     if state.get("eventClick"):
         event = state["eventClick"]["event"]
