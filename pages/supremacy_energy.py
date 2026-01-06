@@ -110,7 +110,7 @@ with st.sidebar:
 
     st.markdown("### 📅 快捷連結")
     if st.button("📅 查看主日曆", type="primary", use_container_width=True):
-        st.switch_page("app.py")  # 假設主頁面是 app.py，請改成你的主頁面檔名
+        st.switch_page("YipShing.py")  # 假設主頁面是 app.py，請改成你的主頁面檔名
         st.session_state.view_mode = "calendar"
 
 # ==============================================
