@@ -1749,36 +1749,47 @@ if st.session_state.view_mode == "calendar":
         key="project_calendar",
     )
 
-    # 處理事件點擊（編輯/刪除）
+    # 處理事件點擊（編輯/刪除）——只針對自定義事件
     if state.get("eventClick"):
         clicked = state["eventClick"]["event"]
-        event_id = clicked["id"]
-        current_row = events_df[events_df["id"] == event_id].iloc[0] if not events_df[events_df["id"] == event_id].empty else None
+        clicked_id = clicked.get("id")  # 安全取值
 
-        st.subheader(f"編輯事件：{clicked['title']}")
-        new_title = st.text_input("標題", value=clicked["title"])
-        new_start = st.date_input("開始日期", value=pd.to_datetime(clicked["start"]).date())
-        new_end = st.date_input("結束日期", value=pd.to_datetime(clicked["end"]).date() if clicked["end"] else new_start)
-        new_desc = st.text_area("描述", value=current_row["description"] if current_row is not None else "")
+        # 如果沒有 id，代表是專案自動生成的事件（不可編輯）
+        if not clicked_id:
+            st.info(f"📅 事件：{clicked['title']}\n\n這是系統自動生成的專案進度事件，無法編輯或刪除。")
+        else:
+            # 找到對應的自定義事件
+            current_row = events_df[events_df["id"] == clicked_id].iloc[0] if not events_df[events_df["id"] == clicked_id].empty else None
 
-        col_save, col_del = st.columns(2)
-        with col_save:
-            if st.button("儲存修改"):
-                events_df.loc[events_df["id"] == event_id, ["title", "start", "end", "description"]] = [
-                    new_title,
-                    new_start.strftime("%Y-%m-%d"),
-                    new_end.strftime("%Y-%m-%d"),
-                    new_desc
-                ]
-                conn.update(worksheet="calendar_events", data=events_df)
-                st.success("事件已更新！")
-                st.rerun()
-        with col_del:
-            if st.button("刪除事件", type="secondary"):
-                events_df = events_df[events_df["id"] != event_id]
-                conn.update(worksheet="calendar_events", data=events_df)
-                st.success("事件已刪除！")
-                st.rerun()
+            st.subheader(f"編輯自定義事件：{clicked['title']}")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                new_title = st.text_input("標題", value=clicked["title"])
+                new_start = st.date_input("開始日期", value=pd.to_datetime(clicked["start"]).date())
+            with col2:
+                default_end = pd.to_datetime(clicked["end"]).date() if clicked.get("end") else new_start
+                new_end = st.date_input("結束日期（選填）", value=default_end)
+                new_desc = st.text_area("描述", value=current_row["description"] if current_row is not None else "")
+
+            col_save, col_del = st.columns(2)
+            with col_save:
+                if st.button("儲存修改", type="primary"):
+                    events_df.loc[events_df["id"] == clicked_id, ["title", "start", "end", "description"]] = [
+                        new_title,
+                        new_start.strftime("%Y-%m-%d"),
+                        new_end.strftime("%Y-%m-%d") if new_end >= new_start else "",
+                        new_desc
+                    ]
+                    conn.update(worksheet="calendar_events", data=events_df)
+                    st.success("自定義事件已更新！")
+                    st.rerun()
+            with col_del:
+                if st.button("刪除此事件", type="secondary"):
+                    events_df = events_df[events_df["id"] != clicked_id]
+                    conn.update(worksheet="calendar_events", data=events_df)
+                    st.success("自定義事件已刪除！")
+                    st.rerun()
 
     # 處理日期選擇（新增事件）
     if state.get("select"):
