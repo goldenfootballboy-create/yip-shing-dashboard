@@ -105,7 +105,7 @@ with st.sidebar:
 # ==============================================
 # 主畫面標題
 # ==============================================
-st.title("SUPREMACY ENERGY")
+st.title("SUPREMACY ENERGY - 副業專案管理")
 
 # ==============================================
 # 搜尋過濾
@@ -122,66 +122,45 @@ if search_query:
         st.info("無搜尋結果")
 
 # ==============================================
-# 長條卡片顯示（模仿主頁風格）
+# 長條卡片顯示（取消進度條，卡片變小）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
 
     for _, row in sorted_df.iterrows():
-        # 狀態顏色（與主頁一致）
-        status_color = {
-            "Quoting": "#ffaa00",
-            "Confirmed": "#00aa00",
-            "In Production": "#0066ff",
-            "Completed": "#66cc66"
-        }.get(row["Status"], "#888888")
+        status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
+                        "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-        # 借調人數統計
+        work_order_text = f"Work Order: {row['Work_Order'] or '無'}" if row["Work_Order"] else ""
+
         manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
         manpower_count = len(manpower_records)
         manpower_text = f"借調人手：{manpower_count} 人" if manpower_count > 0 else "尚未借調"
 
-        # 進度百分比（模擬主頁風格，可自行調整邏輯）
-        # 這裡用簡單映射，你可以根據實際需求修改
-        progress_pct = {
-            "Quoting": 20,
-            "Confirmed": 50,
-            "In Production": 80,
-            "Completed": 100
-        }.get(row["Status"], 0)
-
-        # 背景漸層進度條
-        progress_bg = f"linear-gradient(to right, {status_color} {progress_pct}%, #f0f0f0 {progress_pct}%)"
-
-        # 狀態標籤文字
-        status_tag = row["Status"]
-
-        # Work Order 顯示
-        work_order_text = f"Work Order: {row['Work_Order'] or '無'}" if row["Work_Order"] else ""
-
-        # 長條卡片（完全模仿主頁）
+        # 取消進度條，使用純白背景
+        # 卡片變小：縮小 padding、margin、字體
         st.markdown(f"""
-        <div style="background: {progress_bg}; border-radius: 12px; padding: 16px 20px; margin: 15px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                <div style="flex: 1; min-width: 300px;">
-                    <div style="font-weight: bold; font-size: 1.3rem; color: #000;">
+        <div style="background: white; border-left: 6px solid {status_color}; border-radius: 10px; padding: 12px 16px; margin: 10px 0; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="flex: 1; min-width: 280px;">
+                    <div style="font-weight: bold; font-size: 1.1rem; color: #000;">
                         {row['Quote_Number']}
                     </div>
-                    <div style="font-size: 0.95rem; color: #333; margin-top: 8px;">
+                    <div style="font-size: 0.85rem; color: #333; margin-top: 6px;">
                         {work_order_text}
                     </div>
-                    <div style="font-size: 0.9rem; color: #555; margin-top: 6px; line-height: 1.5;">
+                    <div style="font-size: 0.8rem; color: #555; margin-top: 5px; line-height: 1.4;">
                         {row['Project_Detail']}
                     </div>
-                    <div style="font-size: 0.9rem; color: #000; margin-top: 10px; font-weight: 500;">
+                    <div style="font-size: 0.8rem; color: #000; margin-top: 8px; font-weight: 500;">
                         {manpower_text}
                     </div>
                 </div>
                 <div style="text-align: right;">
-                    <span style="background: {status_color}; color: white; padding: 8px 20px; border-radius: 25px; font-weight: bold; font-size: 1.1rem;">
-                        {status_tag}
+                    <span style="background: {status_color}; color: white; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">
+                        {row['Status']}
                     </span>
-                    <div style="margin-top: 12px; color: #666; font-size: 0.95rem;">
+                    <div style="margin-top: 8px; color: #666; font-size: 0.85rem;">
                         建立日期：{row['Date']}
                     </div>
                 </div>
