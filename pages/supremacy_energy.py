@@ -253,22 +253,48 @@ if len(display_df) > 0:
                     if col_cancel.form_submit_button("Cancel", use_container_width=True):
                         del st.session_state[f"edit_mode_sup_{row['Quote_Number']}"]
                         st.rerun()
+                #Delete
+                if st.session_state.get(f"confirm_delete_sup_{row['Quote_Number']}", False):
+                    st.warning(f"確定要刪除專案 **{row['Quote_Number']}** 嗎？此操作無法復原！")
+                    col_yes, col_no = st.columns(2)
+                    if col_yes.button("Yes, Delete", type="primary", key=f"yes_sup_{row['Quote_Number']}"):
+                        # 先更新 Google Sheet（刪除專案）
+                        projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(
+                            drop=True)
+                        conn.update(worksheet="supremacy_projects", data=projects_df)
 
-            # Delete 確認
-            if st.session_state.get(f"confirm_delete_sup_{row['Quote_Number']}", False):
-                st.warning(f"確定要刪除專案 **{row['Quote_Number']}** 嗎？")
-                col_yes, col_no = st.columns(2)
-                if col_yes.button("Yes, Delete", type="primary", key=f"yes_sup_{row['Quote_Number']}"):
-                    projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
-                    conn.update(worksheet="supremacy_projects", data=projects_df)
-                    # 同時刪除相關派工
-                    manpower_df = manpower_df[manpower_df["Quote_Number"] != row["Quote_Number"]]
-                    conn.update(worksheet="supremacy_manpower", data=manpower_df)
-                    st.success("已刪除專案與相關派工記錄！")
-                    st.rerun()
-                if col_no.button("Cancel", key=f"no_sup_{row['Quote_Number']}"):
-                    del st.session_state[f"confirm_delete_sup_{row['Quote_Number']}"]
-                    st.rerun()
+                        # 刪除相關派工
+                        manpower_df = manpower_df[manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(
+                            drop=True)
+                        conn.update(worksheet="supremacy_manpower", data=manpower_df)
+
+                        # 關鍵：強制重新讀取最新資料，更新全域變數
+                        latest_projects = conn.read(worksheet="supremacy_projects", ttl=0)
+                        if not latest_projects.empty and str(latest_projects.iloc[0, 0]).strip().lower() in ["date",
+                                                                                                             "日期"]:
+                            latest_projects = latest_projects.iloc[1:].reset_index(drop=True)
+                        latest_projects.columns = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
+                        latest_projects["Quote_Number"] = latest_projects["Quote_Number"].astype(str).str.replace(".0",
+                                                                                                                  "",
+                                                                                                                  regex=False)
+                        latest_projects["Work_Order"] = latest_projects["Work_Order"].fillna("").astype(str)
+
+                        # 用最新資料取代舊的 projects_df
+                        projects_df = latest_projects.copy()
+
+                        # 同樣更新 manpower_df
+                        latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
+                        if not latest_manpower.empty and str(
+                                latest_manpower.iloc[0, 0]).strip().lower() == "quote_number":
+                            latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
+                        manpower_df = latest_manpower.copy()
+
+                        st.success("已成功刪除專案與相關派工記錄！")
+                        st.rerun()
+
+                    if col_no.button("Cancel", key=f"no_sup_{row['Quote_Number']}"):
+                        del st.session_state[f"confirm_delete_sup_{row['Quote_Number']}"]
+                        st.rerun()
 
 else:
     if search_query:
