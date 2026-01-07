@@ -122,7 +122,7 @@ if search_query:
         st.info("無搜尋結果")
 
 # ==============================================
-# 卡片顯示：一行 2 個，長又扁（穩定不卡串）
+# 卡片顯示：一行 2 個，長方形（穩定不卡串）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -139,7 +139,7 @@ if len(display_df) > 0:
 
                     # Quote Number 和 Work Order 同大小、同顏色
                     quote_line = f"<h4 style='margin:0 0 8px 0; color:#1fb429; font-size:1.3rem;'>{row['Quote_Number']}</h4>"
-                    work_order_line = f"<div style='font-size:1.3rem; color:#1fb429; margin-bottom: 10px;'>{row['Work_Order'] or '無 Work Order'}</div>" if row["Work_Order"] else "<div style='font-size:1.3rem; color:#1fb429; margin-bottom: 10px;'>無 Work Order</div>"
+                    work_order_line = f"<div style='font-size:1.3rem; color:#1fb429; margin-bottom: 12px;'>{row['Work_Order'] or '無 Work Order'}</div>"
 
                     # 借調顯示
                     manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
@@ -149,7 +149,7 @@ if len(display_df) > 0:
                             start = rec["Start_Date"]
                             end = rec["End_Date"].strip() if pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip() else "進行中"
                             manpower_lines.append(f"• {rec['Staff']} ({start} → {end})")
-                        manpower_section = f"<div style='margin-top:10px;'><small style='color:#000; font-weight:bold;'>借調：</small><br><small style='color:#000;'>" + "<br>".join(manpower_lines) + "</small></div>"
+                        manpower_section = f"<div style='margin-top:12px;'><small style='color:#000; font-weight:bold;'>借調：</small><br><small style='color:#000;'>" + "<br>".join(manpower_lines) + "</small></div>"
                     else:
                         manpower_section = ""
 
@@ -160,14 +160,14 @@ if len(display_df) > 0:
                             {row["Status"]}
                         </span>
                         <div style="margin-top: 10px; color:#777; font-size:0.9rem;">
-                            {row["Date"]}
+                            建立日期：{row["Date"]}
                         </div>
                     </div>
                     """
 
-                    # 長又扁的卡片（高度低、寬度適中）
+                    # 長方形卡片（一行2個，寬度適中）
                     st.markdown(f"""
-                    <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 140px;">
+                    <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 180px;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
                             <div style="flex: 1;">
                                 {quote_line}
