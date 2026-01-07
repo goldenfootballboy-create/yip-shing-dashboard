@@ -38,7 +38,7 @@ except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
 
 # ==============================================
-# 讀取 supremacy_manpower（加強標題處理）
+# 讀取 supremacy_manpower
 # ==============================================
 try:
     manpower_raw = conn.read(worksheet="supremacy_manpower", ttl=300)
@@ -59,17 +59,7 @@ except Exception:
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
 
-    # 新增醒目的「儲存借調」按鈕（放在最上方）
-    st.markdown("### 💾 儲存借調")
-    if st.button("儲存借調記錄到 Google Sheet", type="primary", use_container_width=True):
-        # 強制重新寫入最新 manpower_df（確保所有變更都同步）
-        conn.update(worksheet="supremacy_manpower", data=manpower_df)
-        st.success("✅ 所有借調記錄已成功儲存到 Google Sheet！")
-        st.rerun()
-
-    st.markdown("---")
-
-    st.markdown("### New Project")  # 改為英文
+    st.markdown("### New Project")
 
     with st.form(key="supremacy_new_project", clear_on_submit=True):
         project_date = st.date_input("Date *", value=date.today())
@@ -100,7 +90,6 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
-
     st.markdown("### 🔍 搜尋專案")
     search_query = st.text_input("輸入 Quote Number 或 Work Order", key="supremacy_search", label_visibility="collapsed")
     if st.button("清除搜尋", type="secondary", use_container_width=True):
@@ -109,13 +98,12 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-
     if st.button("📅 查看主日曆", type="primary", use_container_width=True):
         st.switch_page("YipShing.py")
         st.session_state.view_mode = "calendar"
 
 # ==============================================
-# 主畫面標題（移除後面說明）
+# 主畫面標題
 # ==============================================
 st.title("SUPREMACY ENERGY - 副業專案管理")
 
@@ -134,7 +122,7 @@ if search_query:
         st.info("無搜尋結果")
 
 # ==============================================
-# 卡片顯示（「派工人手」改為「借調」）
+# 卡片顯示
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -145,7 +133,6 @@ if len(display_df) > 0:
                             "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
             work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
-            # 借調顯示（黑色字）
             manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
             if len(manpower_records) > 0:
                 manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee;'>"
@@ -159,7 +146,7 @@ if len(display_df) > 0:
                 manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee; color:#999;'><small>無借調記錄</small></div>"
 
             st.markdown(f"""
-            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 260px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 260px;">
                 <div>
                     <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
                     {work_order_display}
@@ -175,7 +162,6 @@ if len(display_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
-            # Edit / Delete 按鈕
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Edit", key=f"edit_{row['Quote_Number']}", use_container_width=True):
@@ -184,7 +170,7 @@ if len(display_df) > 0:
                 if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
                     st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
 
-            # ================ 編輯模式（借調管理） ================
+            # ================ 編輯模式 ================
             if st.session_state.get(f"edit_mode_{row['Quote_Number']}", False):
                 original_idx = projects_df[projects_df["Quote_Number"] == row["Quote_Number"]].index[0]
 
@@ -201,7 +187,7 @@ if len(display_df) > 0:
                             end_display = rec["End_Date"] if pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip() else "進行中"
                             st.write(end_display)
                         with col_del:
-                            if st.button("刪除", key=f"del_man_{row['Quote_Number']}_{m_idx}", type="secondary", use_container_width=True):
+                            if st.button("刪除", key=f"del_man_{row['Quote_Number']}_{m_idx}", type="secondary"):
                                 manpower_df = manpower_df.drop(
                                     manpower_df[
                                         (manpower_df["Quote_Number"] == row["Quote_Number"]) &
@@ -228,6 +214,14 @@ if len(display_df) > 0:
                         new_start = st.date_input("開始日期", value=date.today(), key=f"ns_{row['Quote_Number']}")
                     with col_ne:
                         new_end = st.date_input("結束日期（留空表示進行中）", value=None, key=f"ne_{row['Quote_Number']}")
+
+                    # === 儲存借調按鈕放在這裡，用 expander 收合 ===
+                    with st.expander("💾 儲存借調（進階）", expanded=False):
+                        st.caption("手動強制將目前所有借調資料寫入 Google Sheet")
+                        if st.button("立即儲存所有借調記錄", type="primary", key=f"save_manpower_{row['Quote_Number']}"):
+                            conn.update(worksheet="supremacy_manpower", data=manpower_df)
+                            st.success("✅ 所有借調記錄已成功儲存！")
+                            st.rerun()
 
                     col_save, col_cancel = st.columns(2)
                     if col_save.form_submit_button("SAVE", type="primary", use_container_width=True):
