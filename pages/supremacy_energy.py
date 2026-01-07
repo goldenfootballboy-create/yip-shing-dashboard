@@ -150,35 +150,39 @@ if len(display_df) > 0:
             manpower_html = ""
 
         # 長方形卡片（全寬）
-        st.markdown(f"""
+        card_html = """
         <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 300px;">
-                    <h4 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h4>
+                    <h4 style="margin:0 0 8px 0; color:#1fb429;">{quote_number}</h4>
                     {work_order_display}
-                    <p style="margin: 12px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{row["Project_Detail"]}</p>
+                    <p style="margin: 12px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{project_detail}</p>
                     {manpower_html}
                 </div>
                 <div style="text-align: right; min-width: 200px;">
                     <div style="display: inline-block; text-align: center;">
-                        <span style="background:{status_color}; color:white; padding:10px 24px; border-radius:25px; font-weight:bold; font-size:1.1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: inline-block;">
-                            {row["Status"]}
+                        <span style="background:{status_color}; color:white; padding:10px 24px; border-radius:25px; font-weight:bold; font-size:1.1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                            {status}
                         </span>
                         <br><br>
                         <small style="color:#777; font-size:0.95rem;">
-                            建立日期：{row["Date"]}
+                            建立日期：{date}
                         </small>
                     </div>
                 </div>
             </div>
         </div>
-        """.replace("{", "{{").replace("}", "}}").format(
+        """.format(
             status_color=status_color,
-            row=row,
+            quote_number=row["Quote_Number"],
             work_order_display=work_order_display,
-            manpower_html=manpower_html
-        ), unsafe_allow_html=True)
+            project_detail=row["Project_Detail"],
+            manpower_html=manpower_html,
+            status=row["Status"],
+            date=row["Date"]
+        )
 
+        st.markdown(card_html, unsafe_allow_html=True)
         # Edit / Delete 按鈕（放在卡片下方）
         col1, col2, col_spacer = st.columns([1, 1, 4])
         with col1:
