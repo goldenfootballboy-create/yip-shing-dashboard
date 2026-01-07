@@ -167,7 +167,7 @@ if len(display_df) > 0:
             manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
             if len(manpower_records) > 0:
                 manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee;'>"
-                manpower_html += "<small style='color:#555; font-weight:bold;'>派工人手：</small><br>"
+                manpower_html += "<small style='color:#000; font-weight:bold;'>派工人手：</small><br>"
                 for _, rec in manpower_records.iterrows():
                     start = rec["Start_Date"]
                     end = rec["End_Date"].strip() if (pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip() != "") else "進行中"
