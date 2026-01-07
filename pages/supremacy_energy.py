@@ -166,29 +166,55 @@ if len(display_df) > 0:
             # ================ 編輯模式（含刪除派工） ================
             if st.session_state.get(f"edit_mode_{row['Quote_Number']}", False):
                 original_idx = projects_df[projects_df["Quote_Number"] == row["Quote_Number"]].index[0]
+
+                # 先顯示現有派工（只讀 + 刪除按鈕，不在 form 內）
+                st.markdown("### 現有派工記錄")
+                current_manpower = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]].copy().reset_index(
+                    drop=True)
+                if len(current_manpower) > 0:
+                    for m_idx, rec in current_manpower.iterrows():
+                        col_name, col_start, col_end, col_del = st.columns([3, 2, 2, 1])
+                        with col_name:
+                            st.write(f"**{rec['Staff']}**")
+                        with col_start:
+                            st.write(rec["Start_Date"])
+                        with col_end:
+                            end_display = rec["End_Date"] if pd.notna(rec["End_Date"]) and str(
+                                rec["End_Date"]).strip() else "進行中"
+                            st.write(end_display)
+                        with col_del:
+                            if st.button("刪除", key=f"del_man_{row['Quote_Number']}_{m_idx}", type="secondary",
+                                         use_container_width=True):
+                                # 立即刪除這筆派工
+                                manpower_df = manpower_df.drop(
+                                    manpower_df[
+                                        (manpower_df["Quote_Number"] == row["Quote_Number"]) &
+                                        (manpower_df["Staff"] == rec["Staff"]) &
+                                        (manpower_df["Start_Date"] == rec["Start_Date"]) &
+                                        (manpower_df["End_Date"] == rec[
+                                            "End_Date" if pd.notna(rec["End_Date"]) else ""])
+                                        ].index
+                                ).reset_index(drop=True)
+                                conn.update(worksheet="supremacy_manpower", data=manpower_df)
+
+                                # 強制刷新最新資料（避免快取）
+                                latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
+                                if not latest_manpower.empty and str(latest_manpower.iloc[0, 0]).strip().lower() in [
+                                    "quote_number", "quote number"]:
+                                    latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
+                                manpower_df = latest_manpower.copy()
+
+                                st.success(f"已刪除派工：{rec['Staff']}")
+                                st.rerun()
+                else:
+                    st.info("尚未派工")
+
+                # 下面才是修改專案資料的 form
                 with st.form(key=f"edit_form_{row['Quote_Number']}"):
                     new_quote = st.text_input("Quote Number", value=row["Quote_Number"])
                     new_work_order = st.text_input("Work Order", value=row["Work_Order"])
                     new_detail = st.text_area("Project Detail", value=row["Project_Detail"], height=120)
                     new_status = st.selectbox("Status", status_options, index=status_options.index(row["Status"]))
-
-                    st.markdown("### 現有派工記錄")
-                    current_manpower = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]].copy()
-                    if len(current_manpower) > 0:
-                        for m_idx, rec in current_manpower.iterrows():
-                            col_name, col_start, col_end, col_del = st.columns([3, 2, 2, 1])
-                            col_name.write(f"**{rec['Staff']}**")
-                            col_start.write(rec["Start_Date"])
-                            end_display = rec["End_Date"] if pd.notna(rec["End_Date"]) and rec["End_Date"] else "進行中"
-                            col_end.write(end_display)
-                            if col_del.button("刪除", key=f"del_man_{row['Quote_Number']}_{m_idx}", type="secondary"):
-                                # 立即刪除該筆派工
-                                manpower_df = manpower_df.drop(m_idx).reset_index(drop=True)
-                                conn.update(worksheet="supremacy_manpower", data=manpower_df)
-                                st.success(f"已刪除派工：{rec['Staff']}")
-                                st.rerun()
-                    else:
-                        st.info("尚未派工")
 
                     st.markdown("### 新增派工")
                     new_staff = st.text_input("員工姓名（新增）")
@@ -200,12 +226,14 @@ if len(display_df) > 0:
 
                     col_save, col_cancel = st.columns(2)
                     if col_save.form_submit_button("保存專案資料", type="primary", use_container_width=True):
+                        # 更新專案主資料
                         projects_df.at[original_idx, "Quote_Number"] = new_quote.strip()
                         projects_df.at[original_idx, "Work_Order"] = new_work_order.strip()
                         projects_df.at[original_idx, "Project_Detail"] = new_detail.strip()
                         projects_df.at[original_idx, "Status"] = new_status
                         conn.update(worksheet="supremacy_projects", data=projects_df)
 
+                        # 新增派工（如有）
                         if new_staff.strip():
                             new_rec = pd.DataFrame([{
                                 "Quote_Number": new_quote.strip(),
