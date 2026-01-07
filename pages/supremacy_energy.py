@@ -46,16 +46,25 @@ except Exception:
 # ==============================================
 try:
     manpower_raw = conn.read(worksheet="supremacy_manpower", ttl=300)
-    if manpower_raw.empty:
+    if manpower_raw.empty or len(manpower_raw.columns) < 4:
         manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
     else:
-        # 移除可能的標題行
-        if len(manpower_raw) > 0 and str(manpower_raw.iloc[0,0]).strip().lower() == "quote_number":
+        # 正確處理標題行
+        if len(manpower_raw) > 0 and str(manpower_raw.iloc[0, 0]).strip().lower() in ["quote_number", "quote number",
+                                                                                      "報價單號"]:
             manpower_raw = manpower_raw.iloc[1:].reset_index(drop=True)
-        manpower_df = manpower_raw.copy()
-except Exception:
-    manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
+        # 確保欄位正確
+        manpower_raw.columns = ["Quote_Number", "Staff", "Start_Date", "End_Date"][:len(manpower_raw.columns)]
+        manpower_raw["Quote_Number"] = manpower_raw["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
+        manpower_raw["Staff"] = manpower_raw["Staff"].fillna("").astype(str)
+        manpower_raw["Start_Date"] = manpower_raw["Start_Date"].fillna("").astype(str)
+        manpower_raw["End_Date"] = manpower_raw["End_Date"].fillna("").astype(str)
+
+        manpower_df = manpower_raw.copy()
+except Exception as e:
+    st.error(f"讀取派工資料時發生錯誤：{e}")
+    manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 # ==============================================
 # Sidebar - 新增專案 + 搜尋 + 查看主日曆
 # ==============================================
@@ -161,7 +170,7 @@ if len(display_df) > 0:
                 manpower_html += "<small style='color:#555; font-weight:bold;'>派工人手：</small><br>"
                 for _, rec in manpower_records.iterrows():
                     start = rec["Start_Date"]
-                    end = rec["End_Date"] if pd.notna(rec["End_Date"]) and rec["End_Date"] else "進行中"
+                    end = rec["End_Date"].strip() if (pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip() != "") else "進行中"
                     manpower_html += f"<small>• {rec['Staff']} ({start} → {end})</small><br>"
                 manpower_html += "</div>"
             else:
