@@ -159,16 +159,25 @@ if len(display_df) > 0:
                     <p style="margin: 12px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{row["Project_Detail"]}</p>
                     {manpower_html}
                 </div>
-                <div style="text-align: right; min-width: 180px;">
-                    <span style="background:{status_color}; color:white; padding:8px 18px; border-radius:20px; font-weight:bold; font-size:1rem;">
-                        {row["Status"]}
-                    </span>
-                    <br><br>
-                    <small style="color:#888;">建立日期：{row["Date"]}</small>
+                <div style="text-align: right; min-width: 200px;">
+                    <div style="display: inline-block; text-align: center;">
+                        <span style="background:{status_color}; color:white; padding:10px 24px; border-radius:25px; font-weight:bold; font-size:1.1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: inline-block;">
+                            {row["Status"]}
+                        </span>
+                        <br><br>
+                        <small style="color:#777; font-size:0.95rem;">
+                            建立日期：{row["Date"]}
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """.replace("{", "{{").replace("}", "}}").format(
+            status_color=status_color,
+            row=row,
+            work_order_display=work_order_display,
+            manpower_html=manpower_html
+        ), unsafe_allow_html=True)
 
         # Edit / Delete 按鈕（放在卡片下方）
         col1, col2, col_spacer = st.columns([1, 1, 4])
