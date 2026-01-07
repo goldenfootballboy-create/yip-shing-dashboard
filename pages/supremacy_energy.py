@@ -105,7 +105,7 @@ with st.sidebar:
 # ==============================================
 # 主畫面標題
 # ==============================================
-st.title("SUPREMACY ENERGY - 副業專案管理")
+st.title("SUPREMACY ENERGY")
 
 # ==============================================
 # 搜尋過濾
@@ -227,8 +227,6 @@ if len(display_df) > 0:
 
                             st.success(f"已刪除借調：{rec['Staff']}")
                             st.rerun()
-                else:
-                    st.info("尚未借調人員")
 
                 # 專案編輯表單
                 with st.form(key=f"edit_form_{row['Quote_Number']}"):
