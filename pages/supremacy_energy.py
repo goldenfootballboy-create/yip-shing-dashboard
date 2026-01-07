@@ -122,7 +122,7 @@ if search_query:
         st.info("無搜尋結果")
 
 # ==============================================
-# 長方形卡片列表顯示（穩定版）
+# 長條形卡片列表顯示（窄版，適合大量資料）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -151,34 +151,36 @@ if len(display_df) > 0:
         else:
             manpower_section = ""
 
-        # 最終卡片渲染（f-string + 預先變數，絕不卡串）
+        # 長條卡片（置中、最大寬度900px）
         st.markdown(f"""
-        <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
-                <div style="flex: 1; min-width: 300px;">
-                    <h4 style="margin:0 0 8px 0; color:#1fb429;">{row['Quote_Number']}</h4>
-                    {work_order_line}
-                    <p style="margin: 8px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{row['Project_Detail']}</p>
-                    {manpower_section}
-                </div>
-                <div style="text-align: right; min-width: 180px;">
-                    <span style="background:{status_color}; color:white; padding:10px 24px; border-radius:25px; font-weight:bold; font-size:1.1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: inline-block;">
-                        {row['Status']}
-                    </span>
-                    <div style="margin-top: 16px; color:#777; font-size:0.95rem;">
-                        建立日期：{row['Date']}
+        <div style="max-width: 900px; margin: 0 auto 30px auto;">
+            <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+                    <div style="flex: 1; min-width: 280px;">
+                        <h4 style="margin:0 0 8px 0; color:#1fb429;">{row['Quote_Number']}</h4>
+                        {work_order_line}
+                        <p style="margin: 8px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{row['Project_Detail']}</p>
+                        {manpower_section}
+                    </div>
+                    <div style="text-align: right; min-width: 160px;">
+                        <span style="background:{status_color}; color:white; padding:8px 20px; border-radius:20px; font-weight:bold; font-size:1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.1); display: inline-block;">
+                            {row['Status']}
+                        </span>
+                        <div style="margin-top: 12px; color:#777; font-size:0.9rem;">
+                            建立日期：{row['Date']}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # Edit / Delete 按鈕
-        col1, col2 = st.columns([1, 1])
-        with col1:
+        # Edit / Delete 按鈕（置中）
+        btn_col1, btn_col2, btn_spacer1, btn_spacer2, btn_spacer3 = st.columns([1, 1, 1, 1, 2])
+        with btn_col1:
             if st.button("Edit", key=f"edit_{row['Quote_Number']}", use_container_width=True):
                 st.session_state[f"edit_mode_{row['Quote_Number']}"] = True
-        with col2:
+        with btn_col2:
             if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
                 st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
 
@@ -276,8 +278,6 @@ if len(display_df) > 0:
             if c2.button("取消", key=f"no_del_{row['Quote_Number']}", use_container_width=True):
                 del st.session_state[f"confirm_del_{row['Quote_Number']}"]
                 st.rerun()
-
-        st.markdown("<hr style='margin: 30px 0; border-color: #eee;'>", unsafe_allow_html=True)
 
 else:
     st.info("尚未新增任何副業專案" if not search_query else "無搜尋結果")
