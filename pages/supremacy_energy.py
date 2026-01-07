@@ -124,66 +124,61 @@ if search_query:
         st.info("無搜尋結果")
 
 # ==============================================
-# 長方形卡片列表顯示（已修正卡串問題）
+# 長方形卡片列表顯示（使用 f-string，完全解決卡串問題）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
 
     for _, row in sorted_df.iterrows():
-        status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
-                        "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
+        # 狀態顏色
+        status_color = {
+            "Quoting": "#ffaa00",
+            "Confirmed": "#00aa00",
+            "In Production": "#0066ff",
+            "Completed": "#66cc66"
+        }.get(row["Status"], "#888888")
 
+        # Work Order 顯示
         work_order_display = f"<small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
         # 借調顯示
         manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
         if len(manpower_records) > 0:
-            manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px dashed #ddd;'>"
-            manpower_html += "<small style='color:#000; font-weight:bold;'>借調：</small><br>"
+            manpower_lines = []
             for _, rec in manpower_records.iterrows():
                 start = rec["Start_Date"]
-                end = rec["End_Date"].strip() if (pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip()) else "進行中"
-                manpower_html += f"<small style='color:#000;'>• {rec['Staff']} ({start} → {end})</small><br>"
-            manpower_html += "</div>"
+                end = rec["End_Date"].strip() if pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip() else "進行中"
+                manpower_lines.append(f"• {rec['Staff']} ({start} → {end})")
+            manpower_html = f"<div style='margin-top:12px; padding-top:12px; border-top:1px dashed #ddd;'><small style='color:#000; font-weight:bold;'>借調：</small><br><small style='color:#000;'>" + "<br>".join(manpower_lines) + "</small></div>"
         else:
             manpower_html = ""
 
-        # 使用命名替換，避免與 HTML 中的 {} 衝突
-        card_html = """
+        # 使用 f-string 直接渲染整個卡片（最安全！）
+        st.markdown(f"""
         <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 300px;">
-                    <h4 style="margin:0 0 8px 0; color:#1fb429;">{quote_number}</h4>
+                    <h4 style="margin:0 0 8px 0; color:#1fb429;">{row['Quote_Number']}</h4>
                     {work_order_display}
-                    <p style="margin: 12px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{project_detail}</p>
+                    <p style="margin: 12px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{row['Project_Detail']}</p>
                     {manpower_html}
                 </div>
                 <div style="text-align: right; min-width: 200px;">
                     <div style="display: inline-block; text-align: center;">
                         <span style="background:{status_color}; color:white; padding:10px 24px; border-radius:25px; font-weight:bold; font-size:1.1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
-                            {status}
+                            {row['Status']}
                         </span>
                         <br><br>
                         <small style="color:#777; font-size:0.95rem;">
-                            建立日期：{date}
+                            建立日期：{row['Date']}
                         </small>
                     </div>
                 </div>
             </div>
         </div>
-        """.format(
-            status_color=status_color,
-            quote_number=row["Quote_Number"],
-            work_order_display=work_order_display,
-            project_detail=row["Project_Detail"],
-            manpower_html=manpower_html,
-            status=row["Status"],
-            date=row["Date"]
-        )
+        """, unsafe_allow_html=True)
 
-        st.markdown(card_html, unsafe_allow_html=True)
-
-        # Edit / Delete 按鈕（放在卡片下方）
+        # Edit / Delete 按鈕
         col1, col2, col_spacer = st.columns([1, 1, 4])
         with col1:
             if st.button("Edit", key=f"edit_{row['Quote_Number']}", use_container_width=True):
@@ -192,6 +187,7 @@ if len(display_df) > 0:
             if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
                 st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
 
+        # 後續編輯模式、刪除確認保持不變
         # 其餘編輯模式、刪除確認等保持不變（你原本的程式碼即可）
         # ... （後面的編輯模式和刪除確認邏輯照舊） ...
 
