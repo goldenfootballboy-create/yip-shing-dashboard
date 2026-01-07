@@ -124,7 +124,7 @@ if search_query:
         st.info("無搜尋結果")
 
 # ==============================================
-# 長方形卡片列表顯示（取代原本 4 欄）
+# 長方形卡片列表顯示（已修正卡串問題）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -133,8 +133,7 @@ if len(display_df) > 0:
         status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
                         "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-        work_order_display = f"<small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if \
-        row["Work_Order"] else ""
+        work_order_display = f"<small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
         # 借調顯示
         manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
@@ -149,7 +148,7 @@ if len(display_df) > 0:
         else:
             manpower_html = ""
 
-        # 長方形卡片（全寬）
+        # 使用命名替換，避免與 HTML 中的 {} 衝突
         card_html = """
         <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
@@ -183,6 +182,7 @@ if len(display_df) > 0:
         )
 
         st.markdown(card_html, unsafe_allow_html=True)
+
         # Edit / Delete 按鈕（放在卡片下方）
         col1, col2, col_spacer = st.columns([1, 1, 4])
         with col1:
@@ -191,6 +191,11 @@ if len(display_df) > 0:
         with col2:
             if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
                 st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
+
+        # 其餘編輯模式、刪除確認等保持不變（你原本的程式碼即可）
+        # ... （後面的編輯模式和刪除確認邏輯照舊） ...
+
+        st.markdown("<hr style='margin: 30px 0; border-color: #eee;'>", unsafe_allow_html=True)
 
         # ================ 編輯模式 ================
         if st.session_state.get(f"edit_mode_{row['Quote_Number']}", False):
