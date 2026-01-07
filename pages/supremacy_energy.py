@@ -45,7 +45,7 @@ try:
     if manpower_raw.empty or len(manpower_raw.columns) < 4:
         manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
     else:
-        if len(manpower_raw) > 0 and str(manpower_raw.iloc[0, 0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
+        if len(manpower_raw) > 0 and str(manpower_raw.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
             manpower_raw = manpower_raw.iloc[1:].reset_index(drop=True)
         manpower_raw.columns = ["Quote_Number", "Staff", "Start_Date", "End_Date"][:len(manpower_raw.columns)]
         manpower_raw["Quote_Number"] = manpower_raw["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
@@ -82,7 +82,7 @@ with st.sidebar:
                     "Status": status
                 }])
                 current_raw = conn.read(worksheet="supremacy_projects", ttl=0)
-                if len(current_raw) > 0 and str(current_raw.iloc[0, 0]).strip().lower() in ["date", "日期"]:
+                if len(current_raw) > 0 and str(current_raw.iloc[0,0]).strip().lower() in ["date", "日期"]:
                     current_raw = current_raw.iloc[1:]
                 updated_df = pd.concat([current_raw, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=updated_df)
@@ -105,7 +105,7 @@ with st.sidebar:
 # ==============================================
 # 主畫面標題
 # ==============================================
-st.title("SUPREMACY ENERGY")
+st.title("SUPREMACY ENERGY - 副業專案管理")
 
 # ==============================================
 # 搜尋過濾
@@ -122,54 +122,46 @@ if search_query:
         st.info("無搜尋結果")
 
 # ==============================================
-# 小卡片 4 欄顯示（原始風格，穩定版）
+# 卡片顯示
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
-
     cols = st.columns(4)
     for idx, row in sorted_df.iterrows():
         with cols[idx % 4]:
-            status_color = {
-                "Quoting": "#ffaa00",
-                "Confirmed": "#00aa00",
-                "In Production": "#0066ff",
-                "Completed": "#66cc66"
-            }.get(row["Status"], "#888888")
+            status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
+                            "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
+            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
-            work_order_line = f"<small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small><br>" if row["Work_Order"] else ""
-
-            # 借調顯示
             manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
-            manpower_lines = []
             if len(manpower_records) > 0:
+                manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee;'>"
+                manpower_html += "<small style='color:#000; font-weight:bold;'>借調：</small><br>"
                 for _, rec in manpower_records.iterrows():
                     start = rec["Start_Date"]
-                    end = rec["End_Date"].strip() if pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip() else "進行中"
-                    manpower_lines.append(f"• {rec['Staff']} ({start} → {end})")
-                manpower_section = f"<div style='margin-top:12px; padding-top:12px; border-top:1px dashed #ddd;'><small style='color:#000; font-weight:bold;'>借調：</small><br><small style='color:#000;'>" + "<br>".join(manpower_lines) + "</small></div>"
+                    end = rec["End_Date"].strip() if (pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip()) else "進行中"
+                    manpower_html += f"<small style='color:#000;'>• {rec['Staff']} ({start} → {end})</small><br>"
+                manpower_html += "</div>"
             else:
-                manpower_section = ""
+                manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee; color:#999;'><small>無借調記錄</small></div>"
 
-            # 小卡片
             st.markdown(f"""
-            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 260px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 260px;">
                 <div>
-                    <h5 style="margin:0 0 8px 0; color:#1fb429;">{row['Quote_Number']}</h5>
-                    {work_order_line}
-                    <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; flex-grow:1;">{row['Project_Detail']}</p>
-                    {manpower_section}
+                    <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
+                    {work_order_display}
+                    <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{row["Project_Detail"]}</p>
                 </div>
+                <div>{manpower_html}</div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-                    <span style="background:{status_color}; color:white; padding:6px 16px; border-radius:20px; font-size:0.95rem; font-weight:bold;">
-                        {row['Status']}
+                    <span style="background:{status_color}; color:white; padding:6px 16px; border-radius:20px; font-weight:bold;">
+                        {row["Status"]}
                     </span>
-                    <small style="color:#888;">{row['Date']}</small>
+                    <small style="color:#888;">{row["Date"]}</small>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            # Edit / Delete 按鈕
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Edit", key=f"edit_{row['Quote_Number']}", use_container_width=True):
@@ -178,15 +170,16 @@ if len(display_df) > 0:
                 if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
                     st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
 
-            # 編輯模式
+            # ================ 編輯模式 ================
             if st.session_state.get(f"edit_mode_{row['Quote_Number']}", False):
                 original_idx = projects_df[projects_df["Quote_Number"] == row["Quote_Number"]].index[0]
 
+                st.markdown("### 現有借調記錄（僅顯示刪除按鈕）")
                 current_manpower = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]].copy().reset_index(drop=True)
                 if len(current_manpower) > 0:
-                    st.markdown("### 現有借調記錄（僅顯示刪除按鈕）")
                     for m_idx, rec in current_manpower.iterrows():
                         if st.button(f"刪除借調：{rec['Staff']}", key=f"del_man_{row['Quote_Number']}_{m_idx}", type="secondary", use_container_width=True):
+                            # 刪除該筆借調
                             manpower_df = manpower_df.drop(
                                 manpower_df[
                                     (manpower_df["Quote_Number"] == row["Quote_Number"]) &
@@ -196,6 +189,7 @@ if len(display_df) > 0:
                             ).reset_index(drop=True)
                             conn.update(worksheet="supremacy_manpower", data=manpower_df)
 
+                            # 強制刷新最新資料
                             latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
                             if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
                                 latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
@@ -206,7 +200,10 @@ if len(display_df) > 0:
 
                             st.success(f"已刪除借調：{rec['Staff']}")
                             st.rerun()
+                else:
+                    st.info("尚未借調人員")
 
+                # 專案編輯表單
                 with st.form(key=f"edit_form_{row['Quote_Number']}"):
                     new_quote = st.text_input("Quote Number", value=row["Quote_Number"])
                     new_work_order = st.text_input("Work Order", value=row["Work_Order"])
@@ -239,6 +236,7 @@ if len(display_df) > 0:
                             manpower_df = pd.concat([manpower_df, new_rec], ignore_index=True)
                             conn.update(worksheet="supremacy_manpower", data=manpower_df)
 
+                            # 強制刷新
                             latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
                             if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
                                 latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
@@ -255,7 +253,7 @@ if len(display_df) > 0:
                         del st.session_state[f"edit_mode_{row['Quote_Number']}"]
                         st.rerun()
 
-            # 刪除專案確認
+            # ================ 刪除專案確認 ================
             if st.session_state.get(f"confirm_del_{row['Quote_Number']}", False):
                 st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
                 c1, c2 = st.columns(2)
