@@ -54,7 +54,7 @@ except Exception:
     manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
 # ==============================================
-# Sidebar
+# Sidebar (保持不變)
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -122,53 +122,57 @@ if search_query:
         st.info("無搜尋結果")
 
 # ==============================================
-# 卡片顯示
+# 長條形卡片顯示（長又扁）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
-    cols = st.columns(4)
-    for idx, row in sorted_df.iterrows():
-        with cols[idx % 4]:
-            status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
-                            "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
-            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
-            manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
-            if len(manpower_records) > 0:
-                manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee;'>"
-                manpower_html += "<small style='color:#000; font-weight:bold;'>借調：</small><br>"
-                for _, rec in manpower_records.iterrows():
-                    start = rec["Start_Date"]
-                    end = rec["End_Date"].strip() if (pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip()) else "進行中"
-                    manpower_html += f"<small style='color:#000;'>• {rec['Staff']} ({start} → {end})</small><br>"
-                manpower_html += "</div>"
-            else:
-                manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee; color:#999;'><small>無借調記錄</small></div>"
+    for _, row in sorted_df.iterrows():
+        status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
+                        "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-            st.markdown(f"""
-            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 120px;">
-                <div>
-                    <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
-                    {work_order_display}
-                    <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{row["Project_Detail"]}</p>
-                </div>
-                <div>{manpower_html}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-                    <span style="background:{status_color}; color:white; padding:6px 16px; border-radius:20px; font-weight:bold;">
-                        {row["Status"]}
-                    </span>
-                    <small style="color:#888;">{row["Date"]}</small>
+        work_order_display = f"<small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
+
+        manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
+        if len(manpower_records) > 0:
+            manpower_html = "<div style='margin-top:10px; padding-top:10px; border-top:1px dashed #ddd;'>"
+            manpower_html += "<small style='color:#000; font-weight:bold;'>借調：</small><br>"
+            for _, rec in manpower_records.iterrows():
+                start = rec["Start_Date"]
+                end = rec["End_Date"].strip() if (pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip()) else "進行中"
+                manpower_html += f"<small style='color:#000;'>• {rec['Staff']} ({start} → {end})</small><br>"
+            manpower_html += "</div>"
+        else:
+            manpower_html = ""
+
+        # 長條扁卡片
+        st.markdown(f"""
+        <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; min-height: 140px;">
+            <div style="flex: 1;">
+                <h4 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h4>
+                {work_order_display}
+                <p style="margin:10px 0 0 0; font-size:1.05rem; color:#333; line-height:1.6;">{row["Project_Detail"]}</p>
+                {manpower_html}
+            </div>
+            <div style="text-align: right; min-width: 180px;">
+                <span style="background:{status_color}; color:white; padding:8px 20px; border-radius:20px; font-weight:bold; font-size:1rem;">
+                    {row["Status"]}
+                </span>
+                <div style="margin-top: 10px; color:#777; font-size:0.95rem;">
+                    建立日期：{row["Date"]}
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+        </div>
+        """, unsafe_allow_html=True)
 
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("Edit", key=f"edit_{row['Quote_Number']}", use_container_width=True):
-                    st.session_state[f"edit_mode_{row['Quote_Number']}"] = True
-            with col2:
-                if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
-                    st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
+        # Edit / Delete 按鈕
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("Edit", key=f"edit_{row['Quote_Number']}", use_container_width=True):
+                st.session_state[f"edit_mode_{row['Quote_Number']}"] = True
+        with col2:
+            if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
+                st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
 
             # ================ 編輯模式 ================
             if st.session_state.get(f"edit_mode_{row['Quote_Number']}", False):
