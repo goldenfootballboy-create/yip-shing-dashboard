@@ -105,7 +105,7 @@ with st.sidebar:
 # ==============================================
 # 主畫面標題
 # ==============================================
-st.title("SUPREMACY ENERGY - 副業專案管理")
+st.title("SUPREMACY ENERGY")
 
 # ==============================================
 # 搜尋過濾
@@ -215,7 +215,7 @@ if len(display_df) > 0:
                     with col_ns:
                         new_start = st.date_input("開始日期", value=date.today(), key=f"ns_{row['Quote_Number']}")
                     with col_ne:
-                        new_end = st.date_input("結束日期（留空表示進行中）", value=None, key=f"ne_{row['Quote_Number']}")
+                        new_end = st.date_input("結束日期", value=None, key=f"ne_{row['Quote_Number']}")
 
                     col_save, col_cancel = st.columns(2)
                     if col_save.form_submit_button("SAVE", type="primary", use_container_width=True):
