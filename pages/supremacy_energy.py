@@ -122,7 +122,7 @@ if search_query:
         st.info("無搜尋結果")
 
 # ==============================================
-# 長條形卡片列表顯示（窄版，適合大量資料）
+# 窄版長條卡片列表顯示（最終版）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -151,7 +151,7 @@ if len(display_df) > 0:
         else:
             manpower_section = ""
 
-        # 長條卡片（置中、最大寬度900px）
+        # 窄版長條卡片（最大寬度900px，置中）
         st.markdown(f"""
         <div style="max-width: 900px; margin: 0 auto 30px auto;">
             <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
@@ -176,15 +176,15 @@ if len(display_df) > 0:
         """, unsafe_allow_html=True)
 
         # Edit / Delete 按鈕（置中）
-        btn_col1, btn_col2, btn_spacer1, btn_spacer2, btn_spacer3 = st.columns([1, 1, 1, 1, 2])
-        with btn_col1:
+        col1, col2, _, _, _ = st.columns([1, 1, 1, 1, 2])
+        with col1:
             if st.button("Edit", key=f"edit_{row['Quote_Number']}", use_container_width=True):
                 st.session_state[f"edit_mode_{row['Quote_Number']}"] = True
-        with btn_col2:
+        with col2:
             if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
                 st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
 
-        # 編輯模式
+        # 編輯模式與刪除確認（保持原邏輯）
         if st.session_state.get(f"edit_mode_{row['Quote_Number']}", False):
             original_idx = projects_df[projects_df["Quote_Number"] == row["Quote_Number"]].index[0]
 
@@ -202,7 +202,6 @@ if len(display_df) > 0:
                         ).reset_index(drop=True)
                         conn.update(worksheet="supremacy_manpower", data=manpower_df)
 
-                        # 強制刷新
                         latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
                         if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
                             latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
@@ -214,7 +213,6 @@ if len(display_df) > 0:
                         st.success(f"已刪除借調：{rec['Staff']}")
                         st.rerun()
 
-            # 編輯表單
             with st.form(key=f"edit_form_{row['Quote_Number']}"):
                 new_quote = st.text_input("Quote Number", value=row["Quote_Number"])
                 new_work_order = st.text_input("Work Order", value=row["Work_Order"])
@@ -247,7 +245,6 @@ if len(display_df) > 0:
                         manpower_df = pd.concat([manpower_df, new_rec], ignore_index=True)
                         conn.update(worksheet="supremacy_manpower", data=manpower_df)
 
-                        # 強制刷新
                         latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
                         if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
                             latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
@@ -264,7 +261,6 @@ if len(display_df) > 0:
                     del st.session_state[f"edit_mode_{row['Quote_Number']}"]
                     st.rerun()
 
-        # 刪除專案確認
         if st.session_state.get(f"confirm_del_{row['Quote_Number']}", False):
             st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
             c1, c2 = st.columns(2)
