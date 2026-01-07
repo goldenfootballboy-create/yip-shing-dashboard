@@ -201,6 +201,7 @@ if len(display_df) > 0:
                 else:
                     st.info("尚未借調人員")
 
+                # 專案編輯表單
                 with st.form(key=f"edit_form_{row['Quote_Number']}"):
                     new_quote = st.text_input("Quote Number", value=row["Quote_Number"])
                     new_work_order = st.text_input("Work Order", value=row["Work_Order"])
@@ -214,14 +215,6 @@ if len(display_df) > 0:
                         new_start = st.date_input("開始日期", value=date.today(), key=f"ns_{row['Quote_Number']}")
                     with col_ne:
                         new_end = st.date_input("結束日期（留空表示進行中）", value=None, key=f"ne_{row['Quote_Number']}")
-
-                    # === 儲存借調按鈕放在這裡，用 expander 收合 ===
-                    with st.expander("💾 儲存借調（進階）", expanded=False):
-                        st.caption("手動強制將目前所有借調資料寫入 Google Sheet")
-                        if st.button("立即儲存所有借調記錄", type="primary", key=f"save_manpower_{row['Quote_Number']}"):
-                            conn.update(worksheet="supremacy_manpower", data=manpower_df)
-                            st.success("✅ 所有借調記錄已成功儲存！")
-                            st.rerun()
 
                     col_save, col_cancel = st.columns(2)
                     if col_save.form_submit_button("SAVE", type="primary", use_container_width=True):
@@ -247,6 +240,14 @@ if len(display_df) > 0:
 
                     if col_cancel.form_submit_button("取消", use_container_width=True):
                         del st.session_state[f"edit_mode_{row['Quote_Number']}"]
+                        st.rerun()
+
+                # 儲存借調按鈕（獨立於 form 之外）
+                with st.expander("💾 儲存借調（進階）", expanded=False):
+                    st.caption("點擊後立即將目前所有借調資料強制寫入 Google Sheet")
+                    if st.button("立即儲存所有借調記錄", type="primary", key=f"save_manpower_{row['Quote_Number']}"):
+                        conn.update(worksheet="supremacy_manpower", data=manpower_df)
+                        st.success("✅ 所有借調記錄已成功儲存到 Google Sheet！")
                         st.rerun()
 
             # ================ 刪除專案確認 ================
