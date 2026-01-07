@@ -83,7 +83,7 @@ with st.sidebar:
                     "Status": status
                 }])
                 current_raw = conn.read(worksheet="supremacy_projects", ttl=0)
-                if len(current_raw) > 0 and str(current_raw.iloc[0,0]).strip().lower() in ["date", "日期"]:
+                if len(current_raw) > 0 and str(current_raw.iloc[0, 0]).strip().lower() in ["date", "日期"]:
                     current_raw = current_raw.iloc[1:]
                 updated_df = pd.concat([current_raw, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=updated_df)
@@ -109,7 +109,7 @@ with st.sidebar:
 
     st.markdown("### 📅 快捷連結")
     if st.button("📅 查看主日曆", type="primary", use_container_width=True):
-        st.switch_page("YipShing.py")  # 改成你的主頁面檔名
+        st.switch_page("YipShing.py")
         st.session_state.view_mode = "calendar"
 
 # ==============================================
@@ -124,8 +124,8 @@ display_df = projects_df.copy()
 if search_query:
     query = search_query.strip().lower()
     mask = (
-        display_df["Quote_Number"].astype(str).str.lower().str.contains(query) |
-        display_df["Work_Order"].astype(str).str.lower().str.contains(query)
+            display_df["Quote_Number"].astype(str).str.lower().str.contains(query) |
+            display_df["Work_Order"].astype(str).str.lower().str.contains(query)
     )
     display_df = display_df[mask].reset_index(drop=True)
     if len(display_df) == 0:
@@ -134,7 +134,7 @@ if search_query:
         st.success(f"找到 {len(display_df)} 個符合的專案")
 
 # ==============================================
-# 卡片顯示（清爽版，不顯示 Man Power）
+# 卡片顯示
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -149,9 +149,9 @@ if len(display_df) > 0:
                 "Completed": "#66cc66"
             }.get(row["Status"], "#888888")
 
-            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
+            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if \
+            row["Work_Order"] else ""
 
-            # 清爽卡片（不顯示 Man Power）
             st.markdown(f"""
             <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 220px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
@@ -173,11 +173,16 @@ if len(display_df) > 0:
             with col1:
                 if st.button("Edit", key=f"edit_sup_{row['Quote_Number']}", use_container_width=True):
                     st.session_state[f"edit_mode_sup_{row['Quote_Number']}"] = True
+                    # 確保不會同時顯示刪除確認
+                    if st.session_state.get(f"confirm_delete_sup_{row['Quote_Number']}"):
+                        del st.session_state[f"confirm_delete_sup_{row['Quote_Number']}"]
+
             with col2:
-                if st.button("Delete", key=f"delete_sup_{row['Quote_Number']}", type="secondary", use_container_width=True):
+                if st.button("Delete", key=f"delete_sup_{row['Quote_Number']}", type="secondary",
+                             use_container_width=True):
                     st.session_state[f"confirm_delete_sup_{row['Quote_Number']}"] = True
 
-            # Edit 表單（完整支援修改/刪除/新增派工）
+            # === 編輯模式 ===
             if st.session_state.get(f"edit_mode_sup_{row['Quote_Number']}", False):
                 original_idx = projects_df[projects_df["Quote_Number"] == row["Quote_Number"]].index[0]
                 with st.form(key=f"edit_form_sup_{row['Quote_Number']}"):
@@ -186,54 +191,50 @@ if len(display_df) > 0:
                     new_detail = st.text_area("Project Detail", value=row["Project_Detail"], height=120)
                     new_status = st.selectbox("Status", status_options, index=status_options.index(row["Status"]))
 
-                    # 現有派工記錄（可修改/刪除）
                     st.markdown("**現有人手派工（可修改或刪除）**")
                     current_manpower = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]].copy()
-                    deleted_indices = []
                     if len(current_manpower) > 0:
                         for m_idx, rec in current_manpower.iterrows():
-                            st.markdown(f"**派工記錄**")
+                            st.markdown("**派工記錄**")
                             col_staff, col_start, col_end, col_del = st.columns([2, 2, 2, 1])
                             with col_staff:
-                                staff_edit = st.text_input("員工姓名", value=rec["Staff"], key=f"staff_edit_{row['Quote_Number']}_{m_idx}")
+                                st.text_input("員工姓名", value=rec["Staff"],
+                                              key=f"staff_edit_{row['Quote_Number']}_{m_idx}", disabled=True)
                             with col_start:
-                                start_edit = st.date_input("開始日期", value=pd.to_datetime(rec["Start_Date"]), key=f"start_edit_{row['Quote_Number']}_{m_idx}")
+                                st.date_input("開始日期", value=pd.to_datetime(rec["Start_Date"]),
+                                              key=f"start_edit_{row['Quote_Number']}_{m_idx}", disabled=True)
                             with col_end:
-                                end_edit = st.date_input("結束日期", value=pd.to_datetime(rec["End_Date"]) if rec["End_Date"] else None, key=f"end_edit_{row['Quote_Number']}_{m_idx}")
+                                end_val = pd.to_datetime(rec["End_Date"]) if pd.notna(rec["End_Date"]) and rec[
+                                    "End_Date"] else None
+                                st.date_input("結束日期", value=end_val, key=f"end_edit_{row['Quote_Number']}_{m_idx}",
+                                              disabled=True)
                             with col_del:
-                                if st.button("刪除", key=f"del_manpower_{row['Quote_Number']}_{m_idx}", type="secondary"):
-                                    deleted_indices.append(m_idx)
+                                st.write("（需重新編輯保存）")
 
-                    # 新增派工
                     st.markdown("**新增派工**")
                     new_staff = st.text_input("新員工姓名")
                     col_new_s, col_new_e = st.columns(2)
                     with col_new_s:
-                        new_start = st.date_input("開始日期", value=date.today())
+                        new_start = st.date_input("開始日期", value=date.today(),
+                                                  key=f"new_start_{row['Quote_Number']}")
                     with col_new_e:
-                        new_end = st.date_input("結束日期", value=None, help="留空表示進行中")
+                        new_end = st.date_input("結束日期", value=None, help="留空表示進行中",
+                                                key=f"new_end_{row['Quote_Number']}")
 
                     col_save, col_cancel = st.columns(2)
                     if col_save.form_submit_button("Save", type="primary", use_container_width=True):
-                        # 更新專案主資料
                         projects_df.at[original_idx, "Quote_Number"] = new_quote.strip()
                         projects_df.at[original_idx, "Work_Order"] = new_work_order.strip()
                         projects_df.at[original_idx, "Project_Detail"] = new_detail.strip()
                         projects_df.at[original_idx, "Status"] = new_status
                         conn.update(worksheet="supremacy_projects", data=projects_df)
 
-                        # 更新派工記錄（安全處理空資料）
+                        # 處理派工（這裡僅支援新增，舊派工不變）
                         latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
-                        if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip() == "Quote_Number":
+                        if not latest_manpower.empty and str(
+                                latest_manpower.iloc[0, 0]).strip().lower() == "quote_number":
                             latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
 
-                        # 過濾掉舊的該專案派工記錄
-                        if latest_manpower.empty:
-                            filtered = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
-                        else:
-                            filtered = latest_manpower[latest_manpower["Quote_Number"] != new_quote.strip()]
-
-                        # 新增新派工
                         if new_staff.strip():
                             new_rec = pd.DataFrame([{
                                 "Quote_Number": new_quote.strip(),
@@ -241,60 +242,67 @@ if len(display_df) > 0:
                                 "Start_Date": new_start.strftime("%Y-%m-%d"),
                                 "End_Date": new_end.strftime("%Y-%m-%d") if new_end else ""
                             }])
-                            final_df = pd.concat([filtered, new_rec], ignore_index=True)
+                            final_df = pd.concat([latest_manpower, new_rec], ignore_index=True)
                         else:
-                            final_df = filtered
+                            final_df = latest_manpower
 
                         conn.update(worksheet="supremacy_manpower", data=final_df)
 
-                        st.success("已更新專案與派工！")
+                        st.success("已更新專案與新增派工！")
+                        del st.session_state[f"edit_mode_sup_{row['Quote_Number']}"]
                         st.rerun()
 
                     if col_cancel.form_submit_button("Cancel", use_container_width=True):
                         del st.session_state[f"edit_mode_sup_{row['Quote_Number']}"]
                         st.rerun()
-                #Delete
-                if st.session_state.get(f"confirm_delete_sup_{row['Quote_Number']}", False):
-                    st.warning(f"確定要刪除專案 **{row['Quote_Number']}** 嗎？此操作無法復原！")
-                    col_yes, col_no = st.columns(2)
-                    if col_yes.button("Yes, Delete", type="primary", key=f"yes_sup_{row['Quote_Number']}"):
-                        # 先更新 Google Sheet（刪除專案）
-                        projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(
-                            drop=True)
-                        conn.update(worksheet="supremacy_projects", data=projects_df)
 
-                        # 刪除相關派工
-                        manpower_df = manpower_df[manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(
-                            drop=True)
-                        conn.update(worksheet="supremacy_manpower", data=manpower_df)
+            # === 刪除確認（獨立於 Edit 表單）===
+            if st.session_state.get(f"confirm_delete_sup_{row['Quote_Number']}", False):
+                st.warning(f"⚠️ 確定要**永久刪除**專案 **{row['Quote_Number']}** 嗎？此操作無法復原！")
 
-                        # 關鍵：強制重新讀取最新資料，更新全域變數
-                        latest_projects = conn.read(worksheet="supremacy_projects", ttl=0)
-                        if not latest_projects.empty and str(latest_projects.iloc[0, 0]).strip().lower() in ["date",
-                                                                                                             "日期"]:
-                            latest_projects = latest_projects.iloc[1:].reset_index(drop=True)
+                col_yes, col_no = st.columns(2)
+                if col_yes.button("Yes, Delete Permanently", type="primary",
+                                  key=f"yes_sup_{row['Quote_Number']}", use_container_width=True):
+
+                    # 從本地資料移除
+                    projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                    conn.update(worksheet="supremacy_projects", data=projects_df)
+
+                    manpower_df = manpower_df[manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                    conn.update(worksheet="supremacy_manpower", data=manpower_df)
+
+                    # 強制刷新最新資料
+                    latest_projects = conn.read(worksheet="supremacy_projects", ttl=0)
+                    if not latest_projects.empty and str(latest_projects.iloc[0, 0]).strip().lower() in ["date",
+                                                                                                         "日期"]:
+                        latest_projects = latest_projects.iloc[1:].reset_index(drop=True)
+                    if not latest_projects.empty:
+                        latest_projects = latest_projects.iloc[:, :5]
                         latest_projects.columns = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
                         latest_projects["Quote_Number"] = latest_projects["Quote_Number"].astype(str).str.replace(".0",
                                                                                                                   "",
                                                                                                                   regex=False)
                         latest_projects["Work_Order"] = latest_projects["Work_Order"].fillna("").astype(str)
+                    projects_df = latest_projects.copy() if not latest_projects.empty else pd.DataFrame(
+                        columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
 
-                        # 用最新資料取代舊的 projects_df
-                        projects_df = latest_projects.copy()
+                    latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
+                    manpower_df = latest_manpower.copy() if not latest_manpower.empty else pd.DataFrame(
+                        columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
-                        # 同樣更新 manpower_df
-                        latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
-                        if not latest_manpower.empty and str(
-                                latest_manpower.iloc[0, 0]).strip().lower() == "quote_number":
-                            latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
-                        manpower_df = latest_manpower.copy()
+                    # 清除狀態
+                    keys_to_clear = [k for k in st.session_state.keys() if
+                                     k.startswith(f"edit_mode_sup_{row['Quote_Number']}") or k.startswith(
+                                         f"confirm_delete_sup_{row['Quote_Number']}")]
+                    for k in keys_to_clear:
+                        del st.session_state[k]
 
-                        st.success("已成功刪除專案與相關派工記錄！")
-                        st.rerun()
+                    st.success(f"已成功刪除專案 {row['Quote_Number']} 及其所有派工記錄！")
+                    st.rerun()
 
-                    if col_no.button("Cancel", key=f"no_sup_{row['Quote_Number']}"):
-                        del st.session_state[f"confirm_delete_sup_{row['Quote_Number']}"]
-                        st.rerun()
+                if col_no.button("Cancel", key=f"no_sup_{row['Quote_Number']}", use_container_width=True):
+                    del st.session_state[f"confirm_delete_sup_{row['Quote_Number']}"]
+                    st.rerun()
 
 else:
     if search_query:
