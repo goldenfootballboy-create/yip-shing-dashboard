@@ -1126,6 +1126,7 @@ if st.session_state.get("spec_dialog_open", False):
                         s_avm_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_avm_source_{i}", label_visibility="collapsed")
 
                     s_avm_qty = st.number_input("Qty(數量)", min_value=0, value=0, key=f"dlg_avm_qty_{i}")
+                    s_avm_model = st.text_input("Anti-Vibration Mount model(避震器型號)", key=f"dlg_avm_model_{i}")
 
                 st.markdown("---")
 
@@ -1357,7 +1358,8 @@ if st.session_state.get("spec_dialog_open", False):
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
                     "parts": cleaned_parts,
-                    "delivery_checklist": cleaned_checklist
+                    "delivery_checklist": cleaned_checklist,
+                    "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
 
