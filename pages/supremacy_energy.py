@@ -34,6 +34,7 @@ try:
         projects_df = raw_df.copy()
         projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
         projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
+        # 關鍵：轉換 Date 為 datetime 以支援 .dt.year / .dt.month
         projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
 except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
@@ -92,21 +93,22 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # === 新增：年份與月份篩選 ===
+    # === Filter by Date ===
     st.markdown("### 📅 Filter by Date")
 
-    # 年份選項（自動從資料取得）
-    years = sorted(projects_df["Date"].dt.year.unique(), reverse=True)
-    selected_year = st.selectbox("Year", ["All"] + list(years), index=0)
+    # 年份選項（自動取得 + 加入 2025）
+    years = sorted(projects_df["Date"].dt.year.dropna().unique(), reverse=True)
+    years = list(years) + [2025] if 2025 not in years else list(years)
+    selected_year = st.selectbox("Year", ["All"] + years, index=0, key="filter_year")
 
     # 月份選項
     months = ["All", "January", "February", "March", "April", "May", "June",
               "July", "August", "September", "October", "November", "December"]
-    selected_month = st.selectbox("Month", months, index=0)
+    selected_month = st.selectbox("Month", months, index=0, key="filter_month")
 
     st.markdown("---")
 
-    # === 搜尋專案（保持原樣）===
+    # === Search Projects ===
     st.markdown("### 🔍 Search Projects")
     search_query = st.text_input("Enter Quote Number or Work Order", key="supremacy_search", label_visibility="collapsed")
     if st.button("Clear Search", type="secondary", use_container_width=True):
@@ -122,21 +124,36 @@ with st.sidebar:
 st.title("SUPREMACY ENERGY")
 
 # ==============================================
-# 搜尋過濾
+# 搜尋 + 年月篩選（現在會生效）
 # ==============================================
 display_df = projects_df.copy()
+
+# 搜尋
 if search_query:
     query = search_query.strip().lower()
     mask = (display_df["Quote_Number"].str.lower().str.contains(query) |
             display_df["Work_Order"].str.lower().str.contains(query))
-    display_df = display_df[mask].reset_index(drop=True)
-    if len(display_df) > 0:
-        st.success(f"找到 {len(display_df)} 個符合的專案")
-    else:
-        st.info("無搜尋結果")
+    display_df = display_df[mask]
+
+# 年份篩選
+if st.session_state.get("filter_year") != "All":
+    selected_year = st.session_state["filter_year"]
+    display_df = display_df[display_df["Date"].dt.year == selected_year]
+
+# 月份篩選
+if st.session_state.get("filter_month") != "All":
+    selected_month = st.session_state["filter_month"]
+    month_num = months.index(selected_month)
+    display_df = display_df[display_df["Date"].dt.month == month_num]
+
+# 顯示結果數量
+if len(display_df) > 0:
+    st.success(f"Found {len(display_df)} matching projects")
+else:
+    st.info("No projects found")
 
 # ==============================================
-# 長條卡片顯示（取消進度條，卡片變小）
+# 長條卡片顯示
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -145,47 +162,46 @@ if len(display_df) > 0:
         status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
                         "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-        work_order_text = f"Work Order: {row['Work_Order'] or '無'}" if row["Work_Order"] else ""
+        # Quote Number 和 Work Order 並排
+        quote_line = f"<div style='font-weight: bold; font-size: 1.1rem; color: #1fb429;'>Quote Number：{row['Quote_Number']}</div>"
+        work_order_line = f"<div style='font-size: 1.0rem; color: #333;'>Work Order：{row['Work_Order'] or '無'}</div>"
 
+        # 借調顯示人名
         manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
         if len(manpower_records) > 0:
-            staff_names = [rec.Staff.strip() for rec in manpower_records.itertuples()
-                           if rec.Staff and rec.Staff.strip()]
+            staff_names = [rec["Staff"].strip() for rec in manpower_records.itertuples() if rec.Staff and rec.Staff.strip()]
             manpower_text = "借調：" + "、".join(staff_names) if staff_names else "尚未借調"
         else:
             manpower_text = "尚未借調"
 
+        # 右側狀態與日期
+        right_section = f"""
+        <div style="text-align: right; min-width: 140px;">
+            <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:18px; font-weight:bold; font-size:0.85rem;">
+                {row["Status"]}
+            </span>
+            <div style="margin-top: 8px; color:#777; font-size:0.85rem;">
+                建立日期：{row["Date"].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"}
+            </div>
+        </div>
+        """
 
-        # 長條卡片顯示
+        # 長條卡片
         st.markdown(f"""
-        <div style="background: white; border-left: 6px solid {status_color}; border-radius: 10px; padding: 14px 16px; margin: 10px 0; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
-                <div style="flex: 1; min-width: 280px;">
-                    <!-- Quote Number 和 Work Order 並排 -->
-                    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: baseline; margin-bottom: 8px;">
-                        <div style="font-size: 1.0rem; color: #333;">
-                            Quote Number：{row['Quote_Number']}
-                        </div>
-                        <div style="font-size: 1.0rem; color: #333;">
-                            Work Order：{row['Work_Order'] or '無'}
-                        </div>
-                    </div>
-                    <p style="margin: 8px 0 0 0; font-size: 0.9rem; color: #444; line-height: 1.4;">
-                        {row['Project_Detail']}
-                    </p>
-                    <div style="font-size: 0.85rem; color: #000; margin-top: 8px; font-weight: 500;">
-                        {manpower_text}
-                    </div>
+        <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+            <div style="flex: 1;">
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: baseline; margin-bottom: 10px;">
+                    {quote_line}
+                    {work_order_line}
                 </div>
-                <div style="text-align: right; min-width: 140px;">
-                    <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:18px; font-weight:bold; font-size:0.85rem;">
-                        {row['Status']}
-                    </span>
-                    <div style="margin-top: 8px; color:#777; font-size:0.85rem;">
-                        建立日期：{row['Date']}
-                    </div>
+                <p style="margin: 10px 0 0 0; font-size: 0.95rem; color: #444; line-height: 1.5;">
+                    {row['Project_Detail']}
+                </p>
+                <div style="font-size: 0.9rem; color: #000; margin-top: 10px; font-weight: 500;">
+                    {manpower_text}
                 </div>
             </div>
+            {right_section}
         </div>
         """, unsafe_allow_html=True)
 
