@@ -187,7 +187,7 @@ if len(display_df) > 0:
             if st.session_state.get(f"edit_mode_{row['Quote_Number']}", False):
                 original_idx = projects_df[projects_df["Quote_Number"] == row["Quote_Number"]].index[0]
 
-                st.markdown("### 現有借調記錄（僅顯示刪除按鈕）")
+                st.markdown("### 現有借調記錄")
                 current_manpower = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]].copy().reset_index(drop=True)
                 if len(current_manpower) > 0:
                     for m_idx, rec in current_manpower.iterrows():
