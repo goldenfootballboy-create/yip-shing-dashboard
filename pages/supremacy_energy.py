@@ -149,7 +149,7 @@ if len(display_df) > 0:
                 <div style="flex: 1; min-width: 280px;">
                     <!-- Quote Number 和 Work Order 並排 -->
                     <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: baseline; margin-bottom: 8px;">
-                        <div style="font-weight: bold; font-size: 1.1rem; color: #1fb429;">
+                        <div style="font-size: 1.0rem; color: #333;">
                             Quote Number：{row['Quote_Number']}
                         </div>
                         <div style="font-size: 1.0rem; color: #333;">
