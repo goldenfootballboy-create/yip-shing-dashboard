@@ -299,11 +299,32 @@ if len(display_df) > 0:
                 st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
                 c1, c2 = st.columns(2)
                 if c1.button("確認刪除", type="primary", key=f"yes_del_{row['Quote_Number']}", use_container_width=True):
+                    # 先從本地移除
                     projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
                     conn.update(worksheet="supremacy_projects", data=projects_df)
+
                     manpower_df = manpower_df[manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
                     conn.update(worksheet="supremacy_manpower", data=manpower_df)
-                    st.success("專案及所有借調已刪除！")
+
+                    # 關鍵：強制從 Google Sheet 重新讀取最新資料，覆蓋本地快取
+                    latest_projects = conn.read(worksheet="supremacy_projects", ttl=0)
+                    if not latest_projects.empty and str(latest_projects.iloc[0,0]).strip().lower() in ["date", "日期"]:
+                        latest_projects = latest_projects.iloc[1:].reset_index(drop=True)
+                    latest_projects = latest_projects.iloc[:, :5]
+                    latest_projects.columns = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
+                    latest_projects["Quote_Number"] = latest_projects["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
+                    latest_projects["Work_Order"] = latest_projects["Work_Order"].fillna("").astype(str)
+                    latest_projects["Date"] = pd.to_datetime(latest_projects["Date"], errors="coerce")
+                    projects_df = latest_projects.copy()
+
+                    latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
+                    if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
+                        latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
+                    latest_manpower.columns = ["Quote_Number", "Staff", "Start_Date", "End_Date"][:len(latest_manpower.columns)]
+                    latest_manpower["Quote_Number"] = latest_manpower["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
+                    manpower_df = latest_manpower.copy()
+
+                    st.success("專案及所有借調已成功刪除！")
                     st.rerun()
                 if c2.button("取消", key=f"no_del_{row['Quote_Number']}", use_container_width=True):
                     del st.session_state[f"confirm_del_{row['Quote_Number']}"]
