@@ -90,12 +90,15 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
-    st.markdown("### 🔍 搜尋專案")
-    search_query = st.text_input("輸入 Quote Number 或 Work Order", key="supremacy_search", label_visibility="collapsed")
-    if st.button("清除搜尋", type="secondary", use_container_width=True):
+
+    st.markdown("### 🔍 Search Projects")
+    search_query = st.text_input("Enter Quote Number or Work Order", key="supremacy_search", label_visibility="collapsed")
+    if st.button("Clear Search", type="secondary", use_container_width=True):
         if "supremacy_search" in st.session_state:
             del st.session_state.supremacy_search
         st.rerun()
+
+    st.markdown("---")
 
     st.markdown("---")
 
