@@ -134,8 +134,11 @@ if len(display_df) > 0:
         work_order_text = f"Work Order: {row['Work_Order'] or '無'}" if row["Work_Order"] else ""
 
         manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
-        manpower_count = len(manpower_records)
-        manpower_text = f"借調人手：{manpower_count} 人" if manpower_count > 0 else "尚未借調"
+        if len(manpower_records) > 0:
+            staff_names = [rec["Staff"].strip() for rec in manpower_records.itertuples() if rec.Staff and rec.Staff.strip()]
+            manpower_text = "借調：" + "、".join(staff_names) if staff_names else "尚未借調"
+        else:
+            manpower_text = "尚未借調"
 
 
         # 長條卡片顯示
