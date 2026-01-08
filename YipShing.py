@@ -5,13 +5,6 @@ import json
 from datetime import date
 import time
 from streamlit_calendar import calendar
-# 在 YipShing.py 開頭
-if "view_mode" in st.session_state and st.session_state.view_mode == "calendar":
-    st.session_state.view_mode = None  # 清空，避免重複觸發
-    # 直接顯示日曆（跳到日曆區塊）
-    # 假設你的日曆程式碼在後面有 st.title("🗓️ 專案日曆視圖 ...") 那段
-    # 我們直接執行日曆部分
-    st.title("🗓️ 專案日曆視圖 - 拖曳或點擊即可修改進度日期")
 # 全局安全 index 函數（防止 selectbox index 錯誤）
 def safe_index(val, options, default=0):
     try:
