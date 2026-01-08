@@ -99,8 +99,8 @@ with st.sidebar:
 
     st.markdown("---")
     if st.button("📅 查看主日曆", type="primary", use_container_width=True):
-        st.session_state.view_mode = "calendar"
-        st.switch_page("YipShing.py")
+        st.session_state.view_mode = "calendar"  # 先設狀態
+        st.switch_page("YipShing.py")            # 再跳頁
 
 # ==============================================
 # 主畫面標題
