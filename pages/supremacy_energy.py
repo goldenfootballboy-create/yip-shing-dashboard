@@ -128,30 +128,18 @@ st.title("SUPREMACY ENERGY")
 # ==============================================
 display_df = projects_df.copy()
 
-# 搜尋
-if search_query:
+has_search = bool(search_query and search_query.strip())
+
+if has_search:
     query = search_query.strip().lower()
     mask = (display_df["Quote_Number"].str.lower().str.contains(query) |
             display_df["Work_Order"].str.lower().str.contains(query))
     display_df = display_df[mask]
 
-# 年份篩選
-if st.session_state.get("filter_year") != "All":
-    selected_year = st.session_state["filter_year"]
-    display_df = display_df[display_df["Date"].dt.year == selected_year]
-
-# 月份篩選
-if st.session_state.get("filter_month") != "All":
-    selected_month = st.session_state["filter_month"]
-    month_num = months.index(selected_month)
-    display_df = display_df[display_df["Date"].dt.month == month_num]
-
-# 顯示結果數量
-if len(display_df) > 0:
-    st.success(f"Found {len(display_df)} matching projects")
-else:
-    st.info("No projects found")
-
+    if len(display_df) > 0:
+        st.success(f"找到 {len(display_df)} 個符合的專案")
+    else:
+        st.info("無搜尋結果")
 # ==============================================
 # 長條卡片顯示
 # ==============================================
