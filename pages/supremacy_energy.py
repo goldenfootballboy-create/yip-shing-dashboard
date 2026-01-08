@@ -137,31 +137,34 @@ if len(display_df) > 0:
         manpower_count = len(manpower_records)
         manpower_text = f"借調人手：{manpower_count} 人" if manpower_count > 0 else "尚未借調"
 
-        # 取消進度條，使用純白背景
-        # 卡片變小：縮小 padding、margin、字體
+
+        # 長條卡片顯示
         st.markdown(f"""
-        <div style="background: white; border-left: 5px solid {status_color}; border-radius: 8px; padding: 10px 14px; margin: 8px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
-                <div style="flex: 1; min-width: 250px;">
-                    <div style="font-weight: bold; font-size: 1.0rem; color: #1fb429;">
-                        {row['Quote_Number']}
+        <div style="background: white; border-left: 6px solid {status_color}; border-radius: 10px; padding: 14px 16px; margin: 10px 0; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                <div style="flex: 1; min-width: 280px;">
+                    <!-- Quote Number 和 Work Order 並排 -->
+                    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: baseline; margin-bottom: 8px;">
+                        <div style="font-weight: bold; font-size: 1.1rem; color: #1fb429;">
+                            Quote Number：{row['Quote_Number']}
+                        </div>
+                        <div style="font-size: 1.0rem; color: #333;">
+                            Work Order：{row['Work_Order'] or '無'}
+                        </div>
                     </div>
-                    <div style="font-size: 0.85rem; color: #333; margin-top: 3px;">
-                        Work Order: <strong>{row['Work_Order'] or '無'}</strong>
-                    </div>
-                    <p style="margin:6px 0 0 0; font-size: 0.8rem; color: #444; line-height: 1.35;">
+                    <p style="margin: 8px 0 0 0; font-size: 0.9rem; color: #444; line-height: 1.4;">
                         {row['Project_Detail']}
                     </p>
-                    <div style="font-size: 0.8rem; color: #000; margin-top: 6px; font-weight: 500;">
+                    <div style="font-size: 0.85rem; color: #000; margin-top: 8px; font-weight: 500;">
                         {manpower_text}
                     </div>
                 </div>
                 <div style="text-align: right; min-width: 140px;">
-                    <span style="background:{status_color}; color:white; padding:4px 12px; border-radius:16px; font-weight:bold; font-size:0.8rem;">
+                    <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:18px; font-weight:bold; font-size:0.85rem;">
                         {row['Status']}
                     </span>
-                    <div style="margin-top: 6px; color:#777; font-size:0.8rem;">
-                        {row['Date']}
+                    <div style="margin-top: 8px; color:#777; font-size:0.85rem;">
+                        建立日期：{row['Date']}
                     </div>
                 </div>
             </div>
