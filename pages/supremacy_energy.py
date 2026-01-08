@@ -59,31 +59,6 @@ except Exception:
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
 
-    # === 搜尋專案（移到最上方，更常用）===
-    st.markdown("### 🔍 Search Projects")
-    search_query = st.text_input("Enter Quote Number or Work Order", key="supremacy_search", label_visibility="collapsed")
-    if st.button("Clear Search", type="secondary", use_container_width=True):
-        if "supremacy_search" in st.session_state:
-            del st.session_state.supremacy_search
-        st.rerun()
-
-    st.markdown("---")
-
-    # === 年份 & 月份篩選 ===
-    st.markdown("### 📅 Filter by Date")
-
-    # 年份選項（自動從資料取）
-    years = sorted(projects_df["Date"].dt.year.unique(), reverse=True)
-    selected_year = st.selectbox("Year", ["All"] + list(years), index=0)
-
-    # 月份選項（英文）
-    months = ["All", "January", "February", "March", "April", "May", "June",
-              "July", "August", "September", "October", "November", "December"]
-    selected_month = st.selectbox("Month", months, index=0)
-
-    st.markdown("---")
-
-    # === New Project ===
     st.markdown("### New Project")
 
     with st.form(key="supremacy_new_project", clear_on_submit=True):
@@ -97,7 +72,7 @@ with st.sidebar:
         submitted = st.form_submit_button("Add Project", type="primary", use_container_width=True)
         if submitted:
             if not quote_number.strip() or not project_detail.strip():
-                st.error("Quote Number and Project Detail cannot be empty!")
+                st.error("Quote Number 和 Project Detail 不能為空！")
             else:
                 new_row = pd.DataFrame([{
                     "Date": project_date.strftime("%Y-%m-%d"),
@@ -111,11 +86,18 @@ with st.sidebar:
                     current_raw = current_raw.iloc[1:]
                 updated_df = pd.concat([current_raw, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=updated_df)
-                st.success(f"Project added successfully: {quote_number}")
+                st.success(f"已新增專案：{quote_number}")
                 st.rerun()
 
     st.markdown("---")
+    st.markdown("### 🔍 搜尋專案")
+    search_query = st.text_input("輸入 Quote Number 或 Work Order", key="supremacy_search", label_visibility="collapsed")
+    if st.button("清除搜尋", type="secondary", use_container_width=True):
+        if "supremacy_search" in st.session_state:
+            del st.session_state.supremacy_search
+        st.rerun()
 
+    st.markdown("---")
 
 # ==============================================
 # 主畫面標題
