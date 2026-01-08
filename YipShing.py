@@ -1124,9 +1124,9 @@ if st.session_state.get("spec_dialog_open", False):
                         s_avm = st.selectbox("", ["--", "Include", "Not Include"], key=f"dlg_avm_{i}", label_visibility="collapsed")
                     with col_source:
                         s_avm_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_avm_source_{i}", label_visibility="collapsed")
-
-                    s_avm_qty = st.number_input("Qty(數量)", min_value=0, value=0, key=f"dlg_avm_qty_{i}")
                     s_avm_model = st.text_input("Anti-Vibration Mount model(避震器型號)", key=f"dlg_avm_model_{i}")
+                    s_avm_qty = st.number_input("Qty(數量)", min_value=0, value=0, key=f"dlg_avm_qty_{i}")
+
 
                 st.markdown("---")
 
