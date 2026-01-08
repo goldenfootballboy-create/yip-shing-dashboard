@@ -90,9 +90,25 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
-    st.markdown("### 🔍 搜尋專案")
-    search_query = st.text_input("輸入 Quote Number 或 Work Order", key="supremacy_search", label_visibility="collapsed")
-    if st.button("清除搜尋", type="secondary", use_container_width=True):
+
+    # === 新增：年份與月份篩選 ===
+    st.markdown("### 📅 Filter by Date")
+
+    # 年份選項（自動從資料取得）
+    years = sorted(projects_df["Date"].dt.year.unique(), reverse=True)
+    selected_year = st.selectbox("Year", ["All"] + list(years), index=0)
+
+    # 月份選項
+    months = ["All", "January", "February", "March", "April", "May", "June",
+              "July", "August", "September", "October", "November", "December"]
+    selected_month = st.selectbox("Month", months, index=0)
+
+    st.markdown("---")
+
+    # === 搜尋專案（保持原樣）===
+    st.markdown("### 🔍 Search Projects")
+    search_query = st.text_input("Enter Quote Number or Work Order", key="supremacy_search", label_visibility="collapsed")
+    if st.button("Clear Search", type="secondary", use_container_width=True):
         if "supremacy_search" in st.session_state:
             del st.session_state.supremacy_search
         st.rerun()
