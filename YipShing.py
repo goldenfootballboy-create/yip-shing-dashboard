@@ -5,6 +5,7 @@ import json
 from datetime import date
 import time
 from streamlit_calendar import calendar
+import streamlit as st
 # 全局安全 index 函數（防止 selectbox index 錯誤）
 def safe_index(val, options, default=0):
     try:
@@ -46,6 +47,15 @@ def fullscreen_loading(message="正在處理，請稍候..."):
         }}
     </style>
     """, unsafe_allow_html=True)
+
+
+
+    # 強制深色模式
+    st.set_option('theme.base', 'dark')
+    st.set_option('theme.primaryColor', '#1fb429')  # 可選：保持你的綠色主題
+    st.set_option('theme.backgroundColor', '#0e1117')
+    st.set_option('theme.secondaryBackgroundColor', '#262730')
+    st.set_option('theme.textColor', '#fafafa')
 # ==============================================
 # 頁面設定
 # ==============================================
@@ -53,6 +63,7 @@ st.set_page_config(
     page_title="YIP SHING Project Dashboard",
     page_icon="https://i.imgur.com/Q8ehtk3.jpeg",
     layout="wide"
+
 )
 
 # 初始化 dialog active flags（防止重複彈出）
