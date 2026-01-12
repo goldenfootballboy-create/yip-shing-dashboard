@@ -157,7 +157,9 @@ if len(display_df) > 0:
         # 借調顯示人名
         manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
         if len(manpower_records) > 0:
-            staff_names = [rec["Staff"].strip() for rec in manpower_records.itertuples() if rec.Staff and rec.Staff.strip()]
+            # 取出所有員工姓名（去除空白）
+            staff_names = [rec["Staff"].strip() for _, rec in manpower_records.iterrows()
+                           if rec["Staff"] and rec["Staff"].strip()]
             manpower_text = "借調：" + "、".join(staff_names) if staff_names else "尚未借調"
         else:
             manpower_text = "尚未借調"
