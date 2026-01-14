@@ -187,6 +187,7 @@ if len(display_df) > 0:
                             st.session_state[f"edit_mode_{row['Quote_Number']}_{i+j}"] = True
                     with col2:
                         if st.button("Delete", key=f"del_proj_{row['Quote_Number']}_{i+j}", type="secondary", use_container_width=True):
+                            st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"] = True
 
                     # 編輯模式
                     if st.session_state.get(f"edit_mode_{row['Quote_Number']}_{i+j}", False):
