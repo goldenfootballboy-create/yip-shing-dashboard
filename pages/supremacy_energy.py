@@ -36,7 +36,7 @@ try:
         projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
         # 強制轉換 Date 為 datetime（解決 .dt.year 錯誤）
         projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
-        # 移除無效日期（NaT）
+        # 移除無效日期（NaT），避免篩選崩潰
         projects_df = projects_df[pd.notna(projects_df["Date"])].reset_index(drop=True)
 except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
@@ -144,7 +144,7 @@ if search_query:
             display_df["Work_Order"].str.lower().str.contains(query))
     display_df = display_df[mask]
 
-# 年份篩選（使用有效 datetime）
+# 年份篩選
 if selected_year != "All":
     display_df = display_df[display_df["Date"].dt.year == int(selected_year)]
 
