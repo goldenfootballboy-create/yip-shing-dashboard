@@ -34,6 +34,7 @@ try:
         projects_df = raw_df.copy()
         projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
         projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
+        # 強制轉換 Date 為 datetime
         projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
 except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
@@ -55,7 +56,7 @@ except Exception:
     manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
 # ==============================================
-# Sidebar（已移除 Filter 功能）
+# Sidebar（已移除 Filter）
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -187,7 +188,7 @@ if len(display_df) > 0:
                             st.session_state[f"edit_mode_{row['Quote_Number']}_{i+j}"] = True
                     with col2:
                         if st.button("Delete", key=f"del_proj_{row['Quote_Number']}_{i+j}", type="secondary", use_container_width=True):
-                            st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"] = True
+                            st.session_state[f"confirm_del_{row['Quote_Number']}_{i+j}"] = True
 
                     # 編輯模式
                     if st.session_state.get(f"edit_mode_{row['Quote_Number']}_{i+j}", False):
