@@ -18,7 +18,7 @@ st.set_page_config(
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 # ==============================================
-# 讀取 supremacy_projects（加強 Date 轉換）
+# 讀取 supremacy_projects
 # ==============================================
 try:
     raw_df = conn.read(worksheet="supremacy_projects", ttl=300)
@@ -34,9 +34,7 @@ try:
         projects_df = raw_df.copy()
         projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
         projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
-        # 關鍵：強制轉換 Date 為 datetime，並移除無效值
         projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
-        projects_df = projects_df[pd.notna(projects_df["Date"])].reset_index(drop=True)
 except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
 
@@ -57,7 +55,7 @@ except Exception:
     manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
 # ==============================================
-# Sidebar
+# Sidebar（已移除 Filter 功能）
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -89,41 +87,23 @@ with st.sidebar:
                     current_raw = current_raw.iloc[1:]
                 updated_df = pd.concat([current_raw, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=updated_df)
-                # 立即更新本地 df 並轉換 Date
                 projects_df = pd.concat([projects_df, new_row], ignore_index=True)
                 projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
-                projects_df = projects_df[pd.notna(projects_df["Date"])].reset_index(drop=True)
                 st.success(f"已新增專案：{quote_number}")
                 st.rerun()
 
     st.markdown("---")
 
-    # === Filter by Date ===
-    st.markdown("### 📅 Filter by Date")
-
-    # 年份選項（安全處理：先 dropna 避免 NaT）
-    years = sorted(projects_df["Date"].dt.year.dropna().unique(), reverse=True)
-    years = list(years) + [2025] if 2025 not in years else list(years)
-    selected_year = st.selectbox("Year", ["All"] + years, index=0)
-
-    # 月份選項
-    months = ["All", "January", "February", "March", "April", "May", "June",
-              "July", "August", "September", "October", "November", "December"]
-    selected_month = st.selectbox("Month", months, index=0)
-
-    st.markdown("---")
-
-    # === Search Projects ===
-    st.markdown("### 🔍 Search Projects")
-    search_query = st.text_input("Enter Quote Number or Work Order", key="supremacy_search", label_visibility="collapsed")
-    if st.button("Clear Search", type="secondary", use_container_width=True):
+    st.markdown("### 🔍 搜尋專案")
+    search_query = st.text_input("輸入 Quote Number 或 Work Order", key="supremacy_search", label_visibility="collapsed")
+    if st.button("清除搜尋", type="secondary", use_container_width=True):
         if "supremacy_search" in st.session_state:
             del st.session_state.supremacy_search
         st.rerun()
 
     st.markdown("---")
 
-    if st.button("View Calendar", type="primary", use_container_width=True):
+    if st.button("📅 查看主日曆", type="primary", use_container_width=True):
         st.session_state.view_mode = "calendar"
         st.switch_page("YipShing.py")
 
@@ -133,31 +113,18 @@ with st.sidebar:
 st.title("SUPREMACY ENERGY")
 
 # ==============================================
-# 搜尋 + 年月篩選（現在會生效）
+# 搜尋過濾（只保留搜尋功能）
 # ==============================================
 display_df = projects_df.copy()
-
-# 先處理搜尋
 if search_query:
     query = search_query.strip().lower()
     mask = (display_df["Quote_Number"].str.lower().str.contains(query) |
             display_df["Work_Order"].str.lower().str.contains(query))
-    display_df = display_df[mask]
-
-# 年份篩選（安全處理）
-if selected_year != "All":
-    display_df = display_df[display_df["Date"].dt.year == int(selected_year)]
-
-# 月份篩選
-if selected_month != "All":
-    month_num = months.index(selected_month)
-    display_df = display_df[display_df["Date"].dt.month == month_num]
-
-# 顯示結果數量
-if len(display_df) > 0:
-    st.success(f"Found {len(display_df)} matching projects")
-else:
-    st.info("No results found")
+    display_df = display_df[mask].reset_index(drop=True)
+    if len(display_df) > 0:
+        st.success(f"找到 {len(display_df)} 個符合的專案")
+    else:
+        st.info("無搜尋結果")
 
 # ==============================================
 # 卡片顯示（一行 2 個）
@@ -213,14 +180,13 @@ if len(display_df) > 0:
                     </div>
                     """, unsafe_allow_html=True)
 
-                    # Edit / Delete 按鈕（key 加索引確保唯一）
+                    # Edit / Delete 按鈕
                     col1, col2 = st.columns(2)
                     with col1:
                         if st.button("Edit", key=f"edit_{row['Quote_Number']}_{i+j}", use_container_width=True):
                             st.session_state[f"edit_mode_{row['Quote_Number']}_{i+j}"] = True
                     with col2:
                         if st.button("Delete", key=f"del_proj_{row['Quote_Number']}_{i+j}", type="secondary", use_container_width=True):
-                            st.session_state[f"confirm_del_{row['Quote_Number']}_{i+j}"] = True
 
                     # 編輯模式
                     if st.session_state.get(f"edit_mode_{row['Quote_Number']}_{i+j}", False):
