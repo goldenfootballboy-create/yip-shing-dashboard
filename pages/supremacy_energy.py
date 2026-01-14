@@ -149,11 +149,6 @@ if selected_month != "All":
     month_num = months.index(selected_month)
     display_df = display_df[display_df["Date"].dt.month == month_num]
 
-# 顯示結果數量
-if len(display_df) > 0:
-    st.success(f"找到 {len(display_df)} 個符合的專案")
-else:
-    st.info("無結果")
 
 # ==============================================
 # 卡片顯示（一行 2 個）
@@ -334,8 +329,7 @@ if len(display_df) > 0:
                     del st.session_state[f"confirm_del_{row['Quote_Number']}_{i+j}"]
                     st.rerun()
 
-else:
-    st.info("尚未新增任何副業專案" if not search_query else "無搜尋結果")
+
 
 st.markdown("---")
 st.caption("SUPREMACY ENERGY Project Management System © 2025 YIP SHING")
