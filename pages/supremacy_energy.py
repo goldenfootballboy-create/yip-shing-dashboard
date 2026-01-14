@@ -55,10 +55,25 @@ except Exception:
     manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
 # ==============================================
-# Sidebar（已移除 Filter）
+# Sidebar
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
+
+    # === Filters ===
+    st.markdown("### Filters")
+
+    # 年份選項（自動從資料取 + 加入 2025）
+    years = sorted(projects_df["Date"].dt.year.dropna().unique(), reverse=True)
+    years = list(years) + [2025] if 2025 not in years else list(years)
+    selected_year = st.selectbox("Year", ["All"] + years, index=0)
+
+    # 月份選項
+    months = ["All", "January", "February", "March", "April", "May", "June",
+              "July", "August", "September", "October", "November", "December"]
+    selected_month = st.selectbox("Month", months, index=0)
+
+    st.markdown("---")
 
     st.markdown("### New Project")
 
@@ -87,6 +102,7 @@ with st.sidebar:
                     current_raw = current_raw.iloc[1:]
                 updated_df = pd.concat([current_raw, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=updated_df)
+                # 立即更新本地 df 並轉換 Date
                 projects_df = pd.concat([projects_df, new_row], ignore_index=True)
                 projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
                 st.success(f"已新增專案：{quote_number}")
@@ -113,18 +129,31 @@ with st.sidebar:
 st.title("SUPREMACY ENERGY")
 
 # ==============================================
-# 搜尋過濾（只保留搜尋功能）
+# 搜尋 + 年月篩選（現在會生效）
 # ==============================================
 display_df = projects_df.copy()
+
+# 先處理搜尋
 if search_query:
     query = search_query.strip().lower()
     mask = (display_df["Quote_Number"].str.lower().str.contains(query) |
             display_df["Work_Order"].str.lower().str.contains(query))
-    display_df = display_df[mask].reset_index(drop=True)
-    if len(display_df) > 0:
-        st.success(f"找到 {len(display_df)} 個符合的專案")
-    else:
-        st.info("無搜尋結果")
+    display_df = display_df[mask]
+
+# 年份篩選
+if selected_year != "All":
+    display_df = display_df[display_df["Date"].dt.year == int(selected_year)]
+
+# 月份篩選
+if selected_month != "All":
+    month_num = months.index(selected_month)
+    display_df = display_df[display_df["Date"].dt.month == month_num]
+
+# 顯示結果數量
+if len(display_df) > 0:
+    st.success(f"找到 {len(display_df)} 個符合的專案")
+else:
+    st.info("無結果")
 
 # ==============================================
 # 卡片顯示（一行 2 個）
