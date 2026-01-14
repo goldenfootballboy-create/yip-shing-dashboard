@@ -34,7 +34,7 @@ try:
         projects_df = raw_df.copy()
         projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
         projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
-        # 強制轉換 Date 為 datetime（關鍵修正）
+        # 強制轉換 Date 為 datetime
         projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
 except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
@@ -172,11 +172,8 @@ if len(display_df) > 0:
                     status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
                                     "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-                    # Quote Number 和 Work Order 並排
-                    quote_line = f"<div style='font-weight: bold; font-size: 1.1rem; color: #1fb429;'>Quote Number：{row['Quote_Number']}</div>"
-                    work_order_line = f"<div style='font-size: 1.0rem; color: #333;'>Work Order：{row['Work_Order'] or '無'}</div>"
+                    work_order_text = f"Work Order: {row['Work_Order']}" if row["Work_Order"] else ""
 
-                    # 借調顯示人名
                     manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
                     if len(manpower_records) > 0:
                         staff_names = [rec["Staff"].strip() for _, rec in manpower_records.iterrows()
@@ -189,9 +186,11 @@ if len(display_df) > 0:
                     <div style="background: white; border-left: 6px solid {status_color}; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
                             <div style="flex: 1; min-width: 280px;">
-                                <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: baseline; margin-bottom: 8px;">
-                                    {quote_line}
-                                    {work_order_line}
+                                <div style="font-weight: bold; font-size: 1.1rem; color: #1fb429;">
+                                    Quote Number：{row['Quote_Number']}
+                                </div>
+                                <div style="font-size: 1.0rem; color: #333; margin-top: 4px;">
+                                    {work_order_text}
                                 </div>
                                 <p style="margin:8px 0 0 0; font-size:0.9rem; color:#444; line-height:1.4;">
                                     {row['Project_Detail']}
