@@ -18,7 +18,7 @@ st.set_page_config(
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 # ==============================================
-# 讀取 supremacy_projects
+# 讀取 supremacy_projects（加強 Date 轉換）
 # ==============================================
 try:
     raw_df = conn.read(worksheet="supremacy_projects", ttl=300)
@@ -34,8 +34,10 @@ try:
         projects_df = raw_df.copy()
         projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
         projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
-        # 強制轉換 Date 為 datetime
+        # 強制轉換 Date 為 datetime（解決 .dt.year 錯誤）
         projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
+        # 移除無效日期（NaT）
+        projects_df = projects_df[pd.notna(projects_df["Date"])].reset_index(drop=True)
 except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
 
@@ -99,7 +101,7 @@ with st.sidebar:
     # === Filter by Date ===
     st.markdown("### 📅 Filter by Date")
 
-    # 年份選項（自動從資料取 + 加入 2025）
+    # 年份選項（自動從有效日期取 + 加入 2025）
     years = sorted(projects_df["Date"].dt.year.dropna().unique(), reverse=True)
     years = list(years) + [2025] if 2025 not in years else list(years)
     selected_year = st.selectbox("Year", ["All"] + years, index=0)
@@ -142,7 +144,7 @@ if search_query:
             display_df["Work_Order"].str.lower().str.contains(query))
     display_df = display_df[mask]
 
-# 年份篩選
+# 年份篩選（使用有效 datetime）
 if selected_year != "All":
     display_df = display_df[display_df["Date"].dt.year == int(selected_year)]
 
