@@ -34,7 +34,7 @@ try:
         projects_df = raw_df.copy()
         projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
         projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
-        # 關鍵：強制轉換 Date 為 datetime
+        # 關鍵：強制轉換 Date 為 datetime（確保新舊資料一致）
         projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
 except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
@@ -56,7 +56,7 @@ except Exception:
     manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
 # ==============================================
-# Sidebar（加入 Filter 功能）
+# Sidebar
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -74,7 +74,7 @@ with st.sidebar:
         submitted = st.form_submit_button("Add Project", type="primary", use_container_width=True)
         if submitted:
             if not quote_number.strip() or not project_detail.strip():
-                st.error("Quote Number and Project Detail cannot be empty!")
+                st.error("Quote Number 和 Project Detail 不能為空！")
             else:
                 new_row = pd.DataFrame([{
                     "Date": project_date.strftime("%Y-%m-%d"),
@@ -88,37 +88,22 @@ with st.sidebar:
                     current_raw = current_raw.iloc[1:]
                 updated_df = pd.concat([current_raw, new_row], ignore_index=True)
                 conn.update(worksheet="supremacy_projects", data=updated_df)
-                st.success(f"Project added: {quote_number}")
+                # 關鍵：新增後立即將 Date 轉為 datetime（確保顯示正確）
+                projects_df = pd.concat([projects_df, new_row], ignore_index=True)
+                projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
+                st.success(f"已新增專案：{quote_number}")
                 st.rerun()
 
     st.markdown("---")
-
-    # === Filter by Date ===
-    st.markdown("### 📅 Filter by Date")
-
-    # 年份選項（自動從資料取 + 加入 2025）
-    years = sorted(projects_df["Date"].dt.year.dropna().unique(), reverse=True)
-    years = list(years) + [2025] if 2025 not in years else list(years)
-    selected_year = st.selectbox("Year", ["All"] + years, index=0)
-
-    # 月份選項
-    months = ["All", "January", "February", "March", "April", "May", "June",
-              "July", "August", "September", "October", "November", "December"]
-    selected_month = st.selectbox("Month", months, index=0)
-
-    st.markdown("---")
-
-    # === Search Projects ===
-    st.markdown("### 🔍 Search Projects")
-    search_query = st.text_input("Enter Quote Number or Work Order", key="supremacy_search", label_visibility="collapsed")
-    if st.button("Clear Search", type="secondary", use_container_width=True):
+    st.markdown("### 🔍 搜尋專案")
+    search_query = st.text_input("輸入 Quote Number 或 Work Order", key="supremacy_search", label_visibility="collapsed")
+    if st.button("清除搜尋", type="secondary", use_container_width=True):
         if "supremacy_search" in st.session_state:
             del st.session_state.supremacy_search
         st.rerun()
 
     st.markdown("---")
-
-    if st.button("View Calendar", type="primary", use_container_width=True):
+    if st.button("📅 查看主日曆", type="primary", use_container_width=True):
         st.session_state.view_mode = "calendar"
         st.switch_page("YipShing.py")
 
@@ -128,34 +113,21 @@ with st.sidebar:
 st.title("SUPREMACY ENERGY")
 
 # ==============================================
-# 搜尋 + 年月篩選（現在會生效）
+# 搜尋過濾
 # ==============================================
 display_df = projects_df.copy()
-
-# 先處理搜尋
 if search_query:
     query = search_query.strip().lower()
     mask = (display_df["Quote_Number"].str.lower().str.contains(query) |
             display_df["Work_Order"].str.lower().str.contains(query))
     display_df = display_df[mask]
-
-# 年份篩選
-if selected_year != "All":
-    display_df = display_df[display_df["Date"].dt.year == int(selected_year)]
-
-# 月份篩選
-if selected_month != "All":
-    month_num = months.index(selected_month)
-    display_df = display_df[display_df["Date"].dt.month == month_num]
-
-# 顯示結果數量
-if len(display_df) > 0:
-    st.success(f"Found {len(display_df)} matching projects")
-else:
-    st.info("No results found")
+    if len(display_df) > 0:
+        st.success(f"找到 {len(display_df)} 個符合的專案")
+    else:
+        st.info("無搜尋結果")
 
 # ==============================================
-# 卡片顯示（一行一個長條形）
+# 卡片顯示
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -164,10 +136,8 @@ if len(display_df) > 0:
         status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
                         "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-        # Work Order: 有值才顯示
         work_order_text = f"Work Order: {row['Work_Order']}" if row["Work_Order"] else ""
 
-        # 借調顯示人名
         manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
         if len(manpower_records) > 0:
             staff_names = [rec["Staff"].strip() for _, rec in manpower_records.iterrows()
@@ -176,31 +146,31 @@ if len(display_df) > 0:
         else:
             manpower_text = "尚未借調"
 
-        # 卡片顯示（一行一個）
+        # 卡片顯示
         st.markdown(f"""
-        <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 16px 20px; margin: 15px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                <div style="flex: 1; min-width: 300px;">
-                    <div style="font-weight: bold; font-size: 1.3rem; color: #000;">
-                        {row['Quote_Number']}
+        <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+            <div style="flex: 1;">
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: baseline; margin-bottom: 10px;">
+                    <div style="font-weight: bold; font-size: 1.3rem; color: #1fb429;">
+                        Quote Number：{row['Quote_Number']}
                     </div>
-                    <div style="font-size: 0.95rem; color: #333; margin-top: 8px;">
+                    <div style="font-size: 1.2rem; color: #1fb429;">
                         {work_order_text}
                     </div>
-                    <div style="font-size: 0.9rem; color: #555; margin-top: 6px; line-height: 1.5;">
-                        {row['Project_Detail']}
-                    </div>
-                    <div style="font-size: 0.9rem; color: #000; margin-top: 10px; font-weight: 500;">
-                        {manpower_text}
-                    </div>
                 </div>
-                <div style="text-align: right;">
-                    <span style="background: {status_color}; color: white; padding: 8px 20px; border-radius: 25px; font-weight: bold; font-size: 1.1rem;">
-                        {row['Status']}
-                    </span>
-                    <div style="margin-top: 12px; color: #666; font-size: 0.95rem;">
-                        Date: {row['Date'].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"}
-                    </div>
+                <p style="margin: 10px 0 0 0; font-size: 0.95rem; color: #444; line-height: 1.5;">
+                    {row['Project_Detail']}
+                </p>
+                <div style="font-size: 0.9rem; color: #000; margin-top: 10px; font-weight: 500;">
+                    {manpower_text}
+                </div>
+            </div>
+            <div style="text-align: right; min-width: 140px;">
+                <span style="background:{status_color}; color:white; padding:8px 20px; border-radius:20px; font-weight:bold; font-size:1rem;">
+                    {row['Status']}
+                </span>
+                <div style="margin-top: 12px; color:#666; font-size:0.95rem;">
+                    建立日期：{row['Date'].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"}
                 </div>
             </div>
         </div>
@@ -211,6 +181,9 @@ if len(display_df) > 0:
         with col1:
             if st.button("Edit", key=f"edit_{row['Quote_Number']}", use_container_width=True):
                 st.session_state[f"edit_mode_{row['Quote_Number']}"] = True
+        with col2:
+            if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
+                st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
         with col2:
             if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
                 st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
