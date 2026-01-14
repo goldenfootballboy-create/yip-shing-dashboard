@@ -18,7 +18,7 @@ st.set_page_config(
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 # ==============================================
-# 讀取 supremacy_projects
+# 讀取 supremacy_projects（加強 Date 轉換）
 # ==============================================
 try:
     raw_df = conn.read(worksheet="supremacy_projects", ttl=300)
@@ -34,6 +34,7 @@ try:
         projects_df = raw_df.copy()
         projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
         projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
+        # 關鍵：強制轉換 Date 為 datetime
         projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
 except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
@@ -55,7 +56,7 @@ except Exception:
     manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
 # ==============================================
-# Sidebar
+# Sidebar（加入 Filter 功能）
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -92,7 +93,23 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.markdown("### Search Projects")
+    # === Filter by Date ===
+    st.markdown("### 📅 Filter by Date")
+
+    # 年份選項（自動從資料取 + 加入 2025）
+    years = sorted(projects_df["Date"].dt.year.dropna().unique(), reverse=True)
+    years = list(years) + [2025] if 2025 not in years else list(years)
+    selected_year = st.selectbox("Year", ["All"] + years, index=0)
+
+    # 月份選項
+    months = ["All", "January", "February", "March", "April", "May", "June",
+              "July", "August", "September", "October", "November", "December"]
+    selected_month = st.selectbox("Month", months, index=0)
+
+    st.markdown("---")
+
+    # === Search Projects ===
+    st.markdown("### 🔍 Search Projects")
     search_query = st.text_input("Enter Quote Number or Work Order", key="supremacy_search", label_visibility="collapsed")
     if st.button("Clear Search", type="secondary", use_container_width=True):
         if "supremacy_search" in st.session_state:
@@ -111,21 +128,34 @@ with st.sidebar:
 st.title("SUPREMACY ENERGY")
 
 # ==============================================
-# 搜尋過濾
+# 搜尋 + 年月篩選（現在會生效）
 # ==============================================
 display_df = projects_df.copy()
+
+# 先處理搜尋
 if search_query:
     query = search_query.strip().lower()
     mask = (display_df["Quote_Number"].str.lower().str.contains(query) |
             display_df["Work_Order"].str.lower().str.contains(query))
-    display_df = display_df[mask].reset_index(drop=True)
-    if len(display_df) > 0:
-        st.success(f"Found {len(display_df)} matching projects")
-    else:
-        st.info("No results found")
+    display_df = display_df[mask]
+
+# 年份篩選
+if selected_year != "All":
+    display_df = display_df[display_df["Date"].dt.year == int(selected_year)]
+
+# 月份篩選
+if selected_month != "All":
+    month_num = months.index(selected_month)
+    display_df = display_df[display_df["Date"].dt.month == month_num]
+
+# 顯示結果數量
+if len(display_df) > 0:
+    st.success(f"Found {len(display_df)} matching projects")
+else:
+    st.info("No results found")
 
 # ==============================================
-# 卡片顯示
+# 卡片顯示（一行一個長條形）
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -134,7 +164,7 @@ if len(display_df) > 0:
         status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
                         "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-        # Work Order: 只顯示有值時
+        # Work Order: 有值才顯示
         work_order_text = f"Work Order: {row['Work_Order']}" if row["Work_Order"] else ""
 
         # 借調顯示人名
@@ -146,29 +176,31 @@ if len(display_df) > 0:
         else:
             manpower_text = "尚未借調"
 
-        # 卡片顯示
+        # 卡片顯示（一行一個）
         st.markdown(f"""
-        <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
-            <div style="flex: 1;">
-                <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: baseline; margin-bottom: 10px;">
-                    <div style="font-weight: bold; font-size: 1.3rem; color: #1fb429;">
-                        Quote Number: {row['Quote_Number']}
+        <div style="background: white; border-left: 6px solid {status_color}; border-radius: 12px; padding: 16px 20px; margin: 15px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div style="flex: 1; min-width: 300px;">
+                    <div style="font-weight: bold; font-size: 1.3rem; color: #000;">
+                        {row['Quote_Number']}
                     </div>
-                    {f'<div style="font-size: 1.2rem; color: #1fb429;">{work_order_text}</div>' if work_order_text else ''}
+                    <div style="font-size: 0.95rem; color: #333; margin-top: 8px;">
+                        {work_order_text}
+                    </div>
+                    <div style="font-size: 0.9rem; color: #555; margin-top: 6px; line-height: 1.5;">
+                        {row['Project_Detail']}
+                    </div>
+                    <div style="font-size: 0.9rem; color: #000; margin-top: 10px; font-weight: 500;">
+                        {manpower_text}
+                    </div>
                 </div>
-                <p style="margin: 10px 0 0 0; font-size: 0.95rem; color: #444; line-height: 1.5;">
-                    {row['Project_Detail']}
-                </p>
-                <div style="font-size: 0.9rem; color: #000; margin-top: 10px; font-weight: 500;">
-                    {manpower_text}
-                </div>
-            </div>
-            <div style="text-align: right; min-width: 140px;">
-                <span style="background:{status_color}; color:white; padding:8px 20px; border-radius:20px; font-weight:bold; font-size:1rem;">
-                    {row['Status']}
-                </span>
-                <div style="margin-top: 12px; color:#666; font-size:0.95rem;">
-                    Date: {row['Date'].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"}
+                <div style="text-align: right;">
+                    <span style="background: {status_color}; color: white; padding: 8px 20px; border-radius: 25px; font-weight: bold; font-size: 1.1rem;">
+                        {row['Status']}
+                    </span>
+                    <div style="margin-top: 12px; color: #666; font-size: 0.95rem;">
+                        Date: {row['Date'].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"}
+                    </div>
                 </div>
             </div>
         </div>
