@@ -99,7 +99,7 @@ with st.sidebar:
     # === Filter by Date ===
     st.markdown("### 📅 Filter by Date")
 
-    # 年份選項
+    # 年份選項（自動從資料取 + 加入 2025）
     years = sorted(projects_df["Date"].dt.year.dropna().unique(), reverse=True)
     years = list(years) + [2025] if 2025 not in years else list(years)
     selected_year = st.selectbox("Year", ["All"] + years, index=0)
@@ -111,7 +111,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # === Search ===
+    # === Search Projects ===
     st.markdown("### 🔍 Search Projects")
     search_query = st.text_input("Enter Quote Number or Work Order", key="supremacy_search", label_visibility="collapsed")
     if st.button("Clear Search", type="secondary", use_container_width=True):
@@ -131,27 +131,31 @@ with st.sidebar:
 st.title("SUPREMACY ENERGY")
 
 # ==============================================
-# 搜尋 + 年月篩選
+# 搜尋 + 年月篩選（現在會生效）
 # ==============================================
 display_df = projects_df.copy()
 
+# 先處理搜尋
 if search_query:
     query = search_query.strip().lower()
     mask = (display_df["Quote_Number"].str.lower().str.contains(query) |
             display_df["Work_Order"].str.lower().str.contains(query))
     display_df = display_df[mask]
 
+# 年份篩選
 if selected_year != "All":
     display_df = display_df[display_df["Date"].dt.year == int(selected_year)]
 
+# 月份篩選
 if selected_month != "All":
     month_num = months.index(selected_month)
     display_df = display_df[display_df["Date"].dt.month == month_num]
 
+# 顯示結果數量
 if len(display_df) > 0:
-    st.success(f"找到 {len(display_df)} 個符合的專案")
+    st.success(f"Found {len(display_df)} matching projects")
 else:
-    st.info("無結果")
+    st.info("No results found")
 
 # ==============================================
 # 卡片顯示（一行 2 個）
