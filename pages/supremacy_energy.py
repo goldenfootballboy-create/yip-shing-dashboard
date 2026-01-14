@@ -34,7 +34,6 @@ try:
         projects_df = raw_df.copy()
         projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
         projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
-        # 強制轉換 Date 為 datetime
         projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
 except Exception:
     projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
@@ -208,6 +207,7 @@ if len(display_df) > 0:
                                     ).reset_index(drop=True)
                                     conn.update(worksheet="supremacy_manpower", data=manpower_df)
 
+                                    # 強制刷新最新資料
                                     latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
                                     if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
                                         latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
@@ -235,6 +235,7 @@ if len(display_df) > 0:
 
                             col_save, col_cancel = st.columns(2)
                             if col_save.form_submit_button("SAVE", type="primary", use_container_width=True):
+                                # 更新專案資料
                                 projects_df.at[original_idx, "Quote_Number"] = new_quote.strip()
                                 projects_df.at[original_idx, "Work_Order"] = new_work_order.strip()
                                 projects_df.at[original_idx, "Project_Detail"] = new_detail.strip()
@@ -251,13 +252,23 @@ if len(display_df) > 0:
                                     manpower_df = pd.concat([manpower_df, new_rec], ignore_index=True)
                                     conn.update(worksheet="supremacy_manpower", data=manpower_df)
 
-                                    latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
-                                    if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
-                                        latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
-                                    if not latest_manpower.empty:
-                                        latest_manpower.columns = ["Quote_Number", "Staff", "Start_Date", "End_Date"][:len(latest_manpower.columns)]
-                                        latest_manpower["Quote_Number"] = latest_manpower["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
-                                    manpower_df = latest_manpower.copy() if not latest_manpower.empty else pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
+                                # 關鍵：SAVE 後強制重新讀取最新資料，覆蓋本地變數
+                                latest_projects = conn.read(worksheet="supremacy_projects", ttl=0)
+                                if not latest_projects.empty and str(latest_projects.iloc[0,0]).strip().lower() in ["date", "日期"]:
+                                    latest_projects = latest_projects.iloc[1:].reset_index(drop=True)
+                                latest_projects = latest_projects.iloc[:, :5]
+                                latest_projects.columns = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
+                                latest_projects["Quote_Number"] = latest_projects["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
+                                latest_projects["Work_Order"] = latest_projects["Work_Order"].fillna("").astype(str)
+                                latest_projects["Date"] = pd.to_datetime(latest_projects["Date"], errors="coerce")
+                                projects_df = latest_projects.copy()
+
+                                latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
+                                if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
+                                    latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
+                                latest_manpower.columns = ["Quote_Number", "Staff", "Start_Date", "End_Date"][:len(latest_manpower.columns)]
+                                latest_manpower["Quote_Number"] = latest_manpower["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
+                                manpower_df = latest_manpower.copy() if not latest_manpower.empty else pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
                                 st.success("專案與借調已更新！")
                                 del st.session_state[f"edit_mode_{row['Quote_Number']}_{i+j}"]
