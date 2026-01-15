@@ -273,7 +273,124 @@ def render_project_card(row, idx):
                     st.markdown(f"• Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}")
                     st.markdown(f"**Remarks:**")
                     st.markdown(f"{spec.get('remarks', '—')}")
+        # ────────────────────────────────────────────────────────────────
+        #  新增：Overview 按鈕 – 彈出完整唯讀規格總覽視窗
+        # ────────────────────────────────────────────────────────────────
+        if st.button("📊 Overall 完整規格總覽",
+                     key=f"overall_spec_btn_{idx}",
+                     use_container_width=True,
+                     type="secondary",
+                     help="點擊查看所有台的完整規格細節（唯讀模式）"):
 
+            @st.dialog(f"完整規格總覽 – {row['Project_Name']} ({qty} 台)", width="large")
+            def overall_spec_overview():
+                st.markdown(f"**專案：{row['Project_Name']}**　｜　**{qty} 台**　｜　**類型：{row['Project_Type']}**")
+                st.caption("此為唯讀總覽，無法修改任何內容。")
+                st.markdown("---")
+
+                # 讀取規格資料（與原本邏輯相同）
+                spec_text = row.get("Project_Spec", "")
+                specs = []
+                if "||EXTRA||" in spec_text:
+                    try:
+                        extra_json = spec_text.split("||EXTRA||")[1]
+                        specs = json.loads(extra_json)
+                        if not isinstance(specs, list):
+                            specs = [specs]
+                    except:
+                        specs = []
+                else:
+                    specs = []
+
+                if len(specs) < qty:
+                    specs += [{}] * (qty - len(specs))
+
+                # 用 tabs 分開每台
+                overview_tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
+
+                for machine_idx in range(qty):
+                    with overview_tabs[machine_idx]:
+                        spec = specs[machine_idx] if machine_idx < len(specs) else {}
+
+                        # ── Prime & Standby ─────────────────────────────────────
+                        st.subheader("Prime & Standby Power")
+                        c1, c2, c3 = st.columns(3)
+                        c1.metric("Prime (kW)", spec.get('prime', '—'))
+                        c2.metric("Standby (kW)", spec.get('standby', '—'))
+                        c3.metric("RPM", spec.get('rpm', '—'))
+
+                        st.markdown(f"**電壓 / 頻率**： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}")
+
+                        st.divider()
+
+                        # ── Engine & Alternator ────────────────────────────────
+                        st.subheader("Engine & Alternator")
+                        st.markdown(
+                            f"**發動機型號 / S/N**： {spec.get('genset_model', '—')} / {spec.get('genset_sn', '—')}")
+                        st.markdown(f"**電球型號 / S/N**： {spec.get('alt_model', '—')} / {spec.get('alt_sn', '—')}")
+                        st.markdown(
+                            f"**Droop / PMG / 加熱器**： {spec.get('droop', '—')} / {spec.get('pmg', '—')} / {spec.get('alt_heater', '—')}")
+
+                        st.divider()
+
+                        # ── Radiator & Base ─────────────────────────────────────
+                        st.subheader("Radiator & Base Frame")
+                        st.markdown(f"**水箱型號 / 溫度**： {spec.get('rad_model', '—')} / {spec.get('rad_temp', '—')}")
+                        st.markdown(f"**底架型號 / S/N**： {spec.get('base_model', '—')} / {spec.get('base_sn', '—')}")
+                        st.markdown(
+                            f"**避震器**： {spec.get('avm', '—')}　數量：{spec.get('avm_qty', '—')}　型號：{spec.get('avm_model', '—')}")
+
+                        st.divider()
+
+                        # ── Container / Panel / Breaker ────────────────────────
+                        st.subheader("Container / Panel / Breaker")
+                        st.markdown(f"**貨櫃尺寸 / 類型**： {spec.get('cont_size', '—')} / {spec.get('cont_type', '—')}")
+                        st.markdown(
+                            f"**控制器型號 / S/N**： {spec.get('panel_model', '—')} / {spec.get('panel_sn', '—')}")
+                        st.markdown(
+                            f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}")
+                        st.markdown(
+                            f"**彈簧充電 / 控制電壓**： {spec.get('spring_charging', '—')} / {spec.get('control_voltage', '—')}")
+
+                        st.divider()
+
+                        # ── Parts ───────────────────────────────────────────────
+                        parts = spec.get("parts", [])
+                        if parts:
+                            st.subheader("配件清單")
+                            for p in parts:
+                                name = p.get("name", "").strip()
+                                source = p.get("source", "—")
+                                if name:
+                                    st.markdown(f"- **{name}**　（貨源：{source}）")
+
+                        # ── Delivery Checklist ─────────────────────────────────
+                        checklist = spec.get("delivery_checklist", [])
+                        if checklist:
+                            st.subheader("出貨檢查清單")
+                            checked = sum(1 for x in checklist if x.get("checked"))
+                            total = len(checklist)
+                            st.progress(checked / total if total > 0 else 0)
+                            st.caption(f"完成度：{checked}/{total}")
+                            for item in checklist:
+                                name = item.get("name", "—")
+                                ch = "✅" if item.get("checked") else "⬜"
+                                st.markdown(f"{ch} {name}")
+
+                        st.divider()
+
+                        # Remarks
+                        remarks = spec.get("remarks", "").strip()
+                        if remarks:
+                            st.subheader("備註")
+                            st.info(remarks)
+
+                # 關閉按鈕
+                st.markdown("---")
+                if st.button("關閉", type="primary", use_container_width=True):
+                    st.rerun()
+
+            overall_spec_overview()
         # Checklist Panel
         if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
             st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
