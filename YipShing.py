@@ -1312,12 +1312,13 @@ with st.sidebar:
     st.markdown("---")
     st.header("New Project")
 
-    with st.form("add_form", clear_on_submit=True):
+    with st.form("new_project_form", clear_on_submit=True):  # 改成唯一 key
         c1, c2 = st.columns(2)
         with c1:
-            new_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"], key="new_type")
+            new_type = st.selectbox("Project Type*", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"],
+                                    key="new_type")
             new_name = st.text_input("Project Name*", key="new_name")
-            new_year = st.selectbox("Year*", [2024,2025,2026], index=2, key="new_year")  # 預設 2026
+            new_year = st.selectbox("Year*", [2024, 2025, 2026], index=2, key="new_year")  # 預設 2026
             new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
         with c2:
             new_customer = st.text_input("Customer", key="new_customer")
@@ -1334,7 +1335,8 @@ with st.sidebar:
             d4 = st.date_input("Cleaning Complete", value=None, key="d4")
             d5 = st.date_input("Delivery Complete", value=None, key="d5")
 
-        reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
+        reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨",
+                                 key="reminder")
 
         if st.form_submit_button("Add", type="primary", use_container_width=True):
             if not new_name.strip():
