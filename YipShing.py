@@ -959,7 +959,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# Project Specification Dialog (新增用) - 穩定版（無套用資料功能）
+# Project Specification Dialog (新增用)
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -1129,9 +1129,9 @@ if st.session_state.get("spec_dialog_open", False):
                         s_avm = st.selectbox("", ["--", "Include", "Not Include"], key=f"dlg_avm_{i}", label_visibility="collapsed")
                     with col_source:
                         s_avm_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_avm_source_{i}", label_visibility="collapsed")
+
                     s_avm_model = st.text_input("Anti-Vibration Mount model(避震器型號)", key=f"dlg_avm_model_{i}")
                     s_avm_qty = st.number_input("Qty(數量)", min_value=0, value=0, key=f"dlg_avm_qty_{i}")
-
 
                 st.markdown("---")
 
@@ -1300,6 +1300,27 @@ if st.session_state.get("spec_dialog_open", False):
                 # 最下面：Remarks
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
+                # === 複製按鈕：放在每個 Tab 最下方 ===
+                if qty > 1 and i < qty - 1:
+                    if st.button(f"複製目前 Tag 到第 {i+2} 台", type="secondary", use_container_width=True):
+                        current_tab = i
+                        next_tab = i + 1
+
+                        # 複製主要欄位
+                        st.session_state[f"prime_{next_tab}"] = st.session_state.get(f"prime_{current_tab}", "")
+                        st.session_state[f"standby_{next_tab}"] = st.session_state.get(f"standby_{current_tab}", "")
+                        st.session_state[f"voltage_{next_tab}"] = st.session_state.get(f"voltage_{current_tab}", "--")
+                        st.session_state[f"frequency_{next_tab}"] = st.session_state.get(f"frequency_{current_tab}", "--")
+                        st.session_state[f"rpm_{next_tab}"] = st.session_state.get(f"rpm_{current_tab}", "--")
+                        st.session_state[f"genset_model_{next_tab}"] = st.session_state.get(f"genset_model_{current_tab}", "")
+                        st.session_state[f"genset_sn_{next_tab}"] = st.session_state.get(f"genset_sn_{current_tab}", "")
+                        st.session_state[f"engine_color_{next_tab}"] = st.session_state.get(f"engine_color_{current_tab}", "")
+                        st.session_state[f"engine_year_{next_tab}"] = st.session_state.get(f"engine_year_{current_tab}", "")
+                        # ... 可以繼續加其他欄位，例如 alt_model、rad_model 等
+
+                        st.success(f"已複製到第 {next_tab+1} 台！")
+                        st.rerun()
+
                 # 處理 Parts 和 Delivery Checklist
                 cleaned_parts = [p for p in parts_list if p.get("name", "").strip()] if 'parts_list' in locals() and parts_list else []
                 cleaned_checklist = [item for item in checklist if item.get("name", "").strip()] if 'checklist' in locals() and checklist else []
@@ -1360,11 +1381,9 @@ if st.session_state.get("spec_dialog_open", False):
                     "poles": s_poles if s_poles != "--" else "",
                     "spring_charging": s_spring_charging if s_spring_charging != "--" else "",
                     "control_voltage": s_control_voltage,
-                    "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
                     "parts": cleaned_parts,
-                    "delivery_checklist": cleaned_checklist,
-                    "avm_model": s_avm_model
+                    "delivery_checklist": cleaned_checklist
                 }
                 specs.append(spec_data)
 
@@ -1582,10 +1601,9 @@ with st.sidebar:
     with st.form("add_form", clear_on_submit=True):
         c1, c2 = st.columns(2)
         with c1:
-            new_type = st.selectbox("Project Type*", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"],
-                                    key="new_type")
+            new_type = st.selectbox("Project Type*", ["Enclosure","Open Set","Scania","Marine","K50G3"], key="new_type")
             new_name = st.text_input("Project Name*", key="new_name")
-            new_year = st.selectbox("Year*", [2024, 2025, 2026], index=2, key="new_year")  # 預設 2026
+            new_year = st.selectbox("Year*", [2024,2025,2026], index=2, key="new_year")  # 預設 2026
             new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
         with c2:
             new_customer = st.text_input("Customer", key="new_customer")
@@ -1602,8 +1620,7 @@ with st.sidebar:
             d4 = st.date_input("Cleaning Complete", value=None, key="d4")
             d5 = st.date_input("Delivery Complete", value=None, key="d5")
 
-        reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨",
-                                 key="reminder")
+        reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
 
         if st.form_submit_button("Add", type="primary", use_container_width=True):
             if not new_name.strip():
@@ -1628,28 +1645,6 @@ with st.sidebar:
                     "Delivery_Complete": d5 if d5 else None
                 }
                 st.session_state.spec_dialog_open = True
-                st.rerun()
-
-    # === 移出表單：Qty > 1 時顯示複製按鈕 ===
-    if new_qty > 1:
-        st.markdown("**Tag 複製功能** (在 spec 輸入時使用)")
-        if st.button("複製目前 Tag 資料到下一個 Tag", type="secondary", use_container_width=True):
-            # 取得當前 Tab 的所有輸入值（從 session_state 讀取）
-            current_tab = st.session_state.get("current_tab", 0)  # 預設第一個 Tab
-            next_tab = current_tab + 1
-
-            if next_tab < new_qty:
-                # 複製主要欄位到下一個 Tab
-                st.session_state[f"prime_{next_tab}"] = st.session_state.get(f"prime_{current_tab}", "")
-                st.session_state[f"standby_{next_tab}"] = st.session_state.get(f"standby_{current_tab}", "")
-                st.session_state[f"voltage_{next_tab}"] = st.session_state.get(f"voltage_{current_tab}", "--")
-                st.session_state[f"frequency_{next_tab}"] = st.session_state.get(f"frequency_{current_tab}", "--")
-                st.session_state[f"rpm_{next_tab}"] = st.session_state.get(f"rpm_{current_tab}", "--")
-                # ... 你可以繼續加其他欄位，例如 genset_model 等
-                # 例如：st.session_state[f"genset_model_{next_tab}"] = st.session_state.get(f"genset_model_{current_tab}", "")
-
-                st.session_state["current_tab"] = next_tab  # 切換到下一個 Tab
-                st.success(f"已複製到 Tag {next_tab + 1}！")
                 st.rerun()
 # ==============================================
 # 篩選邏輯 & 主畫面
@@ -1910,3 +1905,4 @@ else:
 
 st.markdown("---")
 st.caption("Projects Management System")
+
