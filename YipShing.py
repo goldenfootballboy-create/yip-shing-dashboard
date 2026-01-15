@@ -1013,6 +1013,60 @@ with st.form("new_project_form", clear_on_submit=True):
             st.rerun()
 
 # ==============================================
+# New Project 表單（只放基本輸入）
+# ==============================================
+st.header("New Project")
+
+with st.form("new_project_form", clear_on_submit=True):
+    c1, c2 = st.columns(2)
+    with c1:
+        new_type = st.selectbox("Project Type*", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"], key="new_type")
+        new_name = st.text_input("Project Name*", key="new_name")
+        new_year = st.selectbox("Year*", [2024, 2025, 2026], index=2, key="new_year")
+        new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
+    with c2:
+        new_customer = st.text_input("Customer", key="new_customer")
+        new_supervisor = st.text_input("Supervisor", key="new_supervisor")
+        new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
+
+    st.markdown("**Progress Dates**")
+    col_d1, col_d2 = st.columns(2)
+    with col_d1:
+        d1 = st.date_input("Parts Arrival", value=None, key="d1")
+        d2 = st.date_input("Installation Complete", value=None, key="d2")
+        d3 = st.date_input("Testing Complete", value=None, key="d3")
+    with col_d2:
+        d4 = st.date_input("Cleaning Complete", value=None, key="d4")
+        d5 = st.date_input("Delivery Complete", value=None, key="d5")
+
+    reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
+
+    if st.form_submit_button("Add", type="primary", use_container_width=True):
+        if not new_name.strip():
+            st.error("Project Name required!")
+        elif new_name in df["Project_Name"].values:
+            st.error("Name exists!")
+        else:
+            st.session_state.temp_project = {
+                "Project_Type": new_type,
+                "Project_Name": new_name,
+                "Year": int(new_year),
+                "Lead_Time": new_leadtime,
+                "Customer": new_customer or "",
+                "Supervisor": new_supervisor or "",
+                "Qty": new_qty,
+                "Real_Count": new_qty,
+                "Progress_Reminder": reminder or "",
+                "Parts_Arrival": d1 if d1 else None,
+                "Installation_Complete": d2 if d2 else None,
+                "Testing_Complete": d3 if d3 else None,
+                "Cleaning_Complete": d4 if d4 else None,
+                "Delivery_Complete": d5 if d5 else None
+            }
+            st.session_state.spec_dialog_open = True
+            st.rerun()
+
+# ==============================================
 # Project Specification 視窗（複製與貼上按鈕放在這裡）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
@@ -1029,7 +1083,7 @@ if st.session_state.get("spec_dialog_open", False):
     def spec_dialog():
         st.markdown(f"**請填寫 {qty} 台機器的規格**")
 
-        # 全局 CSS：垂直居中對齊
+        # 全局 CSS
         st.markdown(
             """
             <style>
@@ -1111,6 +1165,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                 # 第二組：Radiator & Base Frame Group
                 with st.expander("Radiator & Base Frame Group(水箱＆底架)", expanded=False):
+                    # Radiator
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
                         st.markdown("**Radiator (水箱)**")
@@ -1346,7 +1401,6 @@ if st.session_state.get("spec_dialog_open", False):
                 col_copy, col_paste = st.columns(2)
                 with col_copy:
                     if st.button("複製目前 Tag 到暫存", type="secondary", use_container_width=True):
-                        # 存到 session_state 暫存（所有主要欄位）
                         st.session_state["copied_tag"] = {
                             "prime": s_prime,
                             "standby": s_standby,
@@ -1377,7 +1431,6 @@ if st.session_state.get("spec_dialog_open", False):
                         if st.button("從暫存貼上到此 Tag", type="primary", use_container_width=True):
                             copied = st.session_state["copied_tag"]
 
-                            # 貼上到當前 Tab
                             st.session_state[f"dlg_prime_{i}"] = copied.get("prime", "")
                             st.session_state[f"dlg_standby_{i}"] = copied.get("standby", "")
                             st.session_state[f"dlg_voltage_{i}"] = copied.get("voltage", "--")
@@ -1485,7 +1538,6 @@ if st.session_state.get("spec_dialog_open", False):
                     del st.session_state.temp_project
                 st.rerun()
 
-        # 全屏 loading + 執行儲存
         if st.session_state.get("new_spec_saving", False):
             fullscreen_loading("正在新增專案並儲存規格，請稍候...")
 
