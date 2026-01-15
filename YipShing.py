@@ -276,7 +276,7 @@ def render_project_card(row, idx):
         # ────────────────────────────────────────────────────────────────
         #  新增：Overview 按鈕 – 彈出完整唯讀規格總覽視窗
         # ────────────────────────────────────────────────────────────────
-        if st.button("📊 Overall 完整規格總覽",
+        if st.button("📊 OverView 完整規格總覽",
                      key=f"overall_spec_btn_{idx}",
                      use_container_width=True,
                      type="secondary",
@@ -285,7 +285,6 @@ def render_project_card(row, idx):
             @st.dialog(f"完整規格總覽 – {row['Project_Name']} ({qty} 台)", width="large")
             def overall_spec_overview():
                 st.markdown(f"**專案：{row['Project_Name']}**　｜　**{qty} 台**　｜　**類型：{row['Project_Type']}**")
-                st.caption("此為唯讀總覽，無法修改任何內容。")
                 st.markdown("---")
 
                 # 讀取規格資料（與原本邏輯相同）
@@ -324,7 +323,12 @@ def render_project_card(row, idx):
                         st.divider()
 
                         # ── Engine & Alternator ────────────────────────────────
-                        st.subheader("Engine & Alternator")
+                        st.markdown(
+                            """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
+                            Engine & Alternator (發動機 & 電球)
+                            </h3>""",
+                            unsafe_allow_html=True
+                        )
                         st.markdown(
                             f"**發動機型號 / S/N**： {spec.get('genset_model', '—')} / {spec.get('genset_sn', '—')}")
                         st.markdown(f"**電球型號 / S/N**： {spec.get('alt_model', '—')} / {spec.get('alt_sn', '—')}")
