@@ -430,7 +430,63 @@ if st.session_state.get("show_edit_spec_dialog", False):
         tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
         new_specs = []
+        # ────────────────────────────────────────────────────────────────
+        #  新增：編輯模式下「從第1台複製規格到其他所有台」
+        # ────────────────────────────────────────────────────────────────
+        if qty > 1:
+            st.markdown("---")
+            st.markdown("### 規格快速複製工具")
+            if st.button("📋 從第 1 台複製規格 → 所有其他台",
+                         type="primary",
+                         use_container_width=True,
+                         help="點擊後會把目前第1台已填寫的規格，複製到第2台～最後一台"):
 
+                source_i = 0  # 永遠從第1台複製
+
+                # 要複製的靜態欄位清單（與新增時完全相同）
+                static_fields = [
+                    "prime", "standby", "voltage", "frequency", "rpm",
+                    "genset_model", "genset_sn", "engine_color", "engine_year", "engine_heater", "engine_source",
+                    "alt_model", "alt_sn", "alt_color", "droop", "pmg", "alt_heater", "alt_source",
+                    "rad_model", "rad_sn", "rad_temp", "fan_size", "rad_source", "radiator_guard",
+                    "fuel_cooler", "fuel_cooler_source",
+                    "coolant_sensor", "coolant_sensor_source",
+                    "low_water", "low_water_source",
+                    "base_model", "base_sn", "base_source",
+                    "avm", "avm_model", "avm_qty", "avm_source",
+                    "cont_size", "cont_type", "cont_color", "fork_slot", "anti_noise",
+                    "internal_silencer", "ss_locks", "emergency_stop", "cont_source",
+                    "panel_model", "panel_sn", "co_detector", "panel_source", "co_source",
+                    "breaker_type", "breaker_rating", "poles", "spring_charging", "control_voltage", "breaker_source",
+                    "remarks"
+                ]
+
+                # 複製靜態欄位
+                for field in static_fields:
+                    src_key = f"edit_{field}_{idx_to_edit}_{source_i}"
+                    if src_key in st.session_state:
+                        value = st.session_state[src_key]
+                        for target_i in range(1, qty):
+                            target_key = f"edit_{field}_{idx_to_edit}_{target_i}"
+                            st.session_state[target_key] = value
+
+                # 複製 Parts 動態列表
+                src_parts_key = f"parts_edit_{row_to_edit['Project_Name']}_{source_i}"
+                if src_parts_key in st.session_state and st.session_state[src_parts_key]:
+                    copied_parts = [p.copy() for p in st.session_state[src_parts_key]]
+                    for target_i in range(1, qty):
+                        st.session_state[f"parts_edit_{row_to_edit['Project_Name']}_{target_i}"] = copied_parts
+
+                # 複製 Delivery Checklist 動態列表
+                src_checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{source_i}"
+                if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
+                    copied_checklist = [item.copy() for item in st.session_state[src_checklist_key]]
+                    for target_i in range(1, qty):
+                        st.session_state[
+                            f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"] = copied_checklist
+
+                st.success("已成功將第 1 台的規格複製到其他所有台！")
+                st.rerun()  # 強制重新渲染，讓輸入框顯示新值
         for i in range(qty):
             with tabs[i]:
                 current = specs[i] if i < len(specs) else {}
