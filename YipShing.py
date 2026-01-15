@@ -959,169 +959,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# New Project 表單（只放基本輸入，不放複製按鈕）
-# ==============================================
-st.header("New Project")
-
-with st.form("new_project_form", clear_on_submit=True):
-    c1, c2 = st.columns(2)
-    with c1:
-        new_type = st.selectbox("Project Type*", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"], key="new_type")
-        new_name = st.text_input("Project Name*", key="new_name")
-        new_year = st.selectbox("Year*", [2024, 2025, 2026], index=2, key="new_year")  # 預設 2026
-        new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
-    with c2:
-        new_customer = st.text_input("Customer", key="new_customer")
-        new_supervisor = st.text_input("Supervisor", key="new_supervisor")
-        new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
-
-    st.markdown("**Progress Dates**")
-    col_d1, col_d2 = st.columns(2)
-    with col_d1:
-        d1 = st.date_input("Parts Arrival", value=None, key="d1")
-        d2 = st.date_input("Installation Complete", value=None, key="d2")
-        d3 = st.date_input("Testing Complete", value=None, key="d3")
-    with col_d2:
-        d4 = st.date_input("Cleaning Complete", value=None, key="d4")
-        d5 = st.date_input("Delivery Complete", value=None, key="d5")
-
-    reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
-
-    if st.form_submit_button("Add", type="primary", use_container_width=True):
-        if not new_name.strip():
-            st.error("Project Name required!")
-        elif new_name in df["Project_Name"].values:
-            st.error("Name exists!")
-        else:
-            st.session_state.temp_project = {
-                "Project_Type": new_type,
-                "Project_Name": new_name,
-                "Year": int(new_year),
-                "Lead_Time": new_leadtime,
-                "Customer": new_customer or "",
-                "Supervisor": new_supervisor or "",
-                "Qty": new_qty,
-                "Real_Count": new_qty,
-                "Progress_Reminder": reminder or "",
-                "Parts_Arrival": d1 if d1 else None,
-                "Installation_Complete": d2 if d2 else None,
-                "Testing_Complete": d3 if d3 else None,
-                "Cleaning_Complete": d4 if d4 else None,
-                "Delivery_Complete": d5 if d5 else None
-            }
-            st.session_state.spec_dialog_open = True
-            st.rerun()
-
-# ==============================================
-# New Project 表單（只放基本輸入）
-# ==============================================
-st.header("New Project")
-
-with st.form("new_project_form", clear_on_submit=True):
-    c1, c2 = st.columns(2)
-    with c1:
-        new_type = st.selectbox("Project Type*", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"], key="new_type")
-        new_name = st.text_input("Project Name*", key="new_name")
-        new_year = st.selectbox("Year*", [2024, 2025, 2026], index=2, key="new_year")
-        new_qty = st.number_input("Qty", min_value=1, value=1, key="new_qty")
-    with c2:
-        new_customer = st.text_input("Customer", key="new_customer")
-        new_supervisor = st.text_input("Supervisor", key="new_supervisor")
-        new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_leadtime")
-
-    st.markdown("**Progress Dates**")
-    col_d1, col_d2 = st.columns(2)
-    with col_d1:
-        d1 = st.date_input("Parts Arrival", value=None, key="d1")
-        d2 = st.date_input("Installation Complete", value=None, key="d2")
-        d3 = st.date_input("Testing Complete", value=None, key="d3")
-    with col_d2:
-        d4 = st.date_input("Cleaning Complete", value=None, key="d4")
-        d5 = st.date_input("Delivery Complete", value=None, key="d5")
-
-    reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="reminder")
-
-    if st.form_submit_button("Add", type="primary", use_container_width=True):
-        if not new_name.strip():
-            st.error("Project Name required!")
-        elif new_name in df["Project_Name"].values:
-            st.error("Name exists!")
-        else:
-            st.session_state.temp_project = {
-                "Project_Type": new_type,
-                "Project_Name": new_name,
-                "Year": int(new_year),
-                "Lead_Time": new_leadtime,
-                "Customer": new_customer or "",
-                "Supervisor": new_supervisor or "",
-                "Qty": new_qty,
-                "Real_Count": new_qty,
-                "Progress_Reminder": reminder or "",
-                "Parts_Arrival": d1 if d1 else None,
-                "Installation_Complete": d2 if d2 else None,
-                "Testing_Complete": d3 if d3 else None,
-                "Cleaning_Complete": d4 if d4 else None,
-                "Delivery_Complete": d5 if d5 else None
-            }
-            st.session_state.spec_dialog_open = True
-            st.rerun()
-
-# ==============================================
-# New Project 表單（只放基本輸入）
-# ==============================================
-st.header("New Project")
-
-with st.form("new_project_form", clear_on_submit=True):
-    c1, c2 = st.columns(2)
-    with c1:
-        new_type = st.selectbox("Project Type*", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"], key="new_project_type")
-        new_name = st.text_input("Project Name*", key="new_project_name")
-        new_year = st.selectbox("Year*", [2024, 2025, 2026], index=2, key="new_project_year")
-        new_qty = st.number_input("Qty", min_value=1, value=1, key="new_project_qty")
-    with c2:
-        new_customer = st.text_input("Customer", key="new_project_customer")
-        new_supervisor = st.text_input("Supervisor", key="new_project_supervisor")
-        new_leadtime = st.date_input("Lead Time*", value=date.today(), key="new_project_leadtime")
-
-    st.markdown("**Progress Dates**")
-    col_d1, col_d2 = st.columns(2)
-    with col_d1:
-        d1 = st.date_input("Parts Arrival", value=None, key="new_parts_arrival")
-        d2 = st.date_input("Installation Complete", value=None, key="new_install_complete")
-        d3 = st.date_input("Testing Complete", value=None, key="new_testing_complete")
-    with col_d2:
-        d4 = st.date_input("Cleaning Complete", value=None, key="new_cleaning_complete")
-        d5 = st.date_input("Delivery Complete", value=None, key="new_delivery_complete")
-
-    reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨", key="new_progress_reminder")
-
-    if st.form_submit_button("Add", type="primary", use_container_width=True):
-        if not new_name.strip():
-            st.error("Project Name required!")
-        elif new_name in df["Project_Name"].values:
-            st.error("Name exists!")
-        else:
-            st.session_state.temp_project = {
-                "Project_Type": new_type,
-                "Project_Name": new_name,
-                "Year": int(new_year),
-                "Lead_Time": new_leadtime,
-                "Customer": new_customer or "",
-                "Supervisor": new_supervisor or "",
-                "Qty": new_qty,
-                "Real_Count": new_qty,
-                "Progress_Reminder": reminder or "",
-                "Parts_Arrival": d1 if d1 else None,
-                "Installation_Complete": d2 if d2 else None,
-                "Testing_Complete": d3 if d3 else None,
-                "Cleaning_Complete": d4 if d4 else None,
-                "Delivery_Complete": d5 if d5 else None
-            }
-            st.session_state.spec_dialog_open = True
-            st.rerun()
-
-# ==============================================
-# Project Specification 視窗（複製與貼上按鈕放在這裡）
+# Project Specification Dialog (新增用) - 穩定版（無套用資料功能）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -1137,7 +975,7 @@ if st.session_state.get("spec_dialog_open", False):
     def spec_dialog():
         st.markdown(f"**請填寫 {qty} 台機器的規格**")
 
-        # 全局 CSS
+        # 全局 CSS：垂直居中對齊
         st.markdown(
             """
             <style>
@@ -1173,8 +1011,9 @@ if st.session_state.get("spec_dialog_open", False):
 
                 st.markdown("---")
 
-                # Engine & Alternator
+                # 第一組：Engine & Alternator
                 with st.expander("Engine & Alternator Group(發動機＆電球)", expanded=True):
+                    # Engine
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
                         st.markdown("**Engine 發動機**")
@@ -1194,6 +1033,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                     st.markdown("---")
 
+                    # Alternator
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
                         st.markdown("**Alternator (電球)**")
@@ -1219,6 +1059,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                 # 第二組：Radiator & Base Frame Group
                 with st.expander("Radiator & Base Frame Group(水箱＆底架)", expanded=False):
+                    # Radiator
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
                         st.markdown("**Radiator (水箱)**")
@@ -1238,6 +1079,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_r1:
                         s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"], key=f"dlg_radiator_guard_{i}")
 
+                    # Fuel Cooler - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**Fuel Cooler (燃油冷卻器)**")
@@ -1246,6 +1088,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_source:
                         s_fuel_cooler_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_fuel_cooler_source_{i}", label_visibility="collapsed")
 
+                    # Coolant temperature sensor - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**Coolant temperature sensor**")
@@ -1254,6 +1097,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_source:
                         s_coolant_sensor_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_coolant_sensor_source_{i}", label_visibility="collapsed")
 
+                    # Low water level float switch - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**Low water level float switch**")
@@ -1264,6 +1108,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                     st.markdown("---")
 
+                    # Base Frame
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
                         st.markdown("**Base Frame (底架)**")
@@ -1276,6 +1121,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_sn:
                         s_base_sn = st.text_input("S/N", key=f"dlg_base_sn_{i}")
 
+                    # Anti-Vibration Mount - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**Anti-Vibration Mount**")
@@ -1283,14 +1129,15 @@ if st.session_state.get("spec_dialog_open", False):
                         s_avm = st.selectbox("", ["--", "Include", "Not Include"], key=f"dlg_avm_{i}", label_visibility="collapsed")
                     with col_source:
                         s_avm_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_avm_source_{i}", label_visibility="collapsed")
-
                     s_avm_model = st.text_input("Anti-Vibration Mount model(避震器型號)", key=f"dlg_avm_model_{i}")
                     s_avm_qty = st.number_input("Qty(數量)", min_value=0, value=0, key=f"dlg_avm_qty_{i}")
+
 
                 st.markdown("---")
 
                 # 第三組：Container & Control & Circuit Breaker
                 with st.expander("Container & Control & Circuit Breaker Group(貨櫃&控制器&斷路器)", expanded=False):
+                    # Container
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
                         st.markdown("**Container (貨櫃)**")
@@ -1319,6 +1166,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                     st.markdown("---")
 
+                    # Panel
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
                         st.markdown("**Panel (控制器)**")
@@ -1331,6 +1179,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_p2:
                         s_panel_sn = st.text_input("S/N", key=f"dlg_panel_sn_{i}")
 
+                    # CO 探測器 - 三欄設計
                     col_title, col_include, col_source = st.columns([5, 1, 1])
                     with col_title:
                         st.markdown("**CO 探測器 (OLED)**")
@@ -1341,6 +1190,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                     st.markdown("---")
 
+                    # Circuit Breaker
                     col_title, col_source = st.columns([6, 1])
                     with col_title:
                         st.markdown("**Circuit Breaker (斷路器)**")
@@ -1447,66 +1297,10 @@ if st.session_state.get("spec_dialog_open", False):
 
                 st.markdown("---")
 
-                # Remarks
+                # 最下面：Remarks
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
-                # === 複製與貼上按鈕 ===
-                col_copy, col_paste = st.columns(2)
-                with col_copy:
-                    if st.button("複製目前 Tag 到暫存", type="secondary", use_container_width=True):
-                        st.session_state["copied_tag"] = {
-                            "prime": s_prime,
-                            "standby": s_standby,
-                            "voltage": s_voltage,
-                            "frequency": s_frequency,
-                            "rpm": s_rpm,
-                            "genset_model": s_genset_model,
-                            "genset_sn": s_genset_sn,
-                            "engine_color": s_engine_color,
-                            "engine_year": s_engine_year,
-                            "engine_heater": s_engine_heater,
-                            "engine_source": s_engine_source,
-                            "alt_model": s_alt_model,
-                            "alt_sn": s_alt_sn,
-                            "alt_color": s_alt_color,
-                            "droop": s_droop,
-                            "pmg": s_pmg,
-                            "alt_heater": s_alt_heater,
-                            "alt_source": s_alt_source,
-                            "remarks": s_remarks,
-                            # ... 其他欄位 ...
-                        }
-                        st.success("已複製到暫存！可切換到其他 Tag 貼上")
-                        st.rerun()
-
-                with col_paste:
-                    if "copied_tag" in st.session_state:
-                        if st.button("從暫存貼上到此 Tag", type="primary", use_container_width=True):
-                            copied = st.session_state["copied_tag"]
-                            st.session_state[f"dlg_prime_{i}"] = copied.get("prime", "")
-                            st.session_state[f"dlg_standby_{i}"] = copied.get("standby", "")
-                            st.session_state[f"dlg_voltage_{i}"] = copied.get("voltage", "--")
-                            st.session_state[f"dlg_frequency_{i}"] = copied.get("frequency", "--")
-                            st.session_state[f"dlg_rpm_{i}"] = copied.get("rpm", "")
-                            st.session_state[f"dlg_genset_model_{i}"] = copied.get("genset_model", "")
-                            st.session_state[f"dlg_genset_sn_{i}"] = copied.get("genset_sn", "")
-                            st.session_state[f"dlg_engine_color_{i}"] = copied.get("engine_color", "")
-                            st.session_state[f"dlg_engine_year_{i}"] = copied.get("engine_year", "")
-                            st.session_state[f"dlg_engine_heater_{i}"] = copied.get("engine_heater", "")
-                            st.session_state[f"dlg_engine_source_{i}"] = copied.get("engine_source", "--")
-                            st.session_state[f"dlg_alt_model_{i}"] = copied.get("alt_model", "")
-                            st.session_state[f"dlg_alt_sn_{i}"] = copied.get("alt_sn", "")
-                            st.session_state[f"dlg_alt_color_{i}"] = copied.get("alt_color", "")
-                            st.session_state[f"dlg_droop_{i}"] = copied.get("droop", "--")
-                            st.session_state[f"dlg_pmg_{i}"] = copied.get("pmg", "")
-                            st.session_state[f"dlg_alt_heater_{i}"] = copied.get("alt_heater", "--")
-                            st.session_state[f"dlg_alt_source_{i}"] = copied.get("alt_source", "--")
-                            st.session_state[f"dlg_remarks_{i}"] = copied.get("remarks", "")
-
-                            st.success("已貼上！可繼續修改")
-                            st.rerun()
-
-                # 處理 Parts 和 Delivery Checklist（保持原樣）
+                # 處理 Parts 和 Delivery Checklist
                 cleaned_parts = [p for p in parts_list if p.get("name", "").strip()] if 'parts_list' in locals() and parts_list else []
                 cleaned_checklist = [item for item in checklist if item.get("name", "").strip()] if 'checklist' in locals() and checklist else []
 
@@ -1529,9 +1323,48 @@ if st.session_state.get("spec_dialog_open", False):
                     "pmg": s_pmg,
                     "alt_heater": s_alt_heater if s_alt_heater != "--" else "",
                     "alt_source": s_alt_source if s_alt_source != "--" else "",
+                    "rad_model": s_rad_model,
+                    "rad_sn": s_rad_sn,
+                    "rad_temp": s_rad_temp,
+                    "fan_size": s_fan_size,
+                    "coolant_sensor": s_coolant_sensor if s_coolant_sensor != "--" else "",
+                    "low_water": s_low_water if s_low_water != "--" else "",
+                    "radiator_guard": s_radiator_guard if s_radiator_guard != "--" else "",
+                    "fuel_cooler": s_fuel_cooler if s_fuel_cooler != "--" else "",
+                    "rad_source": s_rad_source if s_rad_source != "--" else "",
+                    "fuel_cooler_source": s_fuel_cooler_source if s_fuel_cooler_source != "--" else "",
+                    "coolant_sensor_source": s_coolant_sensor_source if s_coolant_sensor_source != "--" else "",
+                    "low_water_source": s_low_water_source if s_low_water_source != "--" else "",
+                    "base_model": s_base_model,
+                    "base_sn": s_base_sn,
+                    "base_source": s_base_source if s_base_source != "--" else "",
+                    "avm": s_avm if s_avm != "--" else "",
+                    "avm_qty": str(s_avm_qty),
+                    "avm_source": s_avm_source if s_avm_source != "--" else "",
+                    "cont_size": s_cont_size if s_cont_size != "--" else "",
+                    "cont_type": s_cont_type if s_cont_type != "--" else "",
+                    "cont_color": s_cont_color,
+                    "fork_slot": s_fork_slot if s_fork_slot != "--" else "",
+                    "anti_noise": s_anti_noise if s_anti_noise != "--" else "",
+                    "internal_silencer": s_internal_silencer if s_internal_silencer != "--" else "",
+                    "ss_locks": s_ss_locks if s_ss_locks != "--" else "",
+                    "emergency_stop": s_emergency_stop if s_emergency_stop != "--" else "",
+                    "cont_source": s_cont_source if s_cont_source != "--" else "",
+                    "panel_model": s_panel_model,
+                    "panel_sn": s_panel_sn,
+                    "co_detector": s_co_detector if s_co_detector != "--" else "",
+                    "panel_source": s_panel_source if s_panel_source != "--" else "",
+                    "co_source": s_co_source if s_co_source != "--" else "",
+                    "breaker_type": s_breaker_type if s_breaker_type != "--" else "",
+                    "breaker_rating": s_breaker_rating,
+                    "poles": s_poles if s_poles != "--" else "",
+                    "spring_charging": s_spring_charging if s_spring_charging != "--" else "",
+                    "control_voltage": s_control_voltage,
+                    "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
                     "parts": cleaned_parts,
-                    "delivery_checklist": cleaned_checklist
+                    "delivery_checklist": cleaned_checklist,
+                    "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
 
@@ -1550,6 +1383,7 @@ if st.session_state.get("spec_dialog_open", False):
                     del st.session_state.temp_project
                 st.rerun()
 
+        # 全屏 loading + 執行儲存
         if st.session_state.get("new_spec_saving", False):
             fullscreen_loading("正在新增專案並儲存規格，請稍候...")
 
