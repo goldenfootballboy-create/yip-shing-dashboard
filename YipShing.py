@@ -1605,28 +1605,6 @@ with st.sidebar:
         reminder = st.text_input("Progress Reminder (顯示在進度條中間)", placeholder="例如：等緊報價 / 生產中 / 已發貨",
                                  key="reminder")
 
-        # === 新增：如果 Qty > 1，顯示複製按鈕 ===
-        if new_qty > 1:
-            st.markdown("**Tag 複製功能**")
-            if st.button("複製目前 Tag 資料到下一個 Tag", type="secondary", use_container_width=True):
-                # 取得當前 Tag 的所有輸入值（從 session_state 讀取）
-                current_tab = st.session_state.get("current_tab", 0)  # 預設第一個 Tab
-                next_tab = current_tab + 1
-
-                if next_tab < new_qty:
-                    # 複製所有欄位到下一個 Tab 的 key
-                    st.session_state[f"prime_{next_tab}"] = st.session_state.get(f"prime_{current_tab}", "")
-                    st.session_state[f"standby_{next_tab}"] = st.session_state.get(f"standby_{current_tab}", "")
-                    st.session_state[f"voltage_{next_tab}"] = st.session_state.get(f"voltage_{current_tab}", "--")
-                    st.session_state[f"frequency_{next_tab}"] = st.session_state.get(f"frequency_{current_tab}", "--")
-                    st.session_state[f"rpm_{next_tab}"] = st.session_state.get(f"rpm_{current_tab}", "--")
-                    # ... 其他欄位可依需求繼續加，例如 genset_model、engine_color 等
-                    # 這裡只示範主要欄位，你可以根據你的 spec_dialog 增加更多
-
-                    st.session_state["current_tab"] = next_tab  # 切換到下一個 Tab
-                    st.success(f"已複製到 Tag {next_tab + 1}！")
-                    st.rerun()
-
         if st.form_submit_button("Add", type="primary", use_container_width=True):
             if not new_name.strip():
                 st.error("Project Name required!")
@@ -1650,6 +1628,28 @@ with st.sidebar:
                     "Delivery_Complete": d5 if d5 else None
                 }
                 st.session_state.spec_dialog_open = True
+                st.rerun()
+
+    # === 移出表單：Qty > 1 時顯示複製按鈕 ===
+    if new_qty > 1:
+        st.markdown("**Tag 複製功能** (在 spec 輸入時使用)")
+        if st.button("複製目前 Tag 資料到下一個 Tag", type="secondary", use_container_width=True):
+            # 取得當前 Tab 的所有輸入值（從 session_state 讀取）
+            current_tab = st.session_state.get("current_tab", 0)  # 預設第一個 Tab
+            next_tab = current_tab + 1
+
+            if next_tab < new_qty:
+                # 複製主要欄位到下一個 Tab
+                st.session_state[f"prime_{next_tab}"] = st.session_state.get(f"prime_{current_tab}", "")
+                st.session_state[f"standby_{next_tab}"] = st.session_state.get(f"standby_{current_tab}", "")
+                st.session_state[f"voltage_{next_tab}"] = st.session_state.get(f"voltage_{current_tab}", "--")
+                st.session_state[f"frequency_{next_tab}"] = st.session_state.get(f"frequency_{current_tab}", "--")
+                st.session_state[f"rpm_{next_tab}"] = st.session_state.get(f"rpm_{current_tab}", "--")
+                # ... 你可以繼續加其他欄位，例如 genset_model 等
+                # 例如：st.session_state[f"genset_model_{next_tab}"] = st.session_state.get(f"genset_model_{current_tab}", "")
+
+                st.session_state["current_tab"] = next_tab  # 切換到下一個 Tab
+                st.success(f"已複製到 Tag {next_tab + 1}！")
                 st.rerun()
 # ==============================================
 # 篩選邏輯 & 主畫面
