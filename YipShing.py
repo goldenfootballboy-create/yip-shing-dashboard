@@ -419,14 +419,8 @@ def render_project_card(row, idx):
                         checklist = spec.get("delivery_checklist", [])
                         if checklist:
                             st.subheader("出貨檢查清單")
-                            checked = sum(1 for x in checklist if x.get("checked"))
-                            total = len(checklist)
-                            st.progress(checked / total if total > 0 else 0)
-                            st.caption(f"完成度：{checked}/{total}")
                             for item in checklist:
-                                name = item.get("name", "—")
-                                ch = "✅" if item.get("checked") else "⬜"
-                                st.markdown(f"{ch} {name}")
+                                st.markdown(f"- {item}")
 
                         st.divider()
 
@@ -645,37 +639,15 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     for target_i in range(1, qty):
                         st.session_state[f"parts_edit_{row_to_edit['Project_Name']}_{target_i}"] = copied_parts
 
-                # 複製 Delivery Checklist 動態列表（強制重建全新列表，確保 checked 狀態完整複製）
+                # 複製 Delivery Checklist（現在是純字串列表）
                 src_checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{source_i}"
                 if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
-                    original_checklist = st.session_state[src_checklist_key]
-
-                    # 手動重建每一個 item，避免任何隱藏參考問題
-                    copied_checklist = []
-                    for item in original_checklist:
-                        if isinstance(item, dict) and "name" in item and "checked" in item:
-                            copied_checklist.append({
-                                "name": item["name"],
-                                "checked": bool(item["checked"])  # 強制轉成 bool，確保不是 None 或其他
-                            })
-                        else:
-                            # 如果格式異常，跳過或記錄（防呆）
-                            continue
-
-                    if copied_checklist:  # 只有非空才複製
-                        for target_i in range(1, qty):
-                            target_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
-                            # 先刪除舊的（避免舊狀態殘留）
-                            if target_key in st.session_state:
-                                del st.session_state[target_key]
-                            # 賦值全新列表
-                            st.session_state[target_key] = copied_checklist[:]
-
-                            st.write("第1台 checklist 狀態:", st.session_state[src_checklist_key])
-                            st.write("複製後第2台 checklist 狀態:",
-                                     st.session_state.get(f"delivery_checklist_edit_{row_to_edit['Project_Name']}_1",
-                                                          "不存在"))
-
+                    copied_list = st.session_state[src_checklist_key][:]  # 簡單拷貝字串列表
+                    for target_i in range(1, qty):
+                        target_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
+                        if target_key in st.session_state:
+                            del st.session_state[target_key]
+                        st.session_state[target_key] = copied_list[:]
                 st.success("已成功將第 1 台的規格複製到其他所有台！")
                 st.rerun()  # 強制重新渲染，讓輸入框顯示新值
         for i in range(qty):
@@ -1037,7 +1009,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # 第五組：Delivery Checklist (出貨檢查清單)
+                # 第五組：Delivery Checklist (出貨檢查清單) - 改成純文字清單，無打勾
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
                     checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{i}"
                     if checklist_key not in st.session_state:
@@ -1069,22 +1041,29 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             "Autocad drawing",
                             "Wiring diagram"
                         ]
+
+                        # 讀取舊資料，並自動轉換成純文字清單（兼容舊格式）
                         old_checklist = current.get("delivery_checklist", [])
-                        initial_list = old_checklist if old_checklist else [{"name": item, "checked": False} for item in
-                                                                            default_items]
+                        if old_checklist:
+                            if isinstance(old_checklist[0], dict):
+                                # 舊格式：只取 name
+                                initial_list = [item.get("name", "").strip() for item in old_checklist if
+                                                item.get("name", "").strip()]
+                            else:
+                                # 已經是純文字
+                                initial_list = [item.strip() for item in old_checklist if item.strip()]
+                        else:
+                            initial_list = default_items[:]
+
                         st.session_state[checklist_key] = initial_list
 
-                    checklist = st.session_state.get(checklist_key, [{"name": "", "checked": False}])
+                    # checklist 現在是純字串列表
+                    checklist = st.session_state[checklist_key]
 
                     for j in range(len(checklist)):
-                        col_check, col_name, col_delete = st.columns([1, 5, 1])
-                        with col_check:
-                            # 讀取當前勾選狀態
-                            current_checked = checklist[j].get("checked", False)
-                            checked = st.checkbox("", value=current_checked, key=f"check_{checklist_key}_{j}")
+                        col_name, col_delete = st.columns([5, 1])
                         with col_name:
-                            current_name = checklist[j].get("name", "")
-                            name = st.text_input("", value=current_name, key=f"name_{checklist_key}_{j}",
+                            name = st.text_input("", value=checklist[j], key=f"name_{checklist_key}_{j}",
                                                  label_visibility="collapsed")
                         with col_delete:
                             if len(checklist) > 1:
@@ -1092,11 +1071,10 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                     checklist.pop(j)
                                     st.rerun()
 
-                        # 正確更新 name 和 checked
-                        checklist[j] = {"name": name.strip(), "checked": checked}
+                        checklist[j] = name.strip()
 
                     if st.button("+ 新增自定義項目", key=f"add_check_{checklist_key}", type="secondary"):
-                        checklist.append({"name": "", "checked": False})
+                        checklist.append("")  # 加一個空白輸入框
                         st.rerun()
 
                     # 安全過濾空行
@@ -1292,12 +1270,14 @@ if st.session_state.get("spec_dialog_open", False):
                     for target_i in range(1, qty):
                         st.session_state[f"dlg_parts_{target_i}"] = copied_parts
 
-                # 複製動態列表：Delivery Checklist
                 src_checklist_key = f"dlg_delivery_checklist_{source_i}"
                 if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
-                    copied_checklist = [item.copy() for item in st.session_state[src_checklist_key]]
+                    copied_list = st.session_state[src_checklist_key][:]
                     for target_i in range(1, qty):
-                        st.session_state[f"dlg_delivery_checklist_{target_i}"] = copied_checklist
+                        target_key = f"dlg_delivery_checklist_{target_i}"
+                        if target_key in st.session_state:
+                            del st.session_state[target_key]
+                        st.session_state[target_key] = copied_list[:]
 
                 st.success("已成功將第 1 台的規格複製到其他所有台！")
                 st.rerun()  # 強制重新渲染，讓輸入框顯示新值
@@ -1578,26 +1558,25 @@ if st.session_state.get("spec_dialog_open", False):
                             "Autocad drawing",
                             "Wiring diagram"
                         ]
-                        st.session_state[checklist_key] = [{"name": item, "checked": False} for item in default_items]
+                        st.session_state[checklist_key] = default_items[:]
 
                     checklist = st.session_state[checklist_key]
 
                     for j in range(len(checklist)):
-                        col_check, col_name, col_delete = st.columns([1, 5, 1])
-                        with col_check:
-                            checked = st.checkbox("", value=checklist[j].get("checked", False), key=f"dlg_check_{i}_{j}")
+                        col_name, col_delete = st.columns([5, 1])
                         with col_name:
-                            name = st.text_input("", value=checklist[j].get("name", ""), key=f"dlg_check_name_{i}_{j}", label_visibility="collapsed")
+                            name = st.text_input("", value=checklist[j], key=f"dlg_check_name_{i}_{j}",
+                                                 label_visibility="collapsed")
                         with col_delete:
                             if len(checklist) > 1:
                                 if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
                                     checklist.pop(j)
                                     st.rerun()
 
-                        checklist[j] = {"name": name.strip(), "checked": checked}
+                        checklist[j] = name.strip()  # 直接更新字串
 
                     if st.button("+ 新增自定義項目", key=f"dlg_add_check_{i}", type="secondary"):
-                        checklist.append({"name": "", "checked": False})
+                        checklist.append("")  # 加一個空白輸入框
                         st.rerun()
 
                 st.markdown("---")
@@ -1668,7 +1647,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
                     "parts": cleaned_parts,
-                    "delivery_checklist": cleaned_checklist,
+                    "delivery_checklist": [item["name"].strip() for item in checklist if item.get("name", "").strip()],
                     "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
