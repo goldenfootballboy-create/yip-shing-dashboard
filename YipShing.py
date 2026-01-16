@@ -1570,12 +1570,6 @@ if st.session_state.get("spec_dialog_open", False):
                                 new_checklist = checklist[:j] + checklist[j + 1:]
                                 st.session_state[checklist_key] = new_checklist
                                 st.rerun()
-                        if st.button("刪除", ...):
-                            st.write("刪除前 checklist:", checklist)
-                            new_checklist = checklist[:j] + checklist[j + 1:]
-                            st.write("刪除後:", new_checklist)
-                            st.session_state[checklist_key] = new_checklist
-                            st.rerun()
                         checklist[j] = name.strip()  # 直接更新字串
 
                     if st.button("+ 新增自定義項目", key=f"dlg_add_check_{i}", type="secondary"):
