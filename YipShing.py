@@ -370,7 +370,7 @@ def render_project_card(row, idx):
                         st.markdown(
                             f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}")
                         st.markdown(
-                            f"**彈簧充電 / 控制電壓**： {spec.get('spring_charging', '—')} / {spec.get('control_voltage', '—')}")
+                            f"**彈簧充電**： {spec.get('spring_charging', '—')}　　**控制電壓**： {spec.get('control_voltage', '—')}")
 
                         st.divider()
 
