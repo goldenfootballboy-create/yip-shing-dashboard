@@ -1077,9 +1077,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         checklist.append("")  # 加一個空白輸入框
                         st.rerun()
 
-                    # 安全過濾空行
-                    cleaned_checklist = [item for item in checklist if item.get("name", "").strip()]
-
                     st.markdown("---")
                 # 最下面：Remarks
                 e_remarks = st.text_area("Remarks", value=current.get("remarks", ""), height=150, key=f"edit_remarks_{idx_to_edit}_{i}")
