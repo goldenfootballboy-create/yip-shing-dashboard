@@ -419,8 +419,15 @@ def render_project_card(row, idx):
                         checklist = spec.get("delivery_checklist", [])
                         if checklist:
                             st.subheader("出貨檢查清單")
-                            for item in checklist:
-                                st.markdown(f"- {item}")
+                            if checklist and isinstance(checklist[0], dict):
+                                for item in checklist:
+                                    name = item.get("name", "—")
+                                    status = item.get("status", "--")
+                                    st.markdown(f"- {name}　　**狀態**： {status}")
+                            else:
+                                # 舊純文字格式
+                                for item in checklist:
+                                    st.markdown(f"- {item}")
 
                         st.divider()
 
@@ -1009,7 +1016,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # 第五組：Delivery Checklist (出貨檢查清單) - 純文字清單，無打勾
+                # 第五組：Delivery Checklist (出貨檢查清單) - 改成名稱 + 下拉 Y/N/--
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
                     checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{i}"
                     if checklist_key not in st.session_state:
@@ -1042,39 +1049,49 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             "Wiring diagram"
                         ]
 
-                        # 讀取舊資料，並自動轉換成純文字清單（兼容舊格式）
+                        # 讀取舊資料，並轉成 {"name": ..., "status": "--"/"Y"/"N"} 格式
                         old_checklist = current.get("delivery_checklist", [])
+                        initial_list = []
                         if old_checklist:
                             if isinstance(old_checklist[0], dict):
-                                # 舊格式：只取 name
-                                initial_list = [item.get("name", "").strip() for item in old_checklist if item.get("name", "").strip()]
+                                # 舊格式有 checked，轉成 status
+                                for item in old_checklist:
+                                    name = item.get("name", "").strip()
+                                    if name:
+                                        status = "Y" if item.get("checked", False) else "N"
+                                        initial_list.append({"name": name, "status": status})
                             else:
-                                # 已經是純文字
-                                initial_list = [item.strip() for item in old_checklist if item.strip()]
+                                # 純文字格式，預設 --
+                                initial_list = [{"name": item.strip(), "status": "--"} for item in old_checklist if item.strip()]
                         else:
-                            initial_list = default_items[:]
+                            # 預設項目，status 預設 --
+                            initial_list = [{"name": item, "status": "--"} for item in default_items]
 
                         st.session_state[checklist_key] = initial_list
 
-                    # checklist 現在是純字串列表
                     checklist = st.session_state[checklist_key]
 
                     for j in range(len(checklist)):
-                        col_name, col_delete = st.columns([5, 1])
+                        col_name, col_status, col_delete = st.columns([4, 2, 1])
                         with col_name:
-                            name = st.text_input("", value=checklist[j], key=f"name_{checklist_key}_{j}",
+                            name = st.text_input("", value=checklist[j]["name"], key=f"name_{checklist_key}_{j}",
                                                  label_visibility="collapsed")
+                        with col_status:
+                            status = st.selectbox("", ["--", "Y", "N"], index=["--", "Y", "N"].index(checklist[j]["status"]),
+                                                  key=f"status_{checklist_key}_{j}", label_visibility="collapsed")
                         with col_delete:
                             if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
-                                # 改用重建列表，避免索引移位導致刪錯欄
+                                # 重建列表移除第 j 個
                                 new_checklist = checklist[:j] + checklist[j+1:]
                                 st.session_state[checklist_key] = new_checklist
                                 st.rerun()
 
-                        checklist[j] = name.strip()
+                        # 更新項目
+                        checklist[j]["name"] = name.strip()
+                        checklist[j]["status"] = status
 
                     if st.button("+ 新增自定義項目", key=f"add_check_{checklist_key}", type="secondary"):
-                        checklist.append("")  # 加一個空白輸入框
+                        checklist.append({"name": "", "status": "--"})
                         st.rerun()
 
                     st.markdown("---")
@@ -1139,7 +1156,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "control_voltage": e_control_voltage,
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
                     "parts": [p for p in parts_list if p["name"].strip()],
-                    "delivery_checklist": [item.strip() for item in checklist if item.strip()],
+                    "delivery_checklist": [{"name": item["name"].strip(), "status": item["status"]} for item in
+                                           checklist if item["name"].strip()],
                     "base_sn": e_base_sn,
                     "remarks": e_remarks.strip()
                 }
@@ -1555,26 +1573,29 @@ if st.session_state.get("spec_dialog_open", False):
                             "Autocad drawing",
                             "Wiring diagram"
                         ]
-                        st.session_state[checklist_key] = default_items[:]
+                        st.session_state[checklist_key] = [{"name": item, "status": "--"} for item in default_items]
 
                     checklist = st.session_state[checklist_key]
 
                     for j in range(len(checklist)):
-                        col_name, col_delete = st.columns([5, 1])
+                        col_name, col_status, col_delete = st.columns([4, 2, 1])
                         with col_name:
-                            name = st.text_input("", value=checklist[j], key=f"dlg_check_name_{i}_{j}",
+                            name = st.text_input("", value=checklist[j]["name"], key=f"dlg_check_name_{i}_{j}",
                                                  label_visibility="collapsed")
+                        with col_status:
+                            status = st.selectbox("", ["--", "Y", "N"], index=["--", "Y", "N"].index(checklist[j]["status"]),
+                                                  key=f"dlg_status_{i}_{j}", label_visibility="collapsed")
                         with col_delete:
                             if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
-                                # 同樣用重建列表，避免刪錯欄
-                                new_checklist = checklist[:j] + checklist[j + 1:]
+                                new_checklist = checklist[:j] + checklist[j+1:]
                                 st.session_state[checklist_key] = new_checklist
                                 st.rerun()
 
-                        checklist[j] = name.strip()
+                        checklist[j]["name"] = name.strip()
+                        checklist[j]["status"] = status
 
                     if st.button("+ 新增自定義項目", key=f"dlg_add_check_{i}", type="secondary"):
-                        checklist.append("")  # 加一個空白輸入框
+                        checklist.append({"name": "", "status": "--"})
                         st.rerun()
 
                 # 最下面：Remarks
@@ -1642,7 +1663,8 @@ if st.session_state.get("spec_dialog_open", False):
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
                     "parts": cleaned_parts,
-                    "delivery_checklist": [item.strip() for item in checklist if item.strip()],
+                    "delivery_checklist": [{"name": item["name"].strip(), "status": item["status"]} for item in
+                                           checklist if item["name"].strip()],
                     "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
