@@ -415,7 +415,6 @@ def render_project_card(row, idx):
                                 if name:
                                     st.markdown(f"- **{name}**　（貨源：{source}）")
 
-                        # ── Delivery Checklist ─────────────────────────────────
                         checklist = spec.get("delivery_checklist", [])
                         if checklist:
                             st.subheader("出貨檢查清單")
@@ -425,7 +424,7 @@ def render_project_card(row, idx):
                                     status = item.get("status", "--")
                                     st.markdown(f"- {name}　　**狀態**： {status}")
                             else:
-                                # 舊純文字格式
+                                # 舊純文字格式（兼容）
                                 for item in checklist:
                                     st.markdown(f"- {item}")
 
@@ -1016,7 +1015,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # 第五組：Delivery Checklist (出貨檢查清單) - 改成名稱 + 下拉 Y/N/--
+                # 第五組：Delivery Checklist (出貨檢查清單) - 帶下拉狀態 --/Y/N
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
                     checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{i}"
                     if checklist_key not in st.session_state:
@@ -1049,7 +1048,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             "Wiring diagram"
                         ]
 
-                        # 讀取舊資料，並轉成 {"name": ..., "status": "--"/"Y"/"N"} 格式
+                        # 讀取舊資料，並轉成 {"name": ..., "status": "--"/"Y"/"N"}
                         old_checklist = current.get("delivery_checklist", [])
                         initial_list = []
                         if old_checklist:
@@ -1074,14 +1073,16 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     for j in range(len(checklist)):
                         col_name, col_status, col_delete = st.columns([4, 2, 1])
                         with col_name:
-                            name = st.text_input("", value=checklist[j], key=f"name_{checklist_key}_{j}",
-                                                 label_visibility="collapsed")
+                            name = st.text_input("", value=checklist[j]["name"],
+                                                key=f"name_{checklist_key}_{j}",
+                                                label_visibility="collapsed")
                         with col_status:
-                            status = st.selectbox("", ["--", "Y", "N"], index=["--", "Y", "N"].index(checklist[j]["status"]),
-                                                  key=f"status_{checklist_key}_{j}", label_visibility="collapsed")
+                            status = st.selectbox("", ["--", "Y", "N"],
+                                                 index=["--", "Y", "N"].index(checklist[j]["status"]),
+                                                 key=f"status_{checklist_key}_{j}",
+                                                 label_visibility="collapsed")
                         with col_delete:
                             if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
-                                # 重建列表移除第 j 個
                                 new_checklist = checklist[:j] + checklist[j+1:]
                                 st.session_state[checklist_key] = new_checklist
                                 st.rerun()
@@ -1541,7 +1542,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                 st.markdown("---")
 
-                # 第五組：Delivery Checklist (出貨檢查清單)
+                # 第五組：Delivery Checklist (出貨檢查清單) - 帶下拉狀態 --/Y/N
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
                     checklist_key = f"dlg_delivery_checklist_{i}"
                     if checklist_key not in st.session_state:
@@ -1580,11 +1581,14 @@ if st.session_state.get("spec_dialog_open", False):
                     for j in range(len(checklist)):
                         col_name, col_status, col_delete = st.columns([4, 2, 1])
                         with col_name:
-                            name = st.text_input("", value=checklist[j]["name"], key=f"dlg_check_name_{i}_{j}",
-                                                 label_visibility="collapsed")
+                            name = st.text_input("", value=checklist[j]["name"],
+                                                key=f"dlg_check_name_{i}_{j}",
+                                                label_visibility="collapsed")
                         with col_status:
-                            status = st.selectbox("", ["--", "Y", "N"], index=["--", "Y", "N"].index(checklist[j]["status"]),
-                                                  key=f"dlg_status_{i}_{j}", label_visibility="collapsed")
+                            status = st.selectbox("", ["--", "Y", "N"],
+                                                 index=["--", "Y", "N"].index(checklist[j]["status"]),
+                                                 key=f"dlg_status_{i}_{j}",
+                                                 label_visibility="collapsed")
                         with col_delete:
                             if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
                                 new_checklist = checklist[:j] + checklist[j+1:]
