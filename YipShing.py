@@ -1142,7 +1142,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "control_voltage": e_control_voltage,
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
                     "parts": [p for p in parts_list if p["name"].strip()],
-                    "delivery_checklist": [item.strip() for item in checklist if item.strip()],
+                    "delivery_checklist": [item for item in checklist if item.get("name", "").strip()],
                     "base_sn": e_base_sn,
                     "remarks": e_remarks.strip()
                 }
