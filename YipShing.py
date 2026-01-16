@@ -1014,7 +1014,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # 第五組：Delivery Checklist (出貨檢查清單)
+                # 第五組：Delivery Checklist (出貨檢查清單) - 恢復打勾功能 + 兼容純字串資料
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
                     checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{i}"
                     if checklist_key not in st.session_state:
@@ -1046,19 +1046,22 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             "Autocad drawing",
                             "Wiring diagram"
                         ]
+
                         old_checklist = current.get("delivery_checklist", [])
                         initial_list = []
+
                         if old_checklist:
-                            if isinstance(old_checklist[0], dict):
-                                initial_list = old_checklist  # 舊格式，直接用
+                            # 兼容純字串格式（新資料）
+                            if isinstance(old_checklist[0], str):
+                                initial_list = [{"name": item.strip(), "checked": False} for item in old_checklist if item.strip()]
+                            # 兼容舊 dict 格式
+                            elif isinstance(old_checklist[0], dict):
+                                initial_list = old_checklist
                             else:
-                                # 新格式（純字串） → 轉成 dict，checked 預設 False
-                                initial_list = [{"name": item.strip(), "checked": False} for item in old_checklist if
-                                                item.strip()]
+                                initial_list = [{"name": item, "checked": False} for item in default_items]
                         else:
                             initial_list = [{"name": item, "checked": False} for item in default_items]
 
-                        st.session_state[checklist_key] = initial_list
                         st.session_state[checklist_key] = initial_list
 
                     checklist = st.session_state.get(checklist_key, [{"name": "", "checked": False}])
@@ -1066,6 +1069,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     for j in range(len(checklist)):
                         col_check, col_name, col_delete = st.columns([1, 5, 1])
                         with col_check:
+                            # 現在 checklist[j] 是 dict，安全取 checked
                             current_checked = checklist[j].get("checked", False)
                             checked = st.checkbox("", value=current_checked, key=f"check_{checklist_key}_{j}")
                         with col_name:
@@ -1078,16 +1082,14 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                     checklist.pop(j)
                                     st.rerun()
 
-                        checklist[j] = {"name": name.strip(), "checked": checked}
-
-                        # 正確更新 name 和 checked
+                        # 更新 dict
                         checklist[j] = {"name": name.strip(), "checked": checked}
 
                     if st.button("+ 新增自定義項目", key=f"add_check_{checklist_key}", type="secondary"):
                         checklist.append({"name": "", "checked": False})
                         st.rerun()
 
-                    # 安全過濾空行
+                    # 過濾空行
                     cleaned_checklist = [item for item in checklist if item.get("name", "").strip()]
 
                     st.markdown("---")
@@ -1587,9 +1589,6 @@ if st.session_state.get("spec_dialog_open", False):
                     if st.button("+ 新增自定義項目", key=f"dlg_add_check_{i}", type="secondary"):
                         checklist.append({"name": "", "checked": False})
                         st.rerun()
-
-                st.markdown("---")
-
                 # 最下面：Remarks
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
