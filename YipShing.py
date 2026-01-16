@@ -363,7 +363,8 @@ def render_project_card(row, idx):
                             </h3>""",
                             unsafe_allow_html=True
                         )
-                        st.markdown(f"**貨櫃尺寸 / 類型**： {spec.get('cont_size', '—')} / {spec.get('cont_type', '—')}")
+                        st.markdown(
+                            f"**貨櫃尺寸**： {spec.get('cont_size', '—')}　　**類型**： {spec.get('cont_type', '—')}")
                         st.markdown(
                             f"**控制器型號**： {spec.get('panel_model', '—')}　　**S/N**： {spec.get('panel_sn', '—')}")
                         st.markdown(
