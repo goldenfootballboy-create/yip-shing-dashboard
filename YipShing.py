@@ -340,7 +340,7 @@ def render_project_card(row, idx):
                         st.markdown(f"**電球型號**： {spec.get('alt_model', '—')}　　**S/N**： {spec.get('alt_sn', '—')}")
                         st.markdown(f"**電球顏色**： {spec.get('alt_color', '—')}")
                         st.markdown(
-                            f"**Droop**： {spec.get('droop', '—')}　　**PMG**： {spec.get('pmg', '—')}　　**加熱器**： {spec.get('alt_heater', '—')}")
+                            f"**DroopKit**： {spec.get('droop', '—')}　　**PMG**： {spec.get('pmg', '—')}　　**加熱器**： {spec.get('alt_heater', '—')}")
 
                         st.divider()
 
