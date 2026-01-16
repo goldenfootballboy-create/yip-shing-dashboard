@@ -953,14 +953,15 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # Parts Group
                 with st.expander("Parts (配件) Group", expanded=False):
                     part_key = f"parts_edit_{row_to_edit['Project_Name']}_{i}"
                     if part_key not in st.session_state:
                         old_parts = current.get("parts", [])
-                        if not old_parts:
-                            old_parts = [{"name": "", "source": "--"}]
-                        st.session_state[part_key] = [p.copy() for p in old_parts]
+                        if old_parts:
+                            st.session_state[part_key] = [p.copy() for p in old_parts]
+                        else:
+                            # 沒有預設欄位，初始為空列表
+                            st.session_state[part_key] = []
 
                     parts_list = st.session_state[part_key]
 
@@ -1454,7 +1455,8 @@ if st.session_state.get("spec_dialog_open", False):
                 with st.expander("Parts (配件) Group", expanded=False):
                     part_key = f"dlg_parts_{i}"
                     if part_key not in st.session_state:
-                        st.session_state[part_key] = [{"name": "", "source": "--"}]
+                        # 新增模式一開始完全空白，沒有預設欄位
+                        st.session_state[part_key] = []
 
                     parts_list = st.session_state[part_key]
 
@@ -1471,6 +1473,12 @@ if st.session_state.get("spec_dialog_open", False):
                             if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
                                 parts_list.pop(j)
                                 st.rerun()
+
+                        parts_list[j] = {"name": part_name.strip(), "source": part_source if part_source != "--" else ""}
+
+                    if st.button("+ 新增配件", key=f"add_dlg_part_{i}", type="secondary"):
+                        parts_list.append({"name": "", "source": "--"})
+                        st.rerun()
 
                         parts_list[j] = {"name": part_name.strip(), "source": part_source if part_source != "--" else ""}
 
