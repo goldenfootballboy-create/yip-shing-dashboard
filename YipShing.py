@@ -334,13 +334,8 @@ def render_project_card(row, idx):
                             </h3>""",
                             unsafe_allow_html=True
                         )
-                        st.markdown(
-                            f"**發動機型號**： {spec.get('genset_model', '—')}　　**S/N**： {spec.get('genset_sn', '—')}")
-                        col_model, col_sn = st.columns([3, 2])
-                        with col_model:
-                            st.markdown(f"**電球型號**： {spec.get('alt_model', '—')}")
-                        with col_sn:
-                            st.markdown(f"**S/N**： {spec.get('alt_sn', '—')}")
+                        st.markdown(f"**發動機型號**： {spec.get('genset_model', '—')}　　**S/N**： {spec.get('genset_sn', '—')}")
+                        st.markdown(f"**電球型號**： {spec.get('alt_model', '—')}　　**S/N**： {spec.get('alt_sn', '—')}")
                         st.markdown(
                             f"**Droop / PMG / 加熱器**： {spec.get('droop', '—')} / {spec.get('pmg', '—')} / {spec.get('alt_heater', '—')}")
 
@@ -353,8 +348,9 @@ def render_project_card(row, idx):
                             </h3>""",
                             unsafe_allow_html=True
                         )
-                        st.markdown(f"**水箱型號 / 溫度**： {spec.get('rad_model', '—')} / {spec.get('rad_temp', '—')}")
-                        st.markdown(f"**底架型號 / S/N**： {spec.get('base_model', '—')} / {spec.get('base_sn', '—')}")
+                        st.markdown(
+                            f"**水箱型號**： {spec.get('rad_model', '—')}　　**溫度**： {spec.get('rad_temp', '—')}")
+                        st.markdown(f"**底架型號**： {spec.get('base_model', '—')}　　**S/N**： {spec.get('base_sn', '—')}")
                         st.markdown(
                             f"**避震器**： {spec.get('avm', '—')}　數量：{spec.get('avm_qty', '—')}　型號：{spec.get('avm_model', '—')}")
 
@@ -369,7 +365,7 @@ def render_project_card(row, idx):
                         )
                         st.markdown(f"**貨櫃尺寸 / 類型**： {spec.get('cont_size', '—')} / {spec.get('cont_type', '—')}")
                         st.markdown(
-                            f"**控制器型號 / S/N**： {spec.get('panel_model', '—')} / {spec.get('panel_sn', '—')}")
+                            f"**控制器型號**： {spec.get('panel_model', '—')}　　**S/N**： {spec.get('panel_sn', '—')}")
                         st.markdown(
                             f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}")
                         st.markdown(
