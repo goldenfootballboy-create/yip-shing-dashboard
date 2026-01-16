@@ -1060,17 +1060,19 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     # checklist 現在是純字串列表
                     checklist = st.session_state[checklist_key]
 
-                    for j in range(len(checklist)):
+                    for j, item in enumerate(checklist):
                         col_name, col_delete = st.columns([5, 1])
                         with col_name:
-                            name = st.text_input("", value=checklist[j], key=f"name_{checklist_key}_{j}",
+                            name = st.text_input("", value=item, key=f"name_{checklist_key}_{j}",
                                                  label_visibility="collapsed")
                         with col_delete:
                             if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
+                                # 直接重建列表，移除第 j 個
                                 new_checklist = checklist[:j] + checklist[j + 1:]
                                 st.session_state[checklist_key] = new_checklist
                                 st.rerun()
 
+                        # 更新項目
                         checklist[j] = name.strip()
 
                     if st.button("+ 新增自定義項目", key=f"add_check_{checklist_key}", type="secondary"):
