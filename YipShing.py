@@ -5,7 +5,6 @@ import json
 from datetime import date
 import time
 from streamlit_calendar import calendar
-import copy
 # 全局安全 index 函數（防止 selectbox index 錯誤）
 def safe_index(val, options, default=0):
     try:
@@ -646,16 +645,32 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     for target_i in range(1, qty):
                         st.session_state[f"parts_edit_{row_to_edit['Project_Name']}_{target_i}"] = copied_parts
 
-                # 複製 Delivery Checklist 動態列表（手動重建，保證 checked 被保留）
+                # 複製 Delivery Checklist 動態列表（強制重建全新列表，確保 checked 狀態完整複製）
                 src_checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{source_i}"
                 if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
-                    original_list = st.session_state[src_checklist_key]
-                    copied_list = [{"name": item["name"], "checked": item["checked"]} for item in original_list]
+                    original_checklist = st.session_state[src_checklist_key]
 
-                    for target_i in range(1, qty):
-                        st.session_state[
-                            f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
-                        ] = copied_list[:]  # 用 [:] 再複製一次列表本身
+                    # 手動重建每一個 item，避免任何隱藏參考問題
+                    copied_checklist = []
+                    for item in original_checklist:
+                        if isinstance(item, dict) and "name" in item and "checked" in item:
+                            copied_checklist.append({
+                                "name": item["name"],
+                                "checked": bool(item["checked"])  # 強制轉成 bool，確保不是 None 或其他
+                            })
+                        else:
+                            # 如果格式異常，跳過或記錄（防呆）
+                            continue
+
+                    if copied_checklist:  # 只有非空才複製
+                        for target_i in range(1, qty):
+                            target_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
+                            # 先刪除舊的（避免舊狀態殘留）
+                            if target_key in st.session_state:
+                                del st.session_state[target_key]
+                            # 賦值全新列表
+                            st.session_state[target_key] = copied_checklist[:]
+
                 st.success("已成功將第 1 台的規格複製到其他所有台！")
                 st.rerun()  # 強制重新渲染，讓輸入框顯示新值
         for i in range(qty):
