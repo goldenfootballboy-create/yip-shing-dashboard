@@ -950,8 +950,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         st.rerun()
 
                 st.markdown("---")
-                # 第五組：Delivery Checklist (出貨前檢查) - 帶下拉 --/Y/N
-                with st.expander("Delivery Checklist (出貨前檢查)", expanded=False):
+                # 第五組：Delivery Checklist (出貨檢查清單) - 還原打勾版 + 兼容純字串
+                with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
                     checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{i}"
                     if checklist_key not in st.session_state:
                         default_items = [
@@ -961,22 +961,22 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             "放油放水 Drain out all liquid",
                             "Anti Freezer",
                             "壓缸",
-                            "膠片(防uv)",
+                            "膠片(防uv茶式/透明)",
                             "電球檔板(K50)",
                             "隔熱棉",
                             "Turbo 棉",
                             "Cummins 鐵牌",
                             "Warning 鐵牌",
-                            "Danger Label(400V)",
+                            "Danger Label(415V/400V)",
                             "Top One Power貼紙",
                             "Warning 貼紙",
-                            "Genset Label",
-                            "電球Label",
                             "Standard Tools Kit 工具箱",
                             "Test Report測試報告",
+                            "Test Video",
                             "Manuals說明書",
                             "Certificate證書",
-                            "Test Video",
+                            "Genset Label",
+                            "電球Label",
                             "Sales photos",
                             "Marketing photos",
                             "Autocad drawing",
@@ -987,47 +987,46 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         initial_list = []
 
                         if old_checklist:
-                            # 兼容舊 dict 格式（有 checked 或 status）
                             if isinstance(old_checklist[0], dict):
+                                # 舊 dict 格式，直接用（或兼容 checked/status）
                                 for item in old_checklist:
                                     name = item.get("name", "").strip()
                                     if name:
-                                        status = item.get("status", "N" if item.get("checked", False) else "--")
-                                        initial_list.append({"name": name, "status": status})
-                            # 兼容純字串格式
+                                        checked = item.get("checked", False) or item.get("status", "--") == "Y"
+                                        initial_list.append({"name": name, "checked": checked})
                             else:
-                                initial_list = [{"name": item.strip(), "status": "--"} for item in old_checklist if item.strip()]
+                                # 純字串格式 → 轉 dict，checked 預設 False
+                                initial_list = [{"name": item.strip(), "checked": False} for item in old_checklist if item.strip()]
                         else:
-                            # 預設項目，status 預設 --
-                            initial_list = [{"name": item, "status": "--"} for item in default_items]
+                            # 預設項目
+                            initial_list = [{"name": item, "checked": False} for item in default_items]
 
                         st.session_state[checklist_key] = initial_list
 
-                    checklist = st.session_state[checklist_key]
+                    checklist = st.session_state.get(checklist_key, [{"name": "", "checked": False}])
 
                     for j in range(len(checklist)):
-                        col_name, col_status, col_delete = st.columns([4, 2, 1])
+                        col_check, col_name, col_delete = st.columns([1, 5, 1])
+                        with col_check:
+                            checked = st.checkbox("", value=checklist[j].get("checked", False),
+                                                  key=f"check_{checklist_key}_{j}")
                         with col_name:
-                            name = st.text_input("", value=checklist[j], key=f"name_{checklist_key}_{j}",
-                                                 label_visibility="collapsed")
-                        with col_status:
-                            status = st.selectbox("", ["--", "Y", "N"],
-                                                 index=["--", "Y", "N"].index(checklist[j]["status"]),
-                                                 key=f"status_{checklist_key}_{j}",
+                            name = st.text_input("", value=checklist[j].get("name", ""),
+                                                 key=f"name_{checklist_key}_{j}",
                                                  label_visibility="collapsed")
                         with col_delete:
                             if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
-                                new_checklist = checklist[:j] + checklist[j+1:]
-                                st.session_state[checklist_key] = new_checklist
+                                checklist.pop(j)
                                 st.rerun()
 
-                        # 更新項目
-                        checklist[j]["name"] = name.strip()
-                        checklist[j]["status"] = status
+                        checklist[j] = {"name": name.strip(), "checked": checked}
 
                     if st.button("+ 新增自定義項目", key=f"add_check_{checklist_key}", type="secondary"):
-                        checklist.append({"name": "", "status": "--"})
+                        checklist.append({"name": "", "checked": False})
                         st.rerun()
+
+                    # 過濾空行（可選）
+                    cleaned_checklist = [item for item in checklist if item["name"].strip()]
 
                     st.markdown("---")
                 # Remarks
@@ -1092,8 +1091,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
                     "parts": [p for p in parts_list if p["name"].strip()],
                     "base_sn": e_base_sn,
-                    "delivery_checklist": [{"name": item["name"].strip(), "status": item["status"]} for item in
-                                           checklist if item["name"].strip()],
+                    "delivery_checklist": checklist,  # 直接存 list of dict
                     "remarks": e_remarks.strip()
                 }
                 new_specs.append(spec_data)
@@ -1440,8 +1438,8 @@ if st.session_state.get("spec_dialog_open", False):
                         st.rerun()
 
                 st.markdown("---")
-                # 第五組：Delivery Checklist (出貨前檢查)
-                with st.expander("Delivery Checklist (出貨前檢查)", expanded=False):
+                # 第五組：Delivery Checklist (出貨檢查清單) - 還原打勾版
+                with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
                     checklist_key = f"dlg_delivery_checklist_{i}"
                     if checklist_key not in st.session_state:
                         default_items = [
@@ -1451,55 +1449,51 @@ if st.session_state.get("spec_dialog_open", False):
                             "放油放水 Drain out all liquid",
                             "Anti Freezer",
                             "壓缸",
-                            "膠片(防uv)",
+                            "膠片(防uv茶式/透明)",
                             "電球檔板(K50)",
                             "隔熱棉",
                             "Turbo 棉",
                             "Cummins 鐵牌",
                             "Warning 鐵牌",
-                            "Danger Label(400V)",
+                            "Danger Label(415V/400V)",
                             "Top One Power貼紙",
                             "Warning 貼紙",
-                            "Genset Label",
-                            "電球Label",
                             "Standard Tools Kit 工具箱",
                             "Test Report測試報告",
+                            "Test Video",
                             "Manuals說明書",
                             "Certificate證書",
-                            "Test Video",
+                            "Genset Label",
+                            "電球Label",
                             "Sales photos",
                             "Marketing photos",
                             "Autocad drawing",
                             "Wiring diagram"
                         ]
-                        st.session_state[checklist_key] = [{"name": item, "status": "--"} for item in default_items]
+                        st.session_state[checklist_key] = [{"name": item, "checked": False} for item in default_items]
 
                     checklist = st.session_state[checklist_key]
 
                     for j in range(len(checklist)):
-                        col_name, col_status, col_delete = st.columns([4, 2, 1])
+                        col_check, col_name, col_delete = st.columns([1, 5, 1])
+                        with col_check:
+                            checked = st.checkbox("", value=checklist[j].get("checked", False),
+                                                  key=f"dlg_check_{i}_{j}")
                         with col_name:
-                            name = st.text_input("", value=checklist[j]["name"],
-                                                key=f"dlg_check_name_{i}_{j}",
-                                                label_visibility="collapsed")
-                        with col_status:
-                            status = st.selectbox("", ["--", "Y", "N"],
-                                                 index=["--", "Y", "N"].index(checklist[j]["status"]),
-                                                 key=f"dlg_status_{i}_{j}",
+                            name = st.text_input("", value=checklist[j].get("name", ""),
+                                                 key=f"dlg_check_name_{i}_{j}",
                                                  label_visibility="collapsed")
                         with col_delete:
-                            if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
-                                new_checklist = checklist[:j] + checklist[j+1:]
-                                st.session_state[checklist_key] = new_checklist
-                                st.rerun()
+                            if len(checklist) > 1:
+                                if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
+                                    checklist.pop(j)
+                                    st.rerun()
 
-                        checklist[j]["name"] = name.strip()
-                        checklist[j]["status"] = status
+                        checklist[j] = {"name": name.strip(), "checked": checked}
 
                     if st.button("+ 新增自定義項目", key=f"dlg_add_check_{i}", type="secondary"):
-                        checklist.append({"name": "", "status": "--"})
+                        checklist.append({"name": "", "checked": False})
                         st.rerun()
-
                         st.markdown("---")
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
@@ -1562,8 +1556,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
                     "parts": [p for p in parts_list if p["name"].strip()],
-                    "delivery_checklist": [{"name": item["name"].strip(), "status": item["status"]} for item in
-                                           checklist if item["name"].strip()],
+                    "delivery_checklist": checklist,  # 直接存 list of dict
                     "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
