@@ -671,6 +671,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             # 賦值全新列表
                             st.session_state[target_key] = copied_checklist[:]
 
+                            st.write("第1台 checklist 狀態:", st.session_state[src_checklist_key])
+                            st.write("複製後第2台 checklist 狀態:",
+                                     st.session_state.get(f"delivery_checklist_edit_{row_to_edit['Project_Name']}_1",
+                                                          "不存在"))
+
                 st.success("已成功將第 1 台的規格複製到其他所有台！")
                 st.rerun()  # 強制重新渲染，讓輸入框顯示新值
         for i in range(qty):
