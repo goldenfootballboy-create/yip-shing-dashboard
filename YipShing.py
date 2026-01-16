@@ -665,15 +665,19 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 with col1:
                     e_prime = st.text_input("Prime (kW)", value=current.get("prime", ""), key=f"edit_prime_{idx_to_edit}_{i}")
                     e_voltage = st.selectbox("Voltage(電壓)", ["--", "380", "400", "415", "440", "480","Muti-Voltage"],
-                                             index=safe_index(current.get("voltage", "--"), ["--", "380", "400", "415", "440", "480"]),
+                                             index=safe_index(current.get("voltage", "--"),
+                                                              ["--", "380", "400", "415", "440", "480",
+                                                               "Muti-Voltage"]),
                                              key=f"edit_voltage_{idx_to_edit}_{i}")
                     e_frequency = st.selectbox("Frequency(頻率)", ["--", "50Hz", "60Hz","50Hz&60Hz"],
-                                               index=safe_index(current.get("frequency", "--"), ["--", "50Hz", "60Hz"]),
+                                               index=safe_index(current.get("frequency", "--"),
+                                                                ["--", "50Hz", "60Hz", "50Hz&60Hz"]),
                                                key=f"edit_frequency_{idx_to_edit}_{i}")
                 with col2:
                     e_standby = st.text_input("Standby (kW)", value=current.get("standby", ""), key=f"edit_standby_{idx_to_edit}_{i}")
                     e_rpm = st.selectbox("RPM(轉速)", ["--", "1500", "1800","1500&1800"],
-                                         index=safe_index(current.get("rpm", "--"), ["--", "1500", "1800"]),
+                                         index=safe_index(current.get("rpm", "--"),
+                                                          ["--", "1500", "1800", "1500&1800"]),
                                          key=f"edit_rpm_{idx_to_edit}_{i}")
 
                 st.markdown("---")
