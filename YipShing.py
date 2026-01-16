@@ -987,18 +987,16 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         initial_list = []
 
                         if old_checklist:
-                            if isinstance(old_checklist[0], dict):
-                                # 舊 dict 格式，直接用（或兼容 checked/status）
-                                for item in old_checklist:
-                                    name = item.get("name", "").strip()
-                                    if name:
-                                        checked = item.get("checked", False) or item.get("status", "--") == "Y"
-                                        initial_list.append({"name": name, "checked": checked})
-                            else:
-                                # 純字串格式 → 轉 dict，checked 預設 False
+                            # 如果是純字串列表（目前你的資料格式）
+                            if isinstance(old_checklist[0], str):
                                 initial_list = [{"name": item.strip(), "checked": False} for item in old_checklist if item.strip()]
+                            # 如果已經是 dict 格式（舊版或未來資料）
+                            elif isinstance(old_checklist[0], dict):
+                                initial_list = old_checklist
+                            # 其他異常情況，用預設
+                            else:
+                                initial_list = [{"name": item, "checked": False} for item in default_items]
                         else:
-                            # 預設項目
                             initial_list = [{"name": item, "checked": False} for item in default_items]
 
                         st.session_state[checklist_key] = initial_list
