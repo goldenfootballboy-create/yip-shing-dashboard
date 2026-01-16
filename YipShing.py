@@ -625,45 +625,50 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             target_key = f"edit_{field}_{idx_to_edit}_{target_i}"
                             st.session_state[target_key] = value
 
+                # 複製 Parts 動態列表（深拷貝版：確保文字正確複製）
                 src_parts_key = f"parts_edit_{row_to_edit['Project_Name']}_{source_i}"
                 if src_parts_key in st.session_state and st.session_state[src_parts_key]:
-                    copied_parts = [p.copy() for p in st.session_state[src_parts_key]]
+                    original_parts = st.session_state[src_parts_key]
+                    copied_parts = []
+                    for p in original_parts:
+                        if isinstance(p, dict):
+                            copied_parts.append({
+                                "name": p.get("name", ""),
+                                "source": p.get("source", "--")
+                            })
+                        else:
+                            copied_parts.append({"name": str(p), "source": "--"})
+
                     for target_i in range(1, qty):
-                        st.session_state[f"parts_edit_{row_to_edit['Project_Name']}_{target_i}"] = copied_parts
-                        # 複製 Delivery Checklist 動態列表（最終強化版：確保 checked 狀態完整複製）
-                        src_checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{source_i}"
-                        if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
-                            original = st.session_state[src_checklist_key]
+                        target_key = f"parts_edit_{row_to_edit['Project_Name']}_{target_i}"
+                        if target_key in st.session_state:
+                            del st.session_state[target_key]
+                        st.session_state[target_key] = [dict(c) for c in copied_parts]
+                        _ = st.session_state[target_key]
 
-                            # 強制深拷貝 + 逐項重建 dict，確保 checked 不丟失
-                            copied = []
-                            for item in original:
-                                if isinstance(item, dict):
-                                    copied.append({
-                                        "name": item.get("name", ""),
-                                        "checked": bool(item.get("checked", False))  # 強制轉 bool，避免 None 或其他
-                                    })
-                                else:
-                                    # 防呆：如果異常資料，預設 False
-                                    copied.append({"name": str(item), "checked": False})
+                # 複製 Delivery Checklist 動態列表（深拷貝版：確保 checked 狀態完整複製）
+                src_checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{source_i}"
+                if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
+                    original_checklist = st.session_state[src_checklist_key]
+                    copied_checklist = []
+                    for item in original_checklist:
+                        if isinstance(item, dict):
+                            copied_checklist.append({
+                                "name": item.get("name", ""),
+                                "checked": bool(item.get("checked", False))
+                            })
+                        else:
+                            copied_checklist.append({"name": str(item), "checked": False})
 
-                            if copied:
-                                for target_i in range(1, qty):
-                                    target_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
+                    for target_i in range(1, qty):
+                        target_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
+                        if target_key in st.session_state:
+                            del st.session_state[target_key]
+                        st.session_state[target_key] = [dict(c) for c in copied_checklist]
+                        _ = st.session_state[target_key]
 
-                                    # 步驟1：先徹底刪除舊 key（清除所有殘留狀態）
-                                    if target_key in st.session_state:
-                                        del st.session_state[target_key]
-
-                                    # 步驟2：賦值全新獨立列表（用 dict(item) 再深拷貝）
-                                    st.session_state[target_key] = [dict(c) for c in copied]
-
-                                    # 步驟3：強制讀取一次，讓 Streamlit 立即認可新狀態
-                                    _ = st.session_state[target_key]
-
-                        st.success("已成功將第 1 台的規格（含打勾狀態）複製到其他所有台！")
-                        st.rerun()  # 最後強制 rerun，讓所有 tab 立即顯示正確勾選
-
+                st.success("已成功將第 1 台的規格（含配件文字與打勾狀態）複製到其他所有台！")
+                st.rerun()
         for i in range(qty):
             with tabs[i]:
                 current = specs[i] if i < len(specs) else {}
