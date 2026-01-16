@@ -1066,7 +1066,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             name = st.text_input("", value=checklist[j], key=f"name_{checklist_key}_{j}",
                                                  label_visibility="collapsed")
                         with col_delete:
-                            if len(checklist) > 1:
                                 if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
                                     checklist.pop(j)
                                     st.rerun()
@@ -1565,7 +1564,6 @@ if st.session_state.get("spec_dialog_open", False):
                             name = st.text_input("", value=checklist[j], key=f"dlg_check_name_{i}_{j}",
                                                  label_visibility="collapsed")
                         with col_delete:
-                            if len(checklist) > 1:
                                 if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
                                     checklist.pop(j)
                                     st.rerun()
