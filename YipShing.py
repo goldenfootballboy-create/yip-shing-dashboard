@@ -337,7 +337,10 @@ def render_project_card(row, idx):
                         st.markdown(f"**發動機型號**： {spec.get('genset_model', '—')}　　**S/N**： {spec.get('genset_sn', '—')}")
                         st.markdown(f"**電球型號**： {spec.get('alt_model', '—')}　　**S/N**： {spec.get('alt_sn', '—')}")
                         st.markdown(
-                            f"**Droop / PMG / 加熱器**： {spec.get('droop', '—')} / {spec.get('pmg', '—')} / {spec.get('alt_heater', '—')}")
+                            f"**Droop**： {spec.get('droop', '—')}　　"
+                            f"**PMG**： {spec.get('pmg', '—')}　　"
+                            f"**加熱器**： {spec.get('alt_heater', '—')}"
+                        )
 
                         st.divider()
 
