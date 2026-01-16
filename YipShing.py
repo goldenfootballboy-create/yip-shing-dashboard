@@ -646,17 +646,16 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     for target_i in range(1, qty):
                         st.session_state[f"parts_edit_{row_to_edit['Project_Name']}_{target_i}"] = copied_parts
 
-                # 複製 Delivery Checklist 動態列表（加強版：確保 checked 被完整複製）
+                # 複製 Delivery Checklist 動態列表（手動重建，保證 checked 被保留）
                 src_checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{source_i}"
                 if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
-                    # 使用 deepcopy 保證每個 dict 都是獨立的
-                    copied_checklist = copy.deepcopy(st.session_state[src_checklist_key])
+                    original_list = st.session_state[src_checklist_key]
+                    copied_list = [{"name": item["name"], "checked": item["checked"]} for item in original_list]
 
                     for target_i in range(1, qty):
-                        target_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
-                        # 強制賦值，並確保是新列表（避免 session_state 參考問題）
-                        st.session_state[target_key] = [item.copy() for item in copied_checklist]
-
+                        st.session_state[
+                            f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
+                        ] = copied_list[:]  # 用 [:] 再複製一次列表本身
                 st.success("已成功將第 1 台的規格複製到其他所有台！")
                 st.rerun()  # 強制重新渲染，讓輸入框顯示新值
         for i in range(qty):
