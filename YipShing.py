@@ -355,7 +355,10 @@ def render_project_card(row, idx):
                             unsafe_allow_html=True
                         )
                         st.markdown(
-                            f"**水箱型號**： {spec.get('rad_model', '—')}　　**溫度**： {spec.get('rad_temp', '—')}")
+                            f"**水箱型號**： {spec.get('rad_model', '—')}　　"
+                            f"**S/N**： {spec.get('rad_sn', '—')}　　"
+                            f"**溫度**： {spec.get('rad_temp', '—')}"
+                        )
                         st.markdown(f"**底架型號**： {spec.get('base_model', '—')}　　**S/N**： {spec.get('base_sn', '—')}")
                         st.markdown(
                             f"**避震器**： {spec.get('avm', '—')}　數量：{spec.get('avm_qty', '—')}　型號：{spec.get('avm_model', '—')}")
