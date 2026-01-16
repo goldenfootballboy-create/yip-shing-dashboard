@@ -1768,6 +1768,13 @@ with st.sidebar:
                     "Cleaning_Complete": d4 if d4 else None,
                     "Delivery_Complete": d5 if d5 else None
                 }
+
+                # 清除所有舊的 parts 和 delivery_checklist session_state
+                # 避免下次新專案帶入舊資料
+                for key in list(st.session_state.keys()):
+                    if key.startswith("dlg_parts_") or key.startswith("dlg_delivery_checklist_"):
+                        del st.session_state[key]
+
                 st.session_state.spec_dialog_open = True
                 st.rerun()
 
