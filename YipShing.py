@@ -1142,7 +1142,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "control_voltage": e_control_voltage,
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
                     "parts": [p for p in parts_list if p["name"].strip()],
-                    "delivery_checklist": [item for item in checklist if item.get("name", "").strip()],
+                    "delivery_checklist": [item.strip() for item in checklist if item.strip()],
                     "base_sn": e_base_sn,
                     "remarks": e_remarks.strip()
                 }
@@ -1647,7 +1647,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
                     "parts": cleaned_parts,
-                    "delivery_checklist": [item["name"].strip() for item in checklist if item.get("name", "").strip()],
+                    "delivery_checklist": [item.strip() for item in checklist if item.strip()],
                     "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
