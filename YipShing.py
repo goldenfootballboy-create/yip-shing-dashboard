@@ -314,7 +314,7 @@ def render_project_card(row, idx):
                         # ── Prime & Standby ─────────────────────────────────────
                         st.markdown(
                             """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
-                            Prime & Standby Power (發動機 & 電球)
+                            Prime & Standby Power (功效＆電壓)
                             </h3>""",
                             unsafe_allow_html=True
                         )
@@ -334,7 +334,11 @@ def render_project_card(row, idx):
                             </h3>""",
                             unsafe_allow_html=True
                         )
-                        st.markdown(f"**發動機型號**： {spec.get('genset_model', '—')}　　**S/N**： {spec.get('genset_sn', '—')}")
+                        st.markdown(
+                            f"**發動機型號**： {spec.get('genset_model', '—')}　　**S/N**： {spec.get('genset_sn', '—')}")
+                        st.markdown(
+                            f"**發動機顏色**： {spec.get('engine_color', '—')}　　**年份**： {spec.get('engine_year', '—')}")
+                        st.markdown(f"**發動機加熱器**： {spec.get('engine_heater', '—')} kW")
                         st.markdown(f"**電球型號**： {spec.get('alt_model', '—')}　　**S/N**： {spec.get('alt_sn', '—')}")
                         st.markdown(
                             f"**Droop**： {spec.get('droop', '—')}　　"
@@ -347,7 +351,7 @@ def render_project_card(row, idx):
                         # ── Radiator & Base ─────────────────────────────────────
                         st.markdown(
                             """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
-                            Radiator & Base Frame (發動機 & 電球)
+                            Radiator & Base Frame (水箱 & 底架)
                             </h3>""",
                             unsafe_allow_html=True
                         )
@@ -362,7 +366,7 @@ def render_project_card(row, idx):
                         # ── Container / Panel / Breaker ────────────────────────
                         st.markdown(
                             """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
-                            Container / Panel / Breaker (發動機 & 電球)
+                            Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)
                             </h3>""",
                             unsafe_allow_html=True
                         )
