@@ -1053,7 +1053,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                 # 已經是純文字
                                 initial_list = [item.strip() for item in old_checklist if item.strip()]
                         else:
-                            initial_list = default_items[:]
+                            initial_list = default_items.copy()
 
                         st.session_state[checklist_key] = initial_list
 
@@ -1555,7 +1555,7 @@ if st.session_state.get("spec_dialog_open", False):
                             "Autocad drawing",
                             "Wiring diagram"
                         ]
-                        st.session_state[checklist_key] = default_items[:]
+                        st.session_state[checklist_key] = default_items.copy()
 
                     checklist = st.session_state[checklist_key]
 
