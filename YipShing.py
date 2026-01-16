@@ -399,7 +399,6 @@ def render_project_card(row, idx):
                             f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}")
                         st.markdown(
                             f"**彈簧充電**： {spec.get('spring_charging', '—')}　　**控制電壓**： {spec.get('control_voltage', '—')}")
-
                         st.divider()
 
                         # ── Parts ───────────────────────────────────────────────
@@ -631,7 +630,24 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     copied_parts = [p.copy() for p in st.session_state[src_parts_key]]
                     for target_i in range(1, qty):
                         st.session_state[f"parts_edit_{row_to_edit['Project_Name']}_{target_i}"] = copied_parts
-
+                        # 加回並強化這段（複製 Delivery Checklist）
+                        src_checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{source_i}"
+                        if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
+                            original_checklist = st.session_state[src_checklist_key]
+                            copied_checklist = []
+                            for item in original_checklist:
+                                if isinstance(item, dict):
+                                    copied_checklist.append({
+                                        "name": item.get("name", ""),
+                                        "checked": bool(item.get("checked", False))
+                                    })
+                            if copied_checklist:
+                                for target_i in range(1, qty):
+                                    target_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
+                                    if target_key in st.session_state:
+                                        del st.session_state[target_key]
+                                    st.session_state[target_key] = [item.copy() for item in copied_checklist]
+                                    _ = st.session_state[target_key]
                 st.success("已成功將第 1 台的規格複製到其他所有台！")
                 st.rerun()
 
