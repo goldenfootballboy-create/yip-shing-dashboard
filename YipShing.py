@@ -359,6 +359,28 @@ def render_project_card(row, idx):
                             f"**S/N**： {spec.get('rad_sn', '—')}　　"
                             f"**溫度**： {spec.get('rad_temp', '—')}"
                         )
+                        st.markdown(f"**風扇呎吋**： {spec.get('fan_size', '—')}")
+                        st.markdown(f"**水箱護罩**： {spec.get('radiator_guard', '—')}")
+
+                        st.markdown("---")  # 小分隔線，讓視覺更清晰
+
+                        # Fuel Cooler (帶貨源)
+                        st.markdown(
+                            f"**燃油冷卻器**： {spec.get('fuel_cooler', '—')}　　"
+                            f"**貨源**： {spec.get('fuel_cooler_source', '—') or '—'}"
+                        )
+
+                        # Coolant temperature sensor (帶貨源)
+                        st.markdown(
+                            f"**冷卻液溫度感測器**： {spec.get('coolant_sensor', '—')}　　"
+                            f"**貨源**： {spec.get('coolant_sensor_source', '—') or '—'}"
+                        )
+
+                        # Low water level float switch (帶貨源)
+                        st.markdown(
+                            f"**低水位浮球開關**： {spec.get('low_water', '—')}　　"
+                            f"**貨源**： {spec.get('low_water_source', '—') or '—'}"
+                        )
                         st.markdown(f"**底架型號**： {spec.get('base_model', '—')}　　**S/N**： {spec.get('base_sn', '—')}")
                         st.markdown(
                             f"**避震器**： {spec.get('avm', '—')}　數量：{spec.get('avm_qty', '—')}　型號：{spec.get('avm_model', '—')}")
