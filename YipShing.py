@@ -1565,7 +1565,8 @@ if st.session_state.get("spec_dialog_open", False):
                             name = st.text_input("", value=checklist[j], key=f"dlg_check_name_{i}_{j}",
                                                  label_visibility="collapsed")
                         with col_delete:
-                            if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
+                            if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
+                                # 用重建列表，避免索引移位問題
                                 new_checklist = checklist[:j] + checklist[j + 1:]
                                 st.session_state[checklist_key] = new_checklist
                                 st.rerun()
