@@ -339,6 +339,7 @@ def render_project_card(row, idx):
                         st.markdown(
                             f"**發動機顏色**： {spec.get('engine_color', '—')}　　**年份**： {spec.get('engine_year', '—')}")
                         st.markdown(f"**發動機加熱器**： {spec.get('engine_heater', '—')} kW")
+                        st.markdown("---")
                         st.markdown(f"**電球型號**： {spec.get('alt_model', '—')}　　**S/N**： {spec.get('alt_sn', '—')}")
                         st.markdown(f"**電球顏色**： {spec.get('alt_color', '—')}")
                         st.markdown(
