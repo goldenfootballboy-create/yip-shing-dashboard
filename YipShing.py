@@ -1073,9 +1073,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     for j in range(len(checklist)):
                         col_name, col_status, col_delete = st.columns([4, 2, 1])
                         with col_name:
-                            name = st.text_input("", value=checklist[j]["name"],
-                                                key=f"name_{checklist_key}_{j}",
-                                                label_visibility="collapsed")
+                            name = st.text_input("", value=checklist[j], key=f"name_{checklist_key}_{j}",
+                                                 label_visibility="collapsed")
                         with col_status:
                             status = st.selectbox("", ["--", "Y", "N"],
                                                  index=["--", "Y", "N"].index(checklist[j]["status"]),
