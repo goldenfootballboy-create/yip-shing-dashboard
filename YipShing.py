@@ -413,14 +413,12 @@ def render_project_card(row, idx):
                                     st.markdown(f"- **{name}**　（貨源：{source}）")
 
                         st.divider()
-                        
+
+                        # ── Delivery Checklist ─────────────────────────────────
                         checklist = spec.get("delivery_checklist", [])
                         if checklist:
                             st.subheader("出貨檢查清單")
-                            checked_count = sum(1 for item in checklist if item.get("checked", False))
-                            total = len(checklist)
-                            st.progress(checked_count / total if total > 0 else 0)
-                            st.caption(f"完成度：{checked_count}/{total}")
+                            # 移除進度條和完成度文字，只保留項目列表
                             for item in checklist:
                                 name = item.get("name", "—")
                                 ch = "✅" if item.get("checked", False) else "⬜"
