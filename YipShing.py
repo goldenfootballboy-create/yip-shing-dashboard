@@ -312,7 +312,12 @@ def render_project_card(row, idx):
                         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
                         # ── Prime & Standby ─────────────────────────────────────
-                        st.subheader("Prime & Standby Power")
+                        st.markdown(
+                            """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
+                            Prime & Standby Power (發動機 & 電球)
+                            </h3>""",
+                            unsafe_allow_html=True
+                        )
                         c1, c2, c3 = st.columns(3)
                         c1.metric("Prime (kW)", spec.get('prime', '—'))
                         c2.metric("Standby (kW)", spec.get('standby', '—'))
@@ -338,7 +343,12 @@ def render_project_card(row, idx):
                         st.divider()
 
                         # ── Radiator & Base ─────────────────────────────────────
-                        st.subheader("Radiator & Base Frame")
+                        st.markdown(
+                            """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
+                            Radiator & Base Frame (發動機 & 電球)
+                            </h3>""",
+                            unsafe_allow_html=True
+                        )
                         st.markdown(f"**水箱型號 / 溫度**： {spec.get('rad_model', '—')} / {spec.get('rad_temp', '—')}")
                         st.markdown(f"**底架型號 / S/N**： {spec.get('base_model', '—')} / {spec.get('base_sn', '—')}")
                         st.markdown(
@@ -347,7 +357,12 @@ def render_project_card(row, idx):
                         st.divider()
 
                         # ── Container / Panel / Breaker ────────────────────────
-                        st.subheader("Container / Panel / Breaker")
+                        st.markdown(
+                            """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
+                            Container / Panel / Breaker (發動機 & 電球)
+                            </h3>""",
+                            unsafe_allow_html=True
+                        )
                         st.markdown(f"**貨櫃尺寸 / 類型**： {spec.get('cont_size', '—')} / {spec.get('cont_type', '—')}")
                         st.markdown(
                             f"**控制器型號 / S/N**： {spec.get('panel_model', '—')} / {spec.get('panel_sn', '—')}")
