@@ -1647,7 +1647,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
                     "remarks": s_remarks.strip(),
                     "parts": cleaned_parts,
-                    "delivery_checklist": [item.strip() for item in checklist if item.strip()],
+                    "delivery_checklist": cleaned_checklist,
                     "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
