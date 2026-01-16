@@ -582,17 +582,17 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 # 要複製的靜態欄位清單（與新增時完全相同）
                 static_fields = [
                     "prime", "standby", "voltage", "frequency", "rpm",
-                    "genset_model", "genset_sn", "engine_color", "engine_year", "engine_heater", "engine_source",
-                    "alt_model", "alt_sn", "alt_color", "droop", "pmg", "alt_heater", "alt_source",
-                    "rad_model", "rad_sn", "rad_temp", "fan_size", "rad_source", "radiator_guard",
+                    "genset_model", "engine_color", "engine_year", "engine_heater", "engine_source",
+                    "alt_model", "alt_color", "droop", "pmg", "alt_heater", "alt_source",
+                    "rad_model", "rad_temp", "fan_size", "rad_source", "radiator_guard",
                     "fuel_cooler", "fuel_cooler_source",
                     "coolant_sensor", "coolant_sensor_source",
                     "low_water", "low_water_source",
-                    "base_model", "base_sn", "base_source",
+                    "base_model", "base_source",
                     "avm", "avm_model", "avm_qty", "avm_source",
                     "cont_size", "cont_type", "cont_color", "fork_slot", "anti_noise",
                     "internal_silencer", "ss_locks", "emergency_stop", "cont_source",
-                    "panel_model", "panel_sn", "co_detector", "panel_source", "co_source",
+                    "panel_model", "co_detector", "panel_source", "co_source",
                     "breaker_type", "breaker_rating", "poles", "spring_charging", "control_voltage", "breaker_source",
                     "remarks"
                 ]
@@ -1202,17 +1202,17 @@ if st.session_state.get("spec_dialog_open", False):
                 # 要複製的靜態欄位清單（可自行增減）
                 static_fields = [
                     "prime", "standby", "voltage", "frequency", "rpm",
-                    "genset_model", "genset_sn", "engine_color", "engine_year", "engine_heater", "engine_source",
-                    "alt_model", "alt_sn", "alt_color", "droop", "pmg", "alt_heater", "alt_source",
-                    "rad_model", "rad_sn", "rad_temp", "fan_size", "rad_source", "radiator_guard",
+                    "genset_model", "engine_color", "engine_year", "engine_heater", "engine_source",
+                    "alt_model", "alt_color", "droop", "pmg", "alt_heater", "alt_source",
+                    "rad_model", "rad_temp", "fan_size", "rad_source", "radiator_guard",
                     "fuel_cooler", "fuel_cooler_source",
                     "coolant_sensor", "coolant_sensor_source",
                     "low_water", "low_water_source",
-                    "base_model", "base_sn", "base_source",
+                    "base_model", "base_source",
                     "avm", "avm_model", "avm_qty", "avm_source",
                     "cont_size", "cont_type", "cont_color", "fork_slot", "anti_noise",
                     "internal_silencer", "ss_locks", "emergency_stop", "cont_source",
-                    "panel_model", "panel_sn", "co_detector", "panel_source", "co_source",
+                    "panel_model", "co_detector", "panel_source", "co_source",
                     "breaker_type", "breaker_rating", "poles", "spring_charging", "control_voltage", "breaker_source",
                     "remarks"
                 ]
