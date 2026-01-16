@@ -413,7 +413,18 @@ def render_project_card(row, idx):
                                     st.markdown(f"- **{name}**　（貨源：{source}）")
 
                         st.divider()
-
+                        
+                        checklist = spec.get("delivery_checklist", [])
+                        if checklist:
+                            st.subheader("出貨檢查清單")
+                            checked_count = sum(1 for item in checklist if item.get("checked", False))
+                            total = len(checklist)
+                            st.progress(checked_count / total if total > 0 else 0)
+                            st.caption(f"完成度：{checked_count}/{total}")
+                            for item in checklist:
+                                name = item.get("name", "—")
+                                ch = "✅" if item.get("checked", False) else "⬜"
+                                st.markdown(f"{ch} {name}")
                         # Remarks
                         remarks = spec.get("remarks", "").strip()
                         if remarks:
@@ -1468,6 +1479,8 @@ if st.session_state.get("spec_dialog_open", False):
                             "Autocad drawing",
                             "Wiring diagram"
                         ]
+
+                        # 新增模式預設全部 checked=False
                         st.session_state[checklist_key] = [{"name": item, "checked": False} for item in default_items]
 
                     checklist = st.session_state[checklist_key]
