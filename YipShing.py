@@ -1057,8 +1057,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 spec_data = {
                     "prime": e_prime.strip(),
                     "standby": e_standby.strip(),
-                    "voltage": e_voltage if e_voltage != "--" else "",
-                    "frequency": e_frequency if e_frequency != "--" else "",
+                    "voltage": "" if e_voltage == "--" else e_voltage,
+                    "frequency": "" if e_frequency == "--" else e_frequency,
                     "rpm": e_rpm if e_rpm != "--" else "",
                     "genset_model": e_genset_model,
                     "genset_sn": e_genset_sn,
@@ -1560,9 +1560,9 @@ if st.session_state.get("spec_dialog_open", False):
                 spec_data = {
                     "prime": s_prime.strip(),
                     "standby": s_standby.strip(),
-                    "voltage": s_voltage if s_voltage != "--" else "",
-                    "frequency": s_frequency if s_frequency != "--" else "",
-                    "rpm": s_rpm if s_rpm != "--" else "",
+                    "voltage": "" if s_voltage == "--" else s_voltage,
+                    "frequency": "" if s_frequency == "--" else s_frequency,
+                    "rpm": "" if s_rpm == "--" else s_rpm,
                     "genset_model": s_genset_model,
                     "genset_sn": s_genset_sn,
                     "engine_color": s_engine_color,
