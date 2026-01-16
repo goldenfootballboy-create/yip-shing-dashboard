@@ -1009,7 +1009,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # 第五組：Delivery Checklist (出貨檢查清單) - 改成純文字清單，無打勾
+                # 第五組：Delivery Checklist (出貨檢查清單) - 純文字清單，無打勾
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
                     checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{i}"
                     if checklist_key not in st.session_state:
@@ -1047,8 +1047,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         if old_checklist:
                             if isinstance(old_checklist[0], dict):
                                 # 舊格式：只取 name
-                                initial_list = [item.get("name", "").strip() for item in old_checklist if
-                                                item.get("name", "").strip()]
+                                initial_list = [item.get("name", "").strip() for item in old_checklist if item.get("name", "").strip()]
                             else:
                                 # 已經是純文字
                                 initial_list = [item.strip() for item in old_checklist if item.strip()]
@@ -1067,7 +1066,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                  label_visibility="collapsed")
                         with col_delete:
                             if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
-                                new_checklist = checklist[:j] + checklist[j + 1:]
+                                # 改用重建列表，避免索引移位導致刪錯欄
+                                new_checklist = checklist[:j] + checklist[j+1:]
                                 st.session_state[checklist_key] = new_checklist
                                 st.rerun()
 
@@ -1565,18 +1565,17 @@ if st.session_state.get("spec_dialog_open", False):
                             name = st.text_input("", value=checklist[j], key=f"dlg_check_name_{i}_{j}",
                                                  label_visibility="collapsed")
                         with col_delete:
-                            if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
-                                # 用重建列表，避免索引移位問題
+                            if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
+                                # 同樣用重建列表，避免刪錯欄
                                 new_checklist = checklist[:j] + checklist[j + 1:]
                                 st.session_state[checklist_key] = new_checklist
                                 st.rerun()
-                        checklist[j] = name.strip()  # 直接更新字串
+
+                        checklist[j] = name.strip()
 
                     if st.button("+ 新增自定義項目", key=f"dlg_add_check_{i}", type="secondary"):
                         checklist.append("")  # 加一個空白輸入框
                         st.rerun()
-
-                st.markdown("---")
 
                 # 最下面：Remarks
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
