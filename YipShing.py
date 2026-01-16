@@ -630,30 +630,37 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     copied_parts = [p.copy() for p in st.session_state[src_parts_key]]
                     for target_i in range(1, qty):
                         st.session_state[f"parts_edit_{row_to_edit['Project_Name']}_{target_i}"] = copied_parts
-                        # 加回並強化這段（複製 Delivery Checklist）
+                        # 複製 Delivery Checklist 動態列表（最終強化版：確保 checked 狀態完整複製）
                         src_checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{source_i}"
                         if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
                             original_checklist = st.session_state[src_checklist_key]
+
+                            # 手動重建全新 dict 列表（避免任何拷貝問題）
                             copied_checklist = []
                             for item in original_checklist:
                                 if isinstance(item, dict):
                                     copied_checklist.append({
                                         "name": item.get("name", ""),
-                                        "checked": bool(item.get("checked", False))
+                                        "checked": bool(item.get("checked", False))  # 強制轉成 bool
                                     })
+
                             if copied_checklist:
                                 for target_i in range(1, qty):
                                     target_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
+
+                                    # 步驟1：先刪除舊 key（清除任何殘留狀態）
                                     if target_key in st.session_state:
                                         del st.session_state[target_key]
-                                    st.session_state[target_key] = [item.copy() for item in copied_checklist]
+
+                                    # 步驟2：賦值全新拷貝的列表
+                                    st.session_state[target_key] = [dict(item) for item in
+                                                                    copied_checklist]  # dict(item) 再深拷貝一次
+
+                                    # 步驟3：強制讀取一次，確保 Streamlit 寫入生效
                                     _ = st.session_state[target_key]
 
-                    st.write("第1台 checklist:", st.session_state[src_checklist_key])
-                    st.write("第2台複製後:",
-                             st.session_state.get(f"delivery_checklist_edit_{row_to_edit['Project_Name']}_1", "不存在"))
-                st.success("已成功將第 1 台的規格複製到其他所有台！")
-                st.rerun()
+                        st.success("已成功將第 1 台的規格複製到其他所有台！（含打勾狀態）")
+                        st.rerun()  # 最後強制 rerun，讓所有 tab 立即顯示新狀態
 
         for i in range(qty):
             with tabs[i]:
