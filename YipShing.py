@@ -5,6 +5,7 @@ import json
 from datetime import date
 import time
 from streamlit_calendar import calendar
+import copy
 # 全局安全 index 函數（防止 selectbox index 錯誤）
 def safe_index(val, options, default=0):
     try:
@@ -645,13 +646,16 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     for target_i in range(1, qty):
                         st.session_state[f"parts_edit_{row_to_edit['Project_Name']}_{target_i}"] = copied_parts
 
-                # 複製 Delivery Checklist 動態列表
+                # 複製 Delivery Checklist 動態列表（加強版：確保 checked 被完整複製）
                 src_checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{source_i}"
                 if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
-                    copied_checklist = [item.copy() for item in st.session_state[src_checklist_key]]
+                    # 使用 deepcopy 保證每個 dict 都是獨立的
+                    copied_checklist = copy.deepcopy(st.session_state[src_checklist_key])
+
                     for target_i in range(1, qty):
-                        st.session_state[
-                            f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"] = copied_checklist
+                        target_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{target_i}"
+                        # 強制賦值，並確保是新列表（避免 session_state 參考問題）
+                        st.session_state[target_key] = [item.copy() for item in copied_checklist]
 
                 st.success("已成功將第 1 台的規格複製到其他所有台！")
                 st.rerun()  # 強制重新渲染，讓輸入框顯示新值
