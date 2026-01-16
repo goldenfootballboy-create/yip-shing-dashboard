@@ -1583,7 +1583,6 @@ if st.session_state.get("spec_dialog_open", False):
 
                 # 處理 Parts 和 Delivery Checklist
                 cleaned_parts = [p for p in parts_list if p.get("name", "").strip()] if 'parts_list' in locals() and parts_list else []
-                cleaned_checklist = [item for item in checklist if item.get("name", "").strip()] if 'checklist' in locals() and checklist else []
 
                 spec_data = {
                     "prime": s_prime.strip(),
