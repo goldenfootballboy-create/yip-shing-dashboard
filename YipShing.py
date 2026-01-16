@@ -1486,12 +1486,6 @@ if st.session_state.get("spec_dialog_open", False):
                         parts_list.append({"name": "", "source": "--"})
                         st.rerun()
 
-                        parts_list[j] = {"name": part_name.strip(), "source": part_source if part_source != "--" else ""}
-
-                    if st.button("+ 新增配件", key=f"add_dlg_part_{i}", type="secondary"):
-                        parts_list.append({"name": "", "source": "--"})
-                        st.rerun()
-
                 st.markdown("---")
                 # 第五組：Delivery Checklist (出貨檢查清單) - 還原打勾版
                 with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
