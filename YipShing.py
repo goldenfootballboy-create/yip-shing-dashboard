@@ -1047,8 +1047,18 @@ if st.session_state.get("show_edit_spec_dialog", False):
                             "Wiring diagram"
                         ]
                         old_checklist = current.get("delivery_checklist", [])
-                        initial_list = old_checklist if old_checklist else [{"name": item, "checked": False} for item in
-                                                                            default_items]
+                        initial_list = []
+                        if old_checklist:
+                            if isinstance(old_checklist[0], dict):
+                                initial_list = old_checklist  # 舊格式，直接用
+                            else:
+                                # 新格式（純字串） → 轉成 dict，checked 預設 False
+                                initial_list = [{"name": item.strip(), "checked": False} for item in old_checklist if
+                                                item.strip()]
+                        else:
+                            initial_list = [{"name": item, "checked": False} for item in default_items]
+
+                        st.session_state[checklist_key] = initial_list
                         st.session_state[checklist_key] = initial_list
 
                     checklist = st.session_state.get(checklist_key, [{"name": "", "checked": False}])
@@ -1056,7 +1066,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     for j in range(len(checklist)):
                         col_check, col_name, col_delete = st.columns([1, 5, 1])
                         with col_check:
-                            # 讀取當前勾選狀態
                             current_checked = checklist[j].get("checked", False)
                             checked = st.checkbox("", value=current_checked, key=f"check_{checklist_key}_{j}")
                         with col_name:
@@ -1068,6 +1077,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                 if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
                                     checklist.pop(j)
                                     st.rerun()
+
+                        checklist[j] = {"name": name.strip(), "checked": checked}
 
                         # 正確更新 name 和 checked
                         checklist[j] = {"name": name.strip(), "checked": checked}
@@ -1141,7 +1152,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "control_voltage": e_control_voltage,
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
                     "parts": [p for p in parts_list if p["name"].strip()],
-                    "delivery_checklist": [item for item in checklist if item.get("name", "").strip()],
+                    "delivery_checklist": checklist,
                     "base_sn": e_base_sn,
                     "remarks": e_remarks.strip()
                 }
