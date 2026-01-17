@@ -1248,10 +1248,14 @@ if st.session_state.get("spec_dialog_open", False):
                         s_rad_temp = st.text_input("Temperature(温度)", key=f"dlg_rad_temp_{i}")
 
                     # 風扇呎吋 + 負責部門 放在同一行（並排）
-                    col_fan, col_dept = st.columns([3, 2])  # 風扇輸入佔較大空間，部門下拉較小
+                    col_fan, col_dept = st.columns([3, 2])
+
                     with col_fan:
                         s_fan_size = st.text_input("風扇呎吋", key=f"dlg_fan_size_{i}")
+
                     with col_dept:
+                        st.markdown(" ")  # 加一行空白（非斷行空格），推高下拉選單位置
+                        # 或用 st.text(" ") 也可以
                         s_fan_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
                                                         key=f"dlg_fan_department_{i}",
                                                         label_visibility="collapsed")
