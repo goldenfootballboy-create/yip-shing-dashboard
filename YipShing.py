@@ -1418,10 +1418,11 @@ if st.session_state.get("spec_dialog_open", False):
                     parts_list = st.session_state[part_key]
 
                     for j in range(len(parts_list)):
-                        col_name, col_source, col_delete, col_dept = st.columns([4, 1, 1, 2])
+                        # 順序：名稱、貨源、負責部門、刪除（刪除放最右）
+                        col_name, col_source, col_dept, col_delete = st.columns([4, 1, 2, 1])
 
                         with col_name:
-                            # 在輸入欄上方加一個空白高度區塊（推高輸入框位置）
+                            # 輸入欄上方加空白高度區塊（推高輸入框位置）
                             st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
 
                             part_name = st.text_input(
@@ -1444,12 +1445,6 @@ if st.session_state.get("spec_dialog_open", False):
                                 label_visibility="collapsed"
                             )
 
-                        with col_delete:
-                            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                            if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
-                                parts_list.pop(j)
-                                st.rerun()
-
                         with col_dept:
                             st.markdown(
                                 "<div style='height: 28px; line-height: 28px; font-weight: bold;'>負責部門</div>",
@@ -1462,6 +1457,13 @@ if st.session_state.get("spec_dialog_open", False):
                                 key=f"dlg_part_department_{i}_{j}",
                                 label_visibility="collapsed"
                             )
+
+                        with col_delete:
+                            # 刪除按鈕上方加相同高度空白，讓按鈕與其他欄位對齊
+                            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                            if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
+                                parts_list.pop(j)
+                                st.rerun()
 
                         parts_list[j] = {
                             "name": part_name.strip(),
