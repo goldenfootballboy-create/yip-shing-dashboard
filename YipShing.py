@@ -1374,14 +1374,31 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_p2:
                         s_panel_sn = st.text_input("S/N", key=f"dlg_panel_sn_{i}")
 
-                    col_title, col_include, col_source = st.columns([5, 1, 1])
-                    with col_title:
-                        st.markdown("**CO 探測器 (OLED)**")
-                    with col_include:
-                        s_co_detector = st.selectbox("", ["--", "Include", "Not Include"], key=f"dlg_co_detector_{i}", label_visibility="collapsed")
-                    with col_source:
-                        s_co_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_co_source_{i}", label_visibility="collapsed")
+                    col_co_include, col_co_source, col_co_dept = st.columns([3, 2, 2])
 
+                    with col_co_include:
+                        s_co_detector = st.selectbox(
+                            "CO 探測器 (OLED)",
+                            ["--", "Include", "Not Include"],
+                            key=f"dlg_co_detector_{i}",
+                            label_visibility="visible"
+                        )
+
+                    with col_co_source:
+                        s_co_source = st.selectbox(
+                            "貨源",
+                            ["--", "HK", "DG"],
+                            key=f"dlg_co_source_{i}",
+                            label_visibility="visible"
+                        )
+
+                    with col_co_dept:
+                        s_co_department = st.selectbox(
+                            "負責部門",
+                            ["--", "Michelle", "倉庫"],
+                            key=f"dlg_co_department_{i}",
+                            label_visibility="visible"
+                        )
                     st.markdown("---")
                     col_title, col_source, col_dept = st.columns([5, 1, 2])
 
@@ -1622,6 +1639,8 @@ if st.session_state.get("spec_dialog_open", False):
                     "panel_model": s_panel_model,
                     "panel_sn": s_panel_sn,
                     "co_detector": s_co_detector if s_co_detector != "--" else "",
+                    "co_source": s_co_source if s_co_source != "--" else "",
+                    "co_department": s_co_department if s_co_department != "--" else "",
                     "panel_source": s_panel_source if s_panel_source != "--" else "",
                     "co_source": s_co_source if s_co_source != "--" else "",
                     "breaker_type": s_breaker_type if s_breaker_type != "--" else "",
