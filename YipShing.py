@@ -1238,13 +1238,18 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_source:
                         s_rad_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_rad_source_{i}", label_visibility="collapsed")
 
-                    col1, col2, col3 = st.columns(3)
+                    col1, col2, col3, col_dept = st.columns([3, 2, 2, 2])  # 調整欄寬，讓部門有空間
                     with col1:
                         s_rad_model = st.text_input("Radiator model(水箱型號)", key=f"dlg_rad_model_{i}")
                     with col2:
                         s_rad_sn = st.text_input("S/N", key=f"dlg_rad_sn_{i}")
                     with col3:
                         s_rad_temp = st.text_input("Temperature(温度)", key=f"dlg_rad_temp_{i}")
+                    with col_dept:
+                        s_fan_department = st.selectbox("風扇負責部門", ["--", "Michelle", "倉庫"],
+                                                        key=f"dlg_fan_department_{i}",
+                                                        label_visibility="collapsed")
+
                     s_fan_size = st.text_input("風扇呎吋", key=f"dlg_fan_size_{i}")
 
                     col_r1, col_r2 = st.columns(2)
@@ -1545,6 +1550,11 @@ if st.session_state.get("spec_dialog_open", False):
                     "remarks": s_remarks.strip(),
                     "parts": [p for p in parts_list if p["name"].strip()],
                     "delivery_checklist": checklist,
+                    "panel_department": s_panel_department if s_panel_department != "--" else "",
+                    "breaker_department": s_breaker_department if s_breaker_department != "--" else "",
+                    "fan_department": s_fan_department if s_fan_department != "--" else "",
+                    "coolant_sensor_department": s_coolant_sensor_department if s_coolant_sensor_department != "--" else "",
+                    "low_water_department": s_low_water_department if s_low_water_department != "--" else "",
                     "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
