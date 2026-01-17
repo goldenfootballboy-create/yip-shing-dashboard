@@ -1357,17 +1357,26 @@ if st.session_state.get("spec_dialog_open", False):
                     st.markdown("---")
 
                     # Panel (控制器)
-                    col_title, col_source, col_dept = st.columns([5, 1, 2])
-                    with col_title:
+                    col_panel_title, col_panel_source, col_panel_dept = st.columns([5, 2, 2])
+
+                    with col_panel_title:
                         st.markdown("**Panel (控制器)**")
-                    with col_source:
-                        s_panel_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                      key=f"dlg_panel_source_{i}",
-                                                      label_visibility="collapsed")
-                    with col_dept:
-                        s_panel_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
-                                                          key=f"dlg_panel_department_{i}",
-                                                          label_visibility="collapsed")
+
+                    with col_panel_source:
+                        s_panel_source = st.selectbox(
+                            "貨源",
+                            ["--", "HK", "DG"],
+                            key=f"dlg_panel_source_{i}",
+                            label_visibility="collapsed"
+                        )
+
+                    with col_panel_dept:
+                        s_panel_department = st.selectbox(
+                            "負責部門",
+                            ["--", "Michelle", "倉庫"],
+                            key=f"dlg_panel_department_{i}",
+                            label_visibility="collapsed"
+                        )
                     col_p1, col_p2 = st.columns(2)
                     with col_p1:
                         s_panel_model = st.text_input("Panel model(控制器型號)", key=f"dlg_panel_model_{i}")
@@ -1660,6 +1669,10 @@ if st.session_state.get("spec_dialog_open", False):
                     "door_limit_switch": s_door_limit_switch if s_door_limit_switch != "--" else "",
                     "door_limit_source": s_door_limit_source if s_door_limit_source != "--" else "",
                     "door_limit_department": s_door_limit_department if s_door_limit_department != "--" else "",
+                    "panel_source": s_panel_source if s_panel_source != "--" else "",
+                    "panel_department": s_panel_department if s_panel_department != "--" else "",
+                    "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
+                    "breaker_department": s_breaker_department if s_breaker_department != "--" else "",
                     "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
