@@ -1385,13 +1385,22 @@ if st.session_state.get("spec_dialog_open", False):
                     st.markdown("---")
 
                     col_title, col_source, col_dept = st.columns([5, 1, 2])
+                    st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                     with col_title:
                         st.markdown("**Circuit Breaker (斷路器)**")
                     with col_source:
+                        st.markdown(
+                            "<div style='height: 28px; line-height: 28px; font-weight:'>貨源</div>",
+                            unsafe_allow_html=True
+                        )
                         s_breaker_source = st.selectbox("貨源", ["--", "HK", "DG"],
                                                         key=f"dlg_breaker_source_{i}",
                                                         label_visibility="collapsed")
                     with col_dept:
+                        st.markdown(
+                            "<div style='height: 28px; line-height: 28px; font-weight:'>負責部門</div>",
+                            unsafe_allow_html=True
+                        )
                         s_breaker_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
                                                             key=f"dlg_breaker_department_{i}",
                                                             label_visibility="collapsed")
