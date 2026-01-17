@@ -1235,6 +1235,7 @@ if st.session_state.get("spec_dialog_open", False):
         specs = []
         if qty > 1:
             st.markdown("---")
+            st.markdown("### 規格快速複製工具")
             if st.button("📋 從第 1 台複製規格 → 所有其他台",
                          type="primary",
                          use_container_width=True,
@@ -1267,6 +1268,7 @@ if st.session_state.get("spec_dialog_open", False):
                             target_key = f"dlg_{field}_{target_i}"
                             st.session_state[target_key] = value
 
+                # 複製 Parts 動態列表（深拷貝）
                 src_parts_key = f"dlg_parts_{source_i}"
                 if src_parts_key in st.session_state and st.session_state[src_parts_key]:
                     original_parts = st.session_state[src_parts_key]
@@ -1278,9 +1280,42 @@ if st.session_state.get("spec_dialog_open", False):
                         st.session_state[target_key] = copied_parts[:]
                         _ = st.session_state[target_key]
 
-                st.success("已成功將第 1 台的規格複製到其他所有台！")
-                st.rerun()
+                # 複製 Delivery Checklist 動態列表（深拷貝）
+                src_checklist_key = f"dlg_delivery_checklist_{source_i}"
+                if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
+                    original_checklist = st.session_state[src_checklist_key]
+                    copied_checklist = [dict(item) for item in original_checklist]
+                    for target_i in range(1, qty):
+                        target_key = f"dlg_delivery_checklist_{target_i}"
+                        if target_key in st.session_state:
+                            del st.session_state[target_key]
+                        st.session_state[target_key] = copied_checklist[:]
+                        _ = st.session_state[target_key]
 
+                # 新增：複製所有負責部門下拉欄位（Panel、Breaker、Fuel Cooler、Anti-Vibration Mount、Coolant sensor、Low water、Fan、Door Limit Switch、CO 等）
+                dept_fields = [
+                    "panel_department",
+                    "breaker_department",
+                    "fuel_cooler_department",
+                    "avm_department",
+                    "coolant_sensor_department",
+                    "low_water_department",
+                    "fan_department",
+                    "door_limit_department",
+                    "co_department"
+                    # 如果未來加更多部門欄位，直接加在這裡
+                ]
+
+                for field in dept_fields:
+                    src_key = f"dlg_{field}_{source_i}"
+                    if src_key in st.session_state:
+                        value = st.session_state[src_key]
+                        for target_i in range(1, qty):
+                            target_key = f"dlg_{field}_{target_i}"
+                            st.session_state[target_key] = value
+
+                st.success("已成功將第 1 台的規格（含配件、打勾與所有負責部門）複製到其他所有台！")
+                st.rerun()
         for i in range(qty):
             with tabs[i]:
                 st.markdown("### Prime & Standby Power")
