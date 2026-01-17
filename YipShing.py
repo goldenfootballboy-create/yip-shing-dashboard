@@ -1445,6 +1445,7 @@ if st.session_state.get("spec_dialog_open", False):
                             )
 
                         with col_delete:
+                            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                             if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
                                 parts_list.pop(j)
                                 st.rerun()
