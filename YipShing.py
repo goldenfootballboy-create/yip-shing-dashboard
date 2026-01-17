@@ -1385,7 +1385,7 @@ if st.session_state.get("spec_dialog_open", False):
                     st.markdown("---")
 
                     col_title, col_source, col_dept = st.columns([5, 1, 2])
-
+                    st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
                     with col_title:
                         st.markdown("**Circuit Breaker (斷路器)**")
                     with col_source:
