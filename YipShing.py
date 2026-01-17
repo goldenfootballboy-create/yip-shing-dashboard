@@ -1441,8 +1441,6 @@ if st.session_state.get("spec_dialog_open", False):
                         )
 
                     with col_door_dept:
-                        # 高度調整區塊（讓負責部門下拉與其他對齊）
-                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                         s_door_limit_department = st.selectbox(
                             "負責部門",
                             ["--", "Michelle", "倉庫"],
