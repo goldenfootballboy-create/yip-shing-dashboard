@@ -1358,11 +1358,17 @@ if st.session_state.get("spec_dialog_open", False):
 
                     st.markdown("---")
 
-                    col_title, col_source = st.columns([6, 1])
+                    col_title, col_source, col_dept = st.columns([5, 1, 2])
                     with col_title:
                         st.markdown("**Circuit Breaker (斷路器)**")
                     with col_source:
-                        s_breaker_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_breaker_source_{i}", label_visibility="collapsed")
+                        s_breaker_source = st.selectbox("貨源", ["--", "HK", "DG"],
+                                                        key=f"dlg_breaker_source_{i}",
+                                                        label_visibility="collapsed")
+                    with col_dept:
+                        s_breaker_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
+                                                            key=f"dlg_breaker_department_{i}",
+                                                            label_visibility="collapsed")
 
                     col_b1, col_b2 = st.columns(2)
                     with col_b1:
