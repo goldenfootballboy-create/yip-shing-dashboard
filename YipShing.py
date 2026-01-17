@@ -1357,7 +1357,7 @@ if st.session_state.get("spec_dialog_open", False):
                     st.markdown("---")
 
                     # Panel (控制器)
-                    col_panel_title, col_panel_source, col_panel_dept = st.columns([5, 2, 2])
+                    col_panel_title, col_panel_source, col_panel_dept = st.columns([5, 1, 2])
 
                     with col_panel_title:
                         st.markdown("**Panel (控制器)**")
