@@ -1422,12 +1422,14 @@ if st.session_state.get("spec_dialog_open", False):
 
                     col_door_include, col_door_source = st.columns([3, 2])  # 寬度比例：Include/Not Include 較寬，貨源較窄
 
+                    col_door_include, col_door_source, col_door_dept = st.columns([3, 2, 2])
+
                     with col_door_include:
                         s_door_limit_switch = st.selectbox(
                             "Door Limit Switch",
                             ["--", "Include", "Not Include"],
                             key=f"dlg_door_limit_switch_{i}",
-                            label_visibility="visible"  # 顯示標題
+                            label_visibility="visible"
                         )
 
                     with col_door_source:
@@ -1435,6 +1437,16 @@ if st.session_state.get("spec_dialog_open", False):
                             "貨源",
                             ["--", "HK", "DG"],
                             key=f"dlg_door_limit_source_{i}",
+                            label_visibility="visible"
+                        )
+
+                    with col_door_dept:
+                        # 高度調整區塊（讓負責部門下拉與其他對齊）
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                        s_door_limit_department = st.selectbox(
+                            "負責部門",
+                            ["--", "Michelle", "倉庫"],
+                            key=f"dlg_door_limit_department_{i}",
                             label_visibility="visible"
                         )
 
@@ -1630,6 +1642,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "low_water_department": s_low_water_department if s_low_water_department != "--" else "",
                     "door_limit_switch": s_door_limit_switch if s_door_limit_switch != "--" else "",
                     "door_limit_source": s_door_limit_source if s_door_limit_source != "--" else "",
+                    "door_limit_department": s_door_limit_department if s_door_limit_department != "--" else "",
                     "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
