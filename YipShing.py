@@ -550,6 +550,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 source_i = 0
 
+                # 靜態欄位複製（原本的）
                 static_fields = [
                     "prime", "standby", "voltage", "frequency", "rpm",
                     "genset_model", "engine_color", "engine_year", "engine_heater", "engine_source",
@@ -599,9 +600,30 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         st.session_state[target_key] = copied_checklist[:]
                         _ = st.session_state[target_key]
 
-                st.success("已成功將第 1 台的規格（含配件與打勾狀態）複製到其他所有台！")
-                st.rerun()
+                # 新增：複製所有負責部門下拉欄位
+                dept_fields = [
+                    "panel_department",
+                    "breaker_department",
+                    "fuel_cooler_department",
+                    "avm_department",
+                    "coolant_sensor_department",
+                    "low_water_department",
+                    "fan_department",
+                    "door_limit_department",
+                    "co_department"  # 如果有 CO 部門
+                    # 如果未來加更多部門欄位，直接加在這裡
+                ]
 
+                for field in dept_fields:
+                    src_key = f"edit_{field}_{idx_to_edit}_{source_i}"
+                    if src_key in st.session_state:
+                        value = st.session_state[src_key]
+                        for target_i in range(1, qty):
+                            target_key = f"edit_{field}_{idx_to_edit}_{target_i}"
+                            st.session_state[target_key] = value
+
+                st.success("已成功將第 1 台的規格（含配件、打勾與所有負責部門）複製到其他所有台！")
+                st.rerun()
         for i in range(qty):
             with tabs[i]:
                 current = specs[i] if i < len(specs) else {}
