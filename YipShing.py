@@ -1248,13 +1248,33 @@ if st.session_state.get("spec_dialog_open", False):
                         s_rad_temp = st.text_input("Temperature(温度)", key=f"dlg_rad_temp_{i}")
 
                     # 風扇呎吋 + 負責部門 放在同一行（並排）
-                    col_fan, col_dept = st.columns([3, 2])  # 風扇輸入佔較大空間，部門下拉較小
+                    # 風扇呎吋 + 負責部門（水平並排 + 垂直居中對齊）
+                    col_fan, col_dept = st.columns([3, 2])
                     with col_fan:
                         s_fan_size = st.text_input("風扇呎吋", key=f"dlg_fan_size_{i}")
                     with col_dept:
                         s_fan_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
                                                         key=f"dlg_fan_department_{i}",
                                                         label_visibility="collapsed")
+
+                    # 強制垂直居中對齊（解決高低差）
+                    st.markdown(
+                        """
+                        <style>
+                        div[data-testid="column"] div[data-testid="stTextInput"] {
+                            display: flex;
+                            align-items: center;
+                            height: 100%;
+                        }
+                        div[data-testid="column"] div[data-testid="stSelectbox"] {
+                            display: flex;
+                            align-items: center;
+                            height: 100%;
+                        }
+                        </style>
+                        """,
+                        unsafe_allow_html=True
+                    )
                     col_r1, col_r2 = st.columns(2)
                     with col_r1:
                         s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"], key=f"dlg_radiator_guard_{i}")
