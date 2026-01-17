@@ -1418,23 +1418,45 @@ if st.session_state.get("spec_dialog_open", False):
                     parts_list = st.session_state[part_key]
 
                     for j in range(len(parts_list)):
-                        col_name, col_source, col_delete = st.columns([4, 1, 1])
+                        col_name, col_source, col_delete, col_dept = st.columns([4, 1, 1, 2])
                         with col_name:
-                            part_name = st.text_input(f"配件名稱/描述 {j+1}", value=parts_list[j].get("name", ""), key=f"dlg_part_name_{i}_{j}", label_visibility="collapsed")
+                            part_name = st.text_input(
+                                f"配件名稱/描述 {j+1}",
+                                value=parts_list[j].get("name", ""),
+                                key=f"dlg_part_name_{i}_{j}",
+                                label_visibility="collapsed"
+                            )
                         with col_source:
-                            part_source = st.selectbox("貨源", ["--", "HK", "DG"],
-                                                       index=safe_index(parts_list[j].get("source", "--"), ["--", "HK", "DG"]),
-                                                       key=f"dlg_part_source_{i}_{j}",
-                                                       label_visibility="collapsed")
+                            part_source = st.selectbox(
+                                "貨源",
+                                ["--", "HK", "DG"],
+                                index=safe_index(parts_list[j].get("source", "--"), ["--", "HK", "DG"]),
+                                key=f"dlg_part_source_{i}_{j}",
+                                label_visibility="collapsed"
+                            )
                         with col_delete:
                             if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
                                 parts_list.pop(j)
                                 st.rerun()
+                        with col_dept:
+                            # 高度調整區塊（解決下拉與輸入框高低差）
+                            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                            department = st.selectbox(
+                                "負責部門",
+                                ["--", "Michelle", "倉庫"],
+                                index=safe_index(parts_list[j].get("department", "--"), ["--", "Michelle", "倉庫"]),
+                                key=f"dlg_part_department_{i}_{j}",
+                                label_visibility="collapsed"
+                            )
 
-                        parts_list[j] = {"name": part_name.strip(), "source": part_source if part_source != "--" else ""}
+                        parts_list[j] = {
+                            "name": part_name.strip(),
+                            "source": part_source if part_source != "--" else "",
+                            "department": department if department != "--" else ""
+                        }
 
                     if st.button("+ 新增配件", key=f"add_part_tab{i}_len{len(parts_list)}", type="secondary"):
-                        parts_list.append({"name": "", "source": "--"})
+                        parts_list.append({"name": "", "source": "--", "department": "--"})
                         st.rerun()
 
                 st.markdown("---")
