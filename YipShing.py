@@ -1238,20 +1238,23 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_source:
                         s_rad_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_rad_source_{i}", label_visibility="collapsed")
 
-                    col1, col2, col3, col_dept = st.columns([3, 2, 2, 2])  # 調整欄寬，讓部門有空間
+                    # Radiator model、S/N、Temperature 保持 3 欄
+                    col1, col2, col3 = st.columns(3)
                     with col1:
                         s_rad_model = st.text_input("Radiator model(水箱型號)", key=f"dlg_rad_model_{i}")
                     with col2:
                         s_rad_sn = st.text_input("S/N", key=f"dlg_rad_sn_{i}")
                     with col3:
                         s_rad_temp = st.text_input("Temperature(温度)", key=f"dlg_rad_temp_{i}")
+
+                    # 風扇呎吋 + 負責部門 放在同一行（並排）
+                    col_fan, col_dept = st.columns([3, 2])  # 風扇輸入佔較大空間，部門下拉較小
+                    with col_fan:
+                        s_fan_size = st.text_input("風扇呎吋", key=f"dlg_fan_size_{i}")
                     with col_dept:
-                        s_fan_department = st.selectbox("風扇負責部門", ["--", "Michelle", "倉庫"],
+                        s_fan_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
                                                         key=f"dlg_fan_department_{i}",
                                                         label_visibility="collapsed")
-
-                    s_fan_size = st.text_input("風扇呎吋", key=f"dlg_fan_size_{i}")
-
                     col_r1, col_r2 = st.columns(2)
                     with col_r1:
                         s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"], key=f"dlg_radiator_guard_{i}")
