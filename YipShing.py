@@ -1419,13 +1419,18 @@ if st.session_state.get("spec_dialog_open", False):
 
                     for j in range(len(parts_list)):
                         col_name, col_source, col_delete, col_dept = st.columns([4, 1, 1, 2])
+
                         with col_name:
+                            # 在輸入欄上方加一個空白高度區塊（推高輸入框位置）
+                            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+
                             part_name = st.text_input(
-                                f"配件名稱/描述 {j+1}",
+                                f"配件名稱/描述 {j + 1}",
                                 value=parts_list[j].get("name", ""),
                                 key=f"dlg_part_name_{i}_{j}",
                                 label_visibility="collapsed"
                             )
+
                         with col_source:
                             part_source = st.selectbox(
                                 "貨源",
@@ -1434,15 +1439,16 @@ if st.session_state.get("spec_dialog_open", False):
                                 key=f"dlg_part_source_{i}_{j}",
                                 label_visibility="collapsed"
                             )
+
                         with col_delete:
                             if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
                                 parts_list.pop(j)
                                 st.rerun()
+
                         with col_dept:
-                            st.markdown(
-                                "<div style='height: 28px; line-height: 28px; font-size: 14px; color: #666;'>負責部門</div>",
-                                unsafe_allow_html=True
-                            )
+                            # 下拉清單上方可以不加空白（或加相同高度）
+                            # 如果下拉還是低一點，可加這行調整
+                            # st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                             department = st.selectbox(
                                 "負責部門",
                                 ["--", "Michelle", "倉庫"],
