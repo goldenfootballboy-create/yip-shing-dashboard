@@ -1391,8 +1391,6 @@ if st.session_state.get("spec_dialog_open", False):
 
                     with col_source:
                         st.markdown("**貨源**")  # 標題放上面，不加高度
-                        # 只推高下拉框
-                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                         s_breaker_source = st.selectbox(
                             "貨源",
                             ["--", "HK", "DG"],
@@ -1402,8 +1400,6 @@ if st.session_state.get("spec_dialog_open", False):
 
                     with col_dept:
                         st.markdown("**負責部門**")  # 標題放上面，不加高度
-                        # 只推高下拉框
-                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                         s_breaker_department = st.selectbox(
                             "負責部門",
                             ["--", "Michelle", "倉庫"],
