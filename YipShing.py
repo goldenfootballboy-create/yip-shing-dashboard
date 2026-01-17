@@ -1274,14 +1274,21 @@ if st.session_state.get("spec_dialog_open", False):
                         s_coolant_sensor_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
                                                                    key=f"dlg_coolant_sensor_department_{i}",
                                                                    label_visibility="collapsed")
-                    col_title, col_include, col_source = st.columns([5, 1, 1])
+                    col_title, col_include, col_source, col_dept = st.columns([4, 1, 1, 2])
                     with col_title:
                         st.markdown("**Low water level float switch**")
                     with col_include:
-                        s_low_water = st.selectbox("", ["--", "Include", "Not Include"], key=f"dlg_low_water_{i}", label_visibility="collapsed")
+                        s_low_water = st.selectbox("", ["--", "Include", "Not Include"],
+                                                   key=f"dlg_low_water_{i}",
+                                                   label_visibility="collapsed")
                     with col_source:
-                        s_low_water_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_low_water_source_{i}", label_visibility="collapsed")
-
+                        s_low_water_source = st.selectbox("貨源", ["--", "HK", "DG"],
+                                                          key=f"dlg_low_water_source_{i}",
+                                                          label_visibility="collapsed")
+                    with col_dept:
+                        s_low_water_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
+                                                              key=f"dlg_low_water_department_{i}",
+                                                              label_visibility="collapsed")
                     st.markdown("---")
 
                     col_title, col_source = st.columns([6, 1])
