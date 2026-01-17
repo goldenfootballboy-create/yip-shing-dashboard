@@ -1432,6 +1432,10 @@ if st.session_state.get("spec_dialog_open", False):
                             )
 
                         with col_source:
+                            st.markdown(
+                                "<div style='height: 28px; line-height: 28px; font-weight: bold;'>貨源</div>",
+                                unsafe_allow_html=True
+                            )
                             part_source = st.selectbox(
                                 "貨源",
                                 ["--", "HK", "DG"],
