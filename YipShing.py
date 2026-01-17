@@ -1446,9 +1446,10 @@ if st.session_state.get("spec_dialog_open", False):
                                 st.rerun()
 
                         with col_dept:
-                            # 下拉清單上方可以不加空白（或加相同高度）
-                            # 如果下拉還是低一點，可加這行調整
-                            # st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                            st.markdown(
+                                "<div style='height: 28px; line-height: 28px; font-weight: bold;'>負責部門</div>",
+                                unsafe_allow_html=True
+                            )
                             department = st.selectbox(
                                 "負責部門",
                                 ["--", "Michelle", "倉庫"],
