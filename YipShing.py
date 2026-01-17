@@ -267,6 +267,7 @@ def render_project_card(row, idx):
                 st.markdown(f"**專案：{row['Project_Name']}**　｜　**{qty} 台**　｜　**類型：{row['Project_Type']}**")
                 st.markdown("---")
 
+                # 讀取規格資料
                 spec_text = row.get("Project_Spec", "")
                 specs = []
                 if "||EXTRA||" in spec_text:
@@ -289,6 +290,7 @@ def render_project_card(row, idx):
                     with overview_tabs[machine_idx]:
                         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
+                        # Prime & Standby Power
                         st.markdown(
                             """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
                             Prime & Standby Power (功效＆電壓)
@@ -304,6 +306,7 @@ def render_project_card(row, idx):
 
                         st.divider()
 
+                        # Engine & Alternator
                         st.markdown(
                             """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
                             Engine & Alternator (發動機 & 電球)
@@ -319,6 +322,7 @@ def render_project_card(row, idx):
 
                         st.divider()
 
+                        # Radiator & Base Frame
                         st.markdown(
                             """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
                             Radiator & Base Frame (水箱 & 底架)
@@ -326,19 +330,20 @@ def render_project_card(row, idx):
                             unsafe_allow_html=True
                         )
                         st.markdown(f"**水箱型號**： {spec.get('rad_model', '—')}　　**S/N**： {spec.get('rad_sn', '—')}　　**溫度**： {spec.get('rad_temp', '—')}")
-                        st.markdown(f"**風扇呎吋**： {spec.get('fan_size', '—')}")
+                        st.markdown(f"**風扇呎吋**： {spec.get('fan_size', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('fan_department', '—')}</span>", unsafe_allow_html=True)
                         st.markdown(f"**水箱護罩**： {spec.get('radiator_guard', '—')}")
 
                         st.markdown("---")
 
-                        st.markdown(f"**燃油冷卻器**： {spec.get('fuel_cooler', '—')}　　**貨源**： {spec.get('fuel_cooler_source', '—') or '—'}")
-                        st.markdown(f"**冷卻液溫度感測器**： {spec.get('coolant_sensor', '—')}　　**貨源**： {spec.get('coolant_sensor_source', '—') or '—'}")
-                        st.markdown(f"**低水位浮球開關**： {spec.get('low_water', '—')}　　**貨源**： {spec.get('low_water_source', '—') or '—'}")
+                        st.markdown(f"**燃油冷卻器**：貨源 {spec.get('fuel_cooler_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('fuel_cooler_department', '—')}</span>", unsafe_allow_html=True)
+                        st.markdown(f"**冷卻液溫度感測器**： {spec.get('coolant_sensor', '—')}　　貨源： {spec.get('coolant_sensor_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('coolant_sensor_department', '—')}</span>", unsafe_allow_html=True)
+                        st.markdown(f"**低水位浮球開關**： {spec.get('low_water', '—')}　　貨源： {spec.get('low_water_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('low_water_department', '—')}</span>", unsafe_allow_html=True)
                         st.markdown(f"**底架型號**： {spec.get('base_model', '—')}　　**S/N**： {spec.get('base_sn', '—')}")
-                        st.markdown(f"**避震器**： {spec.get('avm', '—')}　數量：{spec.get('avm_qty', '—')}　型號：{spec.get('avm_model', '—')}")
+                        st.markdown(f"**避震器**：貨源 {spec.get('avm_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('avm_department', '—')}</span>", unsafe_allow_html=True)
 
                         st.divider()
 
+                        # Container / Panel / Breaker
                         st.markdown(
                             """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
                             Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)
@@ -346,21 +351,26 @@ def render_project_card(row, idx):
                             unsafe_allow_html=True
                         )
                         st.markdown(f"**貨櫃尺寸**： {spec.get('cont_size', '—')}　　**類型**： {spec.get('cont_type', '—')}")
-                        st.markdown(f"**控制器型號**： {spec.get('panel_model', '—')}　　**S/N**： {spec.get('panel_sn', '—')}")
-                        st.markdown(f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}")
-                        st.markdown(f"**彈簧充電**： {spec.get('spring_charging', '—')}　　**控制電壓**： {spec.get('control_voltage', '—')}")
+                        st.markdown(f"**控制器型號**： {spec.get('panel_model', '—')}　　**S/N**： {spec.get('panel_sn', '—')}　　**貨源**： {spec.get('panel_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('panel_department', '—')}</span>", unsafe_allow_html=True)
+                        st.markdown(f"**CO 探測器 (OLED)**： {spec.get('co_detector', '—')}　　**貨源**： {spec.get('co_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('co_department', '—')}</span>", unsafe_allow_html=True)
+                        st.markdown(f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}　　**貨源**： {spec.get('breaker_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('breaker_department', '—')}</span>", unsafe_allow_html=True)
 
                         st.divider()
 
+                        # Parts
                         parts = spec.get("parts", [])
                         if parts:
                             st.subheader("配件清單")
                             for p in parts:
                                 name = p.get("name", "").strip()
                                 source = p.get("source", "—")
+                                dept = p.get("department", "—")
                                 if name:
-                                    st.markdown(f"- **{name}**　（貨源：{source}）")
+                                    st.markdown(f"- **{name}**　（貨源：{source}，負責部門：<span style='color:red;'>{dept}</span>）", unsafe_allow_html=True)
 
+                        st.divider()
+
+                        # Delivery Checklist
                         checklist = spec.get("delivery_checklist", [])
                         if checklist:
                             st.subheader("出貨檢查清單")
