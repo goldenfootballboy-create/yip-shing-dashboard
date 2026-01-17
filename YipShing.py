@@ -1383,14 +1383,13 @@ if st.session_state.get("spec_dialog_open", False):
                         s_co_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_co_source_{i}", label_visibility="collapsed")
 
                     st.markdown("---")
-
                     col_title, col_source, col_dept = st.columns([5, 1, 2])
 
                     with col_title:
                         st.markdown("**Circuit Breaker (斷路器)**")
 
                     with col_source:
-                        st.markdown("**貨源**")  # 標題放上面，不加高度
+                        st.markdown("**貨源**")
                         s_breaker_source = st.selectbox(
                             "貨源",
                             ["--", "HK", "DG"],
@@ -1399,7 +1398,7 @@ if st.session_state.get("spec_dialog_open", False):
                         )
 
                     with col_dept:
-                        st.markdown("**負責部門**")  # 標題放上面，不加高度
+                        st.markdown("**負責部門**")
                         s_breaker_department = st.selectbox(
                             "負責部門",
                             ["--", "Michelle", "倉庫"],
@@ -1412,14 +1411,31 @@ if st.session_state.get("spec_dialog_open", False):
                         s_breaker_type = st.selectbox("Breaker Type (斷路器種類)", ["--", "ACB", "MCCB"], key=f"dlg_breaker_type_{i}")
                     with col_b2:
                         s_breaker_rating = st.text_input("Breaker Rating (斷路器容量)", key=f"dlg_breaker_rating_{i}")
+
                     col_p3, col_p4 = st.columns(2)
                     with col_p3:
                         s_poles = st.selectbox("Poles(極數)", ["--", "3P", "4P"], key=f"dlg_poles_{i}")
                     with col_p4:
                         s_spring_charging = st.selectbox("Spring Charging(斷路器操作)", ["--", "Motorized", "Single Usage"], key=f"dlg_spring_charging_{i}")
+
                     s_control_voltage = st.text_input("Control Voltage(控制電壓)", key=f"dlg_control_voltage_{i}")
 
-                st.markdown("---")
+                    # 新增：Door Limit Switch（放在最下方）
+                    col_door_include, col_door_source = st.columns([3, 2])
+                    with col_door_include:
+                        s_door_limit_switch = st.selectbox(
+                            "Door Limit Switch",
+                            ["--", "Include", "Not Include"],
+                            key=f"dlg_door_limit_switch_{i}",
+                            label_visibility="visible"  # 顯示標題
+                        )
+                    with col_door_source:
+                        s_door_limit_source = st.selectbox(
+                            "貨源",
+                            ["--", "HK", "DG"],
+                            key=f"dlg_door_limit_source_{i}",
+                            label_visibility="visible"
+                        )
 
                 with st.expander("Parts (配件) Group", expanded=False):
                     part_key = f"dlg_parts_{i}"
@@ -1611,6 +1627,8 @@ if st.session_state.get("spec_dialog_open", False):
                     "fan_department": s_fan_department if s_fan_department != "--" else "",
                     "coolant_sensor_department": s_coolant_sensor_department if s_coolant_sensor_department != "--" else "",
                     "low_water_department": s_low_water_department if s_low_water_department != "--" else "",
+                    "door_limit_switch": s_door_limit_switch if s_door_limit_switch != "--" else "",
+                    "door_limit_source": s_door_limit_source if s_door_limit_source != "--" else "",
                     "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
