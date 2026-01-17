@@ -818,7 +818,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                     st.markdown("---")
 
-                    col_title, col_source = st.columns([6, 1])
+                    col_title, col_source, col_dept = st.columns([5, 1, 2])
                     with col_title:
                         st.markdown("**Panel (控制器)**")
                     with col_source:
@@ -826,6 +826,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                       index=safe_index(current.get("panel_source", "--"), ["--", "HK", "DG"]),
                                                       key=f"edit_panel_source_{idx_to_edit}_{i}",
                                                       label_visibility="collapsed")
+                    with col_dept:
+                        e_panel_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
+                                                          index=safe_index(current.get("panel_department", "--"), ["--", "Michelle", "倉庫"]),
+                                                          key=f"edit_panel_department_{idx_to_edit}_{i}",
+                                                          label_visibility="collapsed")
 
                     col_p1, col_p2 = st.columns(2)
                     with col_p1:
