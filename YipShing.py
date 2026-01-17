@@ -1654,6 +1654,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "avm": s_avm if s_avm != "--" else "",
                     "avm_qty": str(s_avm_qty),
                     "avm_source": s_avm_source if s_avm_source != "--" else "",
+                    "avm_department": s_avm_department if s_avm_department != "--" else "",
                     "cont_size": s_cont_size if s_cont_size != "--" else "",
                     "cont_type": s_cont_type if s_cont_type != "--" else "",
                     "cont_color": s_cont_color,
