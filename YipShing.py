@@ -1254,8 +1254,8 @@ if st.session_state.get("spec_dialog_open", False):
                         s_fan_size = st.text_input("風扇呎吋", key=f"dlg_fan_size_{i}")
 
                     with col_dept:
-                        st.markdown(" ")  # 加一行空白（非斷行空格），推高下拉選單位置
-                        # 或用 st.text(" ") 也可以
+                        # 加一個透明高度調整區塊（高度與 text_input 的 label 高度接近）
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                         s_fan_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
                                                         key=f"dlg_fan_department_{i}",
                                                         label_visibility="collapsed")
