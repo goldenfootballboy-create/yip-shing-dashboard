@@ -1420,8 +1420,8 @@ if st.session_state.get("spec_dialog_open", False):
 
                     s_control_voltage = st.text_input("Control Voltage(控制電壓)", key=f"dlg_control_voltage_{i}")
 
-                    # 新增：Door Limit Switch（放在最下方）
-                    col_door_include, col_door_source = st.columns([3, 2])
+                    col_door_include, col_door_source = st.columns([3, 2])  # 寬度比例：Include/Not Include 較寬，貨源較窄
+
                     with col_door_include:
                         s_door_limit_switch = st.selectbox(
                             "Door Limit Switch",
@@ -1429,6 +1429,7 @@ if st.session_state.get("spec_dialog_open", False):
                             key=f"dlg_door_limit_switch_{i}",
                             label_visibility="visible"  # 顯示標題
                         )
+
                     with col_door_source:
                         s_door_limit_source = st.selectbox(
                             "貨源",
