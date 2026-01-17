@@ -1434,7 +1434,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                         with col_source:
                             st.markdown(
-                                "<div style='height: 28px; line-height: 28px; font-weight: bold;'>貨源</div>",
+                                "<div style='height: 28px; line-height: 28px; font-weight:'>貨源</div>",
                                 unsafe_allow_html=True
                             )
                             part_source = st.selectbox(
@@ -1447,7 +1447,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                         with col_dept:
                             st.markdown(
-                                "<div style='height: 28px; line-height: 28px; font-weight: bold;'>負責部門</div>",
+                                "<div style='height: 28px; line-height: 28px;'>負責部門</div>",
                                 unsafe_allow_html=True
                             )
                             department = st.selectbox(
