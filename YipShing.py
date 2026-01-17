@@ -1439,8 +1439,6 @@ if st.session_state.get("spec_dialog_open", False):
                                 parts_list.pop(j)
                                 st.rerun()
                         with col_dept:
-                            # 高度調整區塊（解決下拉與輸入框高低差）
-                            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                             department = st.selectbox(
                                 "負責部門",
                                 ["--", "Michelle", "倉庫"],
