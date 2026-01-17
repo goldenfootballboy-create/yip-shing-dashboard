@@ -1363,6 +1363,7 @@ if st.session_state.get("spec_dialog_open", False):
                         st.markdown("**Panel (控制器)**")
 
                     with col_panel_source:
+                        st.markdown("**貨源**")
                         s_panel_source = st.selectbox(
                             "貨源",
                             ["--", "HK", "DG"],
@@ -1371,12 +1372,14 @@ if st.session_state.get("spec_dialog_open", False):
                         )
 
                     with col_panel_dept:
+                        st.markdown("**負責部門**")
                         s_panel_department = st.selectbox(
                             "負責部門",
                             ["--", "Michelle", "倉庫"],
                             key=f"dlg_panel_department_{i}",
                             label_visibility="collapsed"
                         )
+
                     col_p1, col_p2 = st.columns(2)
                     with col_p1:
                         s_panel_model = st.text_input("Panel model(控制器型號)", key=f"dlg_panel_model_{i}")
