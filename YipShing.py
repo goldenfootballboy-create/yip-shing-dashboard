@@ -1439,6 +1439,10 @@ if st.session_state.get("spec_dialog_open", False):
                                 parts_list.pop(j)
                                 st.rerun()
                         with col_dept:
+                            st.markdown(
+                                "<div style='height: 28px; line-height: 28px; font-size: 14px; color: #666;'>負責部門</div>",
+                                unsafe_allow_html=True
+                            )
                             department = st.selectbox(
                                 "負責部門",
                                 ["--", "Michelle", "倉庫"],
