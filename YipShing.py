@@ -1315,13 +1315,28 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_sn:
                         s_base_sn = st.text_input("S/N", key=f"dlg_base_sn_{i}")
 
-                    col_title, col_include, col_source = st.columns([5, 1, 1])
-                    with col_title:
+                    col_avm_title, col_avm_source, col_avm_dept = st.columns([5, 1, 2])
+
+                    with col_avm_title:
                         st.markdown("**Anti-Vibration Mount**")
-                    with col_include:
-                        s_avm = st.selectbox("", ["--", "Include", "Not Include"], key=f"dlg_avm_{i}", label_visibility="collapsed")
-                    with col_source:
-                        s_avm_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_avm_source_{i}", label_visibility="collapsed")
+
+                    with col_avm_source:
+                        st.markdown("**貨源**")
+                        s_avm_source = st.selectbox(
+                            "貨源",
+                            ["--", "HK", "DG"],
+                            key=f"dlg_avm_source_{i}",
+                            label_visibility="collapsed"
+                        )
+
+                    with col_avm_dept:
+                        st.markdown("**負責部門**")
+                        s_avm_department = st.selectbox(
+                            "負責部門",
+                            ["--", "Michelle", "倉庫"],
+                            key=f"dlg_avm_department_{i}",
+                            label_visibility="collapsed"
+                        )
                     s_avm_model = st.text_input("Anti-Vibration Mount model(避震器型號)", key=f"dlg_avm_model_{i}")
                     s_avm_qty = st.number_input("Qty(數量)", min_value=0, value=0, key=f"dlg_avm_qty_{i}")
 
