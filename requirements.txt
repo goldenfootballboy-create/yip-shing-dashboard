@@ -1,6 +1,11 @@
-streamlit
-st-gsheets-connection
+# 核心 Streamlit 相關
+streamlit>=1.30.0
+streamlit-gsheets
 streamlit-calendar
+
+# 資料處理與 PDF
 pandas
 reportlab
+
+# Email 發送 (Resend API)
 resend
