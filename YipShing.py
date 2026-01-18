@@ -16,6 +16,10 @@ from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
 # 全局安全 index 函數
 def safe_index(val, options, default=0):
     try:
@@ -58,7 +62,94 @@ def fullscreen_loading(message="正在處理，請稍候..."):
     </style>
     """, unsafe_allow_html=True)
 from reportlab.platypus import PageBreak  # 新增這個 import（如果還沒有）
+def send_update_notification_email(project_name, old_specs, new_specs, recipient_emails):
+    """
+    發送規格更新通知 email
+    - project_name: 專案名稱
+    - old_specs: 舊規格 list of dict (從資料庫讀取)
+    - new_specs: 新規格 list of dict (剛剛儲存的 new_specs)
+    - recipient_emails: ["anson@ysdiesel.com.hk"]
+    """
+    if not recipient_emails:
+        return  # 沒有收件人就跳過
 
+    sender_email = "yipshingutogen@gmail.com"  # 改成你的 Gmail
+    sender_password = "beesgsggwtiqxtis"  # 上面產生的 16 位元密碼
+
+    msg = MIMEMultipart()
+    msg['From'] = Header("YIP SHING Dashboard <{}>".format(sender_email), 'utf-8')
+    msg['To'] = ", ".join(recipient_emails)
+    msg['Subject'] = Header(f"專案規格更新通知：{project_name}", 'utf-8')
+
+    body = f"""
+    專案 {project_name} 的規格已更新。
+
+    更新時間：{date.today().strftime('%Y-%m-%d %H:%M')}
+
+    主要變更如下（每台機器）：
+
+    """
+
+    for i in range(len(new_specs)):
+        old = old_specs[i] if i < len(old_specs) else {}
+        new = new_specs[i]
+
+        body += f"\n第 {i+1} 台：\n"
+
+        # 比較靜態欄位
+        static_fields = [
+            "prime", "standby", "voltage", "frequency", "rpm",
+            "genset_model", "genset_sn", "engine_color", "engine_year", "engine_heater",
+            "alt_model", "alt_sn", "alt_color", "droop", "pmg", "alt_heater",
+            "rad_model", "rad_sn", "rad_temp", "fan_size", "radiator_guard",
+            "panel_model", "panel_sn", "co_detector", "breaker_type", "breaker_rating", "poles"
+        ]
+
+        for field in static_fields:
+            old_val = old.get(field, "—")
+            new_val = new.get(field, "—")
+            if old_val != new_val:
+                body += f"  - {field}: {old_val} → {new_val}\n"
+
+        # 負責部門變更
+        dept_fields = [
+            "fan_department", "fuel_cooler_department", "coolant_sensor_department",
+            "low_water_department", "panel_department", "co_department", "breaker_department"
+        ]
+        for field in dept_fields:
+            old_val = old.get(field, "—")
+            new_val = new.get(field, "—")
+            if old_val != new_val:
+                body += f"  - {field} (負責部門): {old_val} → {new_val}\n"
+
+        # Parts 清單變更（簡單比對長度與名稱）
+        old_parts = old.get("parts", [])
+        new_parts = new.get("parts", [])
+        if len(old_parts) != len(new_parts) or any(p1["name"] != p2["name"] for p1, p2 in zip(old_parts, new_parts)):
+            body += f"  - 配件清單有變更（新增/刪除/修改 {len(new_parts)} 項）\n"
+
+        # Delivery Checklist 打勾變更
+        old_check = old.get("delivery_checklist", [])
+        new_check = new.get("delivery_checklist", [])
+        changed_checks = []
+        for oc, nc in zip(old_check, new_check):
+            if oc.get("checked") != nc.get("checked"):
+                ch_status = "已勾選" if nc.get("checked") else "取消勾選"
+                changed_checks.append(f"{nc.get('name')}：{ch_status}")
+        if changed_checks:
+            body += "  - 出貨檢查清單打勾變更：\n    " + "\n    ".join(changed_checks) + "\n"
+
+    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, recipient_emails, msg.as_string())
+        server.quit()
+        st.success("已成功發送規格更新通知 email！")
+    except Exception as e:
+        st.error(f"發送 email 失敗：{str(e)}")
 def generate_overview_pdf(specs, project_info, qty):
     # 註冊中文字型
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
@@ -1399,10 +1490,47 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.cache_data.clear()
 
             st.success("所有規格已成功更新！")
-            st.session_state["show_edit_spec_dialog"] = False
-            st.session_state.dialog_active = None
-            st.session_state.edit_saving = False
+
+            # 新增：彈出確認視窗詢問是否發送 email 通知
+            st.session_state.show_email_confirm = True
+            st.session_state.new_specs_for_email = new_specs  # 暫存新規格給 email 比對用
             st.rerun()
+
+        # 放在 edit_spec_dialog 函數外面（dialog 關閉後執行）
+        if st.session_state.get("show_email_confirm", False):
+            @st.dialog("發送更新通知？", width="small")
+            def email_confirm_dialog():
+                st.markdown(f"是否要發送 email 通知相關人員：**{row_to_edit['Project_Name']}** 規格已更新？")
+                col_yes, col_no = st.columns(2)
+                with col_yes:
+                    if st.button("是，發送通知", type="primary"):
+                        # 從資料庫讀舊規格（用來比對變更）
+                        old_specs = specs  # 剛開始讀取的舊規格
+                        recipient_emails = ["anson@example.com", "michelle@example.com"]  # 改成你要通知的人 email 列表
+
+                        send_update_notification_email(
+                            row_to_edit['Project_Name'],
+                            old_specs,
+                            st.session_state.new_specs_for_email,
+                            recipient_emails
+                        )
+                        st.session_state.show_email_confirm = False
+                        st.rerun()
+                with col_no:
+                    if st.button("否，關閉"):
+                        st.session_state.show_email_confirm = False
+                        st.rerun()
+
+                # 關閉 dialog 後清除暫存
+                if not st.session_state.get("show_email_confirm", False):
+                    if "new_specs_for_email" in st.session_state:
+                        del st.session_state.new_specs_for_email
+                    st.session_state["show_edit_spec_dialog"] = False
+                    st.session_state.dialog_active = None
+                    st.session_state.edit_saving = False
+                    st.rerun()
+
+            email_confirm_dialog()
     edit_spec_dialog()
 
 
