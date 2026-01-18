@@ -57,57 +57,22 @@ def fullscreen_loading(message="正在處理，請稍候..."):
         }}
     </style>
     """, unsafe_allow_html=True)
+from reportlab.platypus import PageBreak  # 新增這個 import（如果還沒有）
+
 def generate_overview_pdf(specs, project_info, qty):
-    # 註冊中文字型（放在函數開頭）
+    # 註冊中文字型
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
-    pdfmetrics.registerFont(TTFont('NotoColorEmoji', 'fonts/NotoColorEmoji.ttf'))
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
     styles = getSampleStyleSheet()
 
-    # 自訂中文字型樣式（乾淨文字流，無邊框）
-    normal = ParagraphStyle(
-        name='Normal',
-        parent=styles['Normal'],
-        fontName='NotoSansTC',
-        fontSize=10,
-        leading=14,
-        alignment=TA_LEFT
-    )
-
-    heading1 = ParagraphStyle(
-        name='Heading1',
-        parent=styles['Heading1'],
-        fontName='NotoSansTC',
-        fontSize=18,
-        alignment=TA_CENTER,
-        spaceAfter=12
-    )
-
-    heading2 = ParagraphStyle(
-        name='Heading2',
-        parent=styles['Heading2'],
-        fontName='NotoSansTC',
-        fontSize=14,
-        spaceBefore=12,
-        spaceAfter=6
-    )
-
-    heading3 = ParagraphStyle(
-        name='Heading3',
-        parent=styles['Heading3'],
-        fontName='NotoSansTC',
-        fontSize=12,
-        spaceBefore=6,
-        spaceAfter=4
-    )
-
-    red_normal = ParagraphStyle(
-        name='RedNormal',
-        parent=normal,
-        textColor=colors.red,
-        fontName='NotoSansTC'
-    )
+    # 自訂樣式（乾淨文字流，無邊框）
+    normal = ParagraphStyle(name='Normal', parent=styles['Normal'], fontName='NotoSansTC', fontSize=10, leading=14, alignment=TA_LEFT)
+    heading1 = ParagraphStyle(name='Heading1', parent=styles['Heading1'], fontName='NotoSansTC', fontSize=18, alignment=TA_CENTER, spaceAfter=12)
+    heading2 = ParagraphStyle(name='Heading2', parent=styles['Heading2'], fontName='NotoSansTC', fontSize=14, spaceBefore=12, spaceAfter=6)
+    heading3 = ParagraphStyle(name='Heading3', parent=styles['Heading3'], fontName='NotoSansTC', fontSize=12, spaceBefore=6, spaceAfter=4)
+    red_normal = ParagraphStyle(name='RedNormal', parent=normal, textColor=colors.red, fontName='NotoSansTC')
 
     elements = []
 
@@ -117,6 +82,10 @@ def generate_overview_pdf(specs, project_info, qty):
 
     for machine_idx in range(qty):
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
+
+        # 第二台及之後強制從新頁開始
+        if machine_idx > 0:
+            elements.append(PageBreak())
 
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", heading2))
         elements.append(Spacer(1, 12))
@@ -128,7 +97,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(f"Standby (kW): {spec.get('standby', '—')}", normal))
         elements.append(Paragraph(f"RPM: {spec.get('rpm', '—')}", normal))
         elements.append(Paragraph(f"電壓 / 頻率： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 24))  # 加較大間距，推內容往下
 
         # Engine & Alternator
         elements.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
@@ -140,7 +109,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(f"電球型號： {spec.get('alt_model', '—')}　　S/N： {spec.get('alt_sn', '—')}", normal))
         elements.append(Paragraph(f"電球顏色： {spec.get('alt_color', '—')}", normal))
         elements.append(Paragraph(f"Droop： {spec.get('droop', '—')}　　PMG： {spec.get('pmg', '—')}　　加熱器： {spec.get('alt_heater', '—')}", normal))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 24))
 
         # Radiator & Base Frame
         elements.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
@@ -148,7 +117,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(f"水箱型號： {spec.get('rad_model', '—')}　　S/N： {spec.get('rad_sn', '—')}　　溫度： {spec.get('rad_temp', '—')}", normal))
         elements.append(Paragraph(f"風扇呎吋： {spec.get('fan_size', '—')}　　負責部門： <font color=red>{spec.get('fan_department', '—')}</font>", normal))
         elements.append(Paragraph(f"水箱護罩： {spec.get('radiator_guard', '—')}", normal))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 24))
 
         # Fuel Cooler / Coolant sensor / Low water
         elements.append(Paragraph("其他組件", heading3))
@@ -156,18 +125,21 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(f"燃油冷卻器　　貨源： {spec.get('fuel_cooler_source', '—')}　　負責部門： <font color=red>{spec.get('fuel_cooler_department', '—')}</font>", normal))
         elements.append(Paragraph(f"冷卻液溫度感測器　　{ spec.get('coolant_sensor', '—') }　　貨源： {spec.get('coolant_sensor_source', '—')}　　負責部門： <font color=red>{spec.get('coolant_sensor_department', '—')}</font>", normal))
         elements.append(Paragraph(f"低水位浮球開關　　{ spec.get('low_water', '—') }　　貨源： {spec.get('low_water_source', '—')}　　負責部門： <font color=red>{spec.get('low_water_department', '—')}</font>", normal))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 24))
 
-        # Container / Panel / Breaker
+        # Container / Panel / Breaker - 第一頁到這裡結束
         elements.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
         elements.append(Spacer(1, 6))
         elements.append(Paragraph(f"貨櫃尺寸： {spec.get('cont_size', '—')}　　類型： {spec.get('cont_type', '—')}", normal))
         elements.append(Paragraph(f"控制器型號： {spec.get('panel_model', '—')}　　S/N： {spec.get('panel_sn', '—')}　　貨源： {spec.get('panel_source', '—')}　　負責部門： <font color=red>{spec.get('panel_department', '—')}</font>", normal))
         elements.append(Paragraph(f"CO 探測器 (OLED)： {spec.get('co_detector', '—')}　　貨源： {spec.get('co_source', '—')}　　負責部門： <font color=red>{spec.get('co_department', '—')}</font>", normal))
         elements.append(Paragraph(f"斷路器： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　貨源： {spec.get('breaker_source', '—')}　　負責部門： <font color=red>{spec.get('breaker_department', '—')}</font>", normal))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 36))  # 加較大間距，讓內容推到下一頁
 
-        # Parts
+        # 強制分頁：Container / Panel / Breaker 結束後強制換頁
+        elements.append(PageBreak())
+
+        # 配件清單（從第二頁開始）
         parts = spec.get("parts", [])
         if parts:
             elements.append(Paragraph("配件清單", heading3))
@@ -187,7 +159,8 @@ def generate_overview_pdf(specs, project_info, qty):
             elements.append(Spacer(1, 6))
             for item in checklist:
                 name = item.get("name", "—")
-                ch = "[√]" if item.get("checked", False) else "[X]"
+                checked = item.get("checked", False)
+                ch = "√ 已完成" if checked else "□ 未完成"  # 或改成 "[√] 已完成" / "[ ] 未完成"
                 elements.append(Paragraph(f"{ch} {name}", normal))
             elements.append(Spacer(1, 12))
 
@@ -199,7 +172,7 @@ def generate_overview_pdf(specs, project_info, qty):
             elements.append(Paragraph(remarks, normal))
             elements.append(Spacer(1, 12))
 
-        elements.append(Spacer(1, 36))  # 每台之間加間距
+        elements.append(Spacer(1, 36))  # 每台間距
 
     doc.build(elements)
     pdf_bytes = buffer.getvalue()
