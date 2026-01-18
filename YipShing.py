@@ -1458,7 +1458,37 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 file_name=f"{row_to_edit['Project_Name']}_Overview.pdf",
                 mime="application/pdf"
             )
+            # 新增：發送更新通知 email 按鈕
+            if st.button("📧 Send Email (通知規格更新)", type="secondary", use_container_width=True):
+                # 先取得舊規格（從資料庫原始資料解析）
+                old_spec_text = row_to_edit.get("Project_Spec", "")
+                old_specs = []
+                if old_spec_text and "||EXTRA||" in old_spec_text:
+                    try:
+                        extra_json = old_spec_text.split("||EXTRA||")[1]
+                        old_specs = json.loads(extra_json)
+                        if not isinstance(old_specs, list):
+                            old_specs = [old_specs]
+                    except:
+                        old_specs = []
 
+                # 確保長度一致（補空字典）
+                if len(old_specs) < qty:
+                    old_specs += [{}] * (qty - len(old_specs))
+
+                # 收件人列表（可自行修改或改成從設定讀取）
+                recipient_emails = [
+                    "anson@topone-power.com",
+                    # 可再加其他人，例如："manager@company.com", "team@company.com"
+                ]
+
+                # 呼叫發送 email 函數
+                send_update_notification_email(
+                    project_name=row_to_edit['Project_Name'],
+                    old_specs=old_specs,
+                    new_specs=new_specs,  # 目前編輯中的最新規格
+                    recipient_emails=recipient_emails
+                )
         col_save, col_cancel = st.columns(2)
         with col_save:
             save_disabled = st.session_state.get("edit_saving", False)
