@@ -1475,6 +1475,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
         if st.session_state.get("edit_saving", False):
             fullscreen_loading("正在儲存規格至 Google Sheets，請稍候...☺️")
 
+            # 儲存規格（原邏輯）
             first_spec = new_specs[0] if new_specs else {}
             new_visible = "\n".join([
                 f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
@@ -1492,12 +1493,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.success("所有規格已成功更新！")
 
             # 暫存規格資料給 email 比對用（避免 dialog 關閉後丟失）
-            st.session_state.old_specs_for_email = specs.copy()  # 舊規格（從 Project_Spec 解析）
-            st.session_state.new_specs_for_email = new_specs.copy()  # 新規格
+            st.session_state.old_specs_for_email = specs  # 舊規格（從 Project_Spec 解析）
+            st.session_state.new_specs_for_email = new_specs  # 新規格
             st.session_state.show_email_confirm = True
-            # 這裡不要 st.rerun()，讓外層處理
+            # 這裡不要直接 st.rerun()，讓 dialog 自己處理
 
-        # 放在 edit_spec_dialog() 函數外面（dialog 關閉後執行）
+        # 獨立處理 email 確認 dialog（放在 edit_spec_dialog 外面）
         if st.session_state.get("show_email_confirm", False):
             @st.dialog("發送更新通知？", width="small")
             def email_confirm_dialog():
@@ -1505,11 +1506,13 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 col_yes, col_no = st.columns(2)
                 with col_yes:
                     if st.button("是，發送通知", type="primary"):
+                        # 從暫存讀取規格
                         old_specs = st.session_state.old_specs_for_email
                         new_specs = st.session_state.new_specs_for_email
 
                         # 收件人列表（可從 Google Sheets 讀或硬碼）
                         recipient_emails = ["anson@ysdiesel.com.hk"]  # 改成真實 email，可多個
+                        # 或從 Sheets 讀取（見下方進階版）
 
                         send_update_notification_email(
                             row_to_edit['Project_Name'],
@@ -1536,8 +1539,10 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.session_state.dialog_active = None
                 st.session_state.edit_saving = False
                 st.rerun()
+    edit_spec_dialog()
 
-        edit_spec_dialog()
+
+
 # ==============================================
 # Project Specification Dialog (新增用)
 # ==============================================
