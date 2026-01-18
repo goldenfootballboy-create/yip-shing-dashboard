@@ -187,7 +187,7 @@ def generate_overview_pdf(specs, project_info, qty):
             elements.append(Spacer(1, 6))
             for item in checklist:
                 name = item.get("name", "—")
-                ch = "✅" if item.get("checked", False) else "❌"
+                ch = "[√]" if item.get("checked", False) else "[ ]"
                 elements.append(Paragraph(f"{ch} {name}", normal))
             elements.append(Spacer(1, 12))
 
@@ -533,7 +533,7 @@ def render_project_card(row, idx):
                             st.subheader("出貨檢查清單")
                             for item in checklist:
                                 name = item.get("name", "—")
-                                ch = "✅" if item.get("checked", False) else "❌"
+                                ch = "[√]" if item.get("checked", False) else "[ ]"
                                 st.markdown(f"{ch} {name}")
 
                         st.divider()
