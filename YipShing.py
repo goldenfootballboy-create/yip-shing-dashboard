@@ -5,11 +5,12 @@ import json
 from datetime import date
 import time
 from streamlit_calendar import calendar
+from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
-from io import BytesIO
+from reportlab.lib.units import inch  # 這行很重要，解決 inch 未定義
 import base64
 
 # 全局安全 index 函數
@@ -1235,7 +1236,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 new_specs.append(spec_data)
 
 
-        # PDF 匯出按鈕
+        # PDF 匯出按鈕（放在 Save & Close 旁邊）
         if st.button("📄 Export PDF (格式同 Overview)", type="secondary", use_container_width=True):
             pdf_bytes = generate_overview_pdf(new_specs, row_to_edit, qty)
             st.download_button(
@@ -1296,7 +1297,6 @@ def generate_overview_pdf(specs, project_info, qty):
     for machine_idx in range(qty):
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
-        # 每台標題
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", styles['Heading2']))
         elements.append(Spacer(1, 6))
 
@@ -1356,7 +1356,6 @@ def generate_overview_pdf(specs, project_info, qty):
             ["S/N", spec.get('rad_sn', '—')],
             ["溫度", spec.get('rad_temp', '—')],
             ["風扇呎吋", spec.get('fan_size', '—')],
-            ["水箱護罩", spec.get('radiator_guard', '—')],
             ["負責部門", spec.get('fan_department', '—')]
         ]
         rad_table = Table(rad_data, colWidths=[2.5*inch, 4*inch])
