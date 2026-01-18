@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import json
-from streamlit_gsheets import GSheetsConnection
 from datetime import date
 import time
 from streamlit_calendar import calendar
@@ -277,7 +276,7 @@ if "dialog_active" not in st.session_state:
     st.session_state.dialog_active = None
 
 # Google Sheets 連接 + 讀取
-conn = st.connection('gsheets', type=GSheetsConnection)
+conn = st.connection("gsheets", type="gsheets")
 
 max_retries = 3
 df = pd.DataFrame(columns=[
