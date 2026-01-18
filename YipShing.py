@@ -1086,7 +1086,75 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         st.rerun()
 
                 st.markdown("---")
+                # 第五組：Delivery Checklist (出貨檢查清單) - 打勾版
+                with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
+                    checklist_key = f"delivery_checklist_edit_{row_to_edit['Project_Name']}_{i}"
+                    if checklist_key not in st.session_state:
+                        default_items = [
+                            "Load Test",
+                            "No load test",
+                            "灑水測試",
+                            "放油放水 Drain out all liquid",
+                            "Anti Freezer",
+                            "壓缸",
+                            "膠片(防uv茶式/透明)",
+                            "電球檔板(K50)",
+                            "隔熱棉",
+                            "Turbo 棉",
+                            "Cummins 鐵牌",
+                            "Warning 鐵牌",
+                            "Danger Label(415V/400V)",
+                            "Top One Power貼紙",
+                            "Warning 貼紙",
+                            "Standard Tools Kit 工具箱",
+                            "Test Report測試報告",
+                            "Test Video",
+                            "Manuals說明書",
+                            "Certificate證書",
+                            "Genset Label",
+                            "電球Label",
+                            "Sales photos",
+                            "Marketing photos",
+                            "Autocad drawing",
+                            "Wiring diagram"
+                        ]
 
+                        old_checklist = current.get("delivery_checklist", [])
+                        initial_list = []
+
+                        if old_checklist:
+                            if isinstance(old_checklist[0], dict):
+                                initial_list = old_checklist
+                            else:
+                                initial_list = [{"name": item.strip(), "checked": False} for item in old_checklist if item.strip()]
+                        else:
+                            initial_list = [{"name": item, "checked": False} for item in default_items]
+
+                        st.session_state[checklist_key] = initial_list
+
+                    checklist = st.session_state.get(checklist_key, [{"name": "", "checked": False}])
+
+                    for j in range(len(checklist)):
+                        col_check, col_name, col_delete = st.columns([1, 5, 1])
+                        with col_check:
+                            checked = st.checkbox("", value=checklist[j].get("checked", False),
+                                                  key=f"check_{checklist_key}_{j}")
+                        with col_name:
+                            name = st.text_input("", value=checklist[j].get("name", ""),
+                                                 key=f"name_{checklist_key}_{j}",
+                                                 label_visibility="collapsed")
+                        with col_delete:
+                            if st.button("刪除", key=f"del_check_{checklist_key}_{j}", type="secondary"):
+                                checklist.pop(j)
+                                st.rerun()
+
+                        checklist[j] = {"name": name.strip(), "checked": checked}
+
+                    if st.button("+ 新增自定義項目", key=f"add_check_tab{i}_len{len(checklist)}", type="secondary"):
+                        checklist.append({"name": "", "checked": False})
+                        st.rerun()
+
+                    st.markdown("---")
                 e_remarks = st.text_area("Remarks", value=current.get("remarks", ""), height=150, key=f"edit_remarks_{idx_to_edit}_{i}")
                 if 'checklist' not in locals() or not isinstance(checklist, list):
                     checklist = []
