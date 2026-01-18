@@ -1475,7 +1475,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
         if st.session_state.get("edit_saving", False):
             fullscreen_loading("正在儲存規格至 Google Sheets，請稍候...☺️")
 
-            # 儲存規格（原邏輯）
             first_spec = new_specs[0] if new_specs else {}
             new_visible = "\n".join([
                 f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
@@ -1537,6 +1536,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.session_state.dialog_active = None
                 st.session_state.edit_saving = False
                 st.rerun()
+    edit_spec_dialog()
+
 
 
 # ==============================================
