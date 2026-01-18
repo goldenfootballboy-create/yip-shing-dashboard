@@ -6,7 +6,7 @@ from datetime import date
 import time
 from streamlit_calendar import calendar
 from io import BytesIO
-
+import resend
 # reportlab 相關 import
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -62,25 +62,16 @@ def fullscreen_loading(message="正在處理，請稍候..."):
     </style>
     """, unsafe_allow_html=True)
 from reportlab.platypus import PageBreak  # 新增這個 import（如果還沒有）
+
 def send_update_notification_email(project_name, old_specs, new_specs, recipient_emails):
     """
-    發送規格更新通知 email
-    - project_name: 專案名稱
-    - old_specs: 舊規格 list of dict (從資料庫讀取)
-    - new_specs: 新規格 list of dict (剛剛儲存的 new_specs)
-    - recipient_emails: ["anson@topone-power.com"]
+    發送規格更新通知 email（使用 Resend API，適合雲端部署）
     """
     if not recipient_emails:
-        return  # 沒有收件人就跳過
+        st.warning("沒有收件人，跳過發信")
+        return
 
-    sender_email = "yipshingutogen@gmail.com"  # 改成你的 Gmail
-    sender_password = "beesgsggwtiqxtis"  # 上面產生的 16 位元密碼
-
-    msg = MIMEMultipart()
-    msg['From'] = Header("YIP SHING Dashboard <{}>".format(sender_email), 'utf-8')
-    msg['To'] = ", ".join(recipient_emails)
-    msg['Subject'] = Header(f"專案規格更新通知：{project_name}", 'utf-8')
-
+    # 你的原始 email 內容邏輯（保持不變）
     body = f"""
     專案 {project_name} 的規格已更新。
 
@@ -96,7 +87,6 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
 
         body += f"\n第 {i+1} 台：\n"
 
-        # 比較靜態欄位
         static_fields = [
             "prime", "standby", "voltage", "frequency", "rpm",
             "genset_model", "genset_sn", "engine_color", "engine_year", "engine_heater",
@@ -111,7 +101,6 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
             if old_val != new_val:
                 body += f"  - {field}: {old_val} → {new_val}\n"
 
-        # 負責部門變更
         dept_fields = [
             "fan_department", "fuel_cooler_department", "coolant_sensor_department",
             "low_water_department", "panel_department", "co_department", "breaker_department"
@@ -122,13 +111,11 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
             if old_val != new_val:
                 body += f"  - {field} (負責部門): {old_val} → {new_val}\n"
 
-        # Parts 清單變更（簡單比對長度與名稱）
         old_parts = old.get("parts", [])
         new_parts = new.get("parts", [])
         if len(old_parts) != len(new_parts) or any(p1["name"] != p2["name"] for p1, p2 in zip(old_parts, new_parts)):
             body += f"  - 配件清單有變更（新增/刪除/修改 {len(new_parts)} 項）\n"
 
-        # Delivery Checklist 打勾變更
         old_check = old.get("delivery_checklist", [])
         new_check = new.get("delivery_checklist", [])
         changed_checks = []
@@ -139,17 +126,22 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
         if changed_checks:
             body += "  - 出貨檢查清單打勾變更：\n    " + "\n    ".join(changed_checks) + "\n"
 
-    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+    # Resend 發送信（HTTP API）
+    resend.api_key = st.secrets["RESEND_API_KEY"]
+
+    params = {
+        "from": "YIP SHING Dashboard <no-reply@resend.dev>",  # Resend 預設 from，或綁自己的域名
+        "to": recipient_emails,
+        "subject": f"專案規格更新通知：{project_name}",
+        "html": f"<pre style='font-family: monospace; white-space: pre-wrap;'>{body}</pre>",  # 用 pre 保持格式
+    }
 
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, recipient_emails, msg.as_string())
-        server.quit()
-        st.success("已成功發送規格更新通知 email！")
+        response = resend.Emails.send(params)
+        st.success(f"已發送規格更新通知！（Resend ID: {response.get('id')}）")
     except Exception as e:
-        st.error(f"發送 email 失敗：{str(e)}")
+        st.error(f"發送失敗：{str(e)}")
+        print("Resend 錯誤詳情：", e)  # 方便 debug
 def generate_overview_pdf(specs, project_info, qty):
     # 註冊中文字型
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
