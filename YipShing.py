@@ -68,7 +68,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
     - project_name: 專案名稱
     - old_specs: 舊規格 list of dict (從資料庫讀取)
     - new_specs: 新規格 list of dict (剛剛儲存的 new_specs)
-    - recipient_emails: ["anson@ysdiesel.com.hk"]
+    - recipient_emails: 收件人 email 列表 (str list)
     """
     if not recipient_emails:
         return  # 沒有收件人就跳過
@@ -1490,47 +1490,10 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.cache_data.clear()
 
             st.success("所有規格已成功更新！")
-
-            # 新增：彈出確認視窗詢問是否發送 email 通知
-            st.session_state.show_email_confirm = True
-            st.session_state.new_specs_for_email = new_specs  # 暫存新規格給 email 比對用
+            st.session_state["show_edit_spec_dialog"] = False
+            st.session_state.dialog_active = None
+            st.session_state.edit_saving = False
             st.rerun()
-
-        # 放在 edit_spec_dialog 函數外面（dialog 關閉後執行）
-        if st.session_state.get("show_email_confirm", False):
-            @st.dialog("發送更新通知？", width="small")
-            def email_confirm_dialog():
-                st.markdown(f"是否要發送 email 通知相關人員：**{row_to_edit['Project_Name']}** 規格已更新？")
-                col_yes, col_no = st.columns(2)
-                with col_yes:
-                    if st.button("是，發送通知", type="primary"):
-                        # 從資料庫讀舊規格（用來比對變更）
-                        old_specs = specs  # 剛開始讀取的舊規格
-                        recipient_emails = ["anson@example.com", "michelle@example.com"]  # 改成你要通知的人 email 列表
-
-                        send_update_notification_email(
-                            row_to_edit['Project_Name'],
-                            old_specs,
-                            st.session_state.new_specs_for_email,
-                            recipient_emails
-                        )
-                        st.session_state.show_email_confirm = False
-                        st.rerun()
-                with col_no:
-                    if st.button("否，關閉"):
-                        st.session_state.show_email_confirm = False
-                        st.rerun()
-
-                # 關閉 dialog 後清除暫存
-                if not st.session_state.get("show_email_confirm", False):
-                    if "new_specs_for_email" in st.session_state:
-                        del st.session_state.new_specs_for_email
-                    st.session_state["show_edit_spec_dialog"] = False
-                    st.session_state.dialog_active = None
-                    st.session_state.edit_saving = False
-                    st.rerun()
-
-            email_confirm_dialog()
     edit_spec_dialog()
 
 
