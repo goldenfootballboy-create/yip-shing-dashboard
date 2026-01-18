@@ -1281,7 +1281,51 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.rerun()
     edit_spec_dialog()
 
+def generate_overview_pdf(specs, project_info, qty):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
 
+    # 標題
+    elements.append(Paragraph(f"專案：{project_info['Project_Name']}　｜　{qty} 台　｜　類型：{project_info['Project_Type']}", styles['Heading1']))
+    elements.append(Spacer(1, 12))
+
+    for machine_idx in range(qty):
+        spec = specs[machine_idx] if machine_idx < len(specs) else {}
+
+        elements.append(Paragraph(f"第 {machine_idx + 1} 台", styles['Heading2']))
+        elements.append(Spacer(1, 6))
+
+        # Prime & Standby Power (示範區塊)
+        data = [
+            ["Prime & Standby Power", ""],
+            ["Prime (kW)", spec.get('prime', '—')],
+            ["Standby (kW)", spec.get('standby', '—')],
+            ["RPM", spec.get('rpm', '—')],
+            ["電壓 / 頻率", f"{spec.get('voltage', '—')} / {spec.get('frequency', '—')}"]
+        ]
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1, 12))
+
+        # 你可以繼續加其他區塊（Engine、Radiator、Panel、Parts、Checklist 等）
+        # 格式類似上面，用 Paragraph + Table 呈現
+        # ...
+
+    doc.build(elements)
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+    return pdf_bytes
 
 # ==============================================
 # Project Specification Dialog (新增用)
