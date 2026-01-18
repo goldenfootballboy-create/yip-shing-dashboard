@@ -6,7 +6,6 @@ from datetime import date
 import time
 from streamlit_calendar import calendar
 from io import BytesIO
-import uuid
 
 # reportlab 相關 import
 from reportlab.lib.pagesizes import letter
@@ -1450,111 +1449,16 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 }
                 new_specs.append(spec_data)
 
-                # PDF 匯出按鈕（只下載 PDF）
-                if st.button("📄 Export PDF", key=f"export_pdf_edit_{row_to_edit['Project_Name']}_{uuid.uuid4()}",
-                             type="secondary", use_container_width=True):
-                    pdf_bytes = generate_overview_pdf(new_specs, row_to_edit, qty)
-                    st.download_button(
-                        label="下載 PDF",
-                        data=pdf_bytes,
-                        file_name=f"{row_to_edit['Project_Name']}_Overview.pdf",
-                        mime="application/pdf",
-                        key=f"download_pdf_edit_{row_to_edit['Project_Name']}_{uuid.uuid4()}"
-                    )
+        # PDF 匯出按鈕（放在 Save & Close 旁邊）
+        if st.button("📄 Export PDF ", type="secondary", use_container_width=True):
+            pdf_bytes = generate_overview_pdf(new_specs, row_to_edit, qty)
+            st.download_button(
+                label="下載 PDF",
+                data=pdf_bytes,
+                file_name=f"{row_to_edit['Project_Name']}_Overview.pdf",
+                mime="application/pdf"
+            )
 
-                # Send Email 按鈕（獨立發送通知）
-                if st.button("📧 Send Email", key=f"send_email_edit_{row_to_edit['Project_Name']}_{uuid.uuid4()}",
-                             type="primary", use_container_width=True):
-                    st.session_state.old_specs_for_email = specs.copy()
-                    st.session_state.new_specs_for_email = new_specs.copy()
-                    st.session_state.show_email_confirm = True
-                    st.rerun()
-
-                col_save, col_cancel = st.columns(2)
-                with col_save:
-                    save_disabled = st.session_state.get("edit_saving", False)
-                    if st.button("Save & Close", type="primary", use_container_width=True, disabled=save_disabled):
-                        st.session_state.edit_saving = True
-                        st.rerun()
-
-                with col_cancel:
-                    if st.button("Cancel", type="secondary", use_container_width=True):
-                        st.session_state["show_edit_spec_dialog"] = False
-                        st.session_state.dialog_active = None
-                        st.rerun()
-
-                if st.session_state.get("edit_saving", False):
-                    fullscreen_loading("正在儲存規格至 Google Sheets，請稍候...☺️")
-
-                    first_spec = new_specs[0] if new_specs else {}
-                    new_visible = "\n".join([
-                        f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
-                        f"Alternator Model: {first_spec.get('alt_model', '—')} | S/N: {first_spec.get('alt_sn', '—')}",
-                        f"Panel model: {first_spec.get('panel_model', '—')} | S/N: {first_spec.get('panel_sn', '—')}",
-                        f"Breaker Type: {first_spec.get('breaker_type', '—')}"
-                    ])
-
-                    extra_json = json.dumps(new_specs, ensure_ascii=False)
-                    df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_json
-
-                    # 加重試機制，避免連線失敗卡住
-                    max_retries = 5
-                    for attempt in range(max_retries):
-                        try:
-                            save_projects()
-                            break
-                        except Exception as e:
-                            st.warning(f"儲存嘗試 {attempt + 1}/{max_retries} 失敗：{str(e)}")
-                            time.sleep(3)
-                    else:
-                        st.error("連線 Google Sheets 失敗，已嘗試 5 次，請檢查網路或 Google 權限")
-                        st.stop()
-
-                    st.cache_data.clear()
-
-                    st.success("所有規格已成功更新！")
-                    st.session_state["show_edit_spec_dialog"] = False
-                    st.session_state.dialog_active = None
-                    st.session_state.edit_saving = False
-                    st.rerun()
-
-            # 獨立處理 email 確認 dialog（放在 edit_spec_dialog() 外面）
-            if st.session_state.get("show_email_confirm", False):
-                @st.dialog("發送更新通知？", width="small")
-                def email_confirm_dialog():
-                    st.markdown(f"是否要發送 email 通知相關人員：**{row_to_edit['Project_Name']}** 規格已更新？")
-                    col_yes, col_no = st.columns(2)
-                    with col_yes:
-                        if st.button("是，發送通知", type="primary"):
-                            old_specs = st.session_state.old_specs_for_email
-                            new_specs = st.session_state.new_specs_for_email
-
-                            # 收件人列表（可從 Google Sheets 讀或硬碼）
-                            recipient_emails = ["anson@ysdiesel.com.hk"]  # 改成真實 email，可多個
-
-                            send_update_notification_email(
-                                row_to_edit['Project_Name'],
-                                old_specs,
-                                new_specs,
-                                recipient_emails
-                            )
-                            st.session_state.show_email_confirm = False
-                            st.rerun()
-                    with col_no:
-                        if st.button("否，關閉"):
-                            st.session_state.show_email_confirm = False
-                            st.rerun()
-
-                email_confirm_dialog()
-
-                # 關閉 dialog 後清除暫存
-                if not st.session_state.get("show_email_confirm", False):
-                    if "old_specs_for_email" in st.session_state:
-                        del st.session_state.old_specs_for_email
-                    if "new_specs_for_email" in st.session_state:
-                        del st.session_state.new_specs_for_email
-                    st.session_state.show_email_confirm = False
-                    st.rerun()
         col_save, col_cancel = st.columns(2)
         with col_save:
             save_disabled = st.session_state.get("edit_saving", False)
