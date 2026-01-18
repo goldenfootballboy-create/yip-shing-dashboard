@@ -1,5 +1,6 @@
 streamlit>=1.38.0
 streamlit-calendar
+streamlit-gsheets
 pandas
 reportlab
 resend
