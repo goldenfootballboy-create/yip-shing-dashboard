@@ -1449,22 +1449,23 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 }
                 new_specs.append(spec_data)
 
-        # PDF 匯出按鈕（放在 Save & Close 旁邊）
-                # PDF 匯出 + 發送 email 通知按鈕
-                if st.button("📄 Export PDF & 發送通知", type="secondary", use_container_width=True):
-                    # 先產生 PDF（原邏輯）
+                # PDF 匯出 + 發送 email 通知按鈕（加唯一 key 避免重複 ID）
+                if st.button("📄 Export PDF & 發送通知", key=f"export_pdf_email_{row_to_edit['Project_Name']}",
+                             type="secondary", use_container_width=True):
+                    # 先產生 PDF 並提供下載
                     pdf_bytes = generate_overview_pdf(new_specs, row_to_edit, qty)
                     st.download_button(
                         label="下載 PDF",
                         data=pdf_bytes,
                         file_name=f"{row_to_edit['Project_Name']}_Overview.pdf",
-                        mime="application/pdf"
+                        mime="application/pdf",
+                        key=f"download_pdf_{row_to_edit['Project_Name']}"  # 也給下載按鈕唯一 key
                     )
 
-                    # 彈出確認視窗詢問是否發送 email
+                    # 暫存規格資料給 email 比對用
+                    st.session_state.old_specs_for_email = specs.copy()  # 舊規格
+                    st.session_state.new_specs_for_email = new_specs.copy()  # 新規格
                     st.session_state.show_email_confirm = True
-                    st.session_state.new_specs_for_email = new_specs.copy()  # 暫存新規格給 email 比對用
-                    st.session_state.old_specs_for_email = specs.copy()  # 暫存舊規格
                     st.rerun()
 
                 col_save, col_cancel = st.columns(2)
@@ -1540,6 +1541,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     del st.session_state.new_specs_for_email
                 st.session_state.show_email_confirm = False
                 st.rerun()
+
         col_save, col_cancel = st.columns(2)
         with col_save:
             save_disabled = st.session_state.get("edit_saving", False)
