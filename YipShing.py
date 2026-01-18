@@ -60,7 +60,7 @@ def fullscreen_loading(message="正在處理，請稍候..."):
 def generate_overview_pdf(specs, project_info, qty):
     # 註冊中文字型（放在函數開頭）
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
-
+    pdfmetrics.registerFont(TTFont('NotoColorEmoji', 'fonts/NotoColorEmoji.ttf'))
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
     styles = getSampleStyleSheet()
@@ -187,7 +187,7 @@ def generate_overview_pdf(specs, project_info, qty):
             elements.append(Spacer(1, 6))
             for item in checklist:
                 name = item.get("name", "—")
-                ch = "☑" if item.get("checked", False) else "□"
+                ch = "✅" if item.get("checked", False) else "❌"
                 elements.append(Paragraph(f"{ch} {name}", normal))
             elements.append(Spacer(1, 12))
 
@@ -533,7 +533,7 @@ def render_project_card(row, idx):
                             st.subheader("出貨檢查清單")
                             for item in checklist:
                                 name = item.get("name", "—")
-                                ch = "☑" if item.get("checked", False) else "□"
+                                ch = "✅" if item.get("checked", False) else "❌"
                                 st.markdown(f"{ch} {name}")
 
                         st.divider()
