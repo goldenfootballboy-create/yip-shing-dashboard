@@ -1450,8 +1450,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 }
                 new_specs.append(spec_data)
 
-                # Export PDF 按鈕（只下載 PDF）
-                if st.button("📄 Export PDF", key=f"export_pdf_{row_to_edit['Project_Name']}_{uuid.uuid4()}",
+                # PDF 匯出 + 發送 email 通知按鈕（用唯一 key 避免重複 ID）
+                if st.button("📄 Export PDF", key=f"export_pdf_edit_{row_to_edit['Project_Name']}_{uuid.uuid4()}",
                              type="secondary", use_container_width=True):
                     pdf_bytes = generate_overview_pdf(new_specs, row_to_edit, qty)
                     st.download_button(
@@ -1459,11 +1459,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         data=pdf_bytes,
                         file_name=f"{row_to_edit['Project_Name']}_Overview.pdf",
                         mime="application/pdf",
-                        key=f"download_pdf_{row_to_edit['Project_Name']}_{uuid.uuid4()}"
+                        key=f"download_pdf_edit_{row_to_edit['Project_Name']}_{uuid.uuid4()}"
                     )
 
                 # Send Email 按鈕（獨立發送通知）
-                if st.button("📧 Send Email", key=f"send_email_{row_to_edit['Project_Name']}_{uuid.uuid4()}",
+                if st.button("📧 Send Email", key=f"send_email_edit_{row_to_edit['Project_Name']}_{uuid.uuid4()}",
                              type="primary", use_container_width=True):
                     # 暫存規格資料給 email 比對用
                     st.session_state.old_specs_for_email = specs.copy()
@@ -1487,6 +1487,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 if st.session_state.get("edit_saving", False):
                     fullscreen_loading("正在儲存規格至 Google Sheets，請稍候...☺️")
 
+                    # 儲存規格（原邏輯）
                     first_spec = new_specs[0] if new_specs else {}
                     new_visible = "\n".join([
                         f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
@@ -1498,7 +1499,19 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     extra_json = json.dumps(new_specs, ensure_ascii=False)
                     df.at[idx_to_edit, "Project_Spec"] = new_visible + "||EXTRA||" + extra_json
 
-                    save_projects()
+                    # 加重試機制，避免連線失敗卡住
+                    max_retries = 5
+                    for attempt in range(max_retries):
+                        try:
+                            save_projects()
+                            break
+                        except Exception as e:
+                            st.warning(f"儲存嘗試 {attempt + 1}/{max_retries} 失敗：{str(e)}")
+                            time.sleep(3)
+                    else:
+                        st.error("連線 Google Sheets 失敗，已嘗試 5 次，請檢查網路或 Google 權限")
+                        st.stop()
+
                     st.cache_data.clear()
 
                     st.success("所有規格已成功更新！")
@@ -1507,7 +1520,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     st.session_state.edit_saving = False
                     st.rerun()
 
-            # 獨立處理 email 確認 dialog（放在 edit_spec_dialog() 外面）
+            # 獨立處理 email 確認 dialog（放在 edit_spec_dialog() 外面，避免嵌套錯誤）
             if st.session_state.get("show_email_confirm", False):
                 @st.dialog("發送更新通知？", width="small")
                 def email_confirm_dialog():
@@ -1544,6 +1557,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         del st.session_state.new_specs_for_email
                     st.session_state.show_email_confirm = False
                     st.rerun()
+
+            edit_spec_dialog()
         col_save, col_cancel = st.columns(2)
         with col_save:
             save_disabled = st.session_state.get("edit_saving", False)
