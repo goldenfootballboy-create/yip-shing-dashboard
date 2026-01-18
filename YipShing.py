@@ -2088,7 +2088,15 @@ if st.session_state.get("spec_dialog_open", False):
                     "avm_model": s_avm_model
                 }
                 specs.append(spec_data)
-
+        # PDF 匯出按鈕（放在 Save & Close 旁邊）
+        if st.button("📄 Export PDF (格式同 Overview)", type="secondary", use_container_width=True):
+            pdf_bytes = generate_overview_pdf(specs, temp_project, qty)
+            st.download_button(
+                label="下載 PDF",
+                data=pdf_bytes,
+                file_name=f"{temp_project['Project_Name']}_Overview.pdf",
+                mime="application/pdf"
+            )
         col_save, col_cancel = st.columns(2)
         with col_save:
             save_disabled = st.session_state.get("new_spec_saving", False)
