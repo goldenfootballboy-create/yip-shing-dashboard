@@ -1359,7 +1359,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 new_specs.append(spec_data)
 
         # PDF 匯出按鈕（放在 Save & Close 旁邊）
-        if st.button("📄 Export PDF (格式同 Overview)", type="secondary", use_container_width=True):
+        if st.button("📄 Export PDF ", type="secondary", use_container_width=True):
             pdf_bytes = generate_overview_pdf(new_specs, row_to_edit, qty)
             st.download_button(
                 label="下載 PDF",
@@ -2062,7 +2062,7 @@ if st.session_state.get("spec_dialog_open", False):
                 }
                 specs.append(spec_data)
         # PDF 匯出按鈕（放在 Save & Close 旁邊）
-        if st.button("📄 Export PDF (格式同 Overview)", type="secondary", use_container_width=True):
+        if st.button("📄 Export PDF ", type="secondary", use_container_width=True):
             pdf_bytes = generate_overview_pdf(specs, temp_project, qty)
             st.download_button(
                 label="下載 PDF",
