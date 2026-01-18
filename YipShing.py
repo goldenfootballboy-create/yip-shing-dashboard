@@ -65,8 +65,12 @@ from reportlab.platypus import PageBreak  # 新增這個 import（如果還沒�
 
 def send_update_notification_email(project_name, old_specs, new_specs, recipient_emails):
     """
-    發送規格更新通知 email（使用 Resend API，適合雲端部署）
-    """
+        發送規格更新通知 email（使用 Resend API，適合雲端部署）
+        - project_name: 專案名稱
+        - old_specs: 舊規格 list of dict
+        - new_specs: 新規格 list of dict
+        - recipient_emails: ["anson@topone-power.com"]
+        """
     if not recipient_emails:
         st.warning("沒有收件人，跳過發信")
         return
