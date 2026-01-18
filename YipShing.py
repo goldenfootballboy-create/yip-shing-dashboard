@@ -1288,39 +1288,178 @@ def generate_overview_pdf(specs, project_info, qty):
     elements = []
 
     # 標題
-    elements.append(Paragraph(f"專案：{project_info['Project_Name']}　｜　{qty} 台　｜　類型：{project_info['Project_Type']}", styles['Heading1']))
+    title_style = styles['Heading1']
+    title_style.alignment = 1  # 置中
+    elements.append(Paragraph(f"專案：{project_info.get('Project_Name', '—')}　｜　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}", title_style))
     elements.append(Spacer(1, 12))
 
     for machine_idx in range(qty):
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
+        # 每台標題
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", styles['Heading2']))
         elements.append(Spacer(1, 6))
 
-        # Prime & Standby Power (示範區塊)
+        # Prime & Standby Power
+        elements.append(Paragraph("Prime & Standby Power (功效＆電壓)", styles['Heading3']))
         data = [
-            ["Prime & Standby Power", ""],
             ["Prime (kW)", spec.get('prime', '—')],
             ["Standby (kW)", spec.get('standby', '—')],
             ["RPM", spec.get('rpm', '—')],
             ["電壓 / 頻率", f"{spec.get('voltage', '—')} / {spec.get('frequency', '—')}"]
         ]
-        table = Table(data)
+        table = Table(data, colWidths=[2.5*inch, 4*inch])
         table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('GRID', (0,0), (-1,-1), 1, colors.black),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+            ('FONTSIZE', (0,0), (-1,-1), 10),
+            ('BACKGROUND', (0,0), (0,-1), colors.lightgrey),
+            ('BACKGROUND', (1,0), (1,-1), colors.white),
         ]))
         elements.append(table)
         elements.append(Spacer(1, 12))
 
-        # 你可以繼續加其他區塊（Engine、Radiator、Panel、Parts、Checklist 等）
-        # 格式類似上面，用 Paragraph + Table 呈現
-        # ...
+        # Engine & Alternator
+        elements.append(Paragraph("Engine & Alternator (發動機 & 電球)", styles['Heading3']))
+        elements.append(Spacer(1, 6))
+        engine_data = [
+            ["發動機型號", spec.get('genset_model', '—')],
+            ["S/N", spec.get('genset_sn', '—')],
+            ["顏色", spec.get('engine_color', '—')],
+            ["年份", spec.get('engine_year', '—')],
+            ["加熱器", spec.get('engine_heater', '—') + " kW"]
+        ]
+        engine_table = Table(engine_data, colWidths=[2.5*inch, 4*inch])
+        engine_table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black)]))
+        elements.append(engine_table)
+        elements.append(Spacer(1, 6))
+
+        alt_data = [
+            ["電球型號", spec.get('alt_model', '—')],
+            ["S/N", spec.get('alt_sn', '—')],
+            ["顏色", spec.get('alt_color', '—')],
+            ["Droop", spec.get('droop', '—')],
+            ["PMG", spec.get('pmg', '—')],
+            ["加熱器", spec.get('alt_heater', '—')]
+        ]
+        alt_table = Table(alt_data, colWidths=[2.5*inch, 4*inch])
+        alt_table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black)]))
+        elements.append(alt_table)
+        elements.append(Spacer(1, 12))
+
+        # Radiator & Base Frame
+        elements.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", styles['Heading3']))
+        elements.append(Spacer(1, 6))
+        rad_data = [
+            ["水箱型號", spec.get('rad_model', '—')],
+            ["S/N", spec.get('rad_sn', '—')],
+            ["溫度", spec.get('rad_temp', '—')],
+            ["風扇呎吋", spec.get('fan_size', '—')],
+            ["水箱護罩", spec.get('radiator_guard', '—')],
+            ["負責部門", spec.get('fan_department', '—')]
+        ]
+        rad_table = Table(rad_data, colWidths=[2.5*inch, 4*inch])
+        rad_table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black)]))
+        elements.append(rad_table)
+        elements.append(Spacer(1, 12))
+
+        # Fuel Cooler & Coolant sensor & Low water
+        elements.append(Paragraph("其他組件", styles['Heading3']))
+        elements.append(Spacer(1, 6))
+        other_data = [
+            ["燃油冷卻器", "貨源：" + spec.get('fuel_cooler_source', '—'), "負責部門：" + spec.get('fuel_cooler_department', '—')],
+            ["冷卻液溫度感測器", spec.get('coolant_sensor', '—'), "貨源：" + spec.get('coolant_sensor_source', '—'), "負責部門：" + spec.get('coolant_sensor_department', '—')],
+            ["低水位浮球開關", spec.get('low_water', '—'), "貨源：" + spec.get('low_water_source', '—'), "負責部門：" + spec.get('low_water_department', '—')]
+        ]
+        other_table = Table(other_data, colWidths=[2.5*inch, 2*inch, 2*inch])
+        other_table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black)]))
+        elements.append(other_table)
+        elements.append(Spacer(1, 12))
+
+        # Container / Panel / Breaker
+        elements.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", styles['Heading3']))
+        elements.append(Spacer(1, 6))
+        container_data = [
+            ["貨櫃尺寸", spec.get('cont_size', '—')],
+            ["類型", spec.get('cont_type', '—')],
+            ["控制器型號", spec.get('panel_model', '—')],
+            ["S/N", spec.get('panel_sn', '—')],
+            ["貨源", spec.get('panel_source', '—')],
+            ["負責部門", spec.get('panel_department', '—')]
+        ]
+        container_table = Table(container_data, colWidths=[2.5*inch, 4*inch])
+        container_table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black)]))
+        elements.append(container_table)
+        elements.append(Spacer(1, 6))
+
+        # CO 探測器
+        co_data = [
+            ["CO 探測器 (OLED)", spec.get('co_detector', '—')],
+            ["貨源", spec.get('co_source', '—')],
+            ["負責部門", spec.get('co_department', '—')]
+        ]
+        co_table = Table(co_data, colWidths=[2.5*inch, 2*inch, 2*inch])
+        co_table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black)]))
+        elements.append(co_table)
+        elements.append(Spacer(1, 6))
+
+        # Circuit Breaker
+        breaker_data = [
+            ["斷路器", spec.get('breaker_type', '—') + " " + spec.get('breaker_rating', '—') + " " + spec.get('poles', '—')],
+            ["貨源", spec.get('breaker_source', '—')],
+            ["負責部門", spec.get('breaker_department', '—')]
+        ]
+        breaker_table = Table(breaker_data, colWidths=[2.5*inch, 2*inch, 2*inch])
+        breaker_table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black)]))
+        elements.append(breaker_table)
+        elements.append(Spacer(1, 12))
+
+        # Parts
+        parts = spec.get("parts", [])
+        if parts:
+            elements.append(Paragraph("配件清單", styles['Heading3']))
+            elements.append(Spacer(1, 6))
+            parts_data = [["名稱", "貨源", "負責部門"]]
+            for p in parts:
+                name = p.get("name", "—")
+                source = p.get("source", "—")
+                dept = p.get("department", "—")
+                parts_data.append([name, source, dept])
+            parts_table = Table(parts_data, colWidths=[3*inch, 2*inch, 2*inch])
+            parts_table.setStyle(TableStyle([
+                ('BACKGROUND', (0,0), (-1,0), colors.grey),
+                ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('GRID', (0,0), (-1,-1), 1, colors.black)
+            ]))
+            elements.append(parts_table)
+            elements.append(Spacer(1, 12))
+
+        # Delivery Checklist
+        checklist = spec.get("delivery_checklist", [])
+        if checklist:
+            elements.append(Paragraph("出貨檢查清單", styles['Heading3']))
+            elements.append(Spacer(1, 6))
+            checklist_data = [["項目", "狀態"]]
+            for item in checklist:
+                name = item.get("name", "—")
+                ch = "✅" if item.get("checked", False) else "⬜"
+                checklist_data.append([name, ch])
+            checklist_table = Table(checklist_data, colWidths=[4*inch, 2*inch])
+            checklist_table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black)]))
+            elements.append(checklist_table)
+            elements.append(Spacer(1, 12))
+
+        # Remarks
+        remarks = spec.get("remarks", "").strip()
+        if remarks:
+            elements.append(Paragraph("備註", styles['Heading3']))
+            elements.append(Spacer(1, 6))
+            elements.append(Paragraph(remarks, styles['Normal']))
+            elements.append(Spacer(1, 12))
+
+        elements.append(Spacer(1, 24))  # 每台之間加間距
 
     doc.build(elements)
     pdf_bytes = buffer.getvalue()
