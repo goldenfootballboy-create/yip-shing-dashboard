@@ -1246,11 +1246,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
         # PDF 匯出按鈕（放在 Save & Close 旁邊）
         if st.button("📄 Export PDF (格式同 Overview)", type="secondary", use_container_width=True):
-            pdf_bytes = generate_overview_pdf(new_specs, row_to_edit, qty)
+            pdf_bytes = generate_overview_pdf(new_specs if 'new_specs' in locals() else specs, row_to_edit if 'row_to_edit' in locals() else temp_project, qty)
             st.download_button(
                 label="下載 PDF",
                 data=pdf_bytes,
-                file_name=f"{row_to_edit['Project_Name']}_Overview.pdf",
+                file_name=f"{(row_to_edit if 'row_to_edit' in locals() else temp_project)['Project_Name']}_Overview.pdf",
                 mime="application/pdf"
             )
         col_save, col_cancel = st.columns(2)
