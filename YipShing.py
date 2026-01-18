@@ -160,7 +160,7 @@ def generate_overview_pdf(specs, project_info, qty):
             for item in checklist:
                 name = item.get("name", "—")
                 checked = item.get("checked", False)
-                ch = "√ 已完成" if checked else "□ 未完成"  # 或改成 "[√] 已完成" / "[ ] 未完成"
+                ch = "√" if checked else "□"  # 或改成 "[√] 已完成" / "[ ] 未完成"
                 elements.append(Paragraph(f"{ch} {name}", normal))
             elements.append(Spacer(1, 12))
 
