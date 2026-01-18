@@ -1,11 +1,6 @@
-# 核心 Streamlit 相關
 streamlit
 streamlit-gsheets
 streamlit-calendar
-
-# 資料處理與 PDF
 pandas
 reportlab
-
-# Email 發送 (Resend API)
 resend
