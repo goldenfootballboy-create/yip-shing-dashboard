@@ -5,6 +5,12 @@ import json
 from datetime import date
 import time
 from streamlit_calendar import calendar
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+from io import BytesIO
+import base64
 
 # 全局安全 index 函數
 def safe_index(val, options, default=0):
@@ -1227,6 +1233,15 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "avm_model": e_avm_model
                 }
                 new_specs.append(spec_data)
+                # PDF 匯出按鈕（放在 Save & Close 旁邊）
+                if st.button("📄 Export PDF (格式同 Overview)", type="secondary", use_container_width=True):
+                    pdf_bytes = generate_overview_pdf(specs, temp_project, qty)
+                    st.download_button(
+                        label="下載 PDF",
+                        data=pdf_bytes,
+                        file_name=f"{temp_project['Project_Name']}_Overview.pdf",
+                        mime="application/pdf"
+                    )
 
         col_save, col_cancel = st.columns(2)
         with col_save:
@@ -1264,6 +1279,55 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.session_state.edit_saving = False
             st.rerun()
     edit_spec_dialog()
+
+
+    def generate_overview_pdf(specs, project_info, qty):
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        # 標題
+        elements.append(
+            Paragraph(f"專案：{project_info['Project_Name']}　｜　{qty} 台　｜　類型：{project_info['Project_Type']}",
+                      styles['Heading1']))
+        elements.append(Spacer(1, 12))
+
+        for machine_idx in range(qty):
+            spec = specs[machine_idx] if machine_idx < len(specs) else {}
+
+            elements.append(Paragraph(f"第 {machine_idx + 1} 台", styles['Heading2']))
+            elements.append(Spacer(1, 6))
+
+            # Prime & Standby
+            data = [
+                ["Prime & Standby Power", ""],
+                ["Prime (kW)", spec.get('prime', '—')],
+                ["Standby (kW)", spec.get('standby', '—')],
+                ["RPM", spec.get('rpm', '—')],
+                ["電壓 / 頻率", f"{spec.get('voltage', '—')} / {spec.get('frequency', '—')}"]
+            ]
+            table = Table(data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ]))
+            elements.append(table)
+            elements.append(Spacer(1, 12))
+
+            # 其他區塊（Engine & Alternator、Radiator & Base Frame、Container / Panel / Breaker、Parts、Delivery Checklist、Remarks）可以類似加進去
+            # 這裡只示範 Prime & Standby，其他區塊可自行複製格式
+            # ...
+
+        doc.build(elements)
+        pdf_bytes = buffer.getvalue()
+        buffer.close()
+        return pdf_bytes
 
 # ==============================================
 # Project Specification Dialog (新增用)
