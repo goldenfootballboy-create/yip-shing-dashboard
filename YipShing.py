@@ -1449,22 +1449,24 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 }
                 new_specs.append(spec_data)
 
-                # PDF 匯出 + 發送 email 通知按鈕（加唯一 key 避免重複 ID）
-                if st.button("📄 Export PDF & 發送通知", key=f"export_pdf_email_{row_to_edit['Project_Name']}",
-                             type="secondary", use_container_width=True):
-                    # 先產生 PDF 並提供下載
+                # Export PDF 按鈕（只下載 PDF，不發信）
+                if st.button("📄 Export PDF", key=f"export_pdf_{row_to_edit['Project_Name']}", type="secondary",
+                             use_container_width=True):
                     pdf_bytes = generate_overview_pdf(new_specs, row_to_edit, qty)
                     st.download_button(
                         label="下載 PDF",
                         data=pdf_bytes,
                         file_name=f"{row_to_edit['Project_Name']}_Overview.pdf",
                         mime="application/pdf",
-                        key=f"download_pdf_{row_to_edit['Project_Name']}"  # 也給下載按鈕唯一 key
+                        key=f"download_pdf_{row_to_edit['Project_Name']}"
                     )
 
+                # Send Email 按鈕（獨立發送通知）
+                if st.button("📧 Send Email", key=f"send_email_{row_to_edit['Project_Name']}", type="primary",
+                             use_container_width=True):
                     # 暫存規格資料給 email 比對用
-                    st.session_state.old_specs_for_email = specs.copy()  # 舊規格
-                    st.session_state.new_specs_for_email = new_specs.copy()  # 新規格
+                    st.session_state.old_specs_for_email = specs.copy()
+                    st.session_state.new_specs_for_email = new_specs.copy()
                     st.session_state.show_email_confirm = True
                     st.rerun()
 
