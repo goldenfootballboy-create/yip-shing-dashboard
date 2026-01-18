@@ -70,7 +70,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
         - old_specs: 舊規格 list of dict
         - new_specs: 新規格 list of dict
         - recipient_emails: ["anson@topone-power.com","goldenfootballboy@gmail.com"]
-        """
+     """
     if not recipient_emails:
         st.warning("沒有收件人，跳過發信")
         return
