@@ -1449,21 +1449,21 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 }
                 new_specs.append(spec_data)
 
-                # Export PDF 按鈕（只下載 PDF，不發信）
-                if st.button("📄 Export PDF", key=f"export_pdf_{row_to_edit['Project_Name']}", type="secondary",
-                             use_container_width=True):
+                # Export PDF 按鈕（只下載 PDF）
+                if st.button("📄 Export PDF", key=f"export_pdf_only_{row_to_edit['Project_Name']}_{id(row_to_edit)}",
+                             type="secondary", use_container_width=True):
                     pdf_bytes = generate_overview_pdf(new_specs, row_to_edit, qty)
                     st.download_button(
                         label="下載 PDF",
                         data=pdf_bytes,
                         file_name=f"{row_to_edit['Project_Name']}_Overview.pdf",
                         mime="application/pdf",
-                        key=f"download_pdf_{row_to_edit['Project_Name']}"
+                        key=f"download_pdf_only_{row_to_edit['Project_Name']}_{id(row_to_edit)}"
                     )
 
                 # Send Email 按鈕（獨立發送通知）
-                if st.button("📧 Send Email", key=f"send_email_{row_to_edit['Project_Name']}", type="primary",
-                             use_container_width=True):
+                if st.button("📧 Send Email", key=f"send_email_{row_to_edit['Project_Name']}_{id(row_to_edit)}",
+                             type="primary", use_container_width=True):
                     # 暫存規格資料給 email 比對用
                     st.session_state.old_specs_for_email = specs.copy()
                     st.session_state.new_specs_for_email = new_specs.copy()
@@ -1506,43 +1506,43 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     st.session_state.edit_saving = False
                     st.rerun()
 
-        # 獨立處理 email 確認 dialog（放在 edit_spec_dialog() 外面）
-        if st.session_state.get("show_email_confirm", False):
-            @st.dialog("發送更新通知？", width="small")
-            def email_confirm_dialog():
-                st.markdown(f"是否要發送 email 通知相關人員：**{row_to_edit['Project_Name']}** 規格已更新？")
-                col_yes, col_no = st.columns(2)
-                with col_yes:
-                    if st.button("是，發送通知", type="primary"):
-                        old_specs = st.session_state.old_specs_for_email
-                        new_specs = st.session_state.new_specs_for_email
+            # 獨立處理 email 確認 dialog（放在 edit_spec_dialog() 外面）
+            if st.session_state.get("show_email_confirm", False):
+                @st.dialog("發送更新通知？", width="small")
+                def email_confirm_dialog():
+                    st.markdown(f"是否要發送 email 通知相關人員：**{row_to_edit['Project_Name']}** 規格已更新？")
+                    col_yes, col_no = st.columns(2)
+                    with col_yes:
+                        if st.button("是，發送通知", type="primary"):
+                            old_specs = st.session_state.old_specs_for_email
+                            new_specs = st.session_state.new_specs_for_email
 
-                        # 收件人列表（可從 Google Sheets 讀或硬碼）
-                        recipient_emails = ["anson@ysdiesel.com.hk"]  # 改成真實 email，可多個
+                            # 收件人列表（可從 Google Sheets 讀或硬碼）
+                            recipient_emails = ["anson@ysdiesel.com.hk"]  # 改成真實 email，可多個
 
-                        send_update_notification_email(
-                            row_to_edit['Project_Name'],
-                            old_specs,
-                            new_specs,
-                            recipient_emails
-                        )
-                        st.session_state.show_email_confirm = False
-                        st.rerun()
-                with col_no:
-                    if st.button("否，關閉"):
-                        st.session_state.show_email_confirm = False
-                        st.rerun()
+                            send_update_notification_email(
+                                row_to_edit['Project_Name'],
+                                old_specs,
+                                new_specs,
+                                recipient_emails
+                            )
+                            st.session_state.show_email_confirm = False
+                            st.rerun()
+                    with col_no:
+                        if st.button("否，關閉"):
+                            st.session_state.show_email_confirm = False
+                            st.rerun()
 
-            email_confirm_dialog()
+                email_confirm_dialog()
 
-            # 關閉 dialog 後清除暫存
-            if not st.session_state.get("show_email_confirm", False):
-                if "old_specs_for_email" in st.session_state:
-                    del st.session_state.old_specs_for_email
-                if "new_specs_for_email" in st.session_state:
-                    del st.session_state.new_specs_for_email
-                st.session_state.show_email_confirm = False
-                st.rerun()
+                # 關閉 dialog 後清除暫存
+                if not st.session_state.get("show_email_confirm", False):
+                    if "old_specs_for_email" in st.session_state:
+                        del st.session_state.old_specs_for_email
+                    if "new_specs_for_email" in st.session_state:
+                        del st.session_state.new_specs_for_email
+                    st.session_state.show_email_confirm = False
+                    st.rerun()
 
         col_save, col_cancel = st.columns(2)
         with col_save:
