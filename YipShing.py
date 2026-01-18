@@ -1450,7 +1450,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 }
                 new_specs.append(spec_data)
 
-                # PDF 匯出 + 發送 email 通知按鈕（用唯一 key 避免重複 ID）
+                # PDF 匯出按鈕（只下載 PDF）
                 if st.button("📄 Export PDF", key=f"export_pdf_edit_{row_to_edit['Project_Name']}_{uuid.uuid4()}",
                              type="secondary", use_container_width=True):
                     pdf_bytes = generate_overview_pdf(new_specs, row_to_edit, qty)
@@ -1465,7 +1465,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 # Send Email 按鈕（獨立發送通知）
                 if st.button("📧 Send Email", key=f"send_email_edit_{row_to_edit['Project_Name']}_{uuid.uuid4()}",
                              type="primary", use_container_width=True):
-                    # 暫存規格資料給 email 比對用
                     st.session_state.old_specs_for_email = specs.copy()
                     st.session_state.new_specs_for_email = new_specs.copy()
                     st.session_state.show_email_confirm = True
@@ -1487,7 +1486,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 if st.session_state.get("edit_saving", False):
                     fullscreen_loading("正在儲存規格至 Google Sheets，請稍候...☺️")
 
-                    # 儲存規格（原邏輯）
                     first_spec = new_specs[0] if new_specs else {}
                     new_visible = "\n".join([
                         f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
@@ -1520,7 +1518,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     st.session_state.edit_saving = False
                     st.rerun()
 
-            # 獨立處理 email 確認 dialog（放在 edit_spec_dialog() 外面，避免嵌套錯誤）
+            # 獨立處理 email 確認 dialog（放在 edit_spec_dialog() 外面）
             if st.session_state.get("show_email_confirm", False):
                 @st.dialog("發送更新通知？", width="small")
                 def email_confirm_dialog():
@@ -1557,8 +1555,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         del st.session_state.new_specs_for_email
                     st.session_state.show_email_confirm = False
                     st.rerun()
-
-            edit_spec_dialog()
         col_save, col_cancel = st.columns(2)
         with col_save:
             save_disabled = st.session_state.get("edit_saving", False)
