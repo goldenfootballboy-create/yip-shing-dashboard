@@ -1475,7 +1475,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
         if st.session_state.get("edit_saving", False):
             fullscreen_loading("正在儲存規格至 Google Sheets，請稍候...☺️")
 
-            # 儲存規格（原邏輯）
             first_spec = new_specs[0] if new_specs else {}
             new_visible = "\n".join([
                 f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
@@ -1492,13 +1491,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
             st.success("所有規格已成功更新！")
 
-            # 暫存規格資料給 email 比對用（避免 dialog 關閉後丟失）
-            st.session_state.old_specs_for_email = specs  # 舊規格（從 Project_Spec 解析）
-            st.session_state.new_specs_for_email = new_specs  # 新規格
+            # 新增：彈出確認視窗詢問是否發送 email 通知
             st.session_state.show_email_confirm = True
-            # 這裡不要直接 st.rerun()，讓 dialog 自己處理
+            st.session_state.new_specs_for_email = new_specs  # 暫存新規格給 email 比對用
+            st.rerun()
 
-        # 獨立處理 email 確認 dialog（放在 edit_spec_dialog 外面）
+        # 放在 edit_spec_dialog 函數外面（dialog 關閉後執行）
         if st.session_state.get("show_email_confirm", False):
             @st.dialog("發送更新通知？", width="small")
             def email_confirm_dialog():
@@ -1506,18 +1504,14 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 col_yes, col_no = st.columns(2)
                 with col_yes:
                     if st.button("是，發送通知", type="primary"):
-                        # 從暫存讀取規格
-                        old_specs = st.session_state.old_specs_for_email
-                        new_specs = st.session_state.new_specs_for_email
-
-                        # 收件人列表（可從 Google Sheets 讀或硬碼）
-                        recipient_emails = ["anson@ysdiesel.com.hk"]  # 改成真實 email，可多個
-                        # 或從 Sheets 讀取（見下方進階版）
+                        # 從資料庫讀舊規格（用來比對變更）
+                        old_specs = specs  # 剛開始讀取的舊規格
+                        recipient_emails = ["anson@example.com", "michelle@example.com"]  # 改成你要通知的人 email 列表
 
                         send_update_notification_email(
                             row_to_edit['Project_Name'],
                             old_specs,
-                            new_specs,
+                            st.session_state.new_specs_for_email,
                             recipient_emails
                         )
                         st.session_state.show_email_confirm = False
@@ -1527,18 +1521,16 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         st.session_state.show_email_confirm = False
                         st.rerun()
 
-            email_confirm_dialog()
+                # 關閉 dialog 後清除暫存
+                if not st.session_state.get("show_email_confirm", False):
+                    if "new_specs_for_email" in st.session_state:
+                        del st.session_state.new_specs_for_email
+                    st.session_state["show_edit_spec_dialog"] = False
+                    st.session_state.dialog_active = None
+                    st.session_state.edit_saving = False
+                    st.rerun()
 
-            # 關閉 dialog 後清除暫存
-            if not st.session_state.get("show_email_confirm", False):
-                if "old_specs_for_email" in st.session_state:
-                    del st.session_state.old_specs_for_email
-                if "new_specs_for_email" in st.session_state:
-                    del st.session_state.new_specs_for_email
-                st.session_state["show_edit_spec_dialog"] = False
-                st.session_state.dialog_active = None
-                st.session_state.edit_saving = False
-                st.rerun()
+            email_confirm_dialog()
     edit_spec_dialog()
 
 
