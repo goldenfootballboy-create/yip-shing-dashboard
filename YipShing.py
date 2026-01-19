@@ -9,6 +9,7 @@ import resend
 import gspread
 from google.oauth2.service_account import Credentials
 import time
+from datetime import datetime, timezone, timedelta
 # reportlab 相關 import
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
@@ -24,7 +25,11 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 # 全域變數
 max_retries = 3  # 可選，未來若需重試邏輯再用
+# 香港時區 (UTC+8)
+hkt = timezone(timedelta(hours=8))
+now_hkt = datetime.now(hkt)
 
+update_time = now_hkt.strftime('%Y-%m-%d %H:%M')
 # 全局安全 index 函數
 def safe_index(val, options, default=0):
     try:
