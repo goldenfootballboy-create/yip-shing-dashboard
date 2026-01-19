@@ -568,7 +568,15 @@ def render_project_card(row, idx):
                         st.markdown(f"**水箱型號**： {spec.get('rad_model', '—')}　　**S/N**： {spec.get('rad_sn', '—')}　　**溫度**： {spec.get('rad_temp', '—')}")
                         st.markdown(f"**風扇呎吋**： {spec.get('fan_size', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('fan_department', '—')}</span>", unsafe_allow_html=True)
                         st.markdown(f"**水箱護罩**： {spec.get('radiator_guard', '—')}")
-
+                        st.markdown(
+                            f"**燃油冷卻器**： {spec.get('fuel_cooler', '—')}　　貨源 {spec.get('fuel_cooler_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('fuel_cooler_department', '—')}</span>",
+                            unsafe_allow_html=True)
+                        st.markdown(
+                            f"**冷卻液溫度感測器**： {spec.get('coolant_sensor', '—')}　　貨源 {spec.get('coolant_sensor_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('coolant_sensor_department', '—')}</span>",
+                            unsafe_allow_html=True)
+                        st.markdown(
+                            f"**低水位浮球開關**： {spec.get('low_water', '—')}　　貨源 {spec.get('low_water_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('low_water_department', '—')}</span>",
+                            unsafe_allow_html=True)
                         st.markdown("---")
 
                         st.markdown(f"**燃油冷卻器**：貨源 {spec.get('fuel_cooler_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('fuel_cooler_department', '—')}</span>", unsafe_allow_html=True)
