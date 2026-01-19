@@ -1453,18 +1453,23 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "fan_size": e_fan_size,
                     "fan_department": e_fan_department if e_fan_department != "--" else "",
                     "coolant_sensor": e_coolant_sensor if e_coolant_sensor != "--" else "",
+                    "coolant_sensor_source": e_coolant_sensor_source if e_coolant_sensor_source != "--" else "",
+                    "coolant_sensor_department": e_coolant_sensor_department if e_coolant_sensor_department != "--" else "",
                     "low_water": e_low_water if e_low_water != "--" else "",
+                    "low_water_source": e_low_water_source if e_low_water_source != "--" else "",
+                    "low_water_department": e_low_water_department if e_low_water_department != "--" else "",
+                    # ← 補這行（負責部門）
                     "radiator_guard": e_radiator_guard if e_radiator_guard != "--" else "",
-                    "fuel_cooler": e_fuel_cooler if e_fuel_cooler != "--" else "",
+                    "fuel_cooler": e_fuel_cooler if e_fuel_cooler != "--" else "",  # ← 補這行（Include/Not Include）
                     "fuel_cooler_source": e_fuel_cooler_source if e_fuel_cooler_source != "--" else "",
                     "fuel_cooler_department": e_fuel_cooler_department if e_fuel_cooler_department != "--" else "",
-                    "coolant_sensor_source": e_coolant_sensor_source if e_coolant_sensor_source != "--" else "",
-                    "low_water_source": e_low_water_source if e_low_water_source != "--" else "",
                     "base_model": e_base_model,
                     "base_sn": e_base_sn,
                     "base_source": e_base_source if e_base_source != "--" else "",
                     "avm_source": e_avm_source if e_avm_source != "--" else "",
                     "avm_department": e_avm_department if e_avm_department != "--" else "",
+                    "avm_model": e_avm_model,
+                    "avm_qty": int(e_avm_qty),  # 你已加
                     "cont_size": e_cont_size if e_cont_size != "--" else "",
                     "cont_type": e_cont_type if e_cont_type != "--" else "",
                     "cont_color": e_cont_color,
@@ -1495,7 +1500,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     ] if isinstance(checklist, list) else [],
                     "remarks": e_remarks.strip(),
                     "base_sn": e_base_sn,
-                    "avm_qty": int(e_avm_qty),
                     "avm_model": e_avm_model
                 }
                 new_specs.append(spec_data)
