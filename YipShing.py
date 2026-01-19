@@ -1757,11 +1757,29 @@ if st.session_state.get("spec_dialog_open", False):
                     col_r1, col_r2 = st.columns(2)
                     with col_r1:
                         s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"], key=f"dlg_radiator_guard_{i}")
+                        
+                    col_fuel_Q, col_fuel_W, col_fuel_A, col_fuel_B = st.columns([4, 1, 1, 2])
+                    with col_fuel_Q:
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                    with col_fuel_W:
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                    with col_fuel_A:
+                        st.markdown("<div style='height: 28px; line-height: 28px;'>貨源</div>", unsafe_allow_html=True)
+                    with col_fuel_B:
+                        st.markdown("<div style='height: 28px; line-height: 28px;'>負責部門</div>",
+                                    unsafe_allow_html=True)
 
-                    col_fuel_title, col_fuel_source, col_fuel_dept = st.columns([5, 1, 2])
+                    col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
 
                     with col_fuel_title:
                         st.markdown("**Fuel Cooler (燃油冷卻器)**")
+                    with col_fuel_include:
+                        s_fuel_cooler_include = st.selectbox(
+
+                            ["--", "Include", "Not Include"],
+                            key=f"dlg_fuel_cooler_title_{i}",
+                            label_visibility="collapsed"
+                        )
 
                     with col_fuel_source:
                         st.markdown("**貨源**")
@@ -2152,6 +2170,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "low_water": s_low_water if s_low_water != "--" else "",
                     "radiator_guard": s_radiator_guard if s_radiator_guard != "--" else "",
                     "rad_source": s_rad_source if s_rad_source != "--" else "",
+                    "fuel_cooler_title": s_fuel_cooler_title if s_fuel_cooler_title != "--" else "",
                     "fuel_cooler_source": s_fuel_cooler_source if s_fuel_cooler_source != "--" else "",
                     "fuel_cooler_department": s_fuel_cooler_department if s_fuel_cooler_department != "--" else "",
                     "coolant_sensor_source": s_coolant_sensor_source if s_coolant_sensor_source != "--" else "",
