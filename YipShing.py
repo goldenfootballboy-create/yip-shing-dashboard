@@ -575,7 +575,9 @@ def render_project_card(row, idx):
                         st.markdown(f"**冷卻液溫度感測器**： {spec.get('coolant_sensor', '—')}　　貨源： {spec.get('coolant_sensor_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('coolant_sensor_department', '—')}</span>", unsafe_allow_html=True)
                         st.markdown(f"**低水位浮球開關**： {spec.get('low_water', '—')}　　貨源： {spec.get('low_water_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('low_water_department', '—')}</span>", unsafe_allow_html=True)
                         st.markdown(f"**底架型號**： {spec.get('base_model', '—')}　　**S/N**： {spec.get('base_sn', '—')}")
-                        st.markdown(f"**避震器**：貨源 {spec.get('avm_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('avm_department', '—')}</span>", unsafe_allow_html=True)
+                        st.markdown(
+                            f"**避震器**：型號 {spec.get('avm_model', '—')}　　數量 {spec.get('avm_qty', '—')}　　貨源 {spec.get('avm_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('avm_department', '—')}</span>",
+                            unsafe_allow_html=True)
 
                         st.divider()
 
