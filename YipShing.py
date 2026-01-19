@@ -1427,6 +1427,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "coolant_sensor": e_coolant_sensor if e_coolant_sensor != "--" else "",
                     "low_water": e_low_water if e_low_water != "--" else "",
                     "radiator_guard": e_radiator_guard if e_radiator_guard != "--" else "",
+                    "fuel_cooler": e_fuel_cooler if e_fuel_cooler != "--" else "",
                     "fuel_cooler_source": e_fuel_cooler_source if e_fuel_cooler_source != "--" else "",
                     "fuel_cooler_department": e_fuel_cooler_department if e_fuel_cooler_department != "--" else "",
                     "coolant_sensor_source": e_coolant_sensor_source if e_coolant_sensor_source != "--" else "",
