@@ -967,7 +967,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                     col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
 
-                    with col_title:
+                    with col_fuel_title:
                         st.markdown("**燃油冷卻器**")
                     with col_fuel_include:
                         e_fuel_cooler = st.selectbox("", ["--", "Include", "Not Include"],
