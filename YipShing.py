@@ -1477,7 +1477,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 old_specs += [{}] * (qty - len(old_specs))
 
             recipient_emails = [
-                "anson@topone-power.com",
+
                 "goldenfootballboy@gmail.com"
             ]
 
