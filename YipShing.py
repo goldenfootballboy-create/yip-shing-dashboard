@@ -1758,16 +1758,6 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_r1:
                         s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"], key=f"dlg_radiator_guard_{i}")
                         
-                    col_fuel_Q, col_fuel_W, col_fuel_A, col_fuel_B = st.columns([4, 1, 1, 2])
-                    with col_fuel_Q:
-                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                    with col_fuel_W:
-                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                    with col_fuel_A:
-                        st.markdown("<div style='height: 28px; line-height: 28px;'>貨源</div>", unsafe_allow_html=True)
-                    with col_fuel_B:
-                        st.markdown("<div style='height: 28px; line-height: 28px;'>負責部門</div>",
-                                    unsafe_allow_html=True)
                     # Fuel Cooler 組（改成 [4, 1, 1, 2] 比例，插入 Include / Not Include）
                     col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
 
