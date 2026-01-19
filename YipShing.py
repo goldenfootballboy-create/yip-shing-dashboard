@@ -8,7 +8,7 @@ from io import BytesIO
 import resend
 import gspread
 from google.oauth2.service_account import Credentials
-
+import time
 # reportlab 相關 import
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
@@ -296,7 +296,38 @@ creds = Credentials.from_service_account_info(
     scopes=["https://www.googleapis.com/auth/spreadsheets"]
 )
 client = gspread.authorize(creds)
-spreadsheet = client.open_by_url(creds_info["spreadsheet"])
+creds_info = st.secrets["connections"]["gsheets"]
+creds = Credentials.from_service_account_info(
+    creds_info,
+    scopes=["https://www.googleapis.com/auth/spreadsheets"]
+)
+client = gspread.authorize(creds)
+
+# 使用 open_by_key 連線 + 自動重試 3 次（解決偶爾出現的錯誤）
+spreadsheet = None
+for attempt in range(3):
+    try:
+        spreadsheet_id = creds_info["spreadsheet"]
+        spreadsheet = client.open_by_key(spreadsheet_id)
+        st.success("連線成功！Spreadsheet 名稱：" + spreadsheet.title)
+        break
+    except gspread.exceptions.APIError as e:
+        if "Invalid spreadsheet URL" in str(e) or "Quota exceeded" in str(e) or "Internal Error" in str(e):
+            st.warning(f"連線失敗（嘗試 {attempt+1}/3）：{str(e)}，5 秒後重試...")
+            time.sleep(5)
+        else:
+            st.error(f"連線失敗（非可重試錯誤）：{str(e)}")
+            raise e
+    except Exception as e:
+        st.error(f"連線異常：{str(e)}")
+        raise e
+
+if spreadsheet is None:
+    st.error("無法連線到 Google Sheets，請稍後再試或檢查 secrets.toml")
+    st.stop()
+
+# 加 debug 確認連線成功（測試時保留，上線可刪）
+st.write("工作表列表：", [ws.title for ws in spreadsheet.worksheets()])
 
 # 讀取 projects 工作表
 worksheet_projects = spreadsheet.worksheet("projects")
