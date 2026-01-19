@@ -277,7 +277,13 @@ if "dialog_active" not in st.session_state:
 
 # Google Sheets 連接 + 讀取
 conn = st.connection("gsheets")
-
+try:
+    conn = st.connection("gsheets")
+    st.success("連線成功！")
+    test_df = conn.read(worksheet="projects", ttl=0)
+    st.write("讀取到資料筆數：", len(test_df))
+except Exception as e:
+    st.error("連線失敗：" + str(e))
 max_retries = 3
 df = pd.DataFrame(columns=[
     "Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
