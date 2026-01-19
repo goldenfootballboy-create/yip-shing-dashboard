@@ -960,11 +960,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
 
                     with col_fuel_title:
-                        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+                        st.markdown("<div style='height: 42x;'></div>", unsafe_allow_html=True)
                         st.markdown("**Fuel Cooler (燃油冷卻器)**")
 
                     with col_fuel_include:
-                        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+                        st.markdown("<div style='height: 42px;'></div>", unsafe_allow_html=True)
                         e_fuel_cooler = st.selectbox("", ["--", "Include", "Not Include"],
                                                      index=safe_index(current.get("fuel_cooler", "--"),
                                                                       ["--", "Include", "Not Include"]),
