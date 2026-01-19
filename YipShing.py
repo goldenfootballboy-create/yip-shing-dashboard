@@ -208,14 +208,22 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
     resend.api_key = api_key
 
     # 你的原始 email 內容邏輯（完整版）
-    body = f"""
-    專案 {project_name} 的規格已更新，請同事更新有關資料。
+    if not old_specs:
+        body = f"""
+            專案 {project_name} 的新規格已建立。
 
-    更新時間：{now_hkt.strftime('%Y-%m-%d %H:%M')} (香港時間)
+            建立時間：{update_time} (香港時間)
 
-    主要變更如下（每台機器）：
+            規格細節如下（每台機器）：
+            """
+    else:
+        body = f"""
+            專案 {project_name} 的規格已更新。
 
-    """
+            更新時間：{update_time} (香港時間)
+
+            主要變更如下（每台機器）：
+            """
 
     for i in range(len(new_specs)):
         old = old_specs[i] if i < len(old_specs) else {}
@@ -1499,10 +1507,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
             recipient_emails = [
 
-                "serena@topone-power.com",
-                "anson@topone-power.com",
-                "warehouse@ysdiesel.com.hk",
-                "michelle@ysdiesel.com.hk"
+
+                "anson@topone-power.com"
+
 
             ]
 
@@ -2223,6 +2230,24 @@ if st.session_state.get("spec_dialog_open", False):
                 data=pdf_bytes,
                 file_name=f"{temp_project['Project_Name']}_Overview.pdf",
                 mime="application/pdf"
+            )
+        # Send Email 按鈕（新增規格時的通知）
+        if st.button("📧 Send Email (通知新規格)", type="secondary", use_container_width=True):
+            # 新增時沒有舊規格，所以 old_specs 為空
+            old_specs = []  # 或 [{}] * qty，如果想顯示空變更
+
+            # 收件人列表
+            recipient_emails = [
+                "anson@topone-power.com",
+                "goldenfootballboy@gmail.com"
+            ]
+
+            # 呼叫發送 email 函數
+            send_update_notification_email(
+                project_name=temp_project['Project_Name'],
+                old_specs=old_specs,
+                new_specs=specs,  # 新增的規格
+                recipient_emails=recipient_emails
             )
         col_save, col_cancel = st.columns(2)
         with col_save:
