@@ -1758,43 +1758,26 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_r1:
                         s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"], key=f"dlg_radiator_guard_{i}")
 
-                    # Fuel Cooler 組（新增 Include / Not Include 下拉選單）
-                    col_fuel_Q, col_fuel_W, col_fuel_A, col_fuel_B = st.columns([4, 1, 1, 2])
-                    with col_fuel_Q:
-                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                    with col_fuel_W:
-                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                    with col_fuel_A:
-                        st.markdown("<div style='height: 28px; line-height: 28px;'>貨源</div>", unsafe_allow_html=True)
-                    with col_fuel_B:
-                        st.markdown("<div style='height: 28px; line-height: 28px;'>負責部門</div>",
-                                    unsafe_allow_html=True)
-
-                    col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
+                    col_fuel_title, col_fuel_source, col_fuel_dept = st.columns([5, 1, 2])
 
                     with col_fuel_title:
-                        st.markdown("**燃油冷卻器**")
-                    with col_fuel_include:
-                        e_fuel_cooler = st.selectbox("", ["--", "Include", "Not Include"],
-                                                     index=safe_index(current.get("fuel_cooler", "--"),
-                                                                      ["--", "Include", "Not Include"]),
-                                                     key=f"edit_fuel_cooler_{idx_to_edit}_{i}",
-                                                     label_visibility="collapsed")
+                        st.markdown("**Fuel Cooler (燃油冷卻器)**")
+
                     with col_fuel_source:
-                        e_fuel_cooler_source = st.selectbox(
+                        st.markdown("**貨源**")
+                        s_fuel_cooler_source = st.selectbox(
                             "貨源",
                             ["--", "HK", "DG"],
-                            index=safe_index(current.get("fuel_cooler_source", "--"), ["--", "HK", "DG"]),
-                            key=f"edit_fuel_cooler_source_{idx_to_edit}_{i}",
+                            key=f"dlg_fuel_cooler_source_{i}",
                             label_visibility="collapsed"
                         )
 
                     with col_fuel_dept:
-                        e_fuel_cooler_department = st.selectbox(
+                        st.markdown("**負責部門**")
+                        s_fuel_cooler_department = st.selectbox(
                             "負責部門",
                             ["--", "Michelle", "倉庫"],
-                            index=safe_index(current.get("fuel_cooler_department", "--"), ["--", "Michelle", "倉庫"]),
-                            key=f"edit_fuel_cooler_department_{idx_to_edit}_{i}",
+                            key=f"dlg_fuel_cooler_department_{i}",
                             label_visibility="collapsed"
                         )
 
