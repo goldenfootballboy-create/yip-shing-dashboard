@@ -209,7 +209,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
 
     # 你的原始 email 內容邏輯（完整版）
     body = f"""
-    專案 {project_name} 的規格已更新。
+    專案 {project_name} 的規格已更新，請同事更新有關資料。
 
     更新時間：{now_hkt.strftime('%Y-%m-%d %H:%M')} (香港時間)
 
@@ -261,7 +261,11 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
                 changed_checks.append(f"{nc.get('name')}：{ch_status}")
         if changed_checks:
             body += "  - 出貨檢查清單打勾變更：\n    " + "\n    ".join(changed_checks) + "\n"
-
+    # 加在最後
+    body += """
+    本郵件為自動生成，請勿回覆。如有疑問，請聯絡專案負責人。
+    """
+    
     params = {
         "from": "YIP SHING Dashboard <dashboard@topone-power.com>",
         "to": recipient_emails,
@@ -1479,8 +1483,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
             recipient_emails = [
 
-                "goldenfootballboy@gmail.com",
-                "anson@topone-power.com"
+                "serena@topone-power.com>",
+                "anson@topone-power.com",
+                "warehouse@ysdiesel.com.hk",
+                "Kevin@topone-power.com",
+                "michelle@ysdiesel.com.hk"
+
             ]
 
             send_update_notification_email(
