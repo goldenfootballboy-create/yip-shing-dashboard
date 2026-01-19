@@ -1757,7 +1757,7 @@ if st.session_state.get("spec_dialog_open", False):
                     col_r1, col_r2 = st.columns(2)
                     with col_r1:
                         s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"], key=f"dlg_radiator_guard_{i}")
-                        
+
                     # Fuel Cooler 組（改成 [4, 1, 1, 2] 比例，插入 Include / Not Include）
                     col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
 
@@ -1766,7 +1766,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                     with col_fuel_include:
                         # 補高度，讓下拉選單與標題齊平
-                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                        st.markdown("<div style='height: 43px;'></div>", unsafe_allow_html=True)
                         s_fuel_cooler = st.selectbox(
                             "",
                             ["--", "Include", "Not Include"],
