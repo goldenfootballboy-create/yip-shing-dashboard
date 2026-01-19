@@ -3,4 +3,6 @@ streamlit-calendar
 pandas
 reportlab
 resend
-gsheetsconnection==0.2.0
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
