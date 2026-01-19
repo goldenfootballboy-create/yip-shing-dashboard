@@ -262,7 +262,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
             body += "  - 出貨檢查清單打勾變更：\n    " + "\n    ".join(changed_checks) + "\n"
 
     params = {
-        "from": "YIP SHING Dashboard <no-reply@resend.dev>",
+        "from": "YIP SHING Dashboard <dashboard@topone-power.com>",
         "to": recipient_emails,
         "subject": f"[測試] 專案規格更新通知：{project_name}",
         "html": f"<pre>{body}</pre>",
@@ -1478,7 +1478,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
             recipient_emails = [
 
-                "goldenfootballboy@gmail.com"
+                "goldenfootballboy@gmail.com",
+                "anson@topone-power.com"
             ]
 
             send_update_notification_email(
