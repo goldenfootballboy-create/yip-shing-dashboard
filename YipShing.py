@@ -337,11 +337,16 @@ if not checklist_raw.empty:
 # 欄位補充與資料轉換（放在讀取後）
 required = ["Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
             "Qty","Real_Count","Project_Spec","Progress_Reminder",
-            "Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete"]
+            "Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete","avm_qty"]
 
 for c in required:
     if c not in df.columns:
-        df[c] = "" if c != "Year" else 2025
+        if c == "Year":
+            df[c] = 2025
+        elif c in ["Qty", "Real_Count", "avm_qty"]:
+            df[c] = 0
+        else:
+            df[c] = ""
 
 date_cols = ["Lead_Time","Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete"]
 for c in date_cols:
