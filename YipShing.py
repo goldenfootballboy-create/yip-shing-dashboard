@@ -957,8 +957,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                         key=f"edit_radiator_guard_{idx_to_edit}_{i}")
 
                     # Fuel Cooler 組（新增 Include / Not Include 下拉選單）
-                    col_fuel_A, col_fuel_B = st.columns([3, 1])
-
+                    col_fuel_Q, col_fuel_W, col_fuel_A, col_fuel_B = st.columns([4, 1, 1, 2])
+                    with col_fuel_Q:
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                    with col_fuel_W:
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                     with col_fuel_A:
                         st.markdown("<div style='height: 28px; line-height: 28px;'>貨源</div>", unsafe_allow_html=True)
                     with col_fuel_B:
