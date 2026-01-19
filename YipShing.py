@@ -957,11 +957,13 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                         key=f"edit_radiator_guard_{idx_to_edit}_{i}")
 
                     # Fuel Cooler 組（新增 Include / Not Include 下拉選單）
-                    col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
+                    col_fuel_A, col_fuel_B = st.columns([4, 1, 1, 1])
 
-                    with col_fuel_title:
-                        st.markdown("<div style='height: 62x;'></div>", unsafe_allow_html=True)
-                        st.markdown("**Fuel Cooler (燃油冷卻器)**")
+                    with col_fuel_A:
+                        st.markdown("<div style='height: 28px; line-height: 28px;'>貨源</div>", unsafe_allow_html=True)
+                    with col_fuel_B:
+                        st.markdown("<div style='height: 28px; line-height: 28px;'>負責部門</div>",
+                                    unsafe_allow_html=True)
 
                     with col_fuel_include:
                         st.markdown("<div style='height: 42px;'></div>", unsafe_allow_html=True)
@@ -971,8 +973,17 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                      key=f"edit_fuel_cooler_{idx_to_edit}_{i}",
                                                      label_visibility="collapsed")
 
+                    col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
+
+                    with col_title:
+                        st.markdown("**燃油冷卻器**")
+                    with col_fuel_include:
+                        e_fuel_cooler = st.selectbox("", ["--", "Include", "Not Include"],
+                                                     index=safe_index(current.get("fuel_cooler", "--"),
+                                                                      ["--", "Include", "Not Include"]),
+                                                     key=f"edit_fuel_cooler_{idx_to_edit}_{i}",
+                                                     label_visibility="collapsed")
                     with col_fuel_source:
-                        st.markdown("**貨源**")
                         e_fuel_cooler_source = st.selectbox(
                             "貨源",
                             ["--", "HK", "DG"],
@@ -982,7 +993,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         )
 
                     with col_fuel_dept:
-                        st.markdown("**負責部門**")
                         e_fuel_cooler_department = st.selectbox(
                             "負責部門",
                             ["--", "Michelle", "倉庫"],
