@@ -956,10 +956,18 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                         index=safe_index(current.get("radiator_guard", "--"), ["--", "Include", "Not Include"]),
                                                         key=f"edit_radiator_guard_{idx_to_edit}_{i}")
 
-                    col_fuel_title, col_fuel_source, col_fuel_dept = st.columns([5, 1, 2])
+                    # Fuel Cooler 組（新增 Include / Not Include 下拉選單）
+                    col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
 
                     with col_fuel_title:
                         st.markdown("**Fuel Cooler (燃油冷卻器)**")
+
+                    with col_fuel_include:
+                        e_fuel_cooler = st.selectbox("", ["--", "Include", "Not Include"],
+                                                     index=safe_index(current.get("fuel_cooler", "--"),
+                                                                      ["--", "Include", "Not Include"]),
+                                                     key=f"edit_fuel_cooler_{idx_to_edit}_{i}",
+                                                     label_visibility="collapsed")
 
                     with col_fuel_source:
                         st.markdown("**貨源**")
