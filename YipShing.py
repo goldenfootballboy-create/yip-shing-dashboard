@@ -265,7 +265,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
     body += """
     本郵件為自動生成，請勿回覆。如有疑問，請聯絡專案負責人。
     """
-    
+
     params = {
         "from": "YIP SHING Dashboard <dashboard@topone-power.com>",
         "to": recipient_emails,
@@ -1483,11 +1483,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
             recipient_emails = [
 
-                "serena@topone-power.com>",
-                "anson@topone-power.com",
-                "warehouse@ysdiesel.com.hk",
-                "Kevin@topone-power.com",
-                "michelle@ysdiesel.com.hk"
+                "<serena@topone-power.com>",
+                "<anson@topone-power.com>",
+                "<warehouse@ysdiesel.com.hk>",
+                "<Kevin@topone-power.com>",
+                "<michelle@ysdiesel.com.hk>"
 
             ]
 
