@@ -22,7 +22,13 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
-
+try:
+    import resend
+    st.success("✅ resend 套件已成功匯入！")
+    st.write("resend 版本：", resend.__version__)
+except ImportError as e:
+    st.error("❌ resend 套件尚未安裝，請檢查 requirements.txt 與部署狀態")
+    st.write("錯誤詳情：", str(e))
 # 全域變數
 max_retries = 3  # 可選，未來若需重試邏輯再用
 
