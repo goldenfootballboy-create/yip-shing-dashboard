@@ -1486,7 +1486,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 "serena@topone-power.com",
                 "anson@topone-power.com",
                 "warehouse@ysdiesel.com.hk",
-                "Kevin@topone-power.com",
                 "michelle@ysdiesel.com.hk"
 
             ]
