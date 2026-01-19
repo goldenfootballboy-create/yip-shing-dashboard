@@ -3,3 +3,4 @@ streamlit-calendar
 streamlit-gsheets
 pandas
 reportlab
+resend
