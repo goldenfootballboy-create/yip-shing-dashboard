@@ -24,11 +24,7 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 # 全域變數
 max_retries = 3  # 可選，未來若需重試邏輯再用
-st.write("所有頂層 secrets keys：", list(st.secrets.keys()))
-if "RESEND_API_KEY" in st.secrets:
-    st.success("✅ 找到 RESEND_API_KEY")
-else:
-    st.error("❌ 還是找不到 RESEND_API_KEY")
+
 # 全局安全 index 函數
 def safe_index(val, options, default=0):
     try:
