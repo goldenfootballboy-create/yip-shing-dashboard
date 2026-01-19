@@ -8,9 +8,10 @@ from io import BytesIO
 import resend
 import gspread
 from google.oauth2.service_account import Credentials
+
 # reportlab 相關 import
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib import colors
@@ -21,6 +22,10 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+
+# 全域變數
+max_retries = 3  # 可選，未來若需重試邏輯再用
+
 # 全局安全 index 函數
 def safe_index(val, options, default=0):
     try:
@@ -62,210 +67,7 @@ def fullscreen_loading(message="正在處理，請稍候..."):
         }}
     </style>
     """, unsafe_allow_html=True)
-from reportlab.platypus import PageBreak  # 新增這個 import（如果還沒有）
 
-def send_update_notification_email(project_name, old_specs, new_specs, recipient_emails):
-    """
-        發送規格更新通知 email（使用 Resend API，適合雲端部署）
-        - project_name: 專案名稱
-        - old_specs: 舊規格 list of dict
-        - new_specs: 新規格 list of dict
-        - recipient_emails: ["anson@topone-power.com","goldenfootballboy@gmail.com"]
-     """
-    if not recipient_emails:
-        st.warning("沒有收件人，跳過發信")
-        return
-
-    # 你的原始 email 內容邏輯（保持不變）
-    body = f"""
-    專案 {project_name} 的規格已更新。
-
-    更新時間：{date.today().strftime('%Y-%m-%d %H:%M')}
-
-    主要變更如下（每台機器）：
-
-    """
-
-    for i in range(len(new_specs)):
-        old = old_specs[i] if i < len(old_specs) else {}
-        new = new_specs[i]
-
-        body += f"\n第 {i+1} 台：\n"
-
-        static_fields = [
-            "prime", "standby", "voltage", "frequency", "rpm",
-            "genset_model", "genset_sn", "engine_color", "engine_year", "engine_heater",
-            "alt_model", "alt_sn", "alt_color", "droop", "pmg", "alt_heater",
-            "rad_model", "rad_sn", "rad_temp", "fan_size", "radiator_guard",
-            "panel_model", "panel_sn", "co_detector", "breaker_type", "breaker_rating", "poles"
-        ]
-
-        for field in static_fields:
-            old_val = old.get(field, "—")
-            new_val = new.get(field, "—")
-            if old_val != new_val:
-                body += f"  - {field}: {old_val} → {new_val}\n"
-
-        dept_fields = [
-            "fan_department", "fuel_cooler_department", "coolant_sensor_department",
-            "low_water_department", "panel_department", "co_department", "breaker_department"
-        ]
-        for field in dept_fields:
-            old_val = old.get(field, "—")
-            new_val = new.get(field, "—")
-            if old_val != new_val:
-                body += f"  - {field} (負責部門): {old_val} → {new_val}\n"
-
-        old_parts = old.get("parts", [])
-        new_parts = new.get("parts", [])
-        if len(old_parts) != len(new_parts) or any(p1["name"] != p2["name"] for p1, p2 in zip(old_parts, new_parts)):
-            body += f"  - 配件清單有變更（新增/刪除/修改 {len(new_parts)} 項）\n"
-
-        old_check = old.get("delivery_checklist", [])
-        new_check = new.get("delivery_checklist", [])
-        changed_checks = []
-        for oc, nc in zip(old_check, new_check):
-            if oc.get("checked") != nc.get("checked"):
-                ch_status = "已勾選" if nc.get("checked") else "取消勾選"
-                changed_checks.append(f"{nc.get('name')}：{ch_status}")
-        if changed_checks:
-            body += "  - 出貨檢查清單打勾變更：\n    " + "\n    ".join(changed_checks) + "\n"
-
-    # Resend 發送信（HTTP API）
-    resend.api_key = st.secrets["RESEND_API_KEY"]
-
-    params = {
-        "from": "YIP SHING Dashboard <no-reply@resend.dev>",  # Resend 預設 from，或綁自己的域名
-        "to": recipient_emails,
-        "subject": f"專案規格更新通知：{project_name}",
-        "html": f"<pre style='font-family: monospace; white-space: pre-wrap;'>{body}</pre>",  # 用 pre 保持格式
-    }
-
-    try:
-        response = resend.Emails.send(params)
-        st.success(f"已發送規格更新通知！（Resend ID: {response.get('id')}）")
-    except Exception as e:
-        st.error(f"發送失敗：{str(e)}")
-        print("Resend 錯誤詳情：", e)  # 方便 debug
-def generate_overview_pdf(specs, project_info, qty):
-    # 註冊中文字型
-    pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
-
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
-    styles = getSampleStyleSheet()
-
-    # 自訂樣式（乾淨文字流，無邊框）
-    normal = ParagraphStyle(name='Normal', parent=styles['Normal'], fontName='NotoSansTC', fontSize=10, leading=14, alignment=TA_LEFT)
-    heading1 = ParagraphStyle(name='Heading1', parent=styles['Heading1'], fontName='NotoSansTC', fontSize=18, alignment=TA_CENTER, spaceAfter=12)
-    heading2 = ParagraphStyle(name='Heading2', parent=styles['Heading2'], fontName='NotoSansTC', fontSize=14, spaceBefore=12, spaceAfter=6)
-    heading3 = ParagraphStyle(name='Heading3', parent=styles['Heading3'], fontName='NotoSansTC', fontSize=12, spaceBefore=6, spaceAfter=4)
-    red_normal = ParagraphStyle(name='RedNormal', parent=normal, textColor=colors.red, fontName='NotoSansTC')
-
-    elements = []
-
-    # 大標題
-    elements.append(Paragraph(f"專案：{project_info.get('Project_Name', '—')}　｜　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}", heading1))
-    elements.append(Spacer(1, 24))
-
-    for machine_idx in range(qty):
-        spec = specs[machine_idx] if machine_idx < len(specs) else {}
-
-        # 第二台及之後強制從新頁開始
-        if machine_idx > 0:
-            elements.append(PageBreak())
-
-        elements.append(Paragraph(f"第 {machine_idx + 1} 台", heading2))
-        elements.append(Spacer(1, 12))
-
-        # Prime & Standby Power
-        elements.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"Prime (kW): {spec.get('prime', '—')}", normal))
-        elements.append(Paragraph(f"Standby (kW): {spec.get('standby', '—')}", normal))
-        elements.append(Paragraph(f"RPM: {spec.get('rpm', '—')}", normal))
-        elements.append(Paragraph(f"電壓 / 頻率： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
-        elements.append(Spacer(1, 24))  # 加較大間距，推內容往下
-
-        # Engine & Alternator
-        elements.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"發動機型號： {spec.get('genset_model', '—')}　　S/N： {spec.get('genset_sn', '—')}", normal))
-        elements.append(Paragraph(f"發動機顏色： {spec.get('engine_color', '—')}　　年份： {spec.get('engine_year', '—')}", normal))
-        elements.append(Paragraph(f"發動機加熱器： {spec.get('engine_heater', '—')} kW", normal))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"電球型號： {spec.get('alt_model', '—')}　　S/N： {spec.get('alt_sn', '—')}", normal))
-        elements.append(Paragraph(f"電球顏色： {spec.get('alt_color', '—')}", normal))
-        elements.append(Paragraph(f"Droop： {spec.get('droop', '—')}　　PMG： {spec.get('pmg', '—')}　　加熱器： {spec.get('alt_heater', '—')}", normal))
-        elements.append(Spacer(1, 24))
-
-        # Radiator & Base Frame
-        elements.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"水箱型號： {spec.get('rad_model', '—')}　　S/N： {spec.get('rad_sn', '—')}　　溫度： {spec.get('rad_temp', '—')}", normal))
-        elements.append(Paragraph(f"風扇呎吋： {spec.get('fan_size', '—')}　　負責部門： <font color=red>{spec.get('fan_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"水箱護罩： {spec.get('radiator_guard', '—')}", normal))
-        elements.append(Spacer(1, 24))
-
-        # Fuel Cooler / Coolant sensor / Low water
-        elements.append(Paragraph("其他組件", heading3))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"燃油冷卻器　　貨源： {spec.get('fuel_cooler_source', '—')}　　負責部門： <font color=red>{spec.get('fuel_cooler_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"冷卻液溫度感測器　　{ spec.get('coolant_sensor', '—') }　　貨源： {spec.get('coolant_sensor_source', '—')}　　負責部門： <font color=red>{spec.get('coolant_sensor_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"低水位浮球開關　　{ spec.get('low_water', '—') }　　貨源： {spec.get('low_water_source', '—')}　　負責部門： <font color=red>{spec.get('low_water_department', '—')}</font>", normal))
-        elements.append(Spacer(1, 24))
-
-        # Container / Panel / Breaker - 第一頁到這裡結束
-        elements.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"貨櫃尺寸： {spec.get('cont_size', '—')}　　類型： {spec.get('cont_type', '—')}", normal))
-        elements.append(Paragraph(f"控制器型號： {spec.get('panel_model', '—')}　　S/N： {spec.get('panel_sn', '—')}　　貨源： {spec.get('panel_source', '—')}　　負責部門： <font color=red>{spec.get('panel_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"CO 探測器 (OLED)： {spec.get('co_detector', '—')}　　貨源： {spec.get('co_source', '—')}　　負責部門： <font color=red>{spec.get('co_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"斷路器： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　貨源： {spec.get('breaker_source', '—')}　　負責部門： <font color=red>{spec.get('breaker_department', '—')}</font>", normal))
-        elements.append(Spacer(1, 36))  # 加較大間距，讓內容推到下一頁
-
-        # 強制分頁：Container / Panel / Breaker 結束後強制換頁
-        elements.append(PageBreak())
-
-        # 配件清單（從第二頁開始）
-        parts = spec.get("parts", [])
-        if parts:
-            elements.append(Paragraph("配件清單", heading3))
-            elements.append(Spacer(1, 6))
-            for p in parts:
-                name = p.get("name", "—")
-                source = p.get("source", "—")
-                dept = p.get("department", "—")
-                if name:
-                    elements.append(Paragraph(f"- **{name}**　（貨源：{source}，負責部門：<font color=red>{dept}</font>）", normal))
-            elements.append(Spacer(1, 12))
-
-        # Delivery Checklist
-        checklist = spec.get("delivery_checklist", [])
-        if checklist:
-            elements.append(Paragraph("出貨檢查清單", heading3))
-            elements.append(Spacer(1, 6))
-            for item in checklist:
-                name = item.get("name", "—")
-                checked = item.get("checked", False)
-                ch = "√" if checked else "□"  # 或改成 "[√] 已完成" / "[ ] 未完成"
-                elements.append(Paragraph(f"{ch} {name}", normal))
-            elements.append(Spacer(1, 12))
-
-        # Remarks
-        remarks = spec.get("remarks", "").strip()
-        if remarks:
-            elements.append(Paragraph("備註", heading3))
-            elements.append(Spacer(1, 6))
-            elements.append(Paragraph(remarks, normal))
-            elements.append(Spacer(1, 12))
-
-        elements.append(Spacer(1, 36))  # 每台間距
-
-    doc.build(elements)
-    pdf_bytes = buffer.getvalue()
-    buffer.close()
-    return pdf_bytes
 # 頁面設定
 st.set_page_config(
     page_title="YIP SHING Project Dashboard",
@@ -277,7 +79,7 @@ st.set_page_config(
 if "dialog_active" not in st.session_state:
     st.session_state.dialog_active = None
 
-# Google Sheets 連接 + 讀取
+# Google Sheets 連線 + 讀取（使用 gspread）
 creds_info = st.secrets["connections"]["gsheets"]
 creds = Credentials.from_service_account_info(
     creds_info,
@@ -295,49 +97,17 @@ df = pd.DataFrame(data)
 worksheet_checklist = spreadsheet.worksheet("checklist")
 checklist_raw = pd.DataFrame(worksheet_checklist.get_all_records())
 
-# 儲存函數改成 gspread 方式
-def save_projects():
-    # 轉換日期格式
-    df_save = df.copy()
-    for c in date_cols:
-        df_save[c] = df_save[c].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) else "")
-    # 更新整個工作表
-    worksheet_projects.clear()
-    worksheet_projects.update([df_save.columns.values.tolist()] + df_save.values.tolist())
-    time.sleep(2)
+# 處理 checklist_db
+checklist_db = {}
+if not checklist_raw.empty:
+    for _, row in checklist_raw.iterrows():
+        if "Project_Name" in row and "Checklist_Data" in row and pd.notna(row["Checklist_Data"]):
+            try:
+                checklist_db[row["Project_Name"]] = json.loads(row["Checklist_Data"])
+            except:
+                pass
 
-def save_checklist():
-    if not checklist_db:
-        empty_df = pd.DataFrame(columns=["Project_Name", "Checklist_Data"])
-        worksheet_checklist.clear()
-        worksheet_checklist.update([empty_df.columns.values.tolist()] + empty_df.values.tolist())
-    else:
-        checklist_list = [{"Project_Name": k, "Checklist_Data": json.dumps(v, ensure_ascii=False)} for k, v in checklist_db.items()]
-        checklist_save = pd.DataFrame(checklist_list)
-        worksheet_checklist.clear()
-        worksheet_checklist.update([checklist_save.columns.values.tolist()] + checklist_save.values.tolist())
-    time.sleep(2)
-
-df = pd.DataFrame(columns=[
-    "Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
-    "Qty","Real_Count","Project_Spec","Description","Progress_Reminder",
-    "Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete"
-])
-
-for attempt in range(max_retries):
-    try:
-        temp_df = conn.read(worksheet="projects", usecols=list(range(16)), ttl=300)
-        if temp_df is not None and not temp_df.empty:
-            temp_df = temp_df.dropna(how="all")
-            df = temp_df
-        break
-    except Exception:
-        if attempt < max_retries - 1:
-            time.sleep(5)
-        else:
-            st.error("無法連線到 Google Sheets，請稍後再試或檢查網路")
-            st.stop()
-
+# 欄位補充與資料轉換（放在讀取後）
 required = ["Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
             "Qty","Real_Count","Project_Spec","Progress_Reminder",
             "Parts_Arrival","Installation_Complete","Testing_Complete","Cleaning_Complete","Delivery_Complete"]
@@ -354,41 +124,25 @@ df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(date.today().year
 df["Qty"] = pd.to_numeric(df["Qty"], errors="coerce").fillna(1).astype(int)
 df["Real_Count"] = pd.to_numeric(df["Real_Count"], errors="coerce").fillna(df["Qty"]).astype(int)
 
-# 讀取 checklist（保留原功能，與專案無關）
-checklist_raw = pd.DataFrame()
-for attempt in range(max_retries):
-    try:
-        checklist_raw = conn.read(worksheet="checklist", ttl=300)
-        break
-    except Exception:
-        if attempt < max_retries - 1:
-            time.sleep(5)
-
-checklist_db = {}
-if not checklist_raw.empty:
-    for _, row in checklist_raw.iterrows():
-        if "Project_Name" in row and "Checklist_Data" in row and pd.notna(row["Checklist_Data"]):
-            try:
-                checklist_db[row["Project_Name"]] = json.loads(row["Checklist_Data"])
-            except:
-                pass
-
-# 儲存函數
+# 儲存函數（使用 gspread）
 def save_projects():
     df_save = df.copy()
     for c in date_cols:
-        df_save[c] = df_save[c].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) else None)
-    conn.update(worksheet="projects", data=df_save)
+        df_save[c] = df_save[c].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) else "")
+    worksheet_projects.clear()
+    worksheet_projects.update([df_save.columns.values.tolist()] + df_save.values.tolist())
     time.sleep(2)
 
 def save_checklist():
     if not checklist_db:
         empty_df = pd.DataFrame(columns=["Project_Name", "Checklist_Data"])
-        conn.update(worksheet="checklist", data=empty_df)
+        worksheet_checklist.clear()
+        worksheet_checklist.update([empty_df.columns.values.tolist()] + empty_df.values.tolist())
     else:
         checklist_list = [{"Project_Name": k, "Checklist_Data": json.dumps(v, ensure_ascii=False)} for k, v in checklist_db.items()]
         checklist_save = pd.DataFrame(checklist_list)
-        conn.update(worksheet="checklist", data=checklist_save)
+        worksheet_checklist.clear()
+        worksheet_checklist.update([checklist_save.columns.values.tolist()] + checklist_save.values.tolist())
     time.sleep(2)
 
 # 進度計算 + 顏色 + fmt
@@ -772,7 +526,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
         specs = [{} for _ in range(qty)]
 
     if len(specs) < qty:
-        specs += [{} for _ in range(qty - len(specs))]
+        specs += [{}] * (qty - len(specs))
 
     @st.dialog("Edit Project Specification", width="large")
     def edit_spec_dialog():
@@ -865,8 +619,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "low_water_department",
                     "fan_department",
                     "door_limit_department",
-                    "co_department"  # 如果有 CO 部門
-                    # 如果未來加更多部門欄位，直接加在這裡
+                    "co_department"
                 ]
 
                 for field in dept_fields:
@@ -1986,8 +1739,6 @@ if st.session_state.get("spec_dialog_open", False):
 
                     s_control_voltage = st.text_input("Control Voltage(控制電壓)", key=f"dlg_control_voltage_{i}")
 
-                    col_door_include, col_door_source = st.columns([3, 2])  # 寬度比例：Include/Not Include 較寬，貨源較窄
-
                     col_door_include, col_door_source, col_door_dept = st.columns([3, 2, 2])
 
                     with col_door_include:
@@ -2573,9 +2324,10 @@ if st.session_state.view_mode == "calendar":
             })
 
     try:
-        manpower_raw = conn.read(worksheet="supremacy_manpower", ttl=300)
-        if not manpower_raw.empty:
-            for _, rec in manpower_raw.iterrows():
+        manpower_raw = worksheet_projects.get_all_records()  # 改成 gspread 讀取
+        manpower_df = pd.DataFrame(manpower_raw)
+        if not manpower_df.empty:
+            for _, rec in manpower_df.iterrows():
                 quote_num = rec.get("Quote_Number", "未知專案")
                 staff = rec.get("Staff", "未知員工")
                 start_date = rec.get("Start_Date", "")
@@ -2599,7 +2351,7 @@ if st.session_state.view_mode == "calendar":
                         "textColor": "black",
                     })
     except Exception as e:
-        pass
+        st.error(f"讀取 manpower 失敗：{e}")
 
     calendar_options = {
         "initialView": "dayGridMonth",
