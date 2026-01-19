@@ -1762,6 +1762,7 @@ if st.session_state.get("spec_dialog_open", False):
                     col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
 
                     with col_fuel_title:
+                        st.markdown("<div style='height: 43px;'></div>", unsafe_allow_html=True)
                         st.markdown("**燃油冷卻器**")
 
                     with col_fuel_include:
