@@ -1,7 +1,10 @@
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 import pandas as pd
+import json
 from datetime import date
+import time
+import gspread
+from google.oauth2.service_account import Credentials
 
 # ==============================================
 # 頁面設定
@@ -13,46 +16,43 @@ st.set_page_config(
 )
 
 # ==============================================
-# Google Sheets 連接
+# Google Sheets 連線（使用 gspread，跟 YipShing 相同）
 # ==============================================
-conn = st.connection("gsheets", type=GSheetsConnection)
+creds_info = st.secrets["connections"]["gsheets"]
+creds = Credentials.from_service_account_info(
+    creds_info,
+    scopes=["https://www.googleapis.com/auth/spreadsheets"]
+)
+client = gspread.authorize(creds)
+spreadsheet = client.open_by_url(creds_info["spreadsheet"])
 
-# ==============================================
-# 讀取 supremacy_projects
-# ==============================================
-try:
-    raw_df = conn.read(worksheet="supremacy_projects", ttl=300)
-    if raw_df.empty or len(raw_df.columns) < 5:
-        header_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
-        conn.update(worksheet="supremacy_projects", data=header_df)
-        projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
-    else:
-        raw_df = raw_df.iloc[:, :5]
-        raw_df.columns = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
-        if len(raw_df) > 0 and str(raw_df.iloc[0]["Date"]).strip().lower() in ["date", "日期"]:
-            raw_df = raw_df.iloc[1:].reset_index(drop=True)
-        projects_df = raw_df.copy()
-        projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
-        projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
-        projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
-except Exception:
-    projects_df = pd.DataFrame(columns=["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"])
+# 讀取 supremacy_projects 工作表
+worksheet_projects = spreadsheet.worksheet("supremacy_projects")
+projects_data = worksheet_projects.get_all_records()
+projects_df = pd.DataFrame(projects_data)
 
-# ==============================================
-# 讀取 supremacy_manpower
-# ==============================================
-try:
-    manpower_raw = conn.read(worksheet="supremacy_manpower", ttl=300)
-    if manpower_raw.empty or len(manpower_raw.columns) < 4:
-        manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
-    else:
-        if len(manpower_raw) > 0 and str(manpower_raw.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
-            manpower_raw = manpower_raw.iloc[1:].reset_index(drop=True)
-        manpower_raw.columns = ["Quote_Number", "Staff", "Start_Date", "End_Date"][:len(manpower_raw.columns)]
-        manpower_raw["Quote_Number"] = manpower_raw["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
-        manpower_df = manpower_raw.copy()
-except Exception:
-    manpower_df = pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
+# 讀取 supremacy_manpower 工作表
+worksheet_manpower = spreadsheet.worksheet("supremacy_manpower")
+manpower_data = worksheet_manpower.get_all_records()
+manpower_df = pd.DataFrame(manpower_data)
+
+# 欄位處理（如果工作表空或欄位不對，補上）
+if projects_df.empty or len(projects_df.columns) < 5:
+    header = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
+    projects_df = pd.DataFrame(columns=header)
+    worksheet_projects.update([header])  # 寫入標頭
+
+if manpower_df.empty or len(manpower_df.columns) < 4:
+    header_man = ["Quote_Number", "Staff", "Start_Date", "End_Date"]
+    manpower_df = pd.DataFrame(columns=header_man)
+    worksheet_manpower.update([header_man])
+
+# 資料清理
+projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
+projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
+projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
+
+manpower_df["Quote_Number"] = manpower_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
 
 # ==============================================
 # Sidebar
@@ -60,15 +60,13 @@ except Exception:
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
 
-    # === Filters ===
+    # Filters
     st.markdown("### Filters")
 
-    # 年份選項（自動從資料取 + 加入 2025）
     years = sorted(projects_df["Date"].dt.year.dropna().unique(), reverse=True)
     years = list(years) + [2025] if 2025 not in years else list(years)
     selected_year = st.selectbox("Year", ["All"] + years, index=0)
 
-    # 月份選項
     months = ["All", "January", "February", "March", "April", "May", "June",
               "July", "August", "September", "October", "November", "December"]
     selected_month = st.selectbox("Month", months, index=0)
@@ -97,14 +95,15 @@ with st.sidebar:
                     "Project_Detail": project_detail.strip(),
                     "Status": status
                 }])
-                current_raw = conn.read(worksheet="supremacy_projects", ttl=0)
-                if len(current_raw) > 0 and str(current_raw.iloc[0,0]).strip().lower() in ["date", "日期"]:
-                    current_raw = current_raw.iloc[1:]
-                updated_df = pd.concat([current_raw, new_row], ignore_index=True)
-                conn.update(worksheet="supremacy_projects", data=updated_df)
-                # 立即更新本地 df 並轉換 Date
-                projects_df = pd.concat([projects_df, new_row], ignore_index=True)
-                projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
+
+                # 讀取最新資料，避免覆蓋
+                current_projects = pd.DataFrame(worksheet_projects.get_all_records())
+                if not current_projects.empty and str(current_projects.iloc[0,0]).strip().lower() in ["date", "日期"]:
+                    current_projects = current_projects.iloc[1:].reset_index(drop=True)
+                updated_projects = pd.concat([current_projects, new_row], ignore_index=True)
+                worksheet_projects.clear()
+                worksheet_projects.update([updated_projects.columns.values.tolist()] + updated_projects.values.tolist())
+
                 st.success(f"已新增專案：{quote_number}")
                 st.rerun()
 
@@ -113,8 +112,6 @@ with st.sidebar:
     st.markdown("### 🔍 搜尋專案")
     search_query = st.text_input("輸入 Quote Number 或 Work Order", key="supremacy_search", label_visibility="collapsed")
     if st.button("清除搜尋", type="secondary", use_container_width=True):
-        if "supremacy_search" in st.session_state:
-            del st.session_state.supremacy_search
         st.rerun()
 
     st.markdown("---")
@@ -129,26 +126,22 @@ with st.sidebar:
 st.title("SUPREMACY ENERGY")
 
 # ==============================================
-# 搜尋 + 年月篩選（現在會生效）
+# 搜尋 + 年月篩選
 # ==============================================
 display_df = projects_df.copy()
 
-# 先處理搜尋
 if search_query:
     query = search_query.strip().lower()
     mask = (display_df["Quote_Number"].str.lower().str.contains(query) |
             display_df["Work_Order"].str.lower().str.contains(query))
     display_df = display_df[mask]
 
-# 年份篩選
 if selected_year != "All":
     display_df = display_df[display_df["Date"].dt.year == int(selected_year)]
 
-# 月份篩選
 if selected_month != "All":
     month_num = months.index(selected_month)
     display_df = display_df[display_df["Date"].dt.month == month_num]
-
 
 # ==============================================
 # 卡片顯示（一行 2 個）
@@ -213,7 +206,7 @@ if len(display_df) > 0:
                         if st.button("Delete", key=f"del_proj_{row['Quote_Number']}_{i+j}", type="secondary", use_container_width=True):
                             st.session_state[f"confirm_del_{row['Quote_Number']}_{i+j}"] = True
 
-                    # 編輯模式
+                    # 編輯模式（你的原有邏輯，改成 gspread 更新）
                     if st.session_state.get(f"edit_mode_{row['Quote_Number']}_{i+j}", False):
                         original_idx = projects_df[projects_df["Quote_Number"] == row["Quote_Number"]].index[0]
 
@@ -229,17 +222,8 @@ if len(display_df) > 0:
                                             (manpower_df["Start_Date"] == rec["Start_Date"])
                                         ].index
                                     ).reset_index(drop=True)
-                                    conn.update(worksheet="supremacy_manpower", data=manpower_df)
-
-                                    # 強制刷新最新資料
-                                    latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
-                                    if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
-                                        latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
-                                    if not latest_manpower.empty:
-                                        latest_manpower.columns = ["Quote_Number", "Staff", "Start_Date", "End_Date"][:len(latest_manpower.columns)]
-                                        latest_manpower["Quote_Number"] = latest_manpower["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
-                                    manpower_df = latest_manpower.copy() if not latest_manpower.empty else pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
-
+                                    worksheet_manpower.clear()
+                                    worksheet_manpower.update([manpower_df.columns.values.tolist()] + manpower_df.values.tolist())
                                     st.success(f"已刪除借調：{rec['Staff']}")
                                     st.rerun()
 
@@ -264,7 +248,9 @@ if len(display_df) > 0:
                                 projects_df.at[original_idx, "Work_Order"] = new_work_order.strip()
                                 projects_df.at[original_idx, "Project_Detail"] = new_detail.strip()
                                 projects_df.at[original_idx, "Status"] = new_status
-                                conn.update(worksheet="supremacy_projects", data=projects_df)
+
+                                worksheet_projects.clear()
+                                worksheet_projects.update([projects_df.columns.values.tolist()] + projects_df.values.tolist())
 
                                 if new_staff.strip():
                                     new_rec = pd.DataFrame([{
@@ -274,25 +260,8 @@ if len(display_df) > 0:
                                         "End_Date": new_end.strftime("%Y-%m-%d") if new_end else ""
                                     }])
                                     manpower_df = pd.concat([manpower_df, new_rec], ignore_index=True)
-                                    conn.update(worksheet="supremacy_manpower", data=manpower_df)
-
-                                # 關鍵：SAVE 後強制重新讀取最新資料，覆蓋本地變數
-                                latest_projects = conn.read(worksheet="supremacy_projects", ttl=0)
-                                if not latest_projects.empty and str(latest_projects.iloc[0,0]).strip().lower() in ["date", "日期"]:
-                                    latest_projects = latest_projects.iloc[1:].reset_index(drop=True)
-                                latest_projects = latest_projects.iloc[:, :5]
-                                latest_projects.columns = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
-                                latest_projects["Quote_Number"] = latest_projects["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
-                                latest_projects["Work_Order"] = latest_projects["Work_Order"].fillna("").astype(str)
-                                latest_projects["Date"] = pd.to_datetime(latest_projects["Date"], errors="coerce")
-                                projects_df = latest_projects.copy()
-
-                                latest_manpower = conn.read(worksheet="supremacy_manpower", ttl=0)
-                                if not latest_manpower.empty and str(latest_manpower.iloc[0,0]).strip().lower() in ["quote_number", "quote number", "報價單號"]:
-                                    latest_manpower = latest_manpower.iloc[1:].reset_index(drop=True)
-                                latest_manpower.columns = ["Quote_Number", "Staff", "Start_Date", "End_Date"][:len(latest_manpower.columns)]
-                                latest_manpower["Quote_Number"] = latest_manpower["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
-                                manpower_df = latest_manpower.copy() if not latest_manpower.empty else pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
+                                    worksheet_manpower.clear()
+                                    worksheet_manpower.update([manpower_df.columns.values.tolist()] + manpower_df.values.tolist())
 
                                 st.success("專案與借調已更新！")
                                 del st.session_state[f"edit_mode_{row['Quote_Number']}_{i+j}"]
@@ -302,34 +271,24 @@ if len(display_df) > 0:
                                 del st.session_state[f"edit_mode_{row['Quote_Number']}_{i+j}"]
                                 st.rerun()
 
-            # 刪除專案確認
-            if st.session_state.get(f"confirm_del_{row['Quote_Number']}_{i+j}", False):
-                st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
-                c1, c2 = st.columns(2)
-                if c1.button("確認刪除", type="primary", key=f"yes_del_{row['Quote_Number']}_{i+j}", use_container_width=True):
-                    projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
-                    conn.update(worksheet="supremacy_projects", data=projects_df)
-                    manpower_df = manpower_df[manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
-                    conn.update(worksheet="supremacy_manpower", data=manpower_df)
+                    # 刪除專案確認
+                    if st.session_state.get(f"confirm_del_{row['Quote_Number']}_{i+j}", False):
+                        st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
+                        c1, c2 = st.columns(2)
+                        if c1.button("確認刪除", type="primary", key=f"yes_del_{row['Quote_Number']}_{i+j}", use_container_width=True):
+                            projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                            worksheet_projects.clear()
+                            worksheet_projects.update([projects_df.columns.values.tolist()] + projects_df.values.tolist())
 
-                    # 強制刷新
-                    latest_projects = conn.read(worksheet="supremacy_projects", ttl=0)
-                    if not latest_projects.empty and str(latest_projects.iloc[0,0]).strip().lower() in ["date", "日期"]:
-                        latest_projects = latest_projects.iloc[1:].reset_index(drop=True)
-                    latest_projects = latest_projects.iloc[:, :5]
-                    latest_projects.columns = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
-                    latest_projects["Quote_Number"] = latest_projects["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
-                    latest_projects["Work_Order"] = latest_projects["Work_Order"].fillna("").astype(str)
-                    latest_projects["Date"] = pd.to_datetime(latest_projects["Date"], errors="coerce")
-                    projects_df = latest_projects.copy()
+                            manpower_df = manpower_df[manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                            worksheet_manpower.clear()
+                            worksheet_manpower.update([manpower_df.columns.values.tolist()] + manpower_df.values.tolist())
 
-                    st.success("專案及所有借調已刪除！")
-                    st.rerun()
-                if c2.button("取消", key=f"no_del_{row['Quote_Number']}_{i+j}", use_container_width=True):
-                    del st.session_state[f"confirm_del_{row['Quote_Number']}_{i+j}"]
-                    st.rerun()
-
-
+                            st.success("專案及所有借調已刪除！")
+                            st.rerun()
+                        if c2.button("取消", key=f"no_del_{row['Quote_Number']}_{i+j}", use_container_width=True):
+                            del st.session_state[f"confirm_del_{row['Quote_Number']}_{i+j}"]
+                            st.rerun()
 
 st.markdown("---")
 st.caption("SUPREMACY ENERGY Project Management System © 2025 YIP SHING")
