@@ -6,7 +6,8 @@ import time
 from streamlit_calendar import calendar
 from io import BytesIO
 import resend
-from streamlit_gsheets import GSheetsConnection
+import gspread
+from google.oauth2.service_account import Credentials
 # reportlab 相關 import
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -277,7 +278,45 @@ if "dialog_active" not in st.session_state:
     st.session_state.dialog_active = None
 
 # Google Sheets 連接 + 讀取
-conn = st.connection("gsheets", type=GSheetsConnection)
+creds_info = st.secrets["connections"]["gsheets"]
+creds = Credentials.from_service_account_info(
+    creds_info,
+    scopes=["https://www.googleapis.com/auth/spreadsheets"]
+)
+client = gspread.authorize(creds)
+spreadsheet = client.open_by_url(creds_info["spreadsheet"])
+
+# 讀取 projects 工作表
+worksheet_projects = spreadsheet.worksheet("projects")
+data = worksheet_projects.get_all_records()
+df = pd.DataFrame(data)
+
+# 讀取 checklist 工作表
+worksheet_checklist = spreadsheet.worksheet("checklist")
+checklist_raw = pd.DataFrame(worksheet_checklist.get_all_records())
+
+# 儲存函數改成 gspread 方式
+def save_projects():
+    # 轉換日期格式
+    df_save = df.copy()
+    for c in date_cols:
+        df_save[c] = df_save[c].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) else "")
+    # 更新整個工作表
+    worksheet_projects.clear()
+    worksheet_projects.update([df_save.columns.values.tolist()] + df_save.values.tolist())
+    time.sleep(2)
+
+def save_checklist():
+    if not checklist_db:
+        empty_df = pd.DataFrame(columns=["Project_Name", "Checklist_Data"])
+        worksheet_checklist.clear()
+        worksheet_checklist.update([empty_df.columns.values.tolist()] + empty_df.values.tolist())
+    else:
+        checklist_list = [{"Project_Name": k, "Checklist_Data": json.dumps(v, ensure_ascii=False)} for k, v in checklist_db.items()]
+        checklist_save = pd.DataFrame(checklist_list)
+        worksheet_checklist.clear()
+        worksheet_checklist.update([checklist_save.columns.values.tolist()] + checklist_save.values.tolist())
+    time.sleep(2)
 
 df = pd.DataFrame(columns=[
     "Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
