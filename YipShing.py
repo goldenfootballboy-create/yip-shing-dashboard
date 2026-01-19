@@ -209,12 +209,12 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
 
     # 你的原始 email 內容邏輯（完整版）
     body = f"""
-    專案 {project_name} 的規格已更新。
-
-    更新時間：{date.today().strftime('%Y-%m-%d %H:%M')}
-
-    主要變更如下（每台機器）：
-
+    <html>
+    ...
+    <h2>專案 {project_name} 的規格已更新</h2>
+    <p><strong>更新時間：</strong> {update_time} (香港時間)</p>
+    ...
+    </html>
     """
 
     for i in range(len(new_specs)):
