@@ -1768,16 +1768,19 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_fuel_B:
                         st.markdown("<div style='height: 28px; line-height: 28px;'>負責部門</div>",
                                     unsafe_allow_html=True)
-
+                    # Fuel Cooler 組（改成 [4, 1, 1, 2] 比例，插入 Include / Not Include）
                     col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
 
                     with col_fuel_title:
-                        st.markdown("**Fuel Cooler (燃油冷卻器)**")
-                    with col_fuel_include:
-                        s_fuel_cooler_include = st.selectbox(
+                        st.markdown("**燃油冷卻器**")
 
+                    with col_fuel_include:
+                        # 補高度，讓下拉選單與標題齊平
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                        s_fuel_cooler = st.selectbox(
+                            "",
                             ["--", "Include", "Not Include"],
-                            key=f"dlg_fuel_cooler_title_{i}",
+                            key=f"dlg_fuel_cooler_{i}",
                             label_visibility="collapsed"
                         )
 
@@ -2170,7 +2173,6 @@ if st.session_state.get("spec_dialog_open", False):
                     "low_water": s_low_water if s_low_water != "--" else "",
                     "radiator_guard": s_radiator_guard if s_radiator_guard != "--" else "",
                     "rad_source": s_rad_source if s_rad_source != "--" else "",
-                    "fuel_cooler_title": s_fuel_cooler_title if s_fuel_cooler_title != "--" else "",
                     "fuel_cooler_source": s_fuel_cooler_source if s_fuel_cooler_source != "--" else "",
                     "fuel_cooler_department": s_fuel_cooler_department if s_fuel_cooler_department != "--" else "",
                     "coolant_sensor_source": s_coolant_sensor_source if s_coolant_sensor_source != "--" else "",
