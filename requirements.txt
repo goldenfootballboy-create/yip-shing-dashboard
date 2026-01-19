@@ -3,6 +3,7 @@ streamlit-calendar
 pandas
 reportlab
 resend
+gspread
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
