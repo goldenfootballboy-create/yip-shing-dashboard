@@ -3,4 +3,4 @@ streamlit-calendar
 pandas
 reportlab
 resend
-gsheetsconnection
+gsheetsconnection==0.2.0
