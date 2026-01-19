@@ -350,12 +350,17 @@ for c in date_cols:
 df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(date.today().year).astype(int)
 df["Qty"] = pd.to_numeric(df["Qty"], errors="coerce").fillna(1).astype(int)
 df["Real_Count"] = pd.to_numeric(df["Real_Count"], errors="coerce").fillna(df["Qty"]).astype(int)
+df["avm_qty"] = pd.to_numeric(df["avm_qty"], errors="coerce").fillna(0).astype(int)
 
 # 儲存函數（使用 gspread）
 def save_projects():
     df_save = df.copy()
     for c in date_cols:
         df_save[c] = df_save[c].apply(lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) else "")
+    numeric_cols = ["Qty", "Real_Count", "avm_qty"]  # 加 avm_qty
+    for c in numeric_cols:
+        if c in df_save.columns:
+            df_save[c] = pd.to_numeric(df_save[c], errors='coerce').fillna(0).astype(int)
     worksheet_projects.clear()
     worksheet_projects.update([df_save.columns.values.tolist()] + df_save.values.tolist())
     time.sleep(2)
@@ -1485,6 +1490,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     ] if isinstance(checklist, list) else [],
                     "remarks": e_remarks.strip(),
                     "base_sn": e_base_sn,
+                    "avm_qty": int(e_avm_qty),
                     "avm_model": e_avm_model
                 }
                 new_specs.append(spec_data)
