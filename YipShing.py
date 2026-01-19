@@ -185,6 +185,93 @@ def generate_overview_pdf(specs, project_info, qty):
     pdf_bytes = buffer.getvalue()
     buffer.close()
     return pdf_bytes
+
+def send_update_notification_email(project_name, old_specs, new_specs, recipient_emails):
+    st.write("開始發送信 debug...")
+    if not recipient_emails:
+        st.warning("沒有收件人，跳過發信")
+        return
+
+    if "RESEND_API_KEY" not in st.secrets:
+        st.error("錯誤：Secrets 中找不到 RESEND_API_KEY")
+        return
+
+    api_key = st.secrets["RESEND_API_KEY"]
+    st.write("API Key 前 10 字：", api_key[:10] + "...")  # 確認有讀到
+
+    import resend
+    resend.api_key = api_key
+
+    # 你的原始 email 內容邏輯（完整版）
+    body = f"""
+    專案 {project_name} 的規格已更新。
+
+    更新時間：{date.today().strftime('%Y-%m-%d %H:%M')}
+
+    主要變更如下（每台機器）：
+
+    """
+
+    for i in range(len(new_specs)):
+        old = old_specs[i] if i < len(old_specs) else {}
+        new = new_specs[i]
+
+        body += f"\n第 {i+1} 台：\n"
+
+        static_fields = [
+            "prime", "standby", "voltage", "frequency", "rpm",
+            "genset_model", "genset_sn", "engine_color", "engine_year", "engine_heater",
+            "alt_model", "alt_sn", "alt_color", "droop", "pmg", "alt_heater",
+            "rad_model", "rad_sn", "rad_temp", "fan_size", "radiator_guard",
+            "panel_model", "panel_sn", "co_detector", "breaker_type", "breaker_rating", "poles"
+        ]
+
+        for field in static_fields:
+            old_val = old.get(field, "—")
+            new_val = new.get(field, "—")
+            if old_val != new_val:
+                body += f"  - {field}: {old_val} → {new_val}\n"
+
+        dept_fields = [
+            "fan_department", "fuel_cooler_department", "coolant_sensor_department",
+            "low_water_department", "panel_department", "co_department", "breaker_department"
+        ]
+        for field in dept_fields:
+            old_val = old.get(field, "—")
+            new_val = new.get(field, "—")
+            if old_val != new_val:
+                body += f"  - {field} (負責部門): {old_val} → {new_val}\n"
+
+        old_parts = old.get("parts", [])
+        new_parts = new.get("parts", [])
+        if len(old_parts) != len(new_parts) or any(p1["name"] != p2["name"] for p1, p2 in zip(old_parts, new_parts)):
+            body += f"  - 配件清單有變更（新增/刪除/修改 {len(new_parts)} 項）\n"
+
+        old_check = old.get("delivery_checklist", [])
+        new_check = new.get("delivery_checklist", [])
+        changed_checks = []
+        for oc, nc in zip(old_check, new_check):
+            if oc.get("checked") != nc.get("checked"):
+                ch_status = "已勾選" if nc.get("checked") else "取消勾選"
+                changed_checks.append(f"{nc.get('name')}：{ch_status}")
+        if changed_checks:
+            body += "  - 出貨檢查清單打勾變更：\n    " + "\n    ".join(changed_checks) + "\n"
+
+    params = {
+        "from": "YIP SHING Dashboard <no-reply@resend.dev>",
+        "to": recipient_emails,
+        "subject": f"[測試] 專案規格更新通知：{project_name}",
+        "html": f"<pre>{body}</pre>",
+    }
+
+    try:
+        st.write("正在呼叫 Resend API...")
+        response = resend.Emails.send(params)
+        st.success(f"發送成功！Resend 訊息 ID: {response.get('id')}")
+    except Exception as e:
+        st.error(f"發送失敗：{str(e)}")
+        st.write("錯誤類型：", type(e).__name__)
+        st.write("完整錯誤：", str(e))
 # 頁面設定
 st.set_page_config(
     page_title="YIP SHING Project Dashboard",
