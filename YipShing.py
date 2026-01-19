@@ -6,6 +6,7 @@ import time
 from streamlit_calendar import calendar
 from io import BytesIO
 import resend
+from streamlit_gsheets import GSheetsConnection
 # reportlab 相關 import
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -276,15 +277,8 @@ if "dialog_active" not in st.session_state:
     st.session_state.dialog_active = None
 
 # Google Sheets 連接 + 讀取
-conn = st.connection("gsheets")
-try:
-    conn = st.connection("gsheets")
-    st.success("連線成功！")
-    test_df = conn.read(worksheet="projects", ttl=0)
-    st.write("讀取到資料筆數：", len(test_df))
-except Exception as e:
-    st.error("連線失敗：" + str(e))
-max_retries = 3
+conn = st.connection("gsheets", type=GSheetsConnection)
+
 df = pd.DataFrame(columns=[
     "Project_Type","Project_Name","Year","Lead_Time","Customer","Supervisor",
     "Qty","Real_Count","Project_Spec","Description","Progress_Reminder",
