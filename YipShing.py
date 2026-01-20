@@ -143,7 +143,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(f"貨櫃尺寸： {spec.get('cont_size', '—')}　　類型： {spec.get('cont_type', '—')}", normal))
         elements.append(Paragraph(f"控制器型號： {spec.get('panel_model', '—')}　　S/N： {spec.get('panel_sn', '—')}　　貨源： {spec.get('panel_source', '—')}　　負責部門： <font color=red>{spec.get('panel_department', '—')}</font>", normal))
         elements.append(Paragraph(f"CO 探測器 (OLED)： {spec.get('co_detector', '—')}　　貨源： {spec.get('co_source', '—')}　　負責部門： <font color=red>{spec.get('co_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"斷路器： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　貨源： {spec.get('breaker_source', '—')}　　負責部門： <font color=red>{spec.get('breaker_department', '—')}</font>", normal))
+        elements.append(Paragraph(f"斷路器： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N： {spec.get('breaker_sn', '—')}　　貨源： {spec.get('breaker_source', '—')}　　負責部門： <font color=red>{spec.get('breaker_department', '—')}</font>", normal))
         elements.append(Spacer(1, 36))  # 加較大間距，讓內容推到下一頁
 
         # 強制分頁：Container / Panel / Breaker 結束後強制換頁
@@ -245,7 +245,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
             body += f"<li>Genset model / S/N: {spec.get('genset_model', '—')} / {spec.get('genset_sn', '—')}</li>"
             body += f"<li>Alternator Model / S/N: {spec.get('alt_model', '—')} / {spec.get('alt_sn', '—')}</li>"
             body += f"<li>Panel model / S/N: {spec.get('panel_model', '—')} / {spec.get('panel_sn', '—')}</li>"
-            body += f"<li>Breaker Type / Rating / Poles: {spec.get('breaker_type', '—')} / {spec.get('breaker_rating', '—')} / {spec.get('poles', '—')}</li>"
+            body += f"<li>Breaker Type / Rating / Poles / S/N: {spec.get('breaker_type', '—')} / {spec.get('breaker_rating', '—')} / {spec.get('poles', '—')} / {spec.get('breaker_sn', '—')}</li>"
             body += f"<li>Spring Charging / Control Voltage: {spec.get('spring_charging', '—')} / {spec.get('control_voltage', '—')}</li>"
             body += f"<li>Remarks: {spec.get('remarks', '—')}</li>"
             body += "</ul></li>"
@@ -325,6 +325,19 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
             panel_sn = spec.get('panel_sn', '')
             if not panel_sn or panel_sn.strip() in ['—', 'None', '']:
                 missing_sn.append(f"第 {i+1} 台 Panel S/N")
+
+            breaker_sn = spec.get('breaker_sn', '')
+            if not breaker_sn or breaker_sn.strip() in ['—', 'None', '']:
+                missing_sn.append(f"第 {i + 1} 台 斷路器 S/N")
+
+            rad_sn = spec.get('rad_sn', '')
+            if not rad_sn or rad_sn.strip() in ['—', 'None', '']:
+                missing_sn.append(f"第 {i + 1} 台 水箱 S/N")
+
+
+            base_sn = spec.get('base_sn', '')
+            if not base_sn or base_sn.strip() in ['—', 'None', '']:
+                missing_sn.append(f"第 {i + 1} 台 底架 S/N")
 
         body += "<p><strong>【提醒填寫空缺項目】</strong></p><ul style='color: #d32f2f;'>"
         if missing_sn:
@@ -1394,6 +1407,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         e_spring_charging = st.selectbox("Spring Charging", ["--", "Motorized", "Single Usage"], index=safe_index(current.get("spring_charging", "--"), ["--", "Motorized", "Single Usage"]), key=f"edit_spring_charging_{idx_to_edit}_{i}")
                     e_control_voltage = st.text_input("Control Voltage", value=current.get("control_voltage", ""), key=f"edit_control_voltage_{idx_to_edit}_{i}")
 
+                    e_breaker_sn = st.text_input("Breaker S/N", value=current.get("breaker_sn", ""),
+                                                 key=f"edit_breaker_sn_{idx_to_edit}_{i}")
                     st.markdown("---")
 
                     # Door Limit Switch (與其他欄位一致)
@@ -1625,6 +1640,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "poles": e_poles if e_poles != "--" else "",
                     "spring_charging": e_spring_charging if e_spring_charging != "--" else "",
                     "control_voltage": e_control_voltage.strip() if e_control_voltage else "",
+                    "breaker_sn": e_breaker_sn.strip() if e_breaker_sn else "",
                     "door_limit_switch": e_door_limit_switch if e_door_limit_switch != "--" else "",
                     "door_limit_source": e_door_limit_source if e_door_limit_source != "--" else "",
                     "door_limit_department": e_door_limit_department if e_door_limit_department != "--" else "",
@@ -2158,6 +2174,8 @@ if st.session_state.get("spec_dialog_open", False):
 
                     s_control_voltage = st.text_input("Control Voltage(控制電壓)", key=f"dlg_control_voltage_{i}")
 
+                    s_breaker_sn = st.text_input("Breaker S/N", key=f"dlg_breaker_sn_{i}")
+
                     col_door_include, col_door_source, col_door_dept = st.columns([3, 2, 2])
 
                     with col_door_include:
@@ -2374,6 +2392,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "poles": s_poles if s_poles != "--" else "",
                     "spring_charging": s_spring_charging if s_spring_charging != "--" else "",
                     "control_voltage": s_control_voltage.strip() if s_control_voltage else "",
+                    "breaker_sn": s_breaker_sn.strip() if s_breaker_sn else "",
                     # Door Limit Switch
                     "door_limit_switch": s_door_limit_switch if s_door_limit_switch != "--" else "",
                     "door_limit_source": s_door_limit_source if s_door_limit_source != "--" else "",
