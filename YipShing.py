@@ -292,7 +292,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
                     assigned_dept_by_machine.append(f"<li>{dept}</li>")
                 assigned_dept_by_machine.append("</ul>")
 
-        body += "<p><strong>【已指派負責部門】</strong></p>"
+        body += "<p><strong>【負責部門】</strong></p>"
         if assigned_dept_by_machine:
             body += "<ul>"
             for item in assigned_dept_by_machine:
@@ -328,7 +328,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
             if not base_sn or base_sn.strip() in ['—', 'None', '']:
                 missing_sn.append(f"第 {i+1} 台 底架 S/N")
 
-        body += "<p><strong>【提醒填寫空缺項目】</strong></p><ul style='color: #d32f2f;'>"
+        body += "<p><strong>【請相關同事更新S/N】</strong></p><ul style='color: #d32f2f;'>"
         if missing_sn:
             body += "<li>S/N 尚未填寫：<ul>"
             for item in missing_sn:
@@ -419,7 +419,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
     params = {
         "from": "YIP SHING Dashboard <dashboard@topone-power.com>",
         "to": recipient_emails,
-        "subject": f"[測試] 專案規格通知：{project_name}",
+        "subject": f"專案規格通知：{project_name}",
         "html": body,
     }
 
@@ -1676,7 +1676,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
             recipient_emails = [
 
 
-                "anson@topone-power.com"
+                "anson@topone-power.com",
+                "michelle@ysdiesel.com.hk",
+                "serena@topone-power.com",
+                "warehouse@ysdiesel.com.hk",
+                "Kevin@topone-power.com"
 
 
             ]
