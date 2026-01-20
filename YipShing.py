@@ -254,38 +254,65 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
 
         # 抽出空缺提醒
         missing_sn = []
-        assigned_dept = []  # 已指派部門
+        assigned_dept_by_machine = []
 
         for i, spec in enumerate(new_specs):
-            # S/N 空缺
-            if spec.get('genset_sn') in ['—', '']:
-                missing_sn.append(f"第 {i+1} 台 發動機 S/N")
-            if spec.get('alt_sn') in ['—', '']:
-                missing_sn.append(f"第 {i+1} 台 電球 S/N")
-            if spec.get('panel_sn') in ['—', '']:
-                missing_sn.append(f"第 {i+1} 台 Panel S/N")
+            machine_depts = []
 
-            # 已指派部門（有值才列出）
+            # 風扇
             if spec.get('fan_department') and spec.get('fan_department') not in ['—', '']:
-                assigned_dept.append(f"風扇 - {spec.get('fan_department')}")
+                machine_depts.append(f"風扇 - {spec.get('fan_department')}")
+
+            # 燃油冷卻器
             if spec.get('fuel_cooler_department') and spec.get('fuel_cooler_department') not in ['—', '']:
-                assigned_dept.append(f"燃油冷卻器 - {spec.get('fuel_cooler_department')}")
+                machine_depts.append(f"燃油冷卻器 - {spec.get('fuel_cooler_department')}")
+
+            # 冷卻液溫度感測器
             if spec.get('coolant_sensor_department') and spec.get('coolant_sensor_department') not in ['—', '']:
-                assigned_dept.append(f"冷卻液溫度感測器 - {spec.get('coolant_sensor_department')}")
+                machine_depts.append(f"冷卻液溫度感測器 - {spec.get('coolant_sensor_department')}")
+
+            # 低水位浮球開關
             if spec.get('low_water_department') and spec.get('low_water_department') not in ['—', '']:
-                assigned_dept.append(f"低水位浮球開關 - {spec.get('low_water_department')}")
+                machine_depts.append(f"低水位浮球開關 - {spec.get('low_water_department')}")
+
+            # Panel (控制器)
+            if spec.get('panel_department') and spec.get('panel_department') not in ['—', '']:
+                machine_depts.append(f"Panel (控制器) - {spec.get('panel_department')}")
+
+            # CO 探測器 (OLED)
+            if spec.get('co_department') and spec.get('co_department') not in ['—', '']:
+                machine_depts.append(f"CO 探測器 (OLED) - {spec.get('co_department')}")
+
+            # Circuit Breaker (斷路器)
+            if spec.get('breaker_department') and spec.get('breaker_department') not in ['—', '']:
+                machine_depts.append(f"Circuit Breaker (斷路器) - {spec.get('breaker_department')}")
+
+            # Door Limit Switch
+            if spec.get('door_limit_department') and spec.get('door_limit_department') not in ['—', '']:
+                machine_depts.append(f"Door Limit Switch - {spec.get('door_limit_department')}")
+
+            # 避震器
             if spec.get('avm_department') and spec.get('avm_department') not in ['—', '']:
-                assigned_dept.append(f"避震器 - {spec.get('avm_department')}")
+                machine_depts.append(f"避震器 - {spec.get('avm_department')}")
 
-        body += "<p><strong>【已指派負責部門】</strong></p><ul>"
-        if assigned_dept:
-            for item in assigned_dept:
-                body += f"<li>{item}</li>"
+            if machine_depts:
+                assigned_dept_by_machine.append(f"<strong>第 {i + 1} 台：</strong><ul>")
+                for dept in machine_depts:
+                    assigned_dept_by_machine.append(f"<li>{dept}</li>")
+                assigned_dept_by_machine.append("</ul>")
+
+        # 加入到 email body
+        body += "<p><strong>【已指派負責部門】</strong></p>"
+
+        if assigned_dept_by_machine:
+            body += "<ul>"
+            for item in assigned_dept_by_machine:
+                body += item
+            body += "</ul>"
         else:
-            body += "<li>暫無已指派的負責部門。</li>"
-        body += "</ul>"
+            body += "<p>暫無已指派的負責部門。</p>"
 
-        body += "<p><strong>【提醒填寫空缺項目】</strong></p><ul style='color: #d32f2f;'>"
+        body += "<p><strong>【請相關同事填寫空缺項目】</strong></p><ul style='color: #d32f2f;'>"
         if missing_sn:
             body += "<li>S/N 尚未填寫：<ul>"
             for item in missing_sn:
