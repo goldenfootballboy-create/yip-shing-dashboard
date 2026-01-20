@@ -210,7 +210,6 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
     hkt = timezone(timedelta(hours=8))
     update_time = datetime.now(hkt).strftime('%Y-%m-%d %H:%M')
 
-    # 開始建構 HTML 內容
     body = f"""
     <html>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -218,7 +217,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
     """
 
     if not old_specs:
-        # 新增規格：完整列出細節 + 提醒空缺 + 已指派部門
+        # 新增規格：完整列出細節 + 配件 + 已指派部門 + 空缺提醒
         body += f"""
         <p>專案 <strong>{project_name}</strong> 的新規格已建立。</p>
         <p><strong>專案類型：</strong> {project_info.get('Project_Type', '—')}</p>
@@ -237,7 +236,6 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
         <ul>
         """
 
-        # 每台機器細節
         for i, spec in enumerate(new_specs):
             body += f"<li><strong>第 {i+1} 台：</strong><ul>"
             body += f"<li>Prime / Standby: {spec.get('prime', '—')} / {spec.get('standby', '—')}</li>"
@@ -252,45 +250,39 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
 
         body += "</ul>"
 
+        # 配件清單（完整列出）
+        body += "<p><strong>配件清單：</strong></p><ul>"
+        for i, spec in enumerate(new_specs):
+            parts = spec.get("parts", [])
+            if parts:
+                body += f"<li><strong>第 {i+1} 台：</strong><ul>"
+                for p in parts:
+                    body += f"<li>{p.get('name', '—')} (貨源: {p.get('source', '—')}, 負責部門: {p.get('department', '—')})</li>"
+                body += "</ul></li>"
+            else:
+                body += f"<li><strong>第 {i+1} 台：</strong> 無配件</li>"
+        body += "</ul>"
+
         # 已指派負責部門（按台分組）
         assigned_dept_by_machine = []
-
         for i, spec in enumerate(new_specs):
             machine_depts = []
-
-            # 風扇
             if spec.get('fan_department') and spec.get('fan_department') not in ['—', '']:
                 machine_depts.append(f"風扇 - {spec.get('fan_department')}")
-
-            # 燃油冷卻器
             if spec.get('fuel_cooler_department') and spec.get('fuel_cooler_department') not in ['—', '']:
                 machine_depts.append(f"燃油冷卻器 - {spec.get('fuel_cooler_department')}")
-
-            # 冷卻液溫度感測器
             if spec.get('coolant_sensor_department') and spec.get('coolant_sensor_department') not in ['—', '']:
                 machine_depts.append(f"冷卻液溫度感測器 - {spec.get('coolant_sensor_department')}")
-
-            # 低水位浮球開關
             if spec.get('low_water_department') and spec.get('low_water_department') not in ['—', '']:
                 machine_depts.append(f"低水位浮球開關 - {spec.get('low_water_department')}")
-
-            # Panel (控制器)
             if spec.get('panel_department') and spec.get('panel_department') not in ['—', '']:
                 machine_depts.append(f"Panel (控制器) - {spec.get('panel_department')}")
-
-            # CO 探測器 (OLED)
             if spec.get('co_department') and spec.get('co_department') not in ['—', '']:
                 machine_depts.append(f"CO 探測器 (OLED) - {spec.get('co_department')}")
-
-            # Circuit Breaker (斷路器)
             if spec.get('breaker_department') and spec.get('breaker_department') not in ['—', '']:
                 machine_depts.append(f"Circuit Breaker (斷路器) - {spec.get('breaker_department')}")
-
-            # Door Limit Switch
             if spec.get('door_limit_department') and spec.get('door_limit_department') not in ['—', '']:
                 machine_depts.append(f"Door Limit Switch - {spec.get('door_limit_department')}")
-
-            # 避震器
             if spec.get('avm_department') and spec.get('avm_department') not in ['—', '']:
                 machine_depts.append(f"避震器 - {spec.get('avm_department')}")
 
@@ -301,7 +293,6 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
                 assigned_dept_by_machine.append("</ul>")
 
         body += "<p><strong>【已指派負責部門】</strong></p>"
-
         if assigned_dept_by_machine:
             body += "<ul>"
             for item in assigned_dept_by_machine:
@@ -312,7 +303,6 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
 
         # 空缺 S/N 提醒
         missing_sn = []
-
         for i, spec in enumerate(new_specs):
             genset_sn = spec.get('genset_sn', '')
             if not genset_sn or genset_sn.strip() in ['—', 'None', '']:
@@ -328,16 +318,15 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
 
             breaker_sn = spec.get('breaker_sn', '')
             if not breaker_sn or breaker_sn.strip() in ['—', 'None', '']:
-                missing_sn.append(f"第 {i + 1} 台 斷路器 S/N")
+                missing_sn.append(f"第 {i+1} 台 斷路器 S/N")
 
             rad_sn = spec.get('rad_sn', '')
             if not rad_sn or rad_sn.strip() in ['—', 'None', '']:
-                missing_sn.append(f"第 {i + 1} 台 水箱 S/N")
-
+                missing_sn.append(f"第 {i+1} 台 水箱 S/N")
 
             base_sn = spec.get('base_sn', '')
             if not base_sn or base_sn.strip() in ['—', 'None', '']:
-                missing_sn.append(f"第 {i + 1} 台 底架 S/N")
+                missing_sn.append(f"第 {i+1} 台 底架 S/N")
 
         body += "<p><strong>【提醒填寫空缺項目】</strong></p><ul style='color: #d32f2f;'>"
         if missing_sn:
@@ -418,7 +407,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
 
         body += "</ul>"
 
-    # 固定結尾（上下兩句調轉）
+    # 固定結尾
     body += """
     <br><br>
     本郵件為自動生成，請勿回覆。如有疑問，請聯絡專案負責人。<br>
