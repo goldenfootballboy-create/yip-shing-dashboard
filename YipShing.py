@@ -218,7 +218,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
     """
 
     if not old_specs:
-        # 新增規格：完整列出細節 + 提醒空缺
+        # 新增規格：完整列出細節 + 提醒空缺 + 已指派部門
         body += f"""
         <p>專案 <strong>{project_name}</strong> 的新規格已建立。</p>
         <p><strong>專案類型：</strong> {project_info.get('Project_Type', '—')}</p>
@@ -237,7 +237,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
         <ul>
         """
 
-        # 因為 Qty 可能多台，但細節以第一台為主（或每台都列）
+        # 每台機器細節
         for i, spec in enumerate(new_specs):
             body += f"<li><strong>第 {i+1} 台：</strong><ul>"
             body += f"<li>Prime / Standby: {spec.get('prime', '—')} / {spec.get('standby', '—')}</li>"
@@ -252,8 +252,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
 
         body += "</ul>"
 
-        # 抽出空缺提醒
-        missing_sn = []
+        # 已指派負責部門（按台分組）
         assigned_dept_by_machine = []
 
         for i, spec in enumerate(new_specs):
@@ -296,13 +295,12 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
                 machine_depts.append(f"避震器 - {spec.get('avm_department')}")
 
             if machine_depts:
-                assigned_dept_by_machine.append(f"<strong>第 {i + 1} 台：</strong><ul>")
+                assigned_dept_by_machine.append(f"<strong>第 {i+1} 台：</strong><ul>")
                 for dept in machine_depts:
                     assigned_dept_by_machine.append(f"<li>{dept}</li>")
                 assigned_dept_by_machine.append("</ul>")
 
-        # 加入到 email body
-        body += "<p><strong>【請負責部門跟進】</strong></p>"
+        body += "<p><strong>【已指派負責部門】</strong></p>"
 
         if assigned_dept_by_machine:
             body += "<ul>"
@@ -312,19 +310,35 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
         else:
             body += "<p>暫無已指派的負責部門。</p>"
 
-        body += "<p><strong>【請相關同事填寫空缺項目】</strong></p><ul style='color: #d32f2f;'>"
+        # 空缺 S/N 提醒
+        missing_sn = []
+
+        for i, spec in enumerate(new_specs):
+            genset_sn = spec.get('genset_sn', '')
+            if not genset_sn or genset_sn.strip() in ['—', 'None', '']:
+                missing_sn.append(f"第 {i+1} 台 發動機 S/N")
+
+            alt_sn = spec.get('alt_sn', '')
+            if not alt_sn or alt_sn.strip() in ['—', 'None', '']:
+                missing_sn.append(f"第 {i+1} 台 電球 S/N")
+
+            panel_sn = spec.get('panel_sn', '')
+            if not panel_sn or panel_sn.strip() in ['—', 'None', '']:
+                missing_sn.append(f"第 {i+1} 台 Panel S/N")
+
+        body += "<p><strong>【提醒填寫空缺項目】</strong></p><ul style='color: #d32f2f;'>"
         if missing_sn:
             body += "<li>S/N 尚未填寫：<ul>"
             for item in missing_sn:
                 body += f"<li>{item}</li>"
             body += "</ul></li>"
-        if not missing_sn:
+        else:
             body += "<li>所有 S/N 已填寫完成。</li>"
         body += "</ul>"
 
     else:
         # 編輯模式：只列變更項目
-        body = f"""
+        body += f"""
         <p>專案 <strong>{project_name}</strong> 的規格已更新。</p>
         <p><strong>更新時間：</strong> {update_time} (香港時間)</p>
         <p><strong>主要變更如下（每台機器）：</strong></p>
@@ -391,7 +405,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
 
         body += "</ul>"
 
-    # 固定結尾
+    # 固定結尾（上下兩句調轉）
     body += """
     <br><br>
     本郵件為自動生成，請勿回覆。如有疑問，請聯絡專案負責人。<br>
