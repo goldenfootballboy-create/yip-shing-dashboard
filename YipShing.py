@@ -189,7 +189,7 @@ def generate_overview_pdf(specs, project_info, qty):
     buffer.close()
     return pdf_bytes
 
-def send_update_notification_email(project_name, old_specs, new_specs, recipient_emails):
+def send_update_notification_email(project_name, old_specs, new_specs, recipient_emails, project_info):
     st.write("開始發送信 debug...")
     if not recipient_emails:
         st.warning("沒有收件人，跳過發信")
@@ -208,7 +208,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
     # 你的原始 email 內容邏輯（完整版）
     if not old_specs:
         body = f"""
-            專案 {project_name} 的新規格已建立。
+            專案 {project_name} {project_info.get('Project_Type', '—')} 已建立。
 
             建立時間：{update_time} (香港時間)
 
@@ -216,7 +216,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
             """
     else:
         body = f"""
-            專案 {project_name} 的規格已更新。
+            專案 {project_name}  的規格已更新。
 
             更新時間：{update_time} (香港時間)
 
@@ -269,7 +269,9 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
             body += "  - 出貨檢查清單打勾變更：\n    " + "\n    ".join(changed_checks) + "\n"
     # 加在最後
     body += """
-    本郵件為自動生成，請勿回覆。如有疑問，請聯絡專案負責人。
+    <br><br>
+    本郵件為自動生成，請勿回覆。如有疑問，請聯絡專案負責人。<br>
+    系統網頁：<a href="https://yip-shing-dashboard-bhkutkwadqv2ice5ephot2.streamlit.app/" style="color: #1fb429; text-decoration: underline;">點擊進入 YIP SHING Dashboard</a>
     """
 
     params = {
