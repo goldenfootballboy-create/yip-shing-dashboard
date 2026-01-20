@@ -1517,18 +1517,17 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "low_water": e_low_water if e_low_water != "--" else "",
                     "low_water_source": e_low_water_source if e_low_water_source != "--" else "",
                     "low_water_department": e_low_water_department if e_low_water_department != "--" else "",
-                    # ← 補這行（負責部門）
                     "radiator_guard": e_radiator_guard if e_radiator_guard != "--" else "",
-                    "fuel_cooler": e_fuel_cooler if e_fuel_cooler != "--" else "",  # ← 補這行（Include/Not Include）
+                    "fuel_cooler": e_fuel_cooler if e_fuel_cooler != "--" else "",
                     "fuel_cooler_source": e_fuel_cooler_source if e_fuel_cooler_source != "--" else "",
                     "fuel_cooler_department": e_fuel_cooler_department if e_fuel_cooler_department != "--" else "",
                     "base_model": e_base_model,
-                    "base_sn": e_base_sn,
+
                     "base_source": e_base_source if e_base_source != "--" else "",
                     "avm_source": e_avm_source if e_avm_source != "--" else "",
                     "avm_department": e_avm_department if e_avm_department != "--" else "",
-                    "avm_model": e_avm_model,
-                    "avm_qty": int(e_avm_qty),  # 你已加
+
+                    "avm_qty": int(e_avm_qty),  # 已正確轉 int
                     "cont_size": e_cont_size if e_cont_size != "--" else "",
                     "cont_type": e_cont_type if e_cont_type != "--" else "",
                     "cont_color": e_cont_color,
@@ -1545,8 +1544,14 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "co_detector": e_co_detector if e_co_detector != "--" else "",
                     "co_source": e_co_source if e_co_source != "--" else "",
                     "co_department": e_co_department if e_co_department != "--" else "",
+                    # Circuit Breaker 欄位（新增/補齊）
                     "breaker_source": e_breaker_source if e_breaker_source != "--" else "",
                     "breaker_department": e_breaker_department if e_breaker_department != "--" else "",
+                    "breaker_type": e_breaker_type if e_breaker_type != "--" else "",
+                    "breaker_rating": e_breaker_rating.strip() if e_breaker_rating else "",
+                    "poles": e_poles if e_poles != "--" else "",
+                    "spring_charging": e_spring_charging if e_spring_charging != "--" else "",
+                    "control_voltage": e_control_voltage.strip() if e_control_voltage else "",
                     "door_limit_switch": e_door_limit_switch if e_door_limit_switch != "--" else "",
                     "door_limit_source": e_door_limit_source if e_door_limit_source != "--" else "",
                     "door_limit_department": e_door_limit_department if e_door_limit_department != "--" else "",
@@ -1562,6 +1567,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "avm_model": e_avm_model
                 }
                 new_specs.append(spec_data)
+
 
         # PDF 匯出按鈕（放在 Save & Close 旁邊）
         if st.button("📄 Export PDF ", type="secondary", use_container_width=True):
@@ -2253,20 +2259,24 @@ if st.session_state.get("spec_dialog_open", False):
                     "rad_sn": s_rad_sn,
                     "rad_temp": s_rad_temp,
                     "fan_size": s_fan_size,
+                    "fan_department": s_fan_department if s_fan_department != "--" else "",
                     "coolant_sensor": s_coolant_sensor if s_coolant_sensor != "--" else "",
+                    "coolant_sensor_source": s_coolant_sensor_source if s_coolant_sensor_source != "--" else "",
+                    "coolant_sensor_department": s_coolant_sensor_department if s_coolant_sensor_department != "--" else "",
                     "low_water": s_low_water if s_low_water != "--" else "",
+                    "low_water_source": s_low_water_source if s_low_water_source != "--" else "",
+                    "low_water_department": s_low_water_department if s_low_water_department != "--" else "",
                     "radiator_guard": s_radiator_guard if s_radiator_guard != "--" else "",
-                    "rad_source": s_rad_source if s_rad_source != "--" else "",
+                    "fuel_cooler": s_fuel_cooler if s_fuel_cooler != "--" else "",
                     "fuel_cooler_source": s_fuel_cooler_source if s_fuel_cooler_source != "--" else "",
                     "fuel_cooler_department": s_fuel_cooler_department if s_fuel_cooler_department != "--" else "",
-                    "coolant_sensor_source": s_coolant_sensor_source if s_coolant_sensor_source != "--" else "",
-                    "low_water_source": s_low_water_source if s_low_water_source != "--" else "",
                     "base_model": s_base_model,
                     "base_sn": s_base_sn,
                     "base_source": s_base_source if s_base_source != "--" else "",
-                    "avm_qty": str(s_avm_qty),
                     "avm_source": s_avm_source if s_avm_source != "--" else "",
                     "avm_department": s_avm_department if s_avm_department != "--" else "",
+                    "avm_model": s_avm_model,
+                    "avm_qty": int(s_avm_qty),  # 數字欄位轉 int
                     "cont_size": s_cont_size if s_cont_size != "--" else "",
                     "cont_type": s_cont_type if s_cont_type != "--" else "",
                     "cont_color": s_cont_color,
@@ -2278,33 +2288,27 @@ if st.session_state.get("spec_dialog_open", False):
                     "cont_source": s_cont_source if s_cont_source != "--" else "",
                     "panel_model": s_panel_model,
                     "panel_sn": s_panel_sn,
+                    "panel_source": s_panel_source if s_panel_source != "--" else "",
+                    "panel_department": s_panel_department if s_panel_department != "--" else "",
                     "co_detector": s_co_detector if s_co_detector != "--" else "",
                     "co_source": s_co_source if s_co_source != "--" else "",
                     "co_department": s_co_department if s_co_department != "--" else "",
-                    "panel_source": s_panel_source if s_panel_source != "--" else "",
-                    "co_source": s_co_source if s_co_source != "--" else "",
+                    # Circuit Breaker 欄位（補齊所有）
+                    "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
+                    "breaker_department": s_breaker_department if s_breaker_department != "--" else "",
                     "breaker_type": s_breaker_type if s_breaker_type != "--" else "",
-                    "breaker_rating": s_breaker_rating,
+                    "breaker_rating": s_breaker_rating.strip() if s_breaker_rating else "",
                     "poles": s_poles if s_poles != "--" else "",
                     "spring_charging": s_spring_charging if s_spring_charging != "--" else "",
-                    "control_voltage": s_control_voltage,
-                    "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
-                    "remarks": s_remarks.strip(),
-                    "parts": [p for p in parts_list if p["name"].strip()],
-                    "delivery_checklist": checklist,
-                    "panel_department": s_panel_department if s_panel_department != "--" else "",
-                    "breaker_department": s_breaker_department if s_breaker_department != "--" else "",
-                    "fan_department": s_fan_department if s_fan_department != "--" else "",
-                    "coolant_sensor_department": s_coolant_sensor_department if s_coolant_sensor_department != "--" else "",
-                    "low_water_department": s_low_water_department if s_low_water_department != "--" else "",
+                    "control_voltage": s_control_voltage.strip() if s_control_voltage else "",
+                    # Door Limit Switch
                     "door_limit_switch": s_door_limit_switch if s_door_limit_switch != "--" else "",
                     "door_limit_source": s_door_limit_source if s_door_limit_source != "--" else "",
                     "door_limit_department": s_door_limit_department if s_door_limit_department != "--" else "",
-                    "panel_source": s_panel_source if s_panel_source != "--" else "",
-                    "panel_department": s_panel_department if s_panel_department != "--" else "",
-                    "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
-                    "breaker_department": s_breaker_department if s_breaker_department != "--" else "",
-                    "avm_model": s_avm_model
+                    # 其他
+                    "parts": [p for p in parts_list if p["name"].strip()],
+                    "delivery_checklist": checklist,
+                    "remarks": s_remarks.strip()
                 }
                 specs.append(spec_data)
         # PDF 匯出按鈕（放在 Save & Close 旁邊）
