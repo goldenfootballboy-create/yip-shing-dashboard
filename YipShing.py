@@ -2413,6 +2413,10 @@ if st.session_state.get("spec_dialog_open", False):
             # 收件人列表
             recipient_emails = [
                 "anson@topone-power.com",
+                "michelle@ysdiesel.com.hk",
+                "serena@topone-power.com",
+                "warehouse@ysdiesel.com.hk",
+                "Kevin@topone-power.com"
             ]
 
             # 呼叫發送 email 函數
