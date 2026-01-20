@@ -587,11 +587,6 @@ def render_project_card(row, idx):
                         st.markdown(
                             f"**低水位浮球開關**： {spec.get('low_water', '—')}　　貨源 {spec.get('low_water_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('low_water_department', '—')}</span>",
                             unsafe_allow_html=True)
-                        st.markdown("---")
-
-                        st.markdown(f"**燃油冷卻器**：貨源 {spec.get('fuel_cooler_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('fuel_cooler_department', '—')}</span>", unsafe_allow_html=True)
-                        st.markdown(f"**冷卻液溫度感測器**： {spec.get('coolant_sensor', '—')}　　貨源： {spec.get('coolant_sensor_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('coolant_sensor_department', '—')}</span>", unsafe_allow_html=True)
-                        st.markdown(f"**低水位浮球開關**： {spec.get('low_water', '—')}　　貨源： {spec.get('low_water_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('low_water_department', '—')}</span>", unsafe_allow_html=True)
                         st.markdown(f"**底架型號**： {spec.get('base_model', '—')}　　**S/N**： {spec.get('base_sn', '—')}")
                         st.markdown(
                             f"**避震器**：型號 {spec.get('avm_model', '—')}　　數量 {spec.get('avm_qty', '—')}　　貨源 {spec.get('avm_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('avm_department', '—')}</span>",
@@ -2264,7 +2259,6 @@ if st.session_state.get("spec_dialog_open", False):
             # 收件人列表
             recipient_emails = [
                 "anson@topone-power.com",
-                "goldenfootballboy@gmail.com"
             ]
 
             # 呼叫發送 email 函數
