@@ -129,16 +129,13 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(f"水箱型號： {spec.get('rad_model', '—')}　　S/N： {spec.get('rad_sn', '—')}　　溫度： {spec.get('rad_temp', '—')}", normal))
         elements.append(Paragraph(f"風扇呎吋： {spec.get('fan_size', '—')}　　負責部門： <font color=red>{spec.get('fan_department', '—')}</font>", normal))
         elements.append(Paragraph(f"水箱護罩： {spec.get('radiator_guard', '—')}", normal))
-        elements.append(Spacer(1, 24))
-
-        # Fuel Cooler / Coolant sensor / Low water
-        elements.append(Paragraph("其他組件", heading3))
         elements.append(Spacer(1, 6))
         elements.append(Paragraph(f"燃油冷卻器　　貨源： {spec.get('fuel_cooler_source', '—')}　　負責部門： <font color=red>{spec.get('fuel_cooler_department', '—')}</font>", normal))
         elements.append(Paragraph(f"冷卻液溫度感測器　　{ spec.get('coolant_sensor', '—') }　　貨源： {spec.get('coolant_sensor_source', '—')}　　負責部門： <font color=red>{spec.get('coolant_sensor_department', '—')}</font>", normal))
         elements.append(Paragraph(f"低水位浮球開關　　{ spec.get('low_water', '—') }　　貨源： {spec.get('low_water_source', '—')}　　負責部門： <font color=red>{spec.get('low_water_department', '—')}</font>", normal))
-        elements.append(Spacer(1, 24))
-
+        elements.append(Spacer(1, 6))
+        elements.append(
+            Paragraph(f"底架型號： {spec.get('base_model', '—')}　　S/N： {spec.get('base_sn', '—')}", normal))  # ← 補齊這行
         # Container / Panel / Breaker - 第一頁到這裡結束
         elements.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
         elements.append(Spacer(1, 6))
