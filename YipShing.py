@@ -743,9 +743,6 @@ def render_project_card(row, idx):
 
 # Edit Project Specification Dialog
 if st.session_state.get("show_edit_spec_dialog", False):
-    if st.session_state.dialog_active != "edit_spec":
-        st.session_state.dialog_active = "edit_spec"
-        st.rerun()
 
     idx_to_edit = st.session_state["current_edit_idx"]
     row_to_edit = df.loc[idx_to_edit]
