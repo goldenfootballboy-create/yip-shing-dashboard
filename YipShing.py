@@ -210,82 +210,105 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
     hkt = timezone(timedelta(hours=8))
     update_time = datetime.now(hkt).strftime('%Y-%m-%d %H:%M')
 
-    # 判斷新增或更新
+    # 開始建構 HTML 內容
+    body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #1fb429;">專案 {project_name} 的規格通知</h2>
+    """
+
     if not old_specs:
         # 新增規格：完整列出細節 + 提醒空缺
-        body = f"""
-        專案 {project_name} 的新規格已建立。
-
-        專案類型：{project_info.get('Project_Type', '—')}
-
-        建立時間：{update_time} (香港時間)
-
-        規格細節如下：
-        Year: {project_info.get('Year', '—')} | Lead Time: {project_info.get('Lead_Time', '—').strftime('%Y-%m-%d') if pd.notna(project_info.get('Lead_Time')) else '—'}
-        Customer: {project_info.get('Customer', '—')} | Supervisor: {project_info.get('Supervisor', '—')} | Qty: {project_info.get('Qty', '—')}
-
-        Project Specification:
-        """
-
-        # 因為 Qty=1，只列一台
-        spec = new_specs[0] if new_specs else {}
-
         body += f"""
-        • Prime: {spec.get('prime', '—')} Standby: {spec.get('standby', '—')}
-        • Voltage: {spec.get('voltage', '—')} Frequency: {spec.get('frequency', '—')} RPM: {spec.get('rpm', '—')}
-        • Genset model: {spec.get('genset_model', '—')} | S/N: {spec.get('genset_sn', '—')}
-        • Alternator Model: {spec.get('alt_model', '—')} | S/N: {spec.get('alt_sn', '—')}
-        • Panel model: {spec.get('panel_model', '—')} | S/N: {spec.get('panel_sn', '—')}
-        • Breaker Type: {spec.get('breaker_type', '—')} | Breaker Rating: {spec.get('breaker_rating', '—')} Poles: {spec.get('poles', '—')}
-        • Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}
-        Remarks: {spec.get('remarks', '—')}
+        <p>專案 <strong>{project_name}</strong> 的新規格已建立。</p>
+        <p><strong>專案類型：</strong> {project_info.get('Project_Type', '—')}</p>
+        <p><strong>建立時間：</strong> {update_time} (香港時間)</p>
+
+        <p><strong>規格細節如下：</strong></p>
+        <ul>
+            <li><strong>Year:</strong> {project_info.get('Year', '—')}</li>
+            <li><strong>Lead Time:</strong> {project_info.get('Lead_Time', '—').strftime('%Y-%m-%d') if pd.notna(project_info.get('Lead_Time')) else '—'}</li>
+            <li><strong>Customer:</strong> {project_info.get('Customer', '—')}</li>
+            <li><strong>Supervisor:</strong> {project_info.get('Supervisor', '—')}</li>
+            <li><strong>Qty:</strong> {project_info.get('Qty', '—')}</li>
+        </ul>
+
+        <p><strong>Project Specification:</strong></p>
+        <ul>
         """
+
+        # 因為 Qty 可能多台，但細節以第一台為主（或每台都列）
+        for i, spec in enumerate(new_specs):
+            body += f"<li><strong>第 {i+1} 台：</strong><ul>"
+            body += f"<li>Prime / Standby: {spec.get('prime', '—')} / {spec.get('standby', '—')}</li>"
+            body += f"<li>Voltage / Frequency / RPM: {spec.get('voltage', '—')} / {spec.get('frequency', '—')} / {spec.get('rpm', '—')}</li>"
+            body += f"<li>Genset model / S/N: {spec.get('genset_model', '—')} / {spec.get('genset_sn', '—')}</li>"
+            body += f"<li>Alternator Model / S/N: {spec.get('alt_model', '—')} / {spec.get('alt_sn', '—')}</li>"
+            body += f"<li>Panel model / S/N: {spec.get('panel_model', '—')} / {spec.get('panel_sn', '—')}</li>"
+            body += f"<li>Breaker Type / Rating / Poles: {spec.get('breaker_type', '—')} / {spec.get('breaker_rating', '—')} / {spec.get('poles', '—')}</li>"
+            body += f"<li>Spring Charging / Control Voltage: {spec.get('spring_charging', '—')} / {spec.get('control_voltage', '—')}</li>"
+            body += f"<li>Remarks: {spec.get('remarks', '—')}</li>"
+            body += "</ul></li>"
+
+        body += "</ul>"
 
         # 抽出空缺提醒
         missing_sn = []
-        missing_dept = []
+        assigned_dept = []  # 已指派部門
 
-        # S/N 空缺檢查
-        if spec.get('genset_sn') in ['—', '']:
-            missing_sn.append("發動機 S/N")
-        if spec.get('alt_sn') in ['—', '']:
-            missing_sn.append("電球 S/N")
-        if spec.get('panel_sn') in ['—', '']:
-            missing_sn.append("Panel S/N")
+        for i, spec in enumerate(new_specs):
+            # S/N 空缺
+            if spec.get('genset_sn') in ['—', '']:
+                missing_sn.append(f"第 {i+1} 台 發動機 S/N")
+            if spec.get('alt_sn') in ['—', '']:
+                missing_sn.append(f"第 {i+1} 台 電球 S/N")
+            if spec.get('panel_sn') in ['—', '']:
+                missing_sn.append(f"第 {i+1} 台 Panel S/N")
 
-        # 負責部門空缺檢查（只提醒有包含但部門空白的項目）
-        if spec.get('fuel_cooler') == "Include" and spec.get('fuel_cooler_department') in ['—', '']:
-            missing_dept.append("燃油冷卻器 - 負責部門")
-        if spec.get('coolant_sensor') == "Include" and spec.get('coolant_sensor_department') in ['—', '']:
-            missing_dept.append("冷卻液溫度感測器 - 負責部門")
-        if spec.get('low_water') == "Include" and spec.get('low_water_department') in ['—', '']:
-            missing_dept.append("低水位浮球開關 - 負責部門")
-        if spec.get('avm_model') and spec.get('avm_department') in ['—', '']:
-            missing_dept.append("避震器 - 負責部門")
+            # 已指派部門（有值才列出）
+            if spec.get('fan_department') and spec.get('fan_department') not in ['—', '']:
+                assigned_dept.append(f"風扇 - {spec.get('fan_department')}")
+            if spec.get('fuel_cooler_department') and spec.get('fuel_cooler_department') not in ['—', '']:
+                assigned_dept.append(f"燃油冷卻器 - {spec.get('fuel_cooler_department')}")
+            if spec.get('coolant_sensor_department') and spec.get('coolant_sensor_department') not in ['—', '']:
+                assigned_dept.append(f"冷卻液溫度感測器 - {spec.get('coolant_sensor_department')}")
+            if spec.get('low_water_department') and spec.get('low_water_department') not in ['—', '']:
+                assigned_dept.append(f"低水位浮球開關 - {spec.get('low_water_department')}")
+            if spec.get('avm_department') and spec.get('avm_department') not in ['—', '']:
+                assigned_dept.append(f"避震器 - {spec.get('avm_department')}")
 
-        body += "\n【提醒填寫空缺項目】\n"
+        body += "<p><strong>【已指派負責部門】</strong></p><ul>"
+        if assigned_dept:
+            for item in assigned_dept:
+                body += f"<li>{item}</li>"
+        else:
+            body += "<li>暫無已指派的負責部門。</li>"
+        body += "</ul>"
+
+        body += "<p><strong>【提醒填寫空缺項目】</strong></p><ul style='color: #d32f2f;'>"
         if missing_sn:
-            body += "  - S/N 尚未填寫：\n    " + "\n    ".join(missing_sn) + "\n"
-        if missing_dept:
-            body += "  - 負責部門尚未填寫：\n    " + "\n    ".join(missing_dept) + "\n"
-        if not missing_sn and not missing_dept:
-            body += "  - 所有 S/N 和負責部門已填寫完成。\n"
+            body += "<li>S/N 尚未填寫：<ul>"
+            for item in missing_sn:
+                body += f"<li>{item}</li>"
+            body += "</ul></li>"
+        if not missing_sn:
+            body += "<li>所有 S/N 已填寫完成。</li>"
+        body += "</ul>"
 
     else:
-        # 編輯模式：只列變更項目（保持原邏輯）
+        # 編輯模式：只列變更項目
         body = f"""
-        專案 {project_name} 的規格已更新。
-
-        更新時間：{update_time} (香港時間)
-
-        主要變更如下（每台機器）：
+        <p>專案 <strong>{project_name}</strong> 的規格已更新。</p>
+        <p><strong>更新時間：</strong> {update_time} (香港時間)</p>
+        <p><strong>主要變更如下（每台機器）：</strong></p>
+        <ul>
         """
 
         for i in range(len(new_specs)):
             old = old_specs[i] if i < len(old_specs) else {}
             new = new_specs[i]
 
-            body += f"\n第 {i+1} 台：\n"
+            body += f"<li><strong>第 {i+1} 台：</strong><ul>"
 
             static_fields = [
                 "prime", "standby", "voltage", "frequency", "rpm",
@@ -300,7 +323,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
                 old_val = old.get(field, "—")
                 new_val = new.get(field, "—")
                 if old_val != new_val:
-                    body += f"  - {field}: {old_val} → {new_val}\n"
+                    body += f"<li>{field}: {old_val} → {new_val}</li>"
                     has_change = True
 
             dept_fields = [
@@ -311,13 +334,13 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
                 old_val = old.get(field, "—")
                 new_val = new.get(field, "—")
                 if old_val != new_val:
-                    body += f"  - {field} (負責部門): {old_val} → {new_val}\n"
+                    body += f"<li>{field} (負責部門): {old_val} → {new_val}</li>"
                     has_change = True
 
             old_parts = old.get("parts", [])
             new_parts = new.get("parts", [])
             if len(old_parts) != len(new_parts) or any(p1["name"] != p2["name"] for p1, p2 in zip(old_parts, new_parts)):
-                body += f"  - 配件清單有變更（新增/刪除/修改 {len(new_parts)} 項）\n"
+                body += f"<li>配件清單有變更（新增/刪除/修改 {len(new_parts)} 項）</li>"
                 has_change = True
 
             old_check = old.get("delivery_checklist", [])
@@ -328,24 +351,33 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
                     ch_status = "已勾選" if nc.get("checked") else "取消勾選"
                     changed_checks.append(f"{nc.get('name')}：{ch_status}")
             if changed_checks:
-                body += "  - 出貨檢查清單打勾變更：\n    " + "\n    ".join(changed_checks) + "\n"
+                body += "<li>出貨檢查清單打勾變更：<ul>"
+                for ch in changed_checks:
+                    body += f"<li>{ch}</li>"
+                body += "</ul></li>"
                 has_change = True
 
             if not has_change:
-                body += "  - 本台無變更\n"
+                body += "<li>本台無變更</li>"
 
-    # 最後加固定結尾（HTML 格式，讓超連結可點）
+            body += "</ul></li>"
+
+        body += "</ul>"
+
+    # 固定結尾
     body += """
-<br><br>
-本郵件為自動生成，請勿回覆。如有疑問，請聯絡專案負責人。<br>
-系統網頁：<a href="https://yip-shing-dashboard-bhkutkwadqv2ice5ephot2.streamlit.app/" style="color: #1fb429; text-decoration: underline;">點擊進入 YIP SHING Dashboard</a>
-"""
+    <br><br>
+    本郵件為自動生成，請勿回覆。如有疑問，請聯絡專案負責人。<br>
+    <a href="https://yip-shing-dashboard-bhkutkwadqv2ice5ephot2.streamlit.app/" style="color: #1fb429; text-decoration: underline; font-weight: bold;">請點擊連結更新資料：進入 YIP SHING Dashboard</a>
+    </body>
+    </html>
+    """
 
     params = {
         "from": "YIP SHING Dashboard <dashboard@topone-power.com>",
         "to": recipient_emails,
         "subject": f"[測試] 專案規格通知：{project_name}",
-        "html": body,  # 直接用 HTML 格式
+        "html": body,
     }
 
     try:
