@@ -2037,6 +2037,8 @@ if st.session_state.get("spec_dialog_open", False):
                             label_visibility="visible"
                         )
 
+                st.markdown("---")
+
                 with st.expander("Parts (配件) Group", expanded=False):
                     part_key = f"dlg_parts_{i}"
                     if part_key not in st.session_state:
