@@ -200,85 +200,152 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
         return
 
     api_key = st.secrets["RESEND_API_KEY"]
-    st.write("API Key 前 10 字：", api_key[:10] + "...")  # 確認有讀到
+    st.write("API Key 前 10 字：", api_key[:10] + "...")
 
     import resend
     resend.api_key = api_key
 
-    # 你的原始 email 內容邏輯（完整版）
+    # 香港時區時間
+    from datetime import datetime, timezone, timedelta
+    hkt = timezone(timedelta(hours=8))
+    update_time = datetime.now(hkt).strftime('%Y-%m-%d %H:%M')
+
+    # 判斷新增或更新
     if not old_specs:
+        # 新增規格：完整列出細節 + 提醒空缺
         body = f"""
-            專案 {project_name} {project_info.get('Project_Type', '—')} 已建立。
+        專案 {project_name} 的新規格已建立。
 
-            建立時間：{update_time} (香港時間)
+        專案類型：{project_info.get('Project_Type', '—')}
 
-            規格細節如下（每台機器）：
-            """
+        建立時間：{update_time} (香港時間)
+
+        規格細節如下：
+        Year: {project_info.get('Year', '—')} | Lead Time: {project_info.get('Lead_Time', '—').strftime('%Y-%m-%d') if pd.notna(project_info.get('Lead_Time')) else '—'}
+        Customer: {project_info.get('Customer', '—')} | Supervisor: {project_info.get('Supervisor', '—')} | Qty: {project_info.get('Qty', '—')}
+
+        Project Specification:
+        """
+
+        # 因為 Qty=1，只列一台
+        spec = new_specs[0] if new_specs else {}
+
+        body += f"""
+        • Prime: {spec.get('prime', '—')} Standby: {spec.get('standby', '—')}
+        • Voltage: {spec.get('voltage', '—')} Frequency: {spec.get('frequency', '—')} RPM: {spec.get('rpm', '—')}
+        • Genset model: {spec.get('genset_model', '—')} | S/N: {spec.get('genset_sn', '—')}
+        • Alternator Model: {spec.get('alt_model', '—')} | S/N: {spec.get('alt_sn', '—')}
+        • Panel model: {spec.get('panel_model', '—')} | S/N: {spec.get('panel_sn', '—')}
+        • Breaker Type: {spec.get('breaker_type', '—')} | Breaker Rating: {spec.get('breaker_rating', '—')} Poles: {spec.get('poles', '—')}
+        • Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}
+        Remarks: {spec.get('remarks', '—')}
+        """
+
+        # 抽出空缺提醒
+        missing_sn = []
+        missing_dept = []
+
+        # S/N 空缺檢查
+        if spec.get('genset_sn') in ['—', '']:
+            missing_sn.append("發動機 S/N")
+        if spec.get('alt_sn') in ['—', '']:
+            missing_sn.append("電球 S/N")
+        if spec.get('panel_sn') in ['—', '']:
+            missing_sn.append("Panel S/N")
+
+        # 負責部門空缺檢查（只提醒有包含但部門空白的項目）
+        if spec.get('fuel_cooler') == "Include" and spec.get('fuel_cooler_department') in ['—', '']:
+            missing_dept.append("燃油冷卻器 - 負責部門")
+        if spec.get('coolant_sensor') == "Include" and spec.get('coolant_sensor_department') in ['—', '']:
+            missing_dept.append("冷卻液溫度感測器 - 負責部門")
+        if spec.get('low_water') == "Include" and spec.get('low_water_department') in ['—', '']:
+            missing_dept.append("低水位浮球開關 - 負責部門")
+        if spec.get('avm_model') and spec.get('avm_department') in ['—', '']:
+            missing_dept.append("避震器 - 負責部門")
+
+        body += "\n【提醒填寫空缺項目】\n"
+        if missing_sn:
+            body += "  - S/N 尚未填寫：\n    " + "\n    ".join(missing_sn) + "\n"
+        if missing_dept:
+            body += "  - 負責部門尚未填寫：\n    " + "\n    ".join(missing_dept) + "\n"
+        if not missing_sn and not missing_dept:
+            body += "  - 所有 S/N 和負責部門已填寫完成。\n"
+
     else:
+        # 編輯模式：只列變更項目（保持原邏輯）
         body = f"""
-            專案 {project_name}  的規格已更新。
+        專案 {project_name} 的規格已更新。
 
-            更新時間：{update_time} (香港時間)
+        更新時間：{update_time} (香港時間)
 
-            主要變更如下（每台機器）：
-            """
+        主要變更如下（每台機器）：
+        """
 
-    for i in range(len(new_specs)):
-        old = old_specs[i] if i < len(old_specs) else {}
-        new = new_specs[i]
+        for i in range(len(new_specs)):
+            old = old_specs[i] if i < len(old_specs) else {}
+            new = new_specs[i]
 
-        body += f"\n第 {i+1} 台：\n"
+            body += f"\n第 {i+1} 台：\n"
 
-        static_fields = [
-            "prime", "standby", "voltage", "frequency", "rpm",
-            "genset_model", "genset_sn", "engine_color", "engine_year", "engine_heater",
-            "alt_model", "alt_sn", "alt_color", "droop", "pmg", "alt_heater",
-            "rad_model", "rad_sn", "rad_temp", "fan_size", "radiator_guard",
-            "panel_model", "panel_sn", "co_detector", "breaker_type", "breaker_rating", "poles"
-        ]
+            static_fields = [
+                "prime", "standby", "voltage", "frequency", "rpm",
+                "genset_model", "genset_sn", "engine_color", "engine_year", "engine_heater",
+                "alt_model", "alt_sn", "alt_color", "droop", "pmg", "alt_heater",
+                "rad_model", "rad_sn", "rad_temp", "fan_size", "radiator_guard",
+                "panel_model", "panel_sn", "co_detector", "breaker_type", "breaker_rating", "poles"
+            ]
 
-        for field in static_fields:
-            old_val = old.get(field, "—")
-            new_val = new.get(field, "—")
-            if old_val != new_val:
-                body += f"  - {field}: {old_val} → {new_val}\n"
+            has_change = False
+            for field in static_fields:
+                old_val = old.get(field, "—")
+                new_val = new.get(field, "—")
+                if old_val != new_val:
+                    body += f"  - {field}: {old_val} → {new_val}\n"
+                    has_change = True
 
-        dept_fields = [
-            "fan_department", "fuel_cooler_department", "coolant_sensor_department",
-            "low_water_department", "panel_department", "co_department", "breaker_department"
-        ]
-        for field in dept_fields:
-            old_val = old.get(field, "—")
-            new_val = new.get(field, "—")
-            if old_val != new_val:
-                body += f"  - {field} (負責部門): {old_val} → {new_val}\n"
+            dept_fields = [
+                "fan_department", "fuel_cooler_department", "coolant_sensor_department",
+                "low_water_department", "panel_department", "co_department", "breaker_department"
+            ]
+            for field in dept_fields:
+                old_val = old.get(field, "—")
+                new_val = new.get(field, "—")
+                if old_val != new_val:
+                    body += f"  - {field} (負責部門): {old_val} → {new_val}\n"
+                    has_change = True
 
-        old_parts = old.get("parts", [])
-        new_parts = new.get("parts", [])
-        if len(old_parts) != len(new_parts) or any(p1["name"] != p2["name"] for p1, p2 in zip(old_parts, new_parts)):
-            body += f"  - 配件清單有變更（新增/刪除/修改 {len(new_parts)} 項）\n"
+            old_parts = old.get("parts", [])
+            new_parts = new.get("parts", [])
+            if len(old_parts) != len(new_parts) or any(p1["name"] != p2["name"] for p1, p2 in zip(old_parts, new_parts)):
+                body += f"  - 配件清單有變更（新增/刪除/修改 {len(new_parts)} 項）\n"
+                has_change = True
 
-        old_check = old.get("delivery_checklist", [])
-        new_check = new.get("delivery_checklist", [])
-        changed_checks = []
-        for oc, nc in zip(old_check, new_check):
-            if oc.get("checked") != nc.get("checked"):
-                ch_status = "已勾選" if nc.get("checked") else "取消勾選"
-                changed_checks.append(f"{nc.get('name')}：{ch_status}")
-        if changed_checks:
-            body += "  - 出貨檢查清單打勾變更：\n    " + "\n    ".join(changed_checks) + "\n"
-    # 加在最後
+            old_check = old.get("delivery_checklist", [])
+            new_check = new.get("delivery_checklist", [])
+            changed_checks = []
+            for oc, nc in zip(old_check, new_check):
+                if oc.get("checked") != nc.get("checked"):
+                    ch_status = "已勾選" if nc.get("checked") else "取消勾選"
+                    changed_checks.append(f"{nc.get('name')}：{ch_status}")
+            if changed_checks:
+                body += "  - 出貨檢查清單打勾變更：\n    " + "\n    ".join(changed_checks) + "\n"
+                has_change = True
+
+            if not has_change:
+                body += "  - 本台無變更\n"
+
+    # 最後加固定結尾（HTML 格式，讓超連結可點）
     body += """
-    <br><br>
-    本郵件為自動生成，請勿回覆。如有疑問，請聯絡專案負責人。<br>
-    系統網頁：<a href="https://yip-shing-dashboard-bhkutkwadqv2ice5ephot2.streamlit.app/" style="color: #1fb429; text-decoration: underline;">點擊進入 YIP SHING Dashboard</a>
-    """
+<br><br>
+本郵件為自動生成，請勿回覆。如有疑問，請聯絡專案負責人。<br>
+系統網頁：<a href="https://yip-shing-dashboard-bhkutkwadqv2ice5ephot2.streamlit.app/" style="color: #1fb429; text-decoration: underline;">點擊進入 YIP SHING Dashboard</a>
+"""
 
     params = {
         "from": "YIP SHING Dashboard <dashboard@topone-power.com>",
         "to": recipient_emails,
-        "subject": f"[測試] 專案規格更新通知：{project_name}",
-        "html": f"<pre>{body}</pre>",
+        "subject": f"[測試] 專案規格通知：{project_name}",
+        "html": body,  # 直接用 HTML 格式
     }
 
     try:
@@ -1534,7 +1601,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 project_name=row_to_edit['Project_Name'],
                 old_specs=old_specs,
                 new_specs=new_specs,
-                recipient_emails=recipient_emails
+                recipient_emails=recipient_emails,
+                project_info=row_to_edit
             )
         col_save, col_cancel = st.columns(2)
         with col_save:
@@ -2036,9 +2104,7 @@ if st.session_state.get("spec_dialog_open", False):
                             key=f"dlg_door_limit_department_{i}",
                             label_visibility="visible"
                         )
-
                 st.markdown("---")
-
                 with st.expander("Parts (配件) Group", expanded=False):
                     part_key = f"dlg_parts_{i}"
                     if part_key not in st.session_state:
