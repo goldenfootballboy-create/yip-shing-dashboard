@@ -302,7 +302,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
                 assigned_dept_by_machine.append("</ul>")
 
         # 加入到 email body
-        body += "<p><strong>【已指派負責部門】</strong></p>"
+        body += "<p><strong>【請負責部門跟進】</strong></p>"
 
         if assigned_dept_by_machine:
             body += "<ul>"
