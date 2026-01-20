@@ -137,6 +137,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(
             Paragraph(f"底架型號： {spec.get('base_model', '—')}　　S/N： {spec.get('base_sn', '—')}", normal))  # ← 補齊這行
         # Container / Panel / Breaker - 第一頁到這裡結束
+        elements.append(Spacer(1, 24))
         elements.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
         elements.append(Spacer(1, 6))
         elements.append(Paragraph(f"貨櫃尺寸： {spec.get('cont_size', '—')}　　類型： {spec.get('cont_type', '—')}", normal))
