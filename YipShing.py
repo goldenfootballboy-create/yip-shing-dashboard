@@ -757,7 +757,7 @@ def render_project_card(row, idx):
                         st.markdown(f"**貨櫃尺寸**： {spec.get('cont_size', '—')}　　**類型**： {spec.get('cont_type', '—')}")
                         st.markdown(f"**控制器型號**： {spec.get('panel_model', '—')}　　**S/N**： {spec.get('panel_sn', '—')}　　**貨源**： {spec.get('panel_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('panel_department', '—')}</span>", unsafe_allow_html=True)
                         st.markdown(f"**CO 探測器 (OLED)**： {spec.get('co_detector', '—')}　　**貨源**： {spec.get('co_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('co_department', '—')}</span>", unsafe_allow_html=True)
-                        st.markdown(f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}　　**貨源**： {spec.get('breaker_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('breaker_department', '—')}</span>", unsafe_allow_html=True)
+                        st.markdown(f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}　　**S/N**： {spec.get('breaker_sn', '—')}　　**貨源**： {spec.get('breaker_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('breaker_department', '—')}</span>", unsafe_allow_html=True)
 
                         st.divider()
 
