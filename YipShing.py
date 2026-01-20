@@ -2263,7 +2263,8 @@ if st.session_state.get("spec_dialog_open", False):
                 project_name=temp_project['Project_Name'],
                 old_specs=old_specs,
                 new_specs=specs,  # 新增的規格
-                recipient_emails=recipient_emails
+                recipient_emails=recipient_emails,
+                project_info=temp_project
             )
         col_save, col_cancel = st.columns(2)
         with col_save:
