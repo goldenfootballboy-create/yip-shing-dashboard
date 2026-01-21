@@ -72,19 +72,16 @@ def fullscreen_loading(message="正在處理，請稍候..."):
     </style>
     """, unsafe_allow_html=True)
 def generate_overview_pdf(specs, project_info, qty):
-    # 註冊中文字型
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
     styles = getSampleStyleSheet()
 
-    # 自訂樣式（乾淨文字流，無邊框）
-    normal = ParagraphStyle(name='Normal', parent=styles['Normal'], fontName='NotoSansTC', fontSize=10, leading=14, alignment=TA_LEFT)
-    heading1 = ParagraphStyle(name='Heading1', parent=styles['Heading1'], fontName='NotoSansTC', fontSize=18, alignment=TA_CENTER, spaceAfter=12)
-    heading2 = ParagraphStyle(name='Heading2', parent=styles['Heading2'], fontName='NotoSansTC', fontSize=14, spaceBefore=12, spaceAfter=6)
-    heading3 = ParagraphStyle(name='Heading3', parent=styles['Heading3'], fontName='NotoSansTC', fontSize=12, spaceBefore=6, spaceAfter=4)
-    red_normal = ParagraphStyle(name='RedNormal', parent=normal, textColor=colors.red, fontName='NotoSansTC')
+    normal = ParagraphStyle('Normal', parent=styles['Normal'], fontName='NotoSansTC', fontSize=10, leading=14, alignment=TA_LEFT)
+    heading1 = ParagraphStyle('Heading1', parent=styles['Heading1'], fontName='NotoSansTC', fontSize=18, alignment=TA_CENTER, spaceAfter=12)
+    heading2 = ParagraphStyle('Heading2', parent=styles['Heading2'], fontName='NotoSansTC', fontSize=14, spaceBefore=12, spaceAfter=6)
+    heading3 = ParagraphStyle('Heading3', parent=styles['Heading3'], fontName='NotoSansTC', fontSize=12, spaceBefore=6, spaceAfter=4)
 
     elements = []
 
@@ -95,61 +92,62 @@ def generate_overview_pdf(specs, project_info, qty):
     for machine_idx in range(qty):
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
-        # 第二台及之後強制從新頁開始
         if machine_idx > 0:
             elements.append(PageBreak())
 
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", heading2))
         elements.append(Spacer(1, 12))
 
-        # Prime & Standby Power
-        elements.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"Prime (kW): {spec.get('prime', '—')}", normal))
-        elements.append(Paragraph(f"Standby (kW): {spec.get('standby', '—')}", normal))
-        elements.append(Paragraph(f"RPM: {spec.get('rpm', '—')}", normal))
-        elements.append(Paragraph(f"電壓 / 頻率： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
-        elements.append(Spacer(1, 24))  # 加較大間距，推內容往下
+        # 左右並排 Table
+        left_content = []
+        right_content = []
 
-        # Engine & Alternator
-        elements.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"發動機型號： {spec.get('genset_model', '—')}　　S/N： {spec.get('genset_sn', '—')}", normal))
-        elements.append(Paragraph(f"發動機顏色： {spec.get('engine_color', '—')}　　年份： {spec.get('engine_year', '—')}", normal))
-        elements.append(Paragraph(f"發動機加熱器： {spec.get('engine_heater', '—')} kW", normal))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"電球型號： {spec.get('alt_model', '—')}　　S/N： {spec.get('alt_sn', '—')}", normal))
-        elements.append(Paragraph(f"電球顏色： {spec.get('alt_color', '—')}", normal))
-        elements.append(Paragraph(f"Droop： {spec.get('droop', '—')}　　PMG： {spec.get('pmg', '—')}　　加熱器： {spec.get('alt_heater', '—')}", normal))
-        elements.append(Spacer(1, 24))
+        # 左欄
+        left_content.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
+        left_content.append(Paragraph(f"Prime (kW): {spec.get('prime', '—')}", normal))
+        left_content.append(Paragraph(f"Standby (kW): {spec.get('standby', '—')}", normal))
+        left_content.append(Paragraph(f"RPM: {spec.get('rpm', '—')}", normal))
+        left_content.append(Paragraph(f"電壓 / 頻率： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
+        left_content.append(Spacer(1, 12))
+        left_content.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
+        left_content.append(Paragraph(f"發動機型號： {spec.get('genset_model', '—')}　　S/N： {spec.get('genset_sn', '—')}", normal))
+        left_content.append(Paragraph(f"發動機顏色： {spec.get('engine_color', '—')}　　年份： {spec.get('engine_year', '—')}", normal))
+        left_content.append(Paragraph(f"發動機加熱器： {spec.get('engine_heater', '—')} kW", normal))
+        left_content.append(Paragraph(f"電球型號： {spec.get('alt_model', '—')}　　S/N： {spec.get('alt_sn', '—')}", normal))
+        left_content.append(Paragraph(f"電球顏色： {spec.get('alt_color', '—')}", normal))
+        left_content.append(Paragraph(f"Droop： {spec.get('droop', '—')}　　PMG： {spec.get('pmg', '—')}　　加熱器： {spec.get('alt_heater', '—')}", normal))
 
-        # Radiator & Base Frame
-        elements.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"水箱型號： {spec.get('rad_model', '—')}　　S/N： {spec.get('rad_sn', '—')}　　溫度： {spec.get('rad_temp', '—')}", normal))
-        elements.append(Paragraph(f"風扇呎吋： {spec.get('fan_size', '—')}　　負責部門： <font color=red>{spec.get('fan_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"水箱護罩： {spec.get('radiator_guard', '—')}", normal))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"燃油冷卻器　　貨源： {spec.get('fuel_cooler_source', '—')}　　負責部門： <font color=red>{spec.get('fuel_cooler_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"冷卻液溫度感測器　　{ spec.get('coolant_sensor', '—') }　　貨源： {spec.get('coolant_sensor_source', '—')}　　負責部門： <font color=red>{spec.get('coolant_sensor_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"低水位浮球開關　　{ spec.get('low_water', '—') }　　貨源： {spec.get('low_water_source', '—')}　　負責部門： <font color=red>{spec.get('low_water_department', '—')}</font>", normal))
-        elements.append(Spacer(1, 6))
-        elements.append(
-            Paragraph(f"底架型號： {spec.get('base_model', '—')}　　S/N： {spec.get('base_sn', '—')}", normal))  # ← 補齊這行
-        # Container / Panel / Breaker - 第一頁到這裡結束
-        elements.append(Spacer(1, 24))
-        elements.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph(f"貨櫃尺寸： {spec.get('cont_size', '—')}　　類型： {spec.get('cont_type', '—')}", normal))
-        elements.append(Paragraph(f"控制器型號： {spec.get('panel_model', '—')}　　S/N： {spec.get('panel_sn', '—')}　　貨源： {spec.get('panel_source', '—')}　　負責部門： <font color=red>{spec.get('panel_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"CO 探測器 (OLED)： {spec.get('co_detector', '—')}　　貨源： {spec.get('co_source', '—')}　　負責部門： <font color=red>{spec.get('co_department', '—')}</font>", normal))
-        elements.append(Paragraph(f"斷路器： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N： {spec.get('breaker_sn', '—')}　　貨源： {spec.get('breaker_source', '—')}　　負責部門： <font color=red>{spec.get('breaker_department', '—')}</font>", normal))
-        elements.append(Spacer(1, 36))  # 加較大間距，讓內容推到下一頁
+        # 右欄
+        right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
+        right_content.append(Paragraph(f"水箱型號： {spec.get('rad_model', '—')}　　S/N： {spec.get('rad_sn', '—')}　　溫度： {spec.get('rad_temp', '—')}", normal))
+        right_content.append(Paragraph(f"風扇呎吋： {spec.get('fan_size', '—')}　　負責部門： <font color=red>{spec.get('fan_department', '—')}</font>", normal))
+        right_content.append(Paragraph(f"水箱護罩： {spec.get('radiator_guard', '—')}", normal))
+        right_content.append(Spacer(1, 6))
+        right_content.append(Paragraph(f"燃油冷卻器： {spec.get('fuel_cooler', '—')}　　貨源： {spec.get('fuel_cooler_source', '—')}　　負責部門： <font color=red>{spec.get('fuel_cooler_department', '—')}</font>", normal))
+        right_content.append(Paragraph(f"冷卻液溫度感測器： {spec.get('coolant_sensor', '—')}　　貨源： {spec.get('coolant_sensor_source', '—')}　　負責部門： <font color=red>{spec.get('coolant_sensor_department', '—')}</font>", normal))
+        right_content.append(Paragraph(f"低水位浮球開關： {spec.get('low_water', '—')}　　貨源： {spec.get('low_water_source', '—')}　　負責部門： <font color=red>{spec.get('low_water_department', '—')}</font>", normal))
+        right_content.append(Paragraph(f"底架型號： {spec.get('base_model', '—')}　　S/N： {spec.get('base_sn', '—')}", normal))
+        right_content.append(Paragraph(f"避震器：型號 {spec.get('avm_model', '—')}　　數量 {spec.get('avm_qty', '—')}　　貨源 {spec.get('avm_source', '—')}　　負責部門 <font color=red>{spec.get('avm_department', '—')}</font>", normal))
+        right_content.append(Spacer(1, 12))
+        right_content.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
+        right_content.append(Paragraph(f"貨櫃尺寸： {spec.get('cont_size', '—')}　　類型： {spec.get('cont_type', '—')}", normal))
+        right_content.append(Paragraph(f"控制器型號： {spec.get('panel_model', '—')}　　S/N： {spec.get('panel_sn', '—')}　　貨源： {spec.get('panel_source', '—')}　　負責部門： <font color=red>{spec.get('panel_department', '—')}</font>", normal))
+        right_content.append(Paragraph(f"CO 探測器 (OLED)： {spec.get('co_detector', '—')}　　貨源： {spec.get('co_source', '—')}　　負責部門： <font color=red>{spec.get('co_department', '—')}</font>", normal))
+        right_content.append(Paragraph(f"斷路器： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N： {spec.get('breaker_sn', '—')}　　貨源： {spec.get('breaker_source', '—')}　　負責部門： <font color=red>{spec.get('breaker_department', '—')}</font>", normal))
 
-        # 強制分頁：Container / Panel / Breaker 結束後強制換頁
-        elements.append(PageBreak())
+        # 左右並排 Table
+        from reportlab.platypus import Table, TableStyle
+        table_data = [[left_content, right_content]]
+        table = Table(table_data, colWidths=[280, 280])
+        table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1, 20))
 
-        # 配件清單（從第二頁開始）
+        # 配件清單（第一頁下方）
         parts = spec.get("parts", [])
         if parts:
             elements.append(Paragraph("配件清單", heading3))
@@ -158,19 +156,18 @@ def generate_overview_pdf(specs, project_info, qty):
                 name = p.get("name", "—")
                 source = p.get("source", "—")
                 dept = p.get("department", "—")
-                if name:
-                    elements.append(Paragraph(f"- **{name}**　（貨源：{source}，負責部門：<font color=red>{dept}</font>）", normal))
-            elements.append(Spacer(1, 12))
+                elements.append(Paragraph(f"• {name}　（貨源：{source}，負責部門：<font color=red>{dept}</font>）", normal))
+            elements.append(Spacer(1, 24))
 
-        # Delivery Checklist
+        # 出貨檢查清單放在第二頁開頭
+        elements.append(PageBreak())
         checklist = spec.get("delivery_checklist", [])
         if checklist:
             elements.append(Paragraph("出貨檢查清單", heading3))
             elements.append(Spacer(1, 6))
             for item in checklist:
                 name = item.get("name", "—")
-                checked = item.get("checked", False)
-                ch = "√" if checked else "□"  # 或改成 "[√] 已完成" / "[ ] 未完成"
+                ch = "√" if item.get("checked", False) else "□"
                 elements.append(Paragraph(f"{ch} {name}", normal))
             elements.append(Spacer(1, 12))
 
@@ -180,15 +177,11 @@ def generate_overview_pdf(specs, project_info, qty):
             elements.append(Paragraph("備註", heading3))
             elements.append(Spacer(1, 6))
             elements.append(Paragraph(remarks, normal))
-            elements.append(Spacer(1, 12))
-
-        elements.append(Spacer(1, 36))  # 每台間距
 
     doc.build(elements)
     pdf_bytes = buffer.getvalue()
     buffer.close()
     return pdf_bytes
-
 def send_update_notification_email(project_name, old_specs, new_specs, recipient_emails, project_info):
     st.write("開始發送信 debug...")
     if not recipient_emails:
