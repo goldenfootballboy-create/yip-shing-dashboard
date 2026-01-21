@@ -79,6 +79,7 @@ def generate_overview_pdf(specs, project_info, qty):
     styles = getSampleStyleSheet()
 
     normal = ParagraphStyle('Normal', parent=styles['Normal'], fontName='NotoSansTC', fontSize=10, leading=14, alignment=TA_LEFT)
+    small = ParagraphStyle('Small', parent=normal, fontSize=9, leading=11)  # 配件清單用小字體
     heading1 = ParagraphStyle('Heading1', parent=styles['Heading1'], fontName='NotoSansTC', fontSize=18, alignment=TA_CENTER, spaceAfter=12)
     heading2 = ParagraphStyle('Heading2', parent=styles['Heading2'], fontName='NotoSansTC', fontSize=14, spaceBefore=12, spaceAfter=6)
     heading3 = ParagraphStyle('Heading3', parent=styles['Heading3'], fontName='NotoSansTC', fontSize=12, spaceBefore=6, spaceAfter=4)
@@ -102,14 +103,17 @@ def generate_overview_pdf(specs, project_info, qty):
         left_content = []
         right_content = []
 
-        # 左欄
+        # 左欄：Prime & Standby Power + Engine & Alternator
         left_content.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
+        left_content.append(Spacer(1, 4))
         left_content.append(Paragraph(f"Prime (kW): {spec.get('prime', '—')}", normal))
         left_content.append(Paragraph(f"Standby (kW): {spec.get('standby', '—')}", normal))
         left_content.append(Paragraph(f"RPM: {spec.get('rpm', '—')}", normal))
         left_content.append(Paragraph(f"電壓 / 頻率： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
+
         left_content.append(Spacer(1, 12))
         left_content.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
+        left_content.append(Spacer(1, 4))
         left_content.append(Paragraph(f"發動機型號： {spec.get('genset_model', '—')}　　S/N： {spec.get('genset_sn', '—')}", normal))
         left_content.append(Paragraph(f"發動機顏色： {spec.get('engine_color', '—')}　　年份： {spec.get('engine_year', '—')}", normal))
         left_content.append(Paragraph(f"發動機加熱器： {spec.get('engine_heater', '—')} kW", normal))
@@ -117,8 +121,9 @@ def generate_overview_pdf(specs, project_info, qty):
         left_content.append(Paragraph(f"電球顏色： {spec.get('alt_color', '—')}", normal))
         left_content.append(Paragraph(f"Droop： {spec.get('droop', '—')}　　PMG： {spec.get('pmg', '—')}　　加熱器： {spec.get('alt_heater', '—')}", normal))
 
-        # 右欄
+        # 右欄：Radiator & Base Frame + Container / Panel / Breaker
         right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
+        right_content.append(Spacer(1, 4))
         right_content.append(Paragraph(f"水箱型號： {spec.get('rad_model', '—')}　　S/N： {spec.get('rad_sn', '—')}　　溫度： {spec.get('rad_temp', '—')}", normal))
         right_content.append(Paragraph(f"風扇呎吋： {spec.get('fan_size', '—')}　　負責部門： <font color=red>{spec.get('fan_department', '—')}</font>", normal))
         right_content.append(Paragraph(f"水箱護罩： {spec.get('radiator_guard', '—')}", normal))
@@ -126,16 +131,19 @@ def generate_overview_pdf(specs, project_info, qty):
         right_content.append(Paragraph(f"燃油冷卻器： {spec.get('fuel_cooler', '—')}　　貨源： {spec.get('fuel_cooler_source', '—')}　　負責部門： <font color=red>{spec.get('fuel_cooler_department', '—')}</font>", normal))
         right_content.append(Paragraph(f"冷卻液溫度感測器： {spec.get('coolant_sensor', '—')}　　貨源： {spec.get('coolant_sensor_source', '—')}　　負責部門： <font color=red>{spec.get('coolant_sensor_department', '—')}</font>", normal))
         right_content.append(Paragraph(f"低水位浮球開關： {spec.get('low_water', '—')}　　貨源： {spec.get('low_water_source', '—')}　　負責部門： <font color=red>{spec.get('low_water_department', '—')}</font>", normal))
+        right_content.append(Spacer(1, 6))
         right_content.append(Paragraph(f"底架型號： {spec.get('base_model', '—')}　　S/N： {spec.get('base_sn', '—')}", normal))
-        right_content.append(Paragraph(f"避震器：型號 {spec.get('avm_model', '—')}　　數量 {spec.get('avm_qty', '—')}　　貨源 {spec.get('avm_source', '—')}　　負責部門 <font color=red>{spec.get('avm_department', '—')}</font>", normal))
+        right_content.append(Paragraph(f"避震器：型號 {spec.get('avm_model', '—')}　　數量： {spec.get('avm_qty', '—')}　　貨源： {spec.get('avm_source', '—')}　　負責部門： <font color=red>{spec.get('avm_department', '—')}</font>", normal))
+
         right_content.append(Spacer(1, 12))
         right_content.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
+        right_content.append(Spacer(1, 4))
         right_content.append(Paragraph(f"貨櫃尺寸： {spec.get('cont_size', '—')}　　類型： {spec.get('cont_type', '—')}", normal))
         right_content.append(Paragraph(f"控制器型號： {spec.get('panel_model', '—')}　　S/N： {spec.get('panel_sn', '—')}　　貨源： {spec.get('panel_source', '—')}　　負責部門： <font color=red>{spec.get('panel_department', '—')}</font>", normal))
         right_content.append(Paragraph(f"CO 探測器 (OLED)： {spec.get('co_detector', '—')}　　貨源： {spec.get('co_source', '—')}　　負責部門： <font color=red>{spec.get('co_department', '—')}</font>", normal))
         right_content.append(Paragraph(f"斷路器： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N： {spec.get('breaker_sn', '—')}　　貨源： {spec.get('breaker_source', '—')}　　負責部門： <font color=red>{spec.get('breaker_department', '—')}</font>", normal))
 
-        # 左右並排 Table
+        # 使用 Table 做左右並排
         from reportlab.platypus import Table, TableStyle
         table_data = [[left_content, right_content]]
         table = Table(table_data, colWidths=[280, 280])
@@ -145,16 +153,14 @@ def generate_overview_pdf(specs, project_info, qty):
             ('RIGHTPADDING', (0, 0), (-1, -1), 0),
         ]))
         elements.append(table)
-        elements.append(Spacer(1, 20))
+        elements.append(Spacer(1, 12))  # 減少間距
 
-        # 配件清單（縮小字體，讓它留在第一頁）
+        # 配件清單（第一頁下方，縮小字體）
         parts = spec.get("parts", [])
         if parts:
             small = ParagraphStyle(name='Small', parent=normal, fontSize=9, leading=11)
-
             elements.append(Paragraph("配件清單", heading3))
-            elements.append(Spacer(1, 8))
-
+            elements.append(Spacer(1, 6))
             for p in parts:
                 name = p.get("name", "—")
                 source = p.get("source", "—")
@@ -163,11 +169,12 @@ def generate_overview_pdf(specs, project_info, qty):
                     f"• {name}　（貨源：{source}，負責部門：<font color=red>{dept}</font>）",
                     small
                 ))
+            elements.append(Spacer(1, 12))  # 減少間距，讓出貨檢查清單推到第二頁
 
-            elements.append(Spacer(1, 12))  # 減少間距，讓出貨檢查清單推到下一頁
-
-        # 出貨檢查清單放在第二頁開頭
+        # 強制出貨檢查清單在第二頁
         elements.append(PageBreak())
+
+        # 出貨檢查清單（第二頁開頭）
         checklist = spec.get("delivery_checklist", [])
         if checklist:
             elements.append(Paragraph("出貨檢查清單", heading3))
