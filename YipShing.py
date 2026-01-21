@@ -72,124 +72,152 @@ def fullscreen_loading(message="正在處理，請稍候..."):
         }}
     </style>
     """, unsafe_allow_html=True)
+
+
 def generate_overview_pdf(specs, project_info, qty):
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
-
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)  # 邊距縮小到 30pt
+
+    # 邊距再縮小一些（可視情況調回 25–28）
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=28, leftMargin=28,
+                            topMargin=28, bottomMargin=28)
+
     styles = getSampleStyleSheet()
 
-    normal = ParagraphStyle('Normal', parent=styles['Normal'], fontName='NotoSansTC', fontSize=9, leading=11, alignment=TA_LEFT)  # 縮小字體 9pt
-    small = ParagraphStyle('Small', parent=normal, fontSize=8.5, leading=10)  # 配件清單用 8.5pt
-    heading1 = ParagraphStyle('Heading1', parent=styles['Heading1'], fontName='NotoSansTC', fontSize=16, alignment=TA_CENTER, spaceAfter=10)
-    heading2 = ParagraphStyle('Heading2', parent=styles['Heading2'], fontName='NotoSansTC', fontSize=13, spaceBefore=10, spaceAfter=5)
-    heading3 = ParagraphStyle('Heading3', parent=styles['Heading3'], fontName='NotoSansTC', fontSize=11, spaceBefore=5, spaceAfter=4)
+    # 字體與行距全面壓縮
+    normal = ParagraphStyle('Normal', parent=styles['Normal'],
+                            fontName='NotoSansTC', fontSize=8.5, leading=10, alignment=TA_LEFT)
+
+    small = ParagraphStyle('Small', parent=normal, fontSize=8, leading=9)
+
+    heading1 = ParagraphStyle('Heading1', parent=styles['Heading1'],
+                              fontName='NotoSansTC', fontSize=15, alignment=TA_CENTER, spaceAfter=8)
+
+    heading2 = ParagraphStyle('Heading2', parent=styles['Heading2'],
+                              fontName='NotoSansTC', fontSize=12, spaceBefore=6, spaceAfter=4)
+
+    heading3 = ParagraphStyle('Heading3', parent=styles['Heading3'],
+                              fontName='NotoSansTC', fontSize=10.5, spaceBefore=4, spaceAfter=3)
 
     elements = []
 
-    # 大標題
-    elements.append(Paragraph(f"專案：{project_info.get('Project_Name', '—')}　｜　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}", heading1))
-    elements.append(Spacer(1, 18))
+    # 大標題（略微壓縮）
+    elements.append(Paragraph(
+        f"專案：{project_info.get('Project_Name', '—')}　｜　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}",
+        heading1))
+    elements.append(Spacer(1, 12))  # 從 18 → 12
 
     for machine_idx in range(qty):
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
         if machine_idx > 0:
-            elements.append(PageBreak())
+            elements.append(Spacer(1, 6))  # 機器之間只留很小間距（或直接不加）
+            # elements.append(PageBreak())  # ← 註解掉或移除
 
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", heading2))
-        elements.append(Spacer(1, 8))
+        elements.append(Spacer(1, 5))  # 從 8 → 5
 
-        # 左右並排 Table（收窄欄寬：各 260pt）
         left_content = []
         right_content = []
 
-        # 左欄：Prime & Standby Power + Engine & Alternator
-        left_content.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
-        left_content.append(Spacer(1, 3))
+        # 左欄 ────────────────────────────────────────────────
+        left_content.append(Paragraph("Prime & Standby Power", heading3))
+        left_content.append(Spacer(1, 2))
         left_content.append(Paragraph(f"Prime (kW): {spec.get('prime', '—')}", normal))
         left_content.append(Paragraph(f"Standby (kW): {spec.get('standby', '—')}", normal))
-        left_content.append(Paragraph(f"RPM: {spec.get('rpm', '—')}", normal))
-        left_content.append(Paragraph(f"電壓 / 頻率： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
+        left_content.append(Paragraph(
+            f"RPM / 電壓 / 頻率： {spec.get('rpm', '—')}　/　{spec.get('voltage', '—')} / {spec.get('frequency', '—')}",
+            normal))
+        left_content.append(Spacer(1, 5))
 
-        left_content.append(Spacer(1, 8))
-        left_content.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
-        left_content.append(Spacer(1, 3))
-        left_content.append(Paragraph(f"發動機型號： {spec.get('genset_model', '—')}　　S/N： {spec.get('genset_sn', '—')}", normal))
-        left_content.append(Paragraph(f"發動機顏色： {spec.get('engine_color', '—')}　　年份： {spec.get('engine_year', '—')}", normal))
-        left_content.append(Paragraph(f"發動機加熱器： {spec.get('engine_heater', '—')} kW", normal))
-        left_content.append(Paragraph(f"電球型號： {spec.get('alt_model', '—')}　　S/N： {spec.get('alt_sn', '—')}", normal))
-        left_content.append(Paragraph(f"電球顏色： {spec.get('alt_color', '—')}", normal))
-        left_content.append(Paragraph(f"Droop： {spec.get('droop', '—')}　　PMG： {spec.get('pmg', '—')}　　加熱器： {spec.get('alt_heater', '—')}", normal))
+        left_content.append(Paragraph("Engine & Alternator", heading3))
+        left_content.append(Spacer(1, 2))
+        left_content.append(
+            Paragraph(f"發動機：{spec.get('genset_model', '—')}　S/N：{spec.get('genset_sn', '—')}", normal))
+        left_content.append(Paragraph(
+            f"顏色/年份/加熱器：{spec.get('engine_color', '—')}　/　{spec.get('engine_year', '—')}　/　{spec.get('engine_heater', '—')} kW",
+            normal))
+        left_content.append(Paragraph(f"電球：{spec.get('alt_model', '—')}　S/N：{spec.get('alt_sn', '—')}", normal))
+        left_content.append(Paragraph(
+            f"顏色 / Droop / PMG / 加熱器：{spec.get('alt_color', '—')} / {spec.get('droop', '—')} / {spec.get('pmg', '—')} / {spec.get('alt_heater', '—')}",
+            normal))
 
-        # 右欄：Radiator & Base Frame + Container / Panel / Breaker
-        right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
+        # 右欄 ────────────────────────────────────────────────
+        right_content.append(Paragraph("Radiator & Base Frame", heading3))
+        right_content.append(Spacer(1, 2))
+        right_content.append(
+            Paragraph(f"水箱：{spec.get('rad_model', '—')}　S/N：{spec.get('rad_sn', '—')}　{spec.get('rad_temp', '—')}",
+                      normal))
+        right_content.append(
+            Paragraph(f"風扇：{spec.get('fan_size', '—')}　　<font color=red>{spec.get('fan_department', '—')}</font>",
+                      normal))
+        right_content.append(
+            Paragraph(f"護罩 / 燃油冷卻器：{spec.get('radiator_guard', '—')} / {spec.get('fuel_cooler', '—')}", normal))
+        right_content.append(
+            Paragraph(f"冷卻液感測器 / 低水位：{spec.get('coolant_sensor', '—')} / {spec.get('low_water', '—')}",
+                      normal))
         right_content.append(Spacer(1, 3))
-        right_content.append(Paragraph(f"水箱型號： {spec.get('rad_model', '—')}　　S/N： {spec.get('rad_sn', '—')}　　溫度： {spec.get('rad_temp', '—')}", normal))
-        right_content.append(Paragraph(f"風扇呎吋： {spec.get('fan_size', '—')}　　負責部門： <font color=red>{spec.get('fan_department', '—')}</font>", normal))
-        right_content.append(Paragraph(f"水箱護罩： {spec.get('radiator_guard', '—')}", normal))
-        right_content.append(Spacer(1, 4))
-        right_content.append(Paragraph(f"燃油冷卻器： {spec.get('fuel_cooler', '—')}　　貨源： {spec.get('fuel_cooler_source', '—')}　　負責部門： <font color=red>{spec.get('fuel_cooler_department', '—')}</font>", normal))
-        right_content.append(Paragraph(f"冷卻液溫度感測器： {spec.get('coolant_sensor', '—')}　　貨源： {spec.get('coolant_sensor_source', '—')}　　負責部門： <font color=red>{spec.get('coolant_sensor_department', '—')}</font>", normal))
-        right_content.append(Paragraph(f"低水位浮球開關： {spec.get('low_water', '—')}　　貨源： {spec.get('low_water_source', '—')}　　負責部門： <font color=red>{spec.get('low_water_department', '—')}</font>", normal))
-        right_content.append(Spacer(1, 4))
-        right_content.append(Paragraph(f"底架型號： {spec.get('base_model', '—')}　　S/N： {spec.get('base_sn', '—')}", normal))
-        right_content.append(Paragraph(f"避震器：型號 {spec.get('avm_model', '—')}　　數量： {spec.get('avm_qty', '—')}　　貨源： {spec.get('avm_source', '—')}　　負責部門： <font color=red>{spec.get('avm_department', '—')}</font>", normal))
 
-        right_content.append(Spacer(1, 8))
-        right_content.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
-        right_content.append(Spacer(1, 3))
-        right_content.append(Paragraph(f"貨櫃尺寸： {spec.get('cont_size', '—')}　　類型： {spec.get('cont_type', '—')}", normal))
-        right_content.append(Paragraph(f"控制器型號： {spec.get('panel_model', '—')}　　S/N： {spec.get('panel_sn', '—')}　　貨源： {spec.get('panel_source', '—')}　　負責部門： <font color=red>{spec.get('panel_department', '—')}</font>", normal))
-        right_content.append(Paragraph(f"CO 探測器 (OLED)： {spec.get('co_detector', '—')}　　貨源： {spec.get('co_source', '—')}　　負責部門： <font color=red>{spec.get('co_department', '—')}</font>", normal))
-        right_content.append(Paragraph(f"斷路器： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N： {spec.get('breaker_sn', '—')}　　貨源： {spec.get('breaker_source', '—')}　　負責部門： <font color=red>{spec.get('breaker_department', '—')}</font>", normal))
+        right_content.append(Paragraph("底架 & 避震", heading3))
+        right_content.append(Spacer(1, 2))
+        right_content.append(Paragraph(f"型號/S/N：{spec.get('base_model', '—')}　/{spec.get('base_sn', '—')}", normal))
+        right_content.append(Paragraph(
+            f"避震器：{spec.get('avm_model', '—')}　×{spec.get('avm_qty', '—')}　<font color=red>{spec.get('avm_department', '—')}</font>",
+            normal))
 
-        # 使用 Table 做左右並排（收窄欄寬：各 260pt）
-        from reportlab.platypus import Table, TableStyle
-        table_data = [[left_content, right_content]]
-        table = Table(table_data, colWidths=[260, 260])  # 收窄欄寬，留更多邊距
+        right_content.append(Spacer(1, 5))
+        right_content.append(Paragraph("Container / Panel / Breaker", heading3))
+        right_content.append(Spacer(1, 2))
+        right_content.append(Paragraph(f"貨櫃：{spec.get('cont_size', '—')}　{spec.get('cont_type', '—')}", normal))
+        right_content.append(Paragraph(
+            f"控制器：{spec.get('panel_model', '—')}　S/N：{spec.get('panel_sn', '—')}　<font color=red>{spec.get('panel_department', '—')}</font>",
+            normal))
+        right_content.append(Paragraph(
+            f"斷路器：{spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')}　<font color=red>{spec.get('breaker_department', '—')}</font>",
+            normal))
+
+        # 左右 Table ─ 欄寬再略為壓縮
+        table = Table([[left_content, right_content]], colWidths=[255, 255])
         table.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
             ('LEFTPADDING', (0, 0), (-1, -1), 0),
             ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),  # 可選：加細線幫助對齊
         ]))
         elements.append(table)
-        elements.append(Spacer(1, 8))  # 減少間距
+        elements.append(Spacer(1, 6))  # 原 8 → 6
 
-        # 配件清單（縮小字體 + 緊湊間距）
+        # 配件清單 ─ 更緊湊
         parts = spec.get("parts", [])
         if parts:
             elements.append(Paragraph("配件清單", heading3))
-            elements.append(Spacer(1, 4))
+            elements.append(Spacer(1, 3))
             for p in parts:
-                name = p.get("name", "—")
-                source = p.get("source", "—")
                 dept = p.get("department", "—")
                 elements.append(Paragraph(
-                    f"• {name}　（貨源：{source}，負責部門：<font color=red>{dept}</font>）",
+                    f"• {p.get('name', '—')}　({p.get('source', '—')} / <font color=red>{dept}</font>)",
                     small
                 ))
-            elements.append(Spacer(1, 8))  # 減少下方間距
+            elements.append(Spacer(1, 5))
 
-        # 強制出貨檢查清單在第二頁
-        elements.append(PageBreak())
-
-        # 出貨檢查清單（第二頁開頭）
+        # 出貨檢查清單 ─ 改用更省空間寫法（不換頁）
         checklist = spec.get("delivery_checklist", [])
         if checklist:
             elements.append(Paragraph("出貨檢查清單", heading3))
-            elements.append(Spacer(1, 4))
-            for item in checklist:
-                name = item.get("name", "—")
-                ch = "√" if item.get("checked", False) else "□"
-                elements.append(Paragraph(f"{ch} {name}", normal))
-            elements.append(Spacer(1, 8))
+            elements.append(Spacer(1, 3))
 
-        # Remarks
+            # 可以改成兩欄或更小字，這裡先保持單欄但縮小
+            for item in checklist:
+                ch = "√" if item.get("checked", False) else "□"
+                elements.append(Paragraph(f"{ch} {item.get('name', '—')}", small))
+            elements.append(Spacer(1, 6))
+
+        # 備註 ─ 保持最後
         remarks = spec.get("remarks", "").strip()
         if remarks:
             elements.append(Paragraph("備註", heading3))
-            elements.append(Spacer(1, 4))
+            elements.append(Spacer(1, 3))
             elements.append(Paragraph(remarks, normal))
 
     doc.build(elements)
