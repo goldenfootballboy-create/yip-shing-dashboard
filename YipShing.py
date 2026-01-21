@@ -147,17 +147,24 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(table)
         elements.append(Spacer(1, 20))
 
-        # 配件清單（第一頁下方）
+        # 配件清單（縮小字體，讓它留在第一頁）
         parts = spec.get("parts", [])
         if parts:
+            small = ParagraphStyle(name='Small', parent=normal, fontSize=9, leading=11)
+
             elements.append(Paragraph("配件清單", heading3))
-            elements.append(Spacer(1, 6))
+            elements.append(Spacer(1, 8))
+
             for p in parts:
                 name = p.get("name", "—")
                 source = p.get("source", "—")
                 dept = p.get("department", "—")
-                elements.append(Paragraph(f"• {name}　（貨源：{source}，負責部門：<font color=red>{dept}</font>）", normal))
-            elements.append(Spacer(1, 24))
+                elements.append(Paragraph(
+                    f"• {name}　（貨源：{source}，負責部門：<font color=red>{dept}</font>）",
+                    small
+                ))
+
+            elements.append(Spacer(1, 12))  # 減少間距，讓出貨檢查清單推到下一頁
 
         # 出貨檢查清單放在第二頁開頭
         elements.append(PageBreak())
