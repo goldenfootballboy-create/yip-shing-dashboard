@@ -177,18 +177,17 @@ def generate_overview_pdf(specs, project_info, qty):
             elements.append(Paragraph("出貨檢查清單", heading3))
             elements.append(Spacer(1, 3))
 
-            # 拆成 2 欄
-            col1 = checklist[:len(checklist)//2 + 1]
-            col2 = checklist[len(checklist)//2 + 1:]
+            col1 = checklist[:len(checklist) // 2 + 1]
+            col2 = checklist[len(checklist) // 2 + 1:]
 
             checklist_data = []
-            for row in zip_longest(col1, col2, fillvalue=""):
-                row1 = Paragraph(f"{ '√' if row[0].get('checked', False) else '□' } {row[0].get('name', '—')}", normal) if row[0] else Paragraph("", normal)
-                row2 = Paragraph(f"{ '√' if row[1].get('checked', False) else '□' } {row[1].get('name', '—')}", normal) if row[1] else Paragraph("", normal)
+            for row in zip_longest(col1, col2, fillvalue=None):
+                row1 = Paragraph(f"{'√' if row[0].get('checked', False) else '□'} {row[0].get('name', '—')}", normal) if \
+                row[0] is not None else Paragraph("", normal)
+                row2 = Paragraph(f"{'√' if row[1].get('checked', False) else '□'} {row[1].get('name', '—')}", normal) if \
+                row[1] is not None else Paragraph("", normal)
                 checklist_data.append([row1, row2])
 
-            from reportlab.platypus import Table, TableStyle
-            from itertools import zip_longest
             checklist_table = Table(checklist_data, colWidths=[240, 240])
             checklist_table.setStyle(TableStyle([
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
