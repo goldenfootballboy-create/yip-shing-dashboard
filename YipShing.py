@@ -1679,8 +1679,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 "anson@topone-power.com",
                 "michelle@ysdiesel.com.hk",
                 "serena@topone-power.com",
-                "warehouse@ysdiesel.com.hk",
-                "Kevin@topone-power.com"
+                "warehouse@ysdiesel.com.hk"
 
 
             ]
@@ -2415,8 +2414,8 @@ if st.session_state.get("spec_dialog_open", False):
                 "anson@topone-power.com",
                 "michelle@ysdiesel.com.hk",
                 "serena@topone-power.com",
-                "warehouse@ysdiesel.com.hk",
-                "Kevin@topone-power.com"
+                "warehouse@ysdiesel.com.hk"
+
             ]
 
             # 呼叫發送 email 函數
