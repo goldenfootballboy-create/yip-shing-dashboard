@@ -13,13 +13,20 @@ import time
 from datetime import datetime, timezone, timedelta
 # reportlab 相關 import
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    PageBreak,
+    Table,       # 解決 NameError: name 'Table' is not defined
+    TableStyle   # 用來設定表格樣式
+)
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.enums import TA_LEFT, TA_CENTER
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-
+from io import BytesIO   # 你已經有，但放在這裡一起看清楚
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
