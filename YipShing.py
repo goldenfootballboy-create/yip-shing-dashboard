@@ -76,11 +76,11 @@ def generate_overview_pdf(specs, project_info, qty):
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
 
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)  # 邊距縮小到 30pt
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=28, leftMargin=28, topMargin=28, bottomMargin=28)
     styles = getSampleStyleSheet()
 
-    normal = ParagraphStyle('Normal', parent=styles['Normal'], fontName='NotoSansTC', fontSize=9, leading=11, alignment=TA_LEFT)  # 縮小字體 9pt
-    small = ParagraphStyle('Small', parent=normal, fontSize=8.5, leading=10)  # 配件清單用 8.5pt
+    normal = ParagraphStyle('Normal', parent=styles['Normal'], fontName='NotoSansTC', fontSize=9, leading=11, alignment=TA_LEFT)
+    small = ParagraphStyle('Small', parent=normal, fontSize=8.5, leading=10)  # 配件清單用小字體
     heading1 = ParagraphStyle('Heading1', parent=styles['Heading1'], fontName='NotoSansTC', fontSize=16, alignment=TA_CENTER, spaceAfter=10)
     heading2 = ParagraphStyle('Heading2', parent=styles['Heading2'], fontName='NotoSansTC', fontSize=13, spaceBefore=10, spaceAfter=5)
     heading3 = ParagraphStyle('Heading3', parent=styles['Heading3'], fontName='NotoSansTC', fontSize=11, spaceBefore=5, spaceAfter=4)
@@ -100,11 +100,11 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", heading2))
         elements.append(Spacer(1, 8))
 
-        # 左右並排 Table（收窄欄寬：各 260pt）
+        # 左右並排 Table（欄寬收窄到 260pt）
         left_content = []
         right_content = []
 
-        # 左欄：Prime & Standby Power + Engine & Alternator
+        # 左欄
         left_content.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
         left_content.append(Spacer(1, 3))
         left_content.append(Paragraph(f"Prime (kW): {spec.get('prime', '—')}", normal))
@@ -122,7 +122,7 @@ def generate_overview_pdf(specs, project_info, qty):
         left_content.append(Paragraph(f"電球顏色： {spec.get('alt_color', '—')}", normal))
         left_content.append(Paragraph(f"Droop： {spec.get('droop', '—')}　　PMG： {spec.get('pmg', '—')}　　加熱器： {spec.get('alt_heater', '—')}", normal))
 
-        # 右欄：Radiator & Base Frame + Container / Panel / Breaker
+        # 右欄
         right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
         right_content.append(Spacer(1, 3))
         right_content.append(Paragraph(f"水箱型號： {spec.get('rad_model', '—')}　　S/N： {spec.get('rad_sn', '—')}　　溫度： {spec.get('rad_temp', '—')}", normal))
@@ -144,19 +144,19 @@ def generate_overview_pdf(specs, project_info, qty):
         right_content.append(Paragraph(f"CO 探測器 (OLED)： {spec.get('co_detector', '—')}　　貨源： {spec.get('co_source', '—')}　　負責部門： <font color=red>{spec.get('co_department', '—')}</font>", normal))
         right_content.append(Paragraph(f"斷路器： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N： {spec.get('breaker_sn', '—')}　　貨源： {spec.get('breaker_source', '—')}　　負責部門： <font color=red>{spec.get('breaker_department', '—')}</font>", normal))
 
-        # 使用 Table 做左右並排（收窄欄寬：各 260pt）
+        # 左右並排 Table
         from reportlab.platypus import Table, TableStyle
         table_data = [[left_content, right_content]]
-        table = Table(table_data, colWidths=[260, 260])  # 收窄欄寬，留更多邊距
+        table = Table(table_data, colWidths=[260, 260])
         table.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
             ('LEFTPADDING', (0, 0), (-1, -1), 0),
             ('RIGHTPADDING', (0, 0), (-1, -1), 0),
         ]))
         elements.append(table)
-        elements.append(Spacer(1, 8))  # 減少間距
+        elements.append(Spacer(1, 8))
 
-        # 配件清單（縮小字體 + 緊湊間距）
+        # 配件清單（第一頁下方）
         parts = spec.get("parts", [])
         if parts:
             elements.append(Paragraph("配件清單", heading3))
@@ -169,28 +169,42 @@ def generate_overview_pdf(specs, project_info, qty):
                     f"• {name}　（貨源：{source}，負責部門：<font color=red>{dept}</font>）",
                     small
                 ))
-            elements.append(Spacer(1, 8))  # 減少下方間距
+            elements.append(Spacer(1, 8))
 
-        # 強制出貨檢查清單在第二頁
-        elements.append(PageBreak())
-
-        # 出貨檢查清單（第二頁開頭）
+        # 出貨檢查清單（放在第一頁最下方，用 2 欄顯示）
         checklist = spec.get("delivery_checklist", [])
         if checklist:
             elements.append(Paragraph("出貨檢查清單", heading3))
             elements.append(Spacer(1, 4))
-            for item in checklist:
-                name = item.get("name", "—")
-                ch = "√" if item.get("checked", False) else "□"
-                elements.append(Paragraph(f"{ch} {name}", normal))
+
+            # 拆成 2 欄
+            col1 = checklist[:len(checklist)//2 + 1]
+            col2 = checklist[len(checklist)//2 + 1:]
+
+            checklist_data = []
+            for row in zip_longest(col1, col2, fillvalue=""):
+                row1 = Paragraph(f"{ '√' if row[0].get('checked', False) else '□' } {row[0].get('name', '—')}", normal) if row[0] else Paragraph("", normal)
+                row2 = Paragraph(f"{ '√' if row[1].get('checked', False) else '□' } {row[1].get('name', '—')}", normal) if row[1] else Paragraph("", normal)
+                checklist_data.append([row1, row2])
+
+            from reportlab.platypus import Table, TableStyle
+            from itertools import zip_longest
+            checklist_table = Table(checklist_data, colWidths=[260, 260])
+            checklist_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            elements.append(checklist_table)
             elements.append(Spacer(1, 8))
 
-        # Remarks
+        # 備註（放在第一頁最下方）
         remarks = spec.get("remarks", "").strip()
         if remarks:
             elements.append(Paragraph("備註", heading3))
             elements.append(Spacer(1, 4))
             elements.append(Paragraph(remarks, normal))
+            elements.append(Spacer(1, 8))
 
     doc.build(elements)
     pdf_bytes = buffer.getvalue()
