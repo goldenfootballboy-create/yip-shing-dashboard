@@ -466,7 +466,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
                 "genset_model", "genset_sn", "engine_color", "engine_year", "engine_heater",
                 "alt_model", "alt_sn", "alt_color", "droop", "pmg", "alt_heater",
                 "rad_model", "rad_sn", "rad_temp", "fan_size", "radiator_guard",
-                "panel_model", "panel_sn", "co_detector", "breaker_type", "breaker_rating", "poles"
+                "panel_model", "panel_sn", "co_detector", "breaker_type", "breaker_rating", "poles", "breaker_sn", "base_sn"
             ]
 
             has_change = False
