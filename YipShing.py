@@ -556,14 +556,31 @@ st.set_page_config(
 if "dialog_active" not in st.session_state:
     st.session_state.dialog_active = None
 
-# Google Sheets 連線 + 讀取（使用 gspread）
+# Google Sheets 連線 + 重試機制（使用 open_by_key + 純 ID）
 creds_info = st.secrets["connections"]["gsheets"]
 creds = Credentials.from_service_account_info(
     creds_info,
     scopes=["https://www.googleapis.com/auth/spreadsheets"]
 )
 client = gspread.authorize(creds)
-spreadsheet = client.open_by_url(creds_info["spreadsheet"])
+
+spreadsheet = None
+for attempt in range(3):
+    try:
+        spreadsheet_id = creds_info["spreadsheet"]
+        spreadsheet = client.open_by_key(spreadsheet_id)
+        st.success("連線成功！Spreadsheet 名稱：" + spreadsheet.title)
+        break
+    except gspread.exceptions.APIError as e:
+        st.warning(f"連線失敗（嘗試 {attempt+1}/3）：{str(e)}，5 秒後重試...")
+        time.sleep(5)
+    except Exception as e:
+        st.error(f"連線異常：{str(e)}")
+        raise e
+
+if spreadsheet is None:
+    st.error("無法連線到 Google Sheets，請稍後再試或檢查 secrets.toml")
+    st.stop()
 
 # 讀取 projects 工作表
 worksheet_projects = spreadsheet.worksheet("projects")
