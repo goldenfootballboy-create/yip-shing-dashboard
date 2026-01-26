@@ -85,7 +85,7 @@ def generate_overview_pdf(specs, project_info, qty):
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
     buffer = BytesIO()
 
-    # 加大邊距以防溢出
+    # 加大邊距防溢出
     doc = SimpleDocTemplate(
         buffer,
         pagesize=letter,
@@ -97,15 +97,14 @@ def generate_overview_pdf(specs, project_info, qty):
 
     styles = getSampleStyleSheet()
 
-    # 調整字體與行距
     normal = ParagraphStyle(
         'Normal',
         parent=styles['Normal'],
         fontName='NotoSansTC',
-        fontSize=9,  # 加大
-        leading=11,  # 加大間距
+        fontSize=9,
+        leading=11,
         alignment=TA_LEFT,
-        wordWrap='CJK'  # 支持中文自動換行，防溢出
+        wordWrap='CJK'          # 強制中文自動換行
     )
 
     small = ParagraphStyle(
@@ -120,10 +119,10 @@ def generate_overview_pdf(specs, project_info, qty):
         'Heading1',
         parent=styles['Heading1'],
         fontName='NotoSansTC',
-        fontSize=18,  # 加大
+        fontSize=18,
         alignment=TA_CENTER,
         spaceAfter=12,
-        backColor=colors.lightgrey  # 加背景色
+        backColor=colors.lightgrey
     )
 
     heading2 = ParagraphStyle(
@@ -139,21 +138,21 @@ def generate_overview_pdf(specs, project_info, qty):
         'Heading3',
         parent=styles['Heading3'],
         fontName='NotoSansTC',
-        fontSize=11,  # 加大
+        fontSize=11,
         spaceBefore=6,
         spaceAfter=4,
-        textColor=colors.darkblue  # 加顏色突出
+        textColor=colors.darkblue
     )
 
     elements = []
 
-    # 大標題（加更新時間頁眉）
+    # 頁眉
     header_table = Table([[
         Paragraph(
             f"專案：{project_info.get('Project_Name', '—')}　｜　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}",
             heading1
         ),
-        Paragraph(f"更新於：{update_time}", small)  # 假設 update_time 是全局變數
+        Paragraph(f"更新於：{update_time}", small)
     ]], colWidths=[400, 140])
     header_table.setStyle(TableStyle([
         ('ALIGN', (1,0), (1,0), 'RIGHT'),
@@ -170,12 +169,12 @@ def generate_overview_pdf(specs, project_info, qty):
             elements.append(PageBreak())
 
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", heading2))
-        elements.append(Spacer(1, 8))  # 加大
+        elements.append(Spacer(1, 8))
 
         left_content = []
         right_content = []
 
-        # 左欄：Prime & Engine，用表格優化 key-value，調整寬度防溢出
+        # 左欄 - Prime & Engine
         left_content.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
         left_content.append(Spacer(1, 4))
         left_content.append(Table([
@@ -183,11 +182,11 @@ def generate_overview_pdf(specs, project_info, qty):
             ['Standby (kW):', spec.get('standby', '—')],
             ['RPM:', spec.get('rpm', '—')],
             ['電壓 / 頻率：', f"{spec.get('voltage', '—')} / {spec.get('frequency', '—')}"],
-        ], colWidths=[110, 130], style=TableStyle([  # 調窄寬度
+        ], colWidths=[110, 140], style=TableStyle([
             ('FONT', (0,0), (-1,-1), 'NotoSansTC', 9),
             ('GRID', (0,0), (-1,-1), 0, colors.transparent),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('LEFTPADDING', (0,0), (0,-1), 0),  # 減少左邊距
+            ('LEFTPADDING', (0,0), (0,-1), 0),
         ])))
         left_content.append(Spacer(1, 8))
 
@@ -200,15 +199,15 @@ def generate_overview_pdf(specs, project_info, qty):
             ['電球型號：', f"{spec.get('alt_model', '—')}　S/N： {spec.get('alt_sn', '—')}"],
             ['電球顏色：', spec.get('alt_color', '—')],
             ['Droop：', f"{spec.get('droop', '—')}　PMG： {spec.get('pmg', '—')}　加熱器： {spec.get('alt_heater', '—')}"],
-        ], colWidths=[110, 130], style=TableStyle([
+        ], colWidths=[110, 140], style=TableStyle([
             ('FONT', (0,0), (-1,-1), 'NotoSansTC', 9),
             ('GRID', (0,0), (-1,-1), 0, colors.transparent),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('LEFTPADDING', (0,0), (0,-1), 0),
         ])))
 
-        # 右欄：Radiator & Container，用表格優化，調整寬度並確保括號完整
-        right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))  # 確保括號完整
+        # 右欄 - Radiator & Container（移除有問題的 SPAN 條件）
+        right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
         right_content.append(Spacer(1, 4))
         right_content.append(Table([
             ['水箱型號：', f"{spec.get('rad_model', '—')}　S/N： {spec.get('rad_sn', '—')}　溫度： {spec.get('rad_temp', '—')}"],
@@ -219,12 +218,11 @@ def generate_overview_pdf(specs, project_info, qty):
             ['低水位浮球開關：', f"{spec.get('low_water', '—')}　貨源： {spec.get('low_water_source', '—')}　負責部門： <font color=red>{spec.get('low_water_department', '—')}</font>"],
             ['底架型號：', f"{spec.get('base_model', '—')}　S/N： {spec.get('base_sn', '—')}"],
             ['避震器：', f"型號 {spec.get('avm_model', '—')}　數量： {spec.get('avm_qty', '—')}　貨源： {spec.get('avm_source', '—')}　負責部門： <font color=red>{spec.get('avm_department', '—')}</font>"],
-        ], colWidths=[130, 140], style=TableStyle([  # 調整寬度
+        ], colWidths=[130, 170], style=TableStyle([  # 加大第二欄寬度
             ('FONT', (0,0), (-1,-1), 'NotoSansTC', 9),
             ('GRID', (0,0), (-1,-1), 0, colors.transparent),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('LEFTPADDING', (0,0), (0,-1), 0),
-            ('SPAN', (0,0), (1,0)) if len(spec.get('rad_model', '')) > 20 else None,  # 如果文字長，合併單元格防溢出（測試用）
         ])))
         right_content.append(Spacer(1, 8))
 
@@ -235,15 +233,15 @@ def generate_overview_pdf(specs, project_info, qty):
             ['控制器型號：', f"{spec.get('panel_model', '—')}　S/N： {spec.get('panel_sn', '—')}　貨源： {spec.get('panel_source', '—')}　負責部門： <font color=red>{spec.get('panel_department', '—')}</font>"],
             ['CO 探測器 (OLED)：', f"{spec.get('co_detector', '—')}　貨源： {spec.get('co_source', '—')}　負責部門： <font color=red>{spec.get('co_department', '—')}</font>"],
             ['斷路器：', f"{spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　S/N： {spec.get('breaker_sn', '—')}　貨源： {spec.get('breaker_source', '—')}　負責部門： <font color=red>{spec.get('breaker_department', '—')}</font>"],
-        ], colWidths=[130, 140], style=TableStyle([
+        ], colWidths=[130, 170], style=TableStyle([
             ('FONT', (0,0), (-1,-1), 'NotoSansTC', 9),
             ('GRID', (0,0), (-1,-1), 0, colors.transparent),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('LEFTPADDING', (0,0), (0,-1), 0),
         ])))
 
-        # 左右並排表格（調整寬度平衡，防溢出）
-        table = Table([[left_content, right_content]], colWidths=[230, 280])  # 調整為更平衡
+        # 左右並排（加大右欄寬度）
+        table = Table([[left_content, right_content]], colWidths=[250, 300])
         table.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
             ('LEFTPADDING', (0, 0), (-1, -1), 0),
@@ -251,9 +249,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
         ]))
         elements.append(table)
-        elements.append(Spacer(1, 12))  # 加大
+        elements.append(Spacer(1, 12))
 
-        # 配件清單（用表格分欄，確保不溢出）
+        # 配件清單
         parts = spec.get("parts", [])
         if parts:
             elements.append(Paragraph("配件清單", heading3))
@@ -262,21 +260,18 @@ def generate_overview_pdf(specs, project_info, qty):
             for p in parts:
                 name = p.get("name", "—")
                 details = f"（貨源：{p.get('source', '—')}，負責部門：<font color=red>{p.get('department', '—')}</font>）"
-                parts_data.append([
-                    Paragraph(f"• {name}", small),
-                    Paragraph(details, small)
-                ])
-            parts_table = Table(parts_data, colWidths=[240, 270])
+                parts_data.append([Paragraph(f"• {name}", small), Paragraph(details, small)])
+            parts_table = Table(parts_data, colWidths=[240, 310])
             parts_table.setStyle(TableStyle([
                 ('VALIGN', (0,0), (-1,-1), 'TOP'),
                 ('GRID', (0,0), (-1,-1), 0, colors.transparent),
                 ('LEFTPADDING', (0,0), (-1,-1), 0),
-                ('BOTTOMPADDING', (0,0), (-1,-1), 4),  # 加項目間距
+                ('BOTTOMPADDING', (0,0), (-1,-1), 6),
             ]))
             elements.append(parts_table)
             elements.append(Spacer(1, 12))
 
-        # 出貨檢查清單（加顏色符號，調整寬度防溢出）
+        # 出貨檢查清單
         checklist = spec.get("delivery_checklist", [])
         if checklist:
             elements.append(Paragraph("出貨檢查清單", heading3))
@@ -286,35 +281,26 @@ def generate_overview_pdf(specs, project_info, qty):
             left_items = checklist[:mid]
             right_items = checklist[mid:]
 
-            left_check = []
-            for item in left_items:
-                ch_color = "green" if item.get("checked", False) else "grey"
-                ch = f"<font color={ch_color}>√</font>" if item.get("checked", False) else f"<font color={ch_color}>□</font>"
-                left_check.append(Paragraph(f"{ch} {item.get('name', '—')}", small))
+            left_check = [Paragraph(f"<font color={'green' if item.get('checked', False) else 'grey'}>{'√' if item.get('checked', False) else '□'}</font> {item.get('name', '—')}", small) for item in left_items]
+            right_check = [Paragraph(f"<font color={'green' if item.get('checked', False) else 'grey'}>{'√' if item.get('checked', False) else '□'}</font> {item.get('name', '—')}", small) for item in right_items]
 
-            right_check = []
-            for item in right_items:
-                ch_color = "green" if item.get("checked", False) else "grey"
-                ch = f"<font color={ch_color}>√</font>" if item.get("checked", False) else f"<font color={ch_color}>□</font>"
-                right_check.append(Paragraph(f"{ch} {item.get('name', '—')}", small))
-
-            checklist_table = Table([[left_check, right_check]], colWidths=[250, 260])  # 調整寬度
+            checklist_table = Table([[left_check, right_check]], colWidths=[255, 265])
             checklist_table.setStyle(TableStyle([
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                 ('LEFTPADDING', (0, 0), (-1, -1), 0),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 10),
                 ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
-                ('BOTTOMPADDING', (0,0), (-1,-1), 4),  # 加項目間距
+                ('BOTTOMPADDING', (0,0), (-1,-1), 4),
             ]))
             elements.append(checklist_table)
             elements.append(Spacer(1, 12))
 
-        # 備註（加灰底框，確保不溢出）
+        # 備註
         remarks = spec.get("remarks", "").strip()
         if remarks:
             elements.append(Paragraph("備註", heading3))
             elements.append(Spacer(1, 4))
-            remark_table = Table([[Paragraph(remarks, normal)]], colWidths=[500])  # 調窄寬度
+            remark_table = Table([[Paragraph(remarks, normal)]], colWidths=[510])
             remark_table.setStyle(TableStyle([
                 ('BACKGROUND', (0,0), (-1,-1), colors.lightgrey),
                 ('BOX', (0,0), (-1,-1), 0.5, colors.grey),
