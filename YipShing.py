@@ -1,3 +1,4 @@
+26/1
 
 import streamlit as st
 import pandas as pd
@@ -45,10 +46,47 @@ def safe_index(val, options, default=0):
     except ValueError:
         return default
 
+def fullscreen_loading(message="正在處理，請稍候..."):
+    st.markdown(f"""
+    <div style="
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        color: white;
+        font-size: 1.8rem;
+        font-weight: bold;
+    ">
+        <div style="
+            border: 12px solid #f3f3f3;
+            border-top: 12px solid #1fb429;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 30px;
+        "></div>
+        <div>{message}</div>
+    </div>
+    <style>
+        @keyframes spin {{
+            0% {{ transform: rotate(0deg); }}
+            100% {{ transform: rotate(360deg); }}
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+
+
 def generate_overview_pdf(specs, project_info, qty):
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
     buffer = BytesIO()
 
+    # 邊距壓縮
     doc = SimpleDocTemplate(
         buffer,
         pagesize=letter,
@@ -60,14 +98,14 @@ def generate_overview_pdf(specs, project_info, qty):
 
     styles = getSampleStyleSheet()
 
+    # 字體與行距壓縮
     normal = ParagraphStyle(
         'Normal',
         parent=styles['Normal'],
         fontName='NotoSansTC',
         fontSize=8.5,
-        leading=9.5,
-        alignment=TA_LEFT,
-        wordWrap='CJK'  # 確保長文字自動換行
+        leading=10,
+        alignment=TA_LEFT
     )
 
     small = ParagraphStyle(
@@ -83,7 +121,7 @@ def generate_overview_pdf(specs, project_info, qty):
         fontName='NotoSansTC',
         fontSize=15,
         alignment=TA_CENTER,
-        spaceAfter=6
+        spaceAfter=8
     )
 
     heading2 = ParagraphStyle(
@@ -101,26 +139,26 @@ def generate_overview_pdf(specs, project_info, qty):
         fontName='NotoSansTC',
         fontSize=10.5,
         spaceBefore=4,
-        spaceAfter=2
+        spaceAfter=3
     )
 
     elements = []
 
+    # 大標題
+    elements.append(Paragraph(
+        f"專案：{project_info.get('Project_Name', '—')}　｜　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}",
+        heading1
+    ))
+    elements.append(Spacer(1, 12))
+
     for machine_idx in range(qty):
+        spec = specs[machine_idx] if machine_idx < len(specs) else {}
+
         if machine_idx > 0:
             elements.append(PageBreak())
 
-        spec = specs[machine_idx] if machine_idx < len(specs) else {}
-
-        # 大標題
-        elements.append(Paragraph(
-            f"專案：{project_info.get('Project_Name', '—')}　｜　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}",
-            heading1
-        ))
-        elements.append(Spacer(1, 6))
-
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", heading2))
-        elements.append(Spacer(1, 4))
+        elements.append(Spacer(1, 5))
 
         left_content = []
         right_content = []
@@ -133,7 +171,7 @@ def generate_overview_pdf(specs, project_info, qty):
         left_content.append(Paragraph(f"RPM: {spec.get('rpm', '—')}", normal))
         left_content.append(
             Paragraph(f"電壓 / 頻率： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
-        left_content.append(Spacer(1, 4))
+        left_content.append(Spacer(1, 5))
 
         left_content.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
         left_content.append(Spacer(1, 2))
@@ -158,7 +196,7 @@ def generate_overview_pdf(specs, project_info, qty):
             f"風扇呎吋： {spec.get('fan_size', '—')}　負責部門： <font color=red>{spec.get('fan_department', '—')}</font>",
             normal))
         right_content.append(Paragraph(f"水箱護罩： {spec.get('radiator_guard', '—')}", normal))
-        right_content.append(Spacer(1, 2))
+        right_content.append(Spacer(1, 3))
         right_content.append(Paragraph(
             f"燃油冷卻器： {spec.get('fuel_cooler', '—')}　貨源： {spec.get('fuel_cooler_source', '—')}　負責部門： <font color=red>{spec.get('fuel_cooler_department', '—')}</font>",
             normal))
@@ -168,14 +206,14 @@ def generate_overview_pdf(specs, project_info, qty):
         right_content.append(Paragraph(
             f"低水位浮球開關： {spec.get('low_water', '—')}　貨源： {spec.get('low_water_source', '—')}　負責部門： <font color=red>{spec.get('low_water_department', '—')}</font>",
             normal))
-        right_content.append(Spacer(1, 2))
+        right_content.append(Spacer(1, 3))
         right_content.append(
             Paragraph(f"底架型號： {spec.get('base_model', '—')}　S/N： {spec.get('base_sn', '—')}", normal))
         right_content.append(Paragraph(
             f"避震器：型號 {spec.get('avm_model', '—')}　數量： {spec.get('avm_qty', '—')}　貨源： {spec.get('avm_source', '—')}　負責部門： <font color=red>{spec.get('avm_department', '—')}</font>",
             normal))
 
-        right_content.append(Spacer(1, 4))
+        right_content.append(Spacer(1, 5))
         right_content.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
         right_content.append(Spacer(1, 2))
         right_content.append(
@@ -199,13 +237,13 @@ def generate_overview_pdf(specs, project_info, qty):
             ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
         ]))
         elements.append(table)
-        elements.append(Spacer(1, 4))
+        elements.append(Spacer(1, 6))
 
         # 配件清單
         parts = spec.get("parts", [])
         if parts:
             elements.append(Paragraph("配件清單", heading3))
-            elements.append(Spacer(1, 2))
+            elements.append(Spacer(1, 3))
             for p in parts:
                 name = p.get("name", "—")
                 source = p.get("source", "—")
@@ -214,13 +252,13 @@ def generate_overview_pdf(specs, project_info, qty):
                     f"• {name}　（貨源：{source}，負責部門：<font color=red>{dept}</font>）",
                     small
                 ))
-            elements.append(Spacer(1, 4))
+            elements.append(Spacer(1, 5))
 
         # 出貨檢查清單 ─ 2欄 + 使用 √ 和 □
         checklist = spec.get("delivery_checklist", [])
         if checklist:
             elements.append(Paragraph("出貨檢查清單", heading3))
-            elements.append(Spacer(1, 2))
+            elements.append(Spacer(1, 3))
 
             mid = (len(checklist) + 1) // 2
             left_items = checklist[:mid]
@@ -230,13 +268,13 @@ def generate_overview_pdf(specs, project_info, qty):
             for item in left_items:
                 ch = "√" if item.get("checked", False) else "□"
                 name = item.get("name", "—")
-                left_check.append(Paragraph(f"<font color=green>{ch}</font> {name}" if item.get("checked", False) else f"<font color=grey>{ch}</font> {name}", small))
+                left_check.append(Paragraph(f"{ch} {name}", small))
 
             right_check = []
             for item in right_items:
                 ch = "√" if item.get("checked", False) else "□"
                 name = item.get("name", "—")
-                right_check.append(Paragraph(f"<font color=green>{ch}</font> {name}" if item.get("checked", False) else f"<font color=grey>{ch}</font> {name}", small))
+                right_check.append(Paragraph(f"{ch} {name}", small))
 
             checklist_table = Table([[left_check, right_check]], colWidths=[260, 260])
             checklist_table.setStyle(TableStyle([
@@ -246,15 +284,15 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
             ]))
             elements.append(checklist_table)
-            elements.append(Spacer(1, 4))
+            elements.append(Spacer(1, 6))
 
-        # 備註
+        # 備註（放在第一頁最後）
         remarks = spec.get("remarks", "").strip()
         if remarks:
             elements.append(Paragraph("備註", heading3))
-            elements.append(Spacer(1, 2))
+            elements.append(Spacer(1, 3))
             elements.append(Paragraph(remarks, normal))
-            elements.append(Spacer(1, 4))
+            elements.append(Spacer(1, 8))
 
     doc.build(elements)
     pdf_bytes = buffer.getvalue()
@@ -3006,3 +3044,4 @@ else:
 
 st.markdown("---")
 st.caption("Projects Management System")
+
