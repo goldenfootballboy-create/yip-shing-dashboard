@@ -15,13 +15,16 @@ def df_to_gspread_values(df):
     for _, row in df.iterrows():
         row_list = []
         for val in row:
-            # 先處理所有空值類型（NaN, NaT, None）
+            # 先處理所有可能的空值（NaN, NaT, None）
             if pd.isna(val) or val is None:
                 row_list.append("")
-            # 日期類型轉字串
-            elif isinstance(val, pd.Timestamp) or isinstance(val, datetime.date) or isinstance(val, datetime.datetime):
-                row_list.append(val.strftime("%Y-%m-%d"))
-            # 其他類型強制轉字串
+            # 只檢查真正的日期物件（避開 NaT）
+            elif hasattr(val, 'strftime'):
+                try:
+                    row_list.append(val.strftime("%Y-%m-%d"))
+                except AttributeError:
+                    row_list.append("")
+            # 其他一律轉字串
             else:
                 row_list.append(str(val))
         values.append(row_list)
