@@ -214,7 +214,7 @@ if len(display_df) > 0:
 
             # 卡片內容拆成多段
             st.markdown(f"""
-            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 60px;">
+            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 20px;">
                 <div>
                     <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
                     {work_order_display}
@@ -229,7 +229,7 @@ if len(display_df) > 0:
 
             st.markdown(f"""
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-                    <span style="background:{status_color}; color:white; padding:6px 16px; border-radius:20px; font-weight:bold;">
+                    <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:20px; font-weight:bold; font-size:0.85rem;">
                         {row["Status"]}
                     </span>
                     <small style="color:#888;">{date_str}</small>
