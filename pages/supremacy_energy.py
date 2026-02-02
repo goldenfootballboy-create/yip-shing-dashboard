@@ -179,9 +179,10 @@ if search_query:
 # 卡片顯示（已套用方法 2：html.escape + white-space: pre-wrap）
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
-    cols = st.columns(4)
+    cols = st.columns(2)  # ← 改成 2 欄
+
     for idx, row in sorted_df.iterrows():
-        with cols[idx % 4]:
+        with cols[idx % 2]:  # ← 改成 % 2，循環放在左/右欄
             status_color = {
                 "Quoting": "#ffaa00",
                 "Confirmed": "#00aa00",
@@ -210,7 +211,7 @@ if len(display_df) > 0:
 
             date_str = row["Date"].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"
 
-            # 方法 2 關鍵修正：跳脫 Project_Detail 並保留換行/空格
+            # 方法 2：安全跳脫 + 保留換行/空格
             escaped_detail = html.escape(row["Project_Detail"])
             detail_html = f'<p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; white-space: pre-wrap;">{escaped_detail}</p>'
 
@@ -231,7 +232,7 @@ if len(display_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
-            # === key 加上 idx（方案 A 已套用） ===
+            # key 加上 idx（保證唯一）
             edit_key = f"edit_{idx}_{row['Quote_Number']}"
             del_key = f"del_proj_{idx}_{row['Quote_Number']}"
             edit_mode_key = f"edit_mode_{idx}_{row['Quote_Number']}"
