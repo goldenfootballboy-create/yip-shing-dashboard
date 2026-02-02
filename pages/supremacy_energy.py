@@ -358,14 +358,18 @@ if len(display_df) > 0:
                     if st.session_state.get(f"confirm_del_{row['Quote_Number']}_{i + j}", False):
                         st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
                         c1, c2 = st.columns(2)
-                        if c1.button("確認刪除", type="primary", key=f"yes_del_{row['Quote_Number']}_{i + j}",
+
+                        # 改用固定 key，只依賴 Quote_Number
+                        if c1.button("確認刪除", type="primary", key=f"yes_del_confirm_{row['Quote_Number']}",
                                      use_container_width=True):
-                            st.success("刪除按鈕被點擊了！（測試階段，還沒真的刪除）")
-                            # 暫時不寫入 Sheet，只清 session_state
+                            st.success("刪除按鈕被點擊了！（測試階段）")  # 先測試觸發
+                            # 之後再放完整刪除邏輯
+                            # 暫時只清 session_state
                             if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
                                 del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
                             st.rerun()
-                        if c2.button("取消", key=f"no_del_{row['Quote_Number']}_{i + j}", use_container_width=True):
+
+                        if c2.button("取消", key=f"no_del_{row['Quote_Number']}", use_container_width=True):
                             if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
                                 del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
                             st.rerun()
