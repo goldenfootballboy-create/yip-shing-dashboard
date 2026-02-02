@@ -354,25 +354,61 @@ if len(display_df) > 0:
                                     del st.session_state[f"edit_mode_{row['Quote_Number']}_{i + j}"]
                                 st.rerun()
 
-                    # 刪除專案確認
+                    # ================ 刪除專案確認 ================
                     if st.session_state.get(f"confirm_del_{row['Quote_Number']}_{i + j}", False):
                         st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
-                        c1, c2 = st.columns(2)
 
-                        # 改用固定 key，只依賴 Quote_Number
-                        if c1.button("確認刪除", type="primary", key=f"yes_del_confirm_{row['Quote_Number']}",
-                                     use_container_width=True):
-                            st.success("刪除按鈕被點擊了！（測試階段）")  # 先測試觸發
-                            # 之後再放完整刪除邏輯
-                            # 暫時只清 session_state
-                            if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
-                                del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
-                            st.rerun()
+                        with st.form(key=f"delete_form_{row['Quote_Number']}_{i + j}"):
+                            st.write("請再次確認是否刪除此專案及所有相關借調記錄？")
 
-                        if c2.button("取消", key=f"no_del_{row['Quote_Number']}", use_container_width=True):
-                            if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
-                                del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
-                            st.rerun()
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                confirm_delete = st.form_submit_button("✅ 確認刪除", type="primary",
+                                                                       use_container_width=True)
+                            with col2:
+                                cancel_delete = st.form_submit_button("❌ 取消", use_container_width=True)
+
+                            if confirm_delete:
+                                try:
+                                    st.info("正在刪除專案...")
+
+                                    # 刪除專案
+                                    projects_df = projects_df[
+                                        projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                                    worksheet_projects.update(df_to_gspread_values(projects_df))
+
+                                    # 刪除相關借調
+                                    manpower_df = manpower_df[
+                                        manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                                    worksheet_manpower.update(df_to_gspread_values(manpower_df))
+
+                                    # 強制重新讀取最新資料
+                                    projects_data = worksheet_projects.get_all_records()
+                                    projects_df = pd.DataFrame(projects_data)
+                                    projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce").apply(
+                                        lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
+                                    )
+                                    projects_df["Date"] = projects_df["Date"].astype(str).replace("NaT", "")
+                                    projects_df = projects_df.fillna("")
+
+                                    manpower_data = worksheet_manpower.get_all_records()
+                                    manpower_df = pd.DataFrame(manpower_data)
+                                    manpower_df = manpower_df.fillna("")
+
+                                    st.success("✅ 專案及所有借調已成功刪除！")
+
+                                except Exception as e:
+                                    st.error(f"❌ 刪除失敗：{str(e)}")
+
+                                # 清空確認狀態
+                                if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
+                                    del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
+                                st.rerun()
+
+                            if cancel_delete:
+                                if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
+                                    del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
+                                st.rerun()
 
 st.markdown("---")
 st.caption("SUPREMACY ENERGY Project Management System © 2025 YIP SHING")
