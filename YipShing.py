@@ -37,7 +37,11 @@ max_retries = 3  # 可選，未來若需重試邏輯再用
 # 香港時區 (UTC+8)
 hkt = timezone(timedelta(hours=8))
 now_hkt = datetime.now(hkt)
-
+# 強制每次進入日曆頁面都重新讀取 Google Sheets（解決跳轉後不更新問題）
+st.cache_data.clear()  # 清空所有快取
+if "calendar_refresh" not in st.session_state:
+    st.session_state["calendar_refresh"] = True
+    st.rerun()  # 強制重新執行一次頁面
 update_time = now_hkt.strftime('%Y-%m-%d %H:%M')
 # 全局安全 index 函數
 def safe_index(val, options, default=0):
@@ -2900,28 +2904,38 @@ if st.session_state.view_mode == "calendar":
             })
 
     try:
-        manpower_raw = worksheet_projects.get_all_records()  # 改成 gspread 讀取
+        manpower_raw = worksheet_manpower.get_all_records()
         manpower_df = pd.DataFrame(manpower_raw)
         if not manpower_df.empty:
+            manpower_df["Quote_Number"] = manpower_df["Quote_Number"].astype(str).str.replace(r"\.0$", "", regex=True)
+            manpower_df["Start_Date"] = pd.to_datetime(manpower_df["Start_Date"], errors="coerce")
+            manpower_df["End_Date"] = pd.to_datetime(manpower_df["End_Date"], errors="coerce")
+
+            # debug：顯示筆數與資料
+            st.write("借調總筆數：", len(manpower_df))
+            if len(manpower_df) > 0:
+                st.write("最新借調預覽：")
+                st.dataframe(manpower_df.tail(3))  # 看最後幾筆
+
             for _, rec in manpower_df.iterrows():
                 quote_num = rec.get("Quote_Number", "未知專案")
                 staff = rec.get("Staff", "未知員工")
-                start_date = rec.get("Start_Date", "")
-                end_date = rec.get("End_Date", "")
+                start_date = rec.get("Start_Date")
+                end_date = rec.get("End_Date")
 
-                if start_date:
+                if pd.notna(start_date):
                     events.append({
                         "title": f"🧑‍🔧 派工開始: {staff} @ {quote_num}",
-                        "start": start_date,
+                        "start": start_date.strftime("%Y-%m-%d"),
                         "backgroundColor": "#9d8aff",
                         "borderColor": "#9d8aff",
                         "textColor": "white",
                     })
 
-                if end_date:
+                if pd.notna(end_date):
                     events.append({
                         "title": f"🧑‍🔧 派工結束: {staff} @ {quote_num}",
-                        "start": end_date,
+                        "start": end_date.strftime("%Y-%m-%d"),
                         "backgroundColor": "#c0a0ff",
                         "borderColor": "#c0a0ff",
                         "textColor": "black",
