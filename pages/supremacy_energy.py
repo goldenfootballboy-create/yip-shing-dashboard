@@ -197,11 +197,11 @@ if len(display_df) > 0:
             ]
             if len(manpower_records) > 0:
                 manpower_html = "<div style='margin-top:8px;'>"
-                manpower_html += "<small style='color:C92808; font-weight:bold;'>借調：</small><br>"
+                manpower_html += "<small style='color:#C92808; font-weight:bold;'>借調：</small><br>"
                 for _, rec in manpower_records.iterrows():
                     start = rec["Start_Date"].strftime("%Y-%m-%d") if pd.notna(rec["Start_Date"]) else "—"
                     end = rec["End_Date"].strftime("%Y-%m-%d") if pd.notna(rec["End_Date"]) else "進行中"
-                    manpower_html += f"<small style='color:C92808;'>• {rec['Staff']} ({start} → {end})</small><br>"
+                    manpower_html += f"<small style='color:#C92808;'>• {rec['Staff']} ({start} → {end})</small><br>"
                 manpower_html += "</div>"
             else:
                 manpower_html = "<div style='margin-top:8px; color:#999;'><small>無借調記錄</small></div>"
