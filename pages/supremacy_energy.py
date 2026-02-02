@@ -248,7 +248,7 @@ if len(display_df) > 0:
                                 <div style="font-size: 1.0rem; color: #333; margin-top: 4px;">
                                     {work_order_text}
                                 </div>
-                                <p style="margin:8px 0 0 0; font-size:0.9rem; color:#444; line-height:1.4;">
+                                <p style="margin:8px 0 0 0; font-size:0.9rem; color:#444; line-height:1.4; white-space: pre-wrap;">
                                     {row['Project_Detail']}
                                 </p>
                                 <div style="font-size:0.85rem; color:#000; margin-top:8px; font-weight:500;">
@@ -349,26 +349,47 @@ if len(display_df) > 0:
                                     del st.session_state[f"edit_mode_{row['Quote_Number']}_{i + j}"]
                                 st.rerun()
 
-                    # 刪除專案確認
                     if st.session_state.get(f"confirm_del_{row['Quote_Number']}_{i + j}", False):
                         st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
                         c1, c2 = st.columns(2)
                         if c1.button("確認刪除", type="primary", key=f"yes_del_{row['Quote_Number']}_{i + j}",
                                      use_container_width=True):
-                            projects_df = projects_df[projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(
-                                drop=True)
-                            manpower_df = manpower_df[manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(
-                                drop=True)
-
                             try:
-                                # worksheet_projects.clear()  # 暫時註解，避免清空
+                                # 刪除專案
+                                projects_df = projects_df[
+                                    projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                                # worksheet_projects.clear()  # 註解掉，避免風險
                                 worksheet_projects.update(df_to_gspread_values(projects_df))
+
+                                # 刪除相關借調
+                                manpower_df = manpower_df[
+                                    manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
                                 # worksheet_manpower.clear()
                                 worksheet_manpower.update(df_to_gspread_values(manpower_df))
+
                                 st.success("專案及所有借調已刪除！")
+
+                                # 強制重新讀取最新資料，避免記憶體殘留
+                                projects_data = worksheet_projects.get_all_records()
+                                global projects_df
+                                projects_df = pd.DataFrame(projects_data)
+                                projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce").apply(
+                                    lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
+                                )
+                                projects_df = projects_df.fillna("")
+
+                                manpower_data = worksheet_manpower.get_all_records()
+                                global manpower_df
+                                manpower_df = pd.DataFrame(manpower_data)
+                                manpower_df = manpower_df.fillna("")
+
                             except Exception as e:
-                                st.error(f"寫入 Google Sheet 失敗：{str(e)}")
-                                st.warning("資料未更新，但 Sheet 未被清空，請檢查後重試")
+                                st.error(f"刪除失敗：{str(e)}")
+                                st.warning("請檢查 Google Sheet 是否正常，或稍後再試")
+
+                            # 清除 session state 並重新載入頁面
+                            if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
+                                del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
                             st.rerun()
                         if c2.button("取消", key=f"no_del_{row['Quote_Number']}_{i + j}", use_container_width=True):
                             if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
