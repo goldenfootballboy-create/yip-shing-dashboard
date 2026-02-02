@@ -15,13 +15,14 @@ def df_to_gspread_values(df):
     for _, row in df.iterrows():
         row_list = []
         for val in row:
-            if pd.isna(val):
-                row_list.append("")  # 包含 NaT、NaN、None
+            if pd.isna(val):  # 處理 NaN, NaT, None
+                row_list.append("")
             elif isinstance(val, (pd.Timestamp, datetime.date, datetime.datetime)):
                 row_list.append(val.strftime("%Y-%m-%d"))
             else:
                 row_list.append(str(val) if val is not None else "")
         values.append(row_list)
+
     return values
 
 
