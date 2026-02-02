@@ -155,7 +155,7 @@ with st.sidebar:
 
     st.markdown("---")
     if st.button("📅 查看主日曆", type="primary", use_container_width=True):
-        st.switch_page("pages/YipShing.py")
+        st.switch_page("YipShing.py")
 
 # ==============================================
 # 主畫面
