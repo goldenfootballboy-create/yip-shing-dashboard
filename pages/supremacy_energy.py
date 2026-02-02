@@ -4,6 +4,7 @@ from datetime import date
 import time
 import gspread
 from google.oauth2.service_account import Credentials
+import html  # ← 新增這行，用來跳脫 HTML 特殊字元
 
 # ==============================================
 # 頁面設定
@@ -108,7 +109,7 @@ def save_manpower():
     time.sleep(1.5)
 
 # ==============================================
-# Sidebar
+# Sidebar（不變）
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -175,7 +176,7 @@ if search_query:
     else:
         st.info("無搜尋結果")
 
-# 卡片顯示
+# 卡片顯示（已套用方法 2：html.escape + white-space: pre-wrap）
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
     cols = st.columns(4)
@@ -209,12 +210,16 @@ if len(display_df) > 0:
 
             date_str = row["Date"].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"
 
+            # 方法 2 關鍵修正：跳脫 Project_Detail 並保留換行/空格
+            escaped_detail = html.escape(row["Project_Detail"])
+            detail_html = f'<p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; white-space: pre-wrap;">{escaped_detail}</p>'
+
             st.markdown(f"""
             <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 260px;">
                 <div>
                     <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
                     {work_order_display}
-                    <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{row["Project_Detail"]}</p>
+                    {detail_html}
                 </div>
                 <div>{manpower_html}</div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
@@ -226,7 +231,7 @@ if len(display_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
-            # === 關鍵修正：key 加上 idx 保證唯一 ===
+            # === key 加上 idx（方案 A 已套用） ===
             edit_key = f"edit_{idx}_{row['Quote_Number']}"
             del_key = f"del_proj_{idx}_{row['Quote_Number']}"
             edit_mode_key = f"edit_mode_{idx}_{row['Quote_Number']}"
@@ -240,7 +245,7 @@ if len(display_df) > 0:
                 if st.button("Delete", key=del_key, type="secondary", use_container_width=True):
                     st.session_state[confirm_del_key] = True
 
-            # 編輯模式
+            # 編輯模式（不變）
             if st.session_state.get(edit_mode_key, False):
                 original_idx = st.session_state.projects_df[
                     st.session_state.projects_df["Quote_Number"] == row["Quote_Number"]
@@ -316,7 +321,7 @@ if len(display_df) > 0:
                             del st.session_state[edit_mode_key]
                         st.rerun()
 
-            # 刪除確認
+            # 刪除確認（不變）
             if st.session_state.get(confirm_del_key, False):
                 st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？（包含所有借調記錄）")
                 c1, c2 = st.columns(2)
