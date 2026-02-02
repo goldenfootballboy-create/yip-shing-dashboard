@@ -360,42 +360,8 @@ if len(display_df) > 0:
                         c1, c2 = st.columns(2)
                         if c1.button("確認刪除", type="primary", key=f"yes_del_{row['Quote_Number']}_{i + j}",
                                      use_container_width=True):
-                            st.info("開始執行刪除邏輯...")  # debug 1
-                            try:
-                                st.info("正在過濾 projects_df...")  # debug 2
-                                projects_df = projects_df[
-                                    projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
-
-                                st.info("正在寫入 projects...")  # debug 3
-                                worksheet_projects.update(df_to_gspread_values(projects_df))
-
-                                st.info("正在過濾 manpower_df...")  # debug 4
-                                manpower_df = manpower_df[
-                                    manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
-
-                                st.info("正在寫入 manpower...")  # debug 5
-                                worksheet_manpower.update(df_to_gspread_values(manpower_df))
-
-                                st.success("專案及所有借調已刪除！")
-
-                                # 強制重新讀取
-                                projects_data = worksheet_projects.get_all_records()
-                                projects_df = pd.DataFrame(projects_data)
-                                projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce").apply(
-                                    lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
-                                )
-                                projects_df["Date"] = projects_df["Date"].astype(str).replace("NaT", "")
-                                projects_df = projects_df.fillna("")
-
-                                manpower_data = worksheet_manpower.get_all_records()
-                                manpower_df = pd.DataFrame(manpower_data)
-                                manpower_df = manpower_df.fillna("")
-
-                            except Exception as e:
-                                st.error(f"刪除失敗：{str(e)}")
-                                st.warning("請檢查 Google Sheet 是否正常，或稍後再試")
-
-                            # 清 session_state
+                            st.success("刪除按鈕被點擊了！（測試階段，還沒真的刪除）")
+                            # 暫時不寫入 Sheet，只清 session_state
                             if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
                                 del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
                             st.rerun()
