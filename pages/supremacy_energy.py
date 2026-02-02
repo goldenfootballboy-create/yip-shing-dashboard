@@ -179,72 +179,70 @@ if search_query:
 # 卡片顯示（一行 2 張卡片 + 安全顯示）
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
-    cols = st.columns(2)  # 一行 2 筆
+    cols = st.columns(2)
 
     for idx, row in sorted_df.iterrows():
         with cols[idx % 2]:
-            # 定義 key
+            # 先定義 key
             edit_key = f"edit_{idx}_{row['Quote_Number']}"
             del_key = f"del_proj_{idx}_{row['Quote_Number']}"
             edit_mode_key = f"edit_mode_{idx}_{row['Quote_Number']}"
             confirm_del_key = f"confirm_del_{idx}_{row['Quote_Number']}"
 
-            # 狀態顏色
-            status_color = {
-                "Quoting": "#ffaa00",
-                "Confirmed": "#00aa00",
-                "In Production": "#0066ff",
-                "Completed": "#66cc66"
-            }.get(row["Status"], "#888888")
+            status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
+                            "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-            # 借調記錄
+            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
+
             manpower_records = st.session_state.manpower_df[
                 st.session_state.manpower_df["Quote_Number"] == row["Quote_Number"]
             ]
             if len(manpower_records) > 0:
-                manpower_lines = []
+                manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee;'>"
+                manpower_html += "<small style='color:#000; font-weight:bold;'>借調：</small><br>"
                 for _, rec in manpower_records.iterrows():
                     start = rec["Start_Date"].strftime("%Y-%m-%d") if pd.notna(rec["Start_Date"]) else "—"
                     end = rec["End_Date"].strftime("%Y-%m-%d") if pd.notna(rec["End_Date"]) else "進行中"
-                    manpower_lines.append(f"• {rec['Staff']} ({start} → {end})")
-                manpower_text = "<br>".join(manpower_lines)
-                manpower_display = f"<div style='margin-top:8px; color:#000; font-size:0.95rem;'>{manpower_text}</div>"
+                    manpower_html += f"<small style='color:#000;'>• {rec['Staff']} ({start} → {end})</small><br>"
+                manpower_html += "</div>"
             else:
-                manpower_display = "<div style='margin-top:8px; color:#999; font-size:0.95rem;'>無借調記錄</div>"
+                manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee; color:#999;'><small>無借調記錄</small></div>"
 
             date_str = row["Date"].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"
 
-            # 安全顯示 Project Detail
-            escaped_detail = html.escape(row["Project_Detail"]).replace("\n", "<br>")
+            escaped_detail = html.escape(row["Project_Detail"])
 
-            # === 全新簡潔方格設計 ===
+            # 卡片內容拆成多段
             st.markdown(f"""
-            <div style="border: 1px solid #e0e0e0; border-left: 6px solid {status_color}; border-radius: 8px; padding: 16px; margin-bottom: 20px; background:#ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div style="flex:1;">
-                        <h4 style="margin:0 0 6px 0; color:#1fb429;">{row["Quote_Number"]}</h4>
-                        {f'<small style="color:#666;">Work Order: <strong>{row["Work_Order"]}</strong></small><br>' if row["Work_Order"] else ""}
-                        <div style="margin:10px 0; font-size:1rem; line-height:1.7; color:#333;">
-                            {escaped_detail}
-                        </div>
-                        {manpower_display}
-                    </div>
-                    <div style="text-align:right; min-width:120px;">
-                        <span style="background:{status_color}; color:white; padding:4px 10px; border-radius:14px; font-weight:bold; font-size:0.85rem;">
-                            {row["Status"]}
-                        </span>
-                        <div style="margin-top:8px; color:#888; font-size:0.9rem;">{date_str}</div>
-                    </div>
+            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 20px;">
+                <div>
+                    <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
+                    {work_order_display}
+            """, unsafe_allow_html=True)
+
+            st.markdown(f"""
+                    <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; white-space: pre-wrap;">{escaped_detail}</p>
+                </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown(manpower_html, unsafe_allow_html=True)
+
+            st.markdown(f"""
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+                    <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:20px; font-weight:bold; font-size:0.85rem;">
+                        {row["Status"]}
+                    </span>
+                    <small style="color:#888;">{date_str}</small>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
             # 按鈕
-            b1, b2 = st.columns(2)
-            with b1:
+            col1, col2 = st.columns(2)
+            with col1:
                 if st.button("Edit", key=edit_key, use_container_width=True):
                     st.session_state[edit_mode_key] = True
-            with b2:
+            with col2:
                 if st.button("Delete", key=del_key, type="secondary", use_container_width=True):
                     st.session_state[confirm_del_key] = True
 
