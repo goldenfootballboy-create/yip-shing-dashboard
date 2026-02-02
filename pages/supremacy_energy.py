@@ -15,16 +15,13 @@ def df_to_gspread_values(df):
     for _, row in df.iterrows():
         row_list = []
         for val in row:
-            # 先處理所有可能的空值（NaN, NaT, None）
             if pd.isna(val) or val is None:
                 row_list.append("")
-            # 只檢查真正的日期物件（避開 NaT）
             elif hasattr(val, 'strftime'):
                 try:
                     row_list.append(val.strftime("%Y-%m-%d"))
                 except AttributeError:
                     row_list.append("")
-            # 其他一律轉字串
             else:
                 row_list.append(str(val))
         values.append(row_list)
@@ -43,7 +40,7 @@ st.set_page_config(
 
 
 # ==============================================
-# Google Sheets 連線
+# Google Sheets 連線（純 gspread）
 # ==============================================
 @st.cache_resource(show_spinner="正在連線 Google Sheets...", ttl=1800)
 def get_spreadsheet():
@@ -62,32 +59,11 @@ def get_spreadsheet():
         st.error("Spreadsheet ID 長度不正確（應為 44 個字元）")
         st.info(f"讀到的值：{spreadsheet_id}")
         st.stop()
-    if spreadsheet_id.count("-") not in [0, 4]:
-        st.warning("Spreadsheet ID 連字號數量不尋常，但仍嘗試連線...")
 
     try:
         return client.open_by_key(spreadsheet_id)
-    except gspread.exceptions.SpreadsheetNotFound:
-        st.error("找不到該試算表")
-        st.info(f"ID：{spreadsheet_id}")
-        st.stop()
-    except gspread.exceptions.APIError as e:
-        err = str(e).lower()
-        if "403" in err or "permission" in err:
-            st.error("權限不足（403 Forbidden）")
-            st.info("""
-            請執行以下步驟：
-            1. 開啟你的 Google Sheet（ID: 17GqTXQOxLSRLqd0DuNE24XVC20caWwpkXYJB6vwNwzA）
-            2. 點擊右上角「分享」
-            3. 加入 email：yips-824@precise-plane-481307-u2.iam.gserviceaccount.com
-            4. 權限選擇「編輯者」
-            """)
-            st.stop()
-        else:
-            st.error(f"Google API 錯誤：{e}")
-            st.stop()
     except Exception as e:
-        st.error(f"連線失敗：{type(e).__name__} - {e}")
+        st.error(f"連線失敗：{str(e)}")
         st.stop()
 
 
@@ -117,13 +93,13 @@ if manpower_df.empty or len(manpower_df.columns) < 4:
     manpower_df = pd.DataFrame(columns=header_man)
     worksheet_manpower.update([header_man])
 
-# 資料清理 - 強制轉字串，避免 Timestamp 問題
+# 資料清理
 projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(r"\.0$", "", regex=True)
 projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
 projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce").apply(
     lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
 )
-projects_df["Date"] = projects_df["Date"].astype(str).replace("NaT", "")  # 額外保險
+projects_df["Date"] = projects_df["Date"].astype(str).replace("NaT", "")
 projects_df = projects_df.fillna("")
 
 manpower_df["Quote_Number"] = manpower_df["Quote_Number"].astype(str).str.replace(r"\.0$", "", regex=True)
@@ -174,7 +150,6 @@ with st.sidebar:
                     current_projects = current_projects.iloc[1:].reset_index(drop=True)
 
                 updated_projects = pd.concat([current_projects, new_row], ignore_index=True)
-                # worksheet_projects.clear()  # 暫時註解，避免意外清空
                 worksheet_projects.update(df_to_gspread_values(updated_projects))
 
                 st.success(f"已新增專案：{quote_number}")
@@ -218,7 +193,7 @@ if selected_month != "All":
     display_df = display_df[display_df["Date"].str[5:7] == f"{month_num:02d}"]
 
 # ==============================================
-# 卡片顯示（一行 2 個）
+# 卡片顯示
 # ==============================================
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
@@ -232,25 +207,25 @@ if len(display_df) > 0:
                     status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
                                     "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-                    work_order_text = "Work Order: {}".format(row['Work_Order']) if row["Work_Order"] else ""
+                    work_order_text = f"Work Order: {row['Work_Order']}" if row["Work_Order"] else ""
 
                     manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
                     staff_names = [rec["Staff"].strip() for _, rec in manpower_records.iterrows() if
                                    rec["Staff"] and rec["Staff"].strip()]
                     manpower_text = "借調：" + "、".join(staff_names) if staff_names else "尚未借調"
 
-                    st.markdown("""
+                    st.markdown(f"""
                     <div style="background: white; border-left: 6px solid {status_color}; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
                             <div style="flex: 1; min-width: 280px;">
                                 <div style="font-weight: bold; font-size: 1.1rem; color: #1fb429;">
-                                    Quote Number：{quote_number}
+                                    Quote Number：{row['Quote_Number']}
                                 </div>
                                 <div style="font-size: 1.0rem; color: #333; margin-top: 4px;">
                                     {work_order_text}
                                 </div>
                                 <p style="margin:8px 0 0 0; font-size:0.9rem; color:#444; line-height:1.4; white-space: pre-wrap;">
-                                    {project_detail}
+                                    {row['Project_Detail']}
                                 </p>
                                 <div style="font-size:0.85rem; color:#000; margin-top:8px; font-weight:500;">
                                     {manpower_text}
@@ -258,23 +233,15 @@ if len(display_df) > 0:
                             </div>
                             <div style="text-align: right; min-width:140px;">
                                 <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:18px; font-weight:bold; font-size:0.85rem;">
-                                    {status}
+                                    {row['Status']}
                                 </span>
                                 <div style="margin-top:8px; color:#777; font-size:0.85rem;">
-                                    建立日期：{date}
+                                    建立日期：{row['Date'] if row['Date'] else "—"}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    """.format(
-                        status_color=status_color,
-                        quote_number=row['Quote_Number'],
-                        work_order_text=work_order_text,
-                        project_detail=row['Project_Detail'],
-                        manpower_text=manpower_text,
-                        status=row['Status'],
-                        date=row['Date'] if row['Date'] else "—"
-                    ), unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
 
                     col1, col2 = st.columns(2)
                     with col1:
@@ -284,9 +251,7 @@ if len(display_df) > 0:
                         if st.button("Delete", key=f"del_proj_{row['Quote_Number']}_{i + j}", type="secondary",
                                      use_container_width=True):
                             st.session_state["confirm_del_quote"] = row['Quote_Number']
-                            # 可選：存索引輔助，但不強制
-                            st.session_state["confirm_del_index"] = i + j
-                            st.rerun()  # 強制 rerun 顯示表單
+                            st.rerun()
 
                     # 編輯模式
                     if st.session_state.get(f"edit_mode_{row['Quote_Number']}_{i + j}", False):
@@ -356,18 +321,15 @@ if len(display_df) > 0:
                                 if f"edit_mode_{row['Quote_Number']}_{i + j}" in st.session_state:
                                     del st.session_state[f"edit_mode_{row['Quote_Number']}_{i + j}"]
                                 st.rerun()
-
                     # ==============================================
-                    # 全域刪除確認表單（動態 key，避免 duplicate）
+                    # 全域刪除確認表單（固定 key + 單一狀態）
                     # ==============================================
                     if "confirm_del_quote" in st.session_state:
                         quote_to_delete = st.session_state["confirm_del_quote"]
-                        form_key = f"delete_confirm_form_{quote_to_delete}"  # 動態唯一 key
+                        st.warning(f"確定要永久刪除專案 **{quote_to_delete}** 嗎？這將刪除該專案及所有相關借調記錄！")
 
-                        st.warning(f"確定要永久刪除專案 **{quote_to_delete}** 嗎？")
-
-                        with st.form(key=form_key):
-                            st.write("請確認是否刪除此專案及所有相關借調記錄？")
+                        with st.form(key="global_delete_confirm"):
+                            st.write("請再次確認是否刪除？此操作無法復原。")
 
                             col1, col2 = st.columns(2)
                             submitted_delete = col1.form_submit_button("✅ 確認刪除", type="primary",
@@ -405,19 +367,16 @@ if len(display_df) > 0:
 
                                 except Exception as e:
                                     st.error(f"❌ 刪除失敗：{str(e)}")
-                                    st.warning("資料未變更，請檢查 Sheet 或稍後再試")
 
-                                # 清空確認狀態
                                 del st.session_state["confirm_del_quote"]
-                                if "confirm_del_index" in st.session_state:
-                                    del st.session_state["confirm_del_index"]
                                 st.rerun()
 
                             if cancel_delete:
                                 del st.session_state["confirm_del_quote"]
-                                if "confirm_del_index" in st.session_state:
-                                    del st.session_state["confirm_del_index"]
                                 st.rerun()
+
+                    st.markdown("---")
+                    st.caption("SUPREMACY ENERGY Project Management System © 2025 YIP SHING")
 
 st.markdown("---")
 st.caption("SUPREMACY ENERGY Project Management System © 2025 YIP SHING")
