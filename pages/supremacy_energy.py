@@ -192,14 +192,11 @@ if len(display_df) > 0:
             status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
                             "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
-
             manpower_records = st.session_state.manpower_df[
                 st.session_state.manpower_df["Quote_Number"] == row["Quote_Number"]
             ]
             if len(manpower_records) > 0:
-                # 移除分隔線，只保留內容
-                manpower_html = "<div style='margin-top:12px;'>"
+                manpower_html = "<div style='margin-top:8px;'>"
                 manpower_html += "<small style='color:#000; font-weight:bold;'>借調：</small><br>"
                 for _, rec in manpower_records.iterrows():
                     start = rec["Start_Date"].strftime("%Y-%m-%d") if pd.notna(rec["Start_Date"]) else "—"
@@ -207,38 +204,32 @@ if len(display_df) > 0:
                     manpower_html += f"<small style='color:#000;'>• {rec['Staff']} ({start} → {end})</small><br>"
                 manpower_html += "</div>"
             else:
-                # 無借調記錄也移除分隔線，改成簡單文字
-                manpower_html = "<div style='margin-top:12px; color:#999;'><small>無借調記錄</small></div>"
+                manpower_html = "<div style='margin-top:8px; color:#999;'><small>無借調記錄</small></div>"
 
             date_str = row["Date"].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"
 
-            escaped_detail = html.escape(row["Project_Detail"])
+            escaped_detail = html.escape(row["Project_Detail"].strip())  # 去除前後空白
 
-            # Quote Number 與 Work Order
+            # 標題行：Quote Number + Status（右上角）
             st.markdown(f"""
-            <h5 style="margin:0 0 6px 0; color:#1fb429;">Quote Number：{row["Quote_Number"]}</h5>
-            <small style="color:#666;">Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                <h5 style="margin:0; color:#1fb429;">Quote Number：{row["Quote_Number"]}</h5>
+                <span style="background:{status_color}; color:white; padding:4px 10px; border-radius:14px; font-weight:bold; font-size:0.85rem;">
+                    {row["Status"]}
+                </span>
+            </div>
+            <small style="color:#666; margin-bottom:8px; display:block;">Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>
             """, unsafe_allow_html=True)
 
-            # Project Detail（深藍色）
+            # Project Detail（緊接上面，無空白）
             st.markdown(f"""
-            <p style="margin:10px 0 12px 0; font-size:1rem; color:#1e3a8a; line-height:1.6; white-space: pre-wrap;">
+            <p style="margin:0 0 12px 0; font-size:1rem; color:#1e3a8a; line-height:1.6; white-space: pre-wrap;">
                 {escaped_detail}
             </p>
             """, unsafe_allow_html=True)
 
             # 借調記錄（無分隔線）
             st.markdown(manpower_html, unsafe_allow_html=True)
-
-            # 狀態與日期
-            st.markdown(f"""
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
-                <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:20px; font-weight:bold; font-size:0.85rem;">
-                    {row["Status"]}
-                </span>
-                <small style="color:#888;">{date_str}</small>
-            </div>
-            """, unsafe_allow_html=True)
 
             # 按鈕
             col1, col2 = st.columns(2)
