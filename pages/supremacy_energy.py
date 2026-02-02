@@ -15,32 +15,89 @@ st.set_page_config(
     layout="wide"
 )
 
+
 # ==============================================
-# Google Sheets 連線（使用 gspread，跟 YipShing 相同）
+# Google Sheets 連線（推薦寫法：使用 open_by_key + 快取 + 防呆）
 # ==============================================
-creds_info = st.secrets["connections"]["gsheets"]
-creds = Credentials.from_service_account_info(
-    creds_info,
-    scopes=["https://www.googleapis.com/auth/spreadsheets"]
-)
-client = gspread.authorize(creds)
-spreadsheet = client.open_by_url(creds_info["spreadsheet"])
+@st.cache_resource(show_spinner="正在連線 Google Sheets...", ttl=1800)  # 快取 30 分鐘
+def get_spreadsheet():
+    try:
+        creds_info = st.secrets["connections"]["gsheets"]
 
-# 讀取 supremacy_projects 工作表
-worksheet_projects = spreadsheet.worksheet("supremacy_projects")
-projects_data = worksheet_projects.get_all_records()
-projects_df = pd.DataFrame(projects_data)
+        # 檢查必要欄位
+        if "private_gsheet_credentials" not in creds_info:
+            st.error("secrets 中缺少 'private_gsheet_credentials'（服務帳號 JSON）")
+            st.stop()
+        if "spreadsheet" not in creds_info:
+            st.error("secrets 中缺少 'spreadsheet'（試算表 ID）")
+            st.stop()
 
-# 讀取 supremacy_manpower 工作表
-worksheet_manpower = spreadsheet.worksheet("supremacy_manpower")
-manpower_data = worksheet_manpower.get_all_records()
-manpower_df = pd.DataFrame(manpower_data)
+        creds = Credentials.from_service_account_info(
+            creds_info["private_gsheet_credentials"],
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
+        client = gspread.authorize(creds)
 
-# 欄位處理（如果工作表空或欄位不對，補上）
+        spreadsheet_id = str(creds_info["spreadsheet"]).strip()
+
+        # 簡單驗證 Spreadsheet ID 格式
+        if len(spreadsheet_id) != 44 or spreadsheet_id.count("-") != 4:
+            st.error("Spreadsheet ID 格式錯誤（應為 44 個字元，包含 4 個 -）")
+            st.info(f"目前讀到的值：{spreadsheet_id}")
+            st.info("請確認 Streamlit Secrets → connections.gsheets.spreadsheet 只放 ID（不是 URL）")
+            st.stop()
+
+        spreadsheet = client.open_by_key(spreadsheet_id)
+        return spreadsheet
+
+    except gspread.exceptions.SpreadsheetNotFound:
+        st.error("找不到該試算表")
+        st.info(f"請確認 spreadsheet ID 是否正確：{spreadsheet_id}")
+        st.info("也請確認服務帳號 email 已加入試算表並給予「編輯者」權限")
+        st.stop()
+    except gspread.exceptions.APIError as e:
+        err_msg = str(e).lower()
+        if "403" in err_msg or "permission" in err_msg:
+            st.error("權限不足（403 Forbidden）")
+            st.info("""
+            解決步驟：
+            1. 開啟你的 Google Sheet
+            2. 點擊右上角「分享」
+            3. 加入服務帳號的 email（格式通常是 xxx@xxx.iam.gserviceaccount.com）
+            4. 權限選擇「編輯者」
+            """)
+        elif "429" in err_msg:
+            st.warning("Google API 限流（429），請稍後再試...")
+        else:
+            st.error(f"Google API 錯誤：{e}")
+        st.stop()
+    except Exception as e:
+        st.error(f"連線失敗：{type(e).__name__} - {str(e)}")
+        st.stop()
+
+
+# 取得 spreadsheet（只執行一次，之後快取）
+spreadsheet = get_spreadsheet()
+
+# 讀取工作表
+try:
+    worksheet_projects = spreadsheet.worksheet("supremacy_projects")
+    projects_data = worksheet_projects.get_all_records()
+    projects_df = pd.DataFrame(projects_data)
+
+    worksheet_manpower = spreadsheet.worksheet("supremacy_manpower")
+    manpower_data = worksheet_manpower.get_all_records()
+    manpower_df = pd.DataFrame(manpower_data)
+except gspread.exceptions.WorksheetNotFound as e:
+    st.error(f"找不到工作表：{e}")
+    st.info("請確認試算表中已有 'supremacy_projects' 和 'supremacy_manpower' 兩個工作表")
+    st.stop()
+
+# 欄位處理（如果工作表空或欄位不對，補上標頭）
 if projects_df.empty or len(projects_df.columns) < 5:
     header = ["Date", "Quote_Number", "Work_Order", "Project_Detail", "Status"]
     projects_df = pd.DataFrame(columns=header)
-    worksheet_projects.update([header])  # 寫入標頭
+    worksheet_projects.update([header])
 
 if manpower_df.empty or len(manpower_df.columns) < 4:
     header_man = ["Quote_Number", "Staff", "Start_Date", "End_Date"]
@@ -48,12 +105,11 @@ if manpower_df.empty or len(manpower_df.columns) < 4:
     worksheet_manpower.update([header_man])
 
 # 資料清理
-projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
+projects_df["Quote_Number"] = projects_df["Quote_Number"].astype(str).str.replace(r"\.0$", "", regex=True)
 projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
 projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce")
 
-manpower_df["Quote_Number"] = manpower_df["Quote_Number"].astype(str).str.replace(".0", "", regex=False)
-
+manpower_df["Quote_Number"] = manpower_df["Quote_Number"].astype(str).str.replace(r"\.0$", "", regex=True)
 # ==============================================
 # Sidebar
 # ==============================================
