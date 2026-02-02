@@ -283,7 +283,8 @@ if len(display_df) > 0:
                     with col2:
                         if st.button("Delete", key=f"del_proj_{row['Quote_Number']}_{i + j}", type="secondary",
                                      use_container_width=True):
-                            st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"] = True
+                            st.session_state[f"confirm_del_quote"] = row['Quote_Number']  # 只存 Quote_Number
+                            st.session_state[f"confirm_del_index"] = i + j
 
                     # 編輯模式
                     if st.session_state.get(f"edit_mode_{row['Quote_Number']}_{i + j}", False):
@@ -354,12 +355,11 @@ if len(display_df) > 0:
                                     del st.session_state[f"edit_mode_{row['Quote_Number']}_{i + j}"]
                                 st.rerun()
 
-                    # ================ 刪除專案確認 ================
-                    if st.session_state.get(f"confirm_del_{row['Quote_Number']}_{i + j}", False):
-                        st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
+                    if "confirm_del_quote" in st.session_state:
+                        quote_to_delete = st.session_state["confirm_del_quote"]
+                        st.warning(f"確定要永久刪除專案 **{quote_to_delete}** 嗎？")
 
-                        # 使用 form 包住確認按鈕，避免 key 衝突
-                        with st.form(key=f"delete_confirm_form_{row['Quote_Number']}"):
+                        with st.form(key="global_delete_confirm_form"):
                             st.write("請確認是否刪除此專案及所有相關借調記錄？")
 
                             col1, col2 = st.columns(2)
@@ -373,12 +373,12 @@ if len(display_df) > 0:
 
                                     # 刪除專案
                                     projects_df = projects_df[
-                                        projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                                        projects_df["Quote_Number"] != quote_to_delete].reset_index(drop=True)
                                     worksheet_projects.update(df_to_gspread_values(projects_df))
 
                                     # 刪除相關借調
                                     manpower_df = manpower_df[
-                                        manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
+                                        manpower_df["Quote_Number"] != quote_to_delete].reset_index(drop=True)
                                     worksheet_manpower.update(df_to_gspread_values(manpower_df))
 
                                     # 強制重新讀取最新資料
@@ -401,13 +401,15 @@ if len(display_df) > 0:
                                     st.warning("資料未變更，請檢查 Sheet 或稍後再試")
 
                                 # 清空確認狀態
-                                if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
-                                    del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
+                                del st.session_state["confirm_del_quote"]
+                                if "confirm_del_index" in st.session_state:
+                                    del st.session_state["confirm_del_index"]
                                 st.rerun()
 
                             if cancel_delete:
-                                if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
-                                    del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
+                                del st.session_state["confirm_del_quote"]
+                                if "confirm_del_index" in st.session_state:
+                                    del st.session_state["confirm_del_index"]
                                 st.rerun()
 
 st.markdown("---")
