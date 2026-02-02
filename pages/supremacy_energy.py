@@ -4,7 +4,7 @@ from datetime import date
 import time
 import gspread
 from google.oauth2.service_account import Credentials
-import html  # ← 新增這行，用來跳脫 HTML 特殊字元
+import html
 
 # ==============================================
 # 頁面設定
@@ -109,7 +109,7 @@ def save_manpower():
     time.sleep(1.5)
 
 # ==============================================
-# Sidebar（不變）
+# Sidebar
 # ==============================================
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
@@ -155,7 +155,7 @@ with st.sidebar:
 
     st.markdown("---")
     if st.button("📅 查看主日曆", type="primary", use_container_width=True):
-        st.switch_page("pages/YipShing.py")  # 依實際路徑調整
+        st.switch_page("pages/YipShing.py")
 
 # ==============================================
 # 主畫面
@@ -176,30 +176,23 @@ if search_query:
     else:
         st.info("無搜尋結果")
 
-# 卡片顯示（已套用方法 2：html.escape + white-space: pre-wrap）
+# 卡片顯示（一行 2 張卡片 + 安全顯示）
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
-    cols = st.columns(2)  # 一行 2 張卡片
+    cols = st.columns(2)
 
     for idx, row in sorted_df.iterrows():
         with cols[idx % 2]:
-            # 先定義 key（放在最前面）
+            # 先定義 key
             edit_key = f"edit_{idx}_{row['Quote_Number']}"
             del_key = f"del_proj_{idx}_{row['Quote_Number']}"
             edit_mode_key = f"edit_mode_{idx}_{row['Quote_Number']}"
             confirm_del_key = f"confirm_del_{idx}_{row['Quote_Number']}"
 
-            status_color = {
-                "Quoting": "#ffaa00",
-                "Confirmed": "#00aa00",
-                "In Production": "#0066ff",
-                "Completed": "#66cc66"
-            }.get(row["Status"], "#888888")
+            status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
+                            "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-            work_order_display = (
-                f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>"
-                if row["Work_Order"] else ""
-            )
+            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
             manpower_records = st.session_state.manpower_df[
                 st.session_state.manpower_df["Quote_Number"] == row["Quote_Number"]
@@ -217,12 +210,9 @@ if len(display_df) > 0:
 
             date_str = row["Date"].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"
 
-            # 安全處理 Project_Detail
             escaped_detail = html.escape(row["Project_Detail"])
 
-            # === 拆分成多段 st.markdown() ===
-
-            # 1. 卡片外層容器 + 標題 + Work Order
+            # 卡片內容拆成多段
             st.markdown(f"""
             <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 260px;">
                 <div>
@@ -230,16 +220,13 @@ if len(display_df) > 0:
                     {work_order_display}
             """, unsafe_allow_html=True)
 
-            # 2. Project Detail
             st.markdown(f"""
                     <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; white-space: pre-wrap;">{escaped_detail}</p>
                 </div>
             """, unsafe_allow_html=True)
 
-            # 3. 借調記錄
             st.markdown(manpower_html, unsafe_allow_html=True)
 
-            # 4. 底部狀態 + 日期
             st.markdown(f"""
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
                     <span style="background:{status_color}; color:white; padding:6px 16px; border-radius:20px; font-weight:bold;">
@@ -259,7 +246,7 @@ if len(display_df) > 0:
                 if st.button("Delete", key=del_key, type="secondary", use_container_width=True):
                     st.session_state[confirm_del_key] = True
 
-            # 編輯模式（使用前面定義的 edit_mode_key）
+            # 編輯模式
             if st.session_state.get(edit_mode_key, False):
                 original_idx = st.session_state.projects_df[
                     st.session_state.projects_df["Quote_Number"] == row["Quote_Number"]
@@ -335,7 +322,7 @@ if len(display_df) > 0:
                             del st.session_state[edit_mode_key]
                         st.rerun()
 
-            # 刪除確認（使用前面定義的 confirm_del_key）
+            # 刪除確認
             if st.session_state.get(confirm_del_key, False):
                 st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？（包含所有借調記錄）")
                 c1, c2 = st.columns(2)
