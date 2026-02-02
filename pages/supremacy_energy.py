@@ -183,7 +183,7 @@ if len(display_df) > 0:
 
     for idx, row in sorted_df.iterrows():
         with cols[idx % 2]:
-            # 先定義所有 key（放在最前面，避免 NameError）
+            # 先定義 key（放在最前面）
             edit_key = f"edit_{idx}_{row['Quote_Number']}"
             del_key = f"del_proj_{idx}_{row['Quote_Number']}"
             edit_mode_key = f"edit_mode_{idx}_{row['Quote_Number']}"
@@ -219,16 +219,28 @@ if len(display_df) > 0:
 
             # 安全處理 Project_Detail
             escaped_detail = html.escape(row["Project_Detail"])
-            detail_html = f'<p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; white-space: pre-wrap;">{escaped_detail}</p>'
 
+            # === 拆分成多段 st.markdown() ===
+
+            # 1. 卡片外層容器 + 標題 + Work Order
             st.markdown(f"""
             <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 260px;">
                 <div>
                     <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
                     {work_order_display}
-                    {detail_html}
+            """, unsafe_allow_html=True)
+
+            # 2. Project Detail
+            st.markdown(f"""
+                    <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; white-space: pre-wrap;">{escaped_detail}</p>
                 </div>
-                <div>{manpower_html}</div>
+            """, unsafe_allow_html=True)
+
+            # 3. 借調記錄
+            st.markdown(manpower_html, unsafe_allow_html=True)
+
+            # 4. 底部狀態 + 日期
+            st.markdown(f"""
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
                     <span style="background:{status_color}; color:white; padding:6px 16px; border-radius:20px; font-weight:bold;">
                         {row["Status"]}
