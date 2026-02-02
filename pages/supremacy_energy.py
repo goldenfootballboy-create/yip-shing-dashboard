@@ -36,11 +36,15 @@ def get_spreadsheet():
         st.error("secrets 中缺少 'spreadsheet'（試算表 ID）")
         st.stop()
 
-    # 簡單驗證 ID 格式（你的 ID 是 44 位，帶 4 個 -）
-    if len(spreadsheet_id) != 44 or spreadsheet_id.count("-") != 4:
-        st.error("Spreadsheet ID 格式不正確")
+    # 只驗證長度（最安全）
+    if len(spreadsheet_id) != 44:
+        st.error("Spreadsheet ID 長度不正確（應為 44 個字元）")
         st.info(f"讀到的值：{spreadsheet_id}")
         st.stop()
+
+    # 可選：如果想提醒使用者可能格式怪怪的
+    if spreadsheet_id.count("-") not in [0, 4]:
+        st.warning("Spreadsheet ID 包含不尋常的連字號數量，但仍嘗試連線...")
 
     try:
         spreadsheet = client.open_by_key(spreadsheet_id)
