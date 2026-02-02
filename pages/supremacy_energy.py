@@ -10,7 +10,7 @@ from google.oauth2.service_account import Credentials
 # ==============================================
 def df_to_gspread_values(df):
     """將 pandas DataFrame 轉成 gspread 可接受的純 Python 值列表"""
-    values = [df.columns.tolist()]  # 第一行：標頭
+    values = [df.columns.tolist()]  # 標頭
 
     for _, row in df.iterrows():
         row_list = []
@@ -123,6 +123,7 @@ projects_df["Work_Order"] = projects_df["Work_Order"].fillna("").astype(str)
 projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce").apply(
     lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
 )
+projects_df["Date"] = projects_df["Date"].astype(str).replace("NaT", "")  # 額外保險
 projects_df = projects_df.fillna("")
 
 manpower_df["Quote_Number"] = manpower_df["Quote_Number"].astype(str).str.replace(r"\.0$", "", regex=True)
@@ -231,25 +232,25 @@ if len(display_df) > 0:
                     status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
                                     "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-                    work_order_text = f"Work Order: {row['Work_Order']}" if row["Work_Order"] else ""
+                    work_order_text = "Work Order: {}".format(row['Work_Order']) if row["Work_Order"] else ""
 
                     manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
                     staff_names = [rec["Staff"].strip() for _, rec in manpower_records.iterrows() if
                                    rec["Staff"] and rec["Staff"].strip()]
                     manpower_text = "借調：" + "、".join(staff_names) if staff_names else "尚未借調"
 
-                    st.markdown(f"""
+                    st.markdown("""
                     <div style="background: white; border-left: 6px solid {status_color}; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.08);">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
                             <div style="flex: 1; min-width: 280px;">
                                 <div style="font-weight: bold; font-size: 1.1rem; color: #1fb429;">
-                                    Quote Number：{row['Quote_Number']}
+                                    Quote Number：{quote_number}
                                 </div>
                                 <div style="font-size: 1.0rem; color: #333; margin-top: 4px;">
                                     {work_order_text}
                                 </div>
                                 <p style="margin:8px 0 0 0; font-size:0.9rem; color:#444; line-height:1.4; white-space: pre-wrap;">
-                                    {row['Project_Detail']}
+                                    {project_detail}
                                 </p>
                                 <div style="font-size:0.85rem; color:#000; margin-top:8px; font-weight:500;">
                                     {manpower_text}
@@ -257,17 +258,24 @@ if len(display_df) > 0:
                             </div>
                             <div style="text-align: right; min-width:140px;">
                                 <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:18px; font-weight:bold; font-size:0.85rem;">
-                                    {row['Status']}
+                                    {status}
                                 </span>
                                 <div style="margin-top:8px; color:#777; font-size:0.85rem;">
-                                    建立日期：{row['Date'] if row['Date'] else "—"}
+                                    建立日期：{date}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    """, unsafe_allow_html=True)
+                    """.format(
+                        status_color=status_color,
+                        quote_number=row['Quote_Number'],
+                        work_order_text=work_order_text,
+                        project_detail=row['Project_Detail'],
+                        manpower_text=manpower_text,
+                        status=row['Status'],
+                        date=row['Date'] if row['Date'] else "—"
+                    ), unsafe_allow_html=True)
 
-                    # Edit / Delete 按鈕
                     col1, col2 = st.columns(2)
                     with col1:
                         if st.button("Edit", key=f"edit_{row['Quote_Number']}_{i + j}", use_container_width=True):
@@ -296,7 +304,6 @@ if len(display_df) > 0:
                                             (manpower_df["Start_Date"] == rec["Start_Date"])
                                             ].index
                                     ).reset_index(drop=True)
-                                    # worksheet_manpower.clear()  # 暫時註解
                                     worksheet_manpower.update(df_to_gspread_values(manpower_df))
                                     st.success(f"已刪除借調：{rec['Staff']}")
                                     st.rerun()
@@ -325,7 +332,6 @@ if len(display_df) > 0:
                                 projects_df.at[original_idx, "Project_Detail"] = new_detail.strip()
                                 projects_df.at[original_idx, "Status"] = new_status
 
-                                # worksheet_projects.clear()  # 暫時註解
                                 worksheet_projects.update(df_to_gspread_values(projects_df))
 
                                 if new_staff.strip():
@@ -336,7 +342,6 @@ if len(display_df) > 0:
                                         "End_Date": new_end.strftime("%Y-%m-%d") if new_end else ""
                                     }])
                                     manpower_df = pd.concat([manpower_df, new_rec], ignore_index=True)
-                                    # worksheet_manpower.clear()  # 暫時註解
                                     worksheet_manpower.update(df_to_gspread_values(manpower_df))
 
                                 st.success("專案與借調已更新！")
@@ -349,6 +354,7 @@ if len(display_df) > 0:
                                     del st.session_state[f"edit_mode_{row['Quote_Number']}_{i + j}"]
                                 st.rerun()
 
+                    # 刪除專案確認
                     if st.session_state.get(f"confirm_del_{row['Quote_Number']}_{i + j}", False):
                         st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
                         c1, c2 = st.columns(2)
@@ -358,36 +364,31 @@ if len(display_df) > 0:
                                 # 刪除專案
                                 projects_df = projects_df[
                                     projects_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
-                                # worksheet_projects.clear()  # 註解掉，避免風險
                                 worksheet_projects.update(df_to_gspread_values(projects_df))
 
                                 # 刪除相關借調
                                 manpower_df = manpower_df[
                                     manpower_df["Quote_Number"] != row["Quote_Number"]].reset_index(drop=True)
-                                # worksheet_manpower.clear()
                                 worksheet_manpower.update(df_to_gspread_values(manpower_df))
 
-                                st.success("專案及所有借調已刪除！")
-
-                                # 強制重新讀取最新資料，避免記憶體殘留
+                                # 強制重新讀取
                                 projects_data = worksheet_projects.get_all_records()
-                                global projects_df
                                 projects_df = pd.DataFrame(projects_data)
                                 projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce").apply(
                                     lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
                                 )
+                                projects_df["Date"] = projects_df["Date"].astype(str).replace("NaT", "")
                                 projects_df = projects_df.fillna("")
 
                                 manpower_data = worksheet_manpower.get_all_records()
-                                global manpower_df
                                 manpower_df = pd.DataFrame(manpower_data)
                                 manpower_df = manpower_df.fillna("")
 
+                                st.success("專案及所有借調已刪除！")
                             except Exception as e:
                                 st.error(f"刪除失敗：{str(e)}")
                                 st.warning("請檢查 Google Sheet 是否正常，或稍後再試")
 
-                            # 清除 session state 並重新載入頁面
                             if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
                                 del st.session_state[f"confirm_del_{row['Quote_Number']}_{i + j}"]
                             st.rerun()
