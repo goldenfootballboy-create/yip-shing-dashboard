@@ -358,17 +358,16 @@ if len(display_df) > 0:
                     if st.session_state.get(f"confirm_del_{row['Quote_Number']}_{i + j}", False):
                         st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？")
 
-                        with st.form(key=f"delete_form_{row['Quote_Number']}_{i + j}"):
-                            st.write("請再次確認是否刪除此專案及所有相關借調記錄？")
+                        # 使用 form 包住確認按鈕，避免 key 衝突
+                        with st.form(key=f"delete_confirm_form_{row['Quote_Number']}"):
+                            st.write("請確認是否刪除此專案及所有相關借調記錄？")
 
                             col1, col2 = st.columns(2)
-                            with col1:
-                                confirm_delete = st.form_submit_button("✅ 確認刪除", type="primary",
+                            submitted_delete = col1.form_submit_button("✅ 確認刪除", type="primary",
                                                                        use_container_width=True)
-                            with col2:
-                                cancel_delete = st.form_submit_button("❌ 取消", use_container_width=True)
+                            cancel_delete = col2.form_submit_button("❌ 取消", use_container_width=True)
 
-                            if confirm_delete:
+                            if submitted_delete:
                                 try:
                                     st.info("正在刪除專案...")
 
@@ -399,6 +398,7 @@ if len(display_df) > 0:
 
                                 except Exception as e:
                                     st.error(f"❌ 刪除失敗：{str(e)}")
+                                    st.warning("資料未變更，請檢查 Sheet 或稍後再試")
 
                                 # 清空確認狀態
                                 if f"confirm_del_{row['Quote_Number']}_{i + j}" in st.session_state:
