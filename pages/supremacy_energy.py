@@ -10,17 +10,20 @@ from google.oauth2.service_account import Credentials
 # ==============================================
 def df_to_gspread_values(df):
     """將 pandas DataFrame 轉成 gspread 可接受的純 Python 值列表"""
-    values = [df.columns.tolist()]  # 標頭
+    values = [df.columns.tolist()]  # 第一行：標頭
 
     for _, row in df.iterrows():
         row_list = []
         for val in row:
-            if pd.isna(val):  # 處理 NaN, NaT, None
+            # 先處理所有空值類型（NaN, NaT, None）
+            if pd.isna(val) or val is None:
                 row_list.append("")
-            elif isinstance(val, (pd.Timestamp, datetime.date, datetime.datetime)):
+            # 日期類型轉字串
+            elif isinstance(val, pd.Timestamp) or isinstance(val, datetime.date) or isinstance(val, datetime.datetime):
                 row_list.append(val.strftime("%Y-%m-%d"))
+            # 其他類型強制轉字串
             else:
-                row_list.append(str(val) if val is not None else "")
+                row_list.append(str(val))
         values.append(row_list)
 
     return values
