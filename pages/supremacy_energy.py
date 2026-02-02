@@ -45,9 +45,9 @@ worksheet_projects = spreadsheet.worksheet("supremacy_projects")
 worksheet_manpower = spreadsheet.worksheet("supremacy_manpower")
 
 # ==============================================
-# 初始化 session_state 中的資料（只讀一次）
+# 初始化 session_state 中的資料
 # ==============================================
-@st.cache_data(ttl=300)  # 快取 5 分鐘，避免每次 reruns 都重新讀
+@st.cache_data(ttl=300)
 def load_projects():
     try:
         data = worksheet_projects.get_all_records()
@@ -81,7 +81,6 @@ def load_manpower():
         st.error(f"讀取 supremacy_manpower 失敗：{e}")
         return pd.DataFrame(columns=["Quote_Number", "Staff", "Start_Date", "End_Date"])
 
-# 第一次載入或 session_state 沒有時才讀取
 if "projects_df" not in st.session_state:
     st.session_state.projects_df = load_projects()
 
@@ -89,7 +88,7 @@ if "manpower_df" not in st.session_state:
     st.session_state.manpower_df = load_manpower()
 
 # ==============================================
-# 儲存函數（從 session_state 寫回 Google Sheets）
+# 儲存函數
 # ==============================================
 def save_projects():
     df_save = st.session_state.projects_df.copy()
@@ -227,16 +226,22 @@ if len(display_df) > 0:
             </div>
             """, unsafe_allow_html=True)
 
+            # === 關鍵修正：key 加上 idx 保證唯一 ===
+            edit_key = f"edit_{idx}_{row['Quote_Number']}"
+            del_key = f"del_proj_{idx}_{row['Quote_Number']}"
+            edit_mode_key = f"edit_mode_{idx}_{row['Quote_Number']}"
+            confirm_del_key = f"confirm_del_{idx}_{row['Quote_Number']}"
+
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("Edit", key=f"edit_{row['Quote_Number']}", use_container_width=True):
-                    st.session_state[f"edit_mode_{row['Quote_Number']}"] = True
+                if st.button("Edit", key=edit_key, use_container_width=True):
+                    st.session_state[edit_mode_key] = True
             with col2:
-                if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
-                    st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
+                if st.button("Delete", key=del_key, type="secondary", use_container_width=True):
+                    st.session_state[confirm_del_key] = True
 
             # 編輯模式
-            if st.session_state.get(f"edit_mode_{row['Quote_Number']}", False):
+            if st.session_state.get(edit_mode_key, False):
                 original_idx = st.session_state.projects_df[
                     st.session_state.projects_df["Quote_Number"] == row["Quote_Number"]
                 ].index[0]
@@ -247,10 +252,11 @@ if len(display_df) > 0:
                 ].copy().reset_index(drop=True)
                 if len(current_manpower) > 0:
                     for m_idx, rec in current_manpower.iterrows():
-                        btn_key = f"del_man_{row['Quote_Number']}_{m_idx}"
+                        del_man_key = f"del_man_{idx}_{row['Quote_Number']}_{m_idx}"
+                        start_str = rec["Start_Date"].strftime("%Y-%m-%d") if pd.notna(rec["Start_Date"]) else "—"
                         if st.button(
-                            f"刪除借調：{rec['Staff']} ({rec['Start_Date'].strftime('%Y-%m-%d') if pd.notna(rec['Start_Date']) else '—'})",
-                            key=btn_key, type="secondary", use_container_width=True
+                            f"刪除借調：{rec['Staff']} ({start_str})",
+                            key=del_man_key, type="secondary", use_container_width=True
                         ):
                             st.session_state.manpower_df = st.session_state.manpower_df.drop(
                                 st.session_state.manpower_df[
@@ -265,7 +271,7 @@ if len(display_df) > 0:
                 else:
                     st.info("尚未借調人員")
 
-                with st.form(key=f"edit_form_{row['Quote_Number']}"):
+                with st.form(key=f"edit_form_{idx}_{row['Quote_Number']}"):
                     new_quote = st.text_input("Quote Number", value=row["Quote_Number"])
                     new_work_order = st.text_input("Work Order", value=row["Work_Order"])
                     new_detail = st.text_area("Project Detail", value=row["Project_Detail"], height=120)
@@ -275,9 +281,9 @@ if len(display_df) > 0:
                     new_staff = st.text_input("員工姓名（新增借調）")
                     col_ns, col_ne = st.columns(2)
                     with col_ns:
-                        new_start = st.date_input("開始日期", value=date.today(), key=f"ns_{row['Quote_Number']}")
+                        new_start = st.date_input("開始日期", value=date.today(), key=f"ns_{idx}_{row['Quote_Number']}")
                     with col_ne:
-                        new_end = st.date_input("結束日期（留空表示進行中）", value=None, key=f"ne_{row['Quote_Number']}")
+                        new_end = st.date_input("結束日期（留空表示進行中）", value=None, key=f"ne_{idx}_{row['Quote_Number']}")
 
                     col_save, col_cancel = st.columns(2)
                     if col_save.form_submit_button("SAVE", type="primary", use_container_width=True):
@@ -301,20 +307,20 @@ if len(display_df) > 0:
                             save_manpower()
 
                         st.success("專案與借調已更新！")
-                        if f"edit_mode_{row['Quote_Number']}" in st.session_state:
-                            del st.session_state[f"edit_mode_{row['Quote_Number']}"]
+                        if edit_mode_key in st.session_state:
+                            del st.session_state[edit_mode_key]
                         st.rerun()
 
                     if col_cancel.form_submit_button("取消", use_container_width=True):
-                        if f"edit_mode_{row['Quote_Number']}" in st.session_state:
-                            del st.session_state[f"edit_mode_{row['Quote_Number']}"]
+                        if edit_mode_key in st.session_state:
+                            del st.session_state[edit_mode_key]
                         st.rerun()
 
             # 刪除確認
-            if st.session_state.get(f"confirm_del_{row['Quote_Number']}", False):
+            if st.session_state.get(confirm_del_key, False):
                 st.warning(f"確定要永久刪除專案 **{row['Quote_Number']}** 嗎？（包含所有借調記錄）")
                 c1, c2 = st.columns(2)
-                if c1.button("確認刪除", type="primary", key=f"yes_del_{row['Quote_Number']}", use_container_width=True):
+                if c1.button("確認刪除", type="primary", key=f"yes_del_{idx}_{row['Quote_Number']}", use_container_width=True):
                     st.session_state.projects_df = st.session_state.projects_df[
                         st.session_state.projects_df["Quote_Number"] != row["Quote_Number"]
                     ].reset_index(drop=True)
@@ -324,12 +330,12 @@ if len(display_df) > 0:
                     ].reset_index(drop=True)
                     save_manpower()
                     st.success("專案及所有借調已刪除！")
-                    if f"confirm_del_{row['Quote_Number']}" in st.session_state:
-                        del st.session_state[f"confirm_del_{row['Quote_Number']}"]
+                    if confirm_del_key in st.session_state:
+                        del st.session_state[confirm_del_key]
                     st.rerun()
-                if c2.button("取消", key=f"no_del_{row['Quote_Number']}", use_container_width=True):
-                    if f"confirm_del_{row['Quote_Number']}" in st.session_state:
-                        del st.session_state[f"confirm_del_{row['Quote_Number']}"]
+                if c2.button("取消", key=f"no_del_{idx}_{row['Quote_Number']}", use_container_width=True):
+                    if confirm_del_key in st.session_state:
+                        del st.session_state[confirm_del_key]
                     st.rerun()
 
 else:
