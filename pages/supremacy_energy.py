@@ -10,7 +10,7 @@ import html
 # 頁面設定
 # ==============================================
 st.set_page_config(
-    page_title="SUPREMACY ENERGY - 副業專案管理",
+    page_title="SUPREMACY ENERGY",
     page_icon="https://i.imgur.com/Q8ehtk3.jpeg",
     layout="wide"
 )
@@ -160,7 +160,7 @@ with st.sidebar:
 # ==============================================
 # 主畫面
 # ==============================================
-st.title("SUPREMACY ENERGY - 副業專案管理")
+st.title("SUPREMACY ENERGY")
 
 # 搜尋過濾
 display_df = st.session_state.projects_df.copy()
@@ -192,8 +192,6 @@ if len(display_df) > 0:
             status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
                             "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
-            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
-
             manpower_records = st.session_state.manpower_df[
                 st.session_state.manpower_df["Quote_Number"] == row["Quote_Number"]
             ]
@@ -212,16 +210,14 @@ if len(display_df) > 0:
 
             escaped_detail = html.escape(row["Project_Detail"])
 
-            # 改成你要的顯示格式（無卡片樣式）
+            # 內容緊密顯示（無多餘空行）
             st.markdown(f"""
-            <h5 style="margin:0 0 8px 0; color:#1fb429;">
-                Quote Number：{row["Quote_Number"]}
-            </h5>
-            {work_order_display}
+            <h5 style="margin:0 0 6px 0; color:#1fb429;">Quote Number：{row["Quote_Number"]}</h5>
+            <small style="color:#666;">Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>
             """, unsafe_allow_html=True)
 
             st.markdown(f"""
-            <p style="margin:16px 0 0 0; font-size:1rem; color:#1e3a8a; line-height:1.6; white-space: pre-wrap;">
+            <p style="margin:10px 0 12px 0; font-size:1rem; color:#1e3a8a; line-height:1.6; white-space: pre-wrap;">
                 {escaped_detail}
             </p>
             """, unsafe_allow_html=True)
@@ -229,16 +225,13 @@ if len(display_df) > 0:
             st.markdown(manpower_html, unsafe_allow_html=True)
 
             st.markdown(f"""
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
                 <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:20px; font-weight:bold; font-size:0.85rem;">
                     {row["Status"]}
                 </span>
                 <small style="color:#888;">{date_str}</small>
             </div>
             """, unsafe_allow_html=True)
-
-            # 每個項目結束後加分隔線
-            st.markdown("---")
 
             # 按鈕
             col1, col2 = st.columns(2)
