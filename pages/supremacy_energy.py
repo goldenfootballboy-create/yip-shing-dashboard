@@ -283,8 +283,10 @@ if len(display_df) > 0:
                     with col2:
                         if st.button("Delete", key=f"del_proj_{row['Quote_Number']}_{i + j}", type="secondary",
                                      use_container_width=True):
-                            st.session_state[f"confirm_del_quote"] = row['Quote_Number']  # 只存 Quote_Number
-                            st.session_state[f"confirm_del_index"] = i + j
+                            st.session_state["confirm_del_quote"] = row['Quote_Number']
+                            # 可選：存索引輔助，但不強制
+                            st.session_state["confirm_del_index"] = i + j
+                            st.rerun()  # 強制 rerun 顯示表單
 
                     # 編輯模式
                     if st.session_state.get(f"edit_mode_{row['Quote_Number']}_{i + j}", False):
@@ -355,11 +357,16 @@ if len(display_df) > 0:
                                     del st.session_state[f"edit_mode_{row['Quote_Number']}_{i + j}"]
                                 st.rerun()
 
+                    # ==============================================
+                    # 全域刪除確認表單（動態 key，避免 duplicate）
+                    # ==============================================
                     if "confirm_del_quote" in st.session_state:
                         quote_to_delete = st.session_state["confirm_del_quote"]
+                        form_key = f"delete_confirm_form_{quote_to_delete}"  # 動態唯一 key
+
                         st.warning(f"確定要永久刪除專案 **{quote_to_delete}** 嗎？")
 
-                        with st.form(key="global_delete_confirm_form"):
+                        with st.form(key=form_key):
                             st.write("請確認是否刪除此專案及所有相關借調記錄？")
 
                             col1, col2 = st.columns(2)
@@ -369,7 +376,7 @@ if len(display_df) > 0:
 
                             if submitted_delete:
                                 try:
-                                    st.info("正在刪除專案...")
+                                    st.info(f"正在刪除專案 {quote_to_delete}...")
 
                                     # 刪除專案
                                     projects_df = projects_df[
@@ -381,7 +388,7 @@ if len(display_df) > 0:
                                         manpower_df["Quote_Number"] != quote_to_delete].reset_index(drop=True)
                                     worksheet_manpower.update(df_to_gspread_values(manpower_df))
 
-                                    # 強制重新讀取最新資料
+                                    # 強制重新讀取
                                     projects_data = worksheet_projects.get_all_records()
                                     projects_df = pd.DataFrame(projects_data)
                                     projects_df["Date"] = pd.to_datetime(projects_df["Date"], errors="coerce").apply(
@@ -394,7 +401,7 @@ if len(display_df) > 0:
                                     manpower_df = pd.DataFrame(manpower_data)
                                     manpower_df = manpower_df.fillna("")
 
-                                    st.success("✅ 專案及所有借調已成功刪除！")
+                                    st.success(f"✅ 專案 {quote_to_delete} 及所有借調已成功刪除！")
 
                                 except Exception as e:
                                     st.error(f"❌ 刪除失敗：{str(e)}")
