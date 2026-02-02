@@ -179,72 +179,50 @@ if search_query:
 # 卡片顯示（已套用方法 2：html.escape + white-space: pre-wrap）
 if len(display_df) > 0:
     sorted_df = display_df.sort_values(by="Date", ascending=False).reset_index(drop=True)
-    cols = st.columns(2)  # ← 改成 2 欄
-
+    cols = st.columns(4)
     for idx, row in sorted_df.iterrows():
-        with cols[idx % 2]:  # ← 改成 % 2，循環放在左/右欄
-            status_color = {
-                "Quoting": "#ffaa00",
-                "Confirmed": "#00aa00",
-                "In Production": "#0066ff",
-                "Completed": "#66cc66"
-            }.get(row["Status"], "#888888")
+        with cols[idx % 4]:
+            status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
+                            "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
+            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
 
-            work_order_display = (
-                f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>"
-                if row["Work_Order"] else ""
-            )
-
-            manpower_records = st.session_state.manpower_df[
-                st.session_state.manpower_df["Quote_Number"] == row["Quote_Number"]
-            ]
+            manpower_records = manpower_df[manpower_df["Quote_Number"] == row["Quote_Number"]]
             if len(manpower_records) > 0:
                 manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee;'>"
                 manpower_html += "<small style='color:#000; font-weight:bold;'>借調：</small><br>"
                 for _, rec in manpower_records.iterrows():
-                    start = rec["Start_Date"].strftime("%Y-%m-%d") if pd.notna(rec["Start_Date"]) else "—"
-                    end = rec["End_Date"].strftime("%Y-%m-%d") if pd.notna(rec["End_Date"]) else "進行中"
+                    start = rec["Start_Date"]
+                    end = rec["End_Date"].strip() if (pd.notna(rec["End_Date"]) and str(rec["End_Date"]).strip()) else "進行中"
                     manpower_html += f"<small style='color:#000;'>• {rec['Staff']} ({start} → {end})</small><br>"
                 manpower_html += "</div>"
             else:
                 manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee; color:#999;'><small>無借調記錄</small></div>"
-
-            date_str = row["Date"].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"
-
-            # 方法 2：安全跳脫 + 保留換行/空格
-            escaped_detail = html.escape(row["Project_Detail"])
-            detail_html = f'<p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; white-space: pre-wrap;">{escaped_detail}</p>'
 
             st.markdown(f"""
             <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 260px;">
                 <div>
                     <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
                     {work_order_display}
-                    {detail_html}
+                    <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6;">{row["Project_Detail"]}</p>
                 </div>
                 <div>{manpower_html}</div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
                     <span style="background:{status_color}; color:white; padding:6px 16px; border-radius:20px; font-weight:bold;">
                         {row["Status"]}
                     </span>
-                    <small style="color:#888;">{date_str}</small>
+                    <small style="color:#888;">{row["Date"]}</small>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            # key 加上 idx（保證唯一）
-            edit_key = f"edit_{idx}_{row['Quote_Number']}"
-            del_key = f"del_proj_{idx}_{row['Quote_Number']}"
-            edit_mode_key = f"edit_mode_{idx}_{row['Quote_Number']}"
-            confirm_del_key = f"confirm_del_{idx}_{row['Quote_Number']}"
-
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("Edit", key=edit_key, use_container_width=True):
-                    st.session_state[edit_mode_key] = True
+                if st.button("Edit", key=f"edit_{row['Quote_Number']}", use_container_width=True):
+                    st.session_state[f"edit_mode_{row['Quote_Number']}"] = True
             with col2:
-                if st.button("Delete", key=del_key, type="secondary", use_container_width=True):
-                    st.session_state[confirm_del_key] = True
+                if st.button("Delete", key=f"del_proj_{row['Quote_Number']}", type="secondary", use_container_width=True):
+                    st.session_state[f"confirm_del_{row['Quote_Number']}"] = True
+
 
             # 編輯模式（不變）
             if st.session_state.get(edit_mode_key, False):
