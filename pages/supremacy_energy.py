@@ -17,62 +17,57 @@ st.set_page_config(
 
 
 # ==============================================
-# Google Sheets 連線（推薦寫法：使用 open_by_key + 快取 + 防呆）
+# Google Sheets 連線（使用你的平鋪式 secrets，無需 private_gsheet_credentials）
 # ==============================================
-@st.cache_resource(show_spinner="正在連線 Google Sheets...", ttl=1800)  # 快取 30 分鐘
+@st.cache_resource(show_spinner="正在連線 Google Sheets...", ttl=1800)  # 快取 30 分鐘，避免重複授權
 def get_spreadsheet():
+    creds_info = st.secrets["connections"]["gsheets"]
+
+    # 直接把 creds_info 傳進去（你的 secrets 已經是完整的 service account dict）
+    creds = Credentials.from_service_account_info(
+        creds_info,
+        scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    )
+    client = gspread.authorize(creds)
+
+    spreadsheet_id = creds_info.get("spreadsheet", "").strip()
+
+    if not spreadsheet_id:
+        st.error("secrets 中缺少 'spreadsheet'（試算表 ID）")
+        st.stop()
+
+    # 簡單驗證 ID 格式（你的 ID 是 44 位，帶 4 個 -）
+    if len(spreadsheet_id) != 44 or spreadsheet_id.count("-") != 4:
+        st.error("Spreadsheet ID 格式不正確")
+        st.info(f"讀到的值：{spreadsheet_id}")
+        st.stop()
+
     try:
-        creds_info = st.secrets["connections"]["gsheets"]
-
-        # 檢查必要欄位
-        if "private_gsheet_credentials" not in creds_info:
-            st.error("secrets 中缺少 'private_gsheet_credentials'（服務帳號 JSON）")
-            st.stop()
-        if "spreadsheet" not in creds_info:
-            st.error("secrets 中缺少 'spreadsheet'（試算表 ID）")
-            st.stop()
-
-        creds = Credentials.from_service_account_info(
-            creds_info["private_gsheet_credentials"],
-            scopes=["https://www.googleapis.com/auth/spreadsheets"]
-        )
-        client = gspread.authorize(creds)
-
-        spreadsheet_id = str(creds_info["spreadsheet"]).strip()
-
-        # 簡單驗證 Spreadsheet ID 格式
-        if len(spreadsheet_id) != 44 or spreadsheet_id.count("-") != 4:
-            st.error("Spreadsheet ID 格式錯誤（應為 44 個字元，包含 4 個 -）")
-            st.info(f"目前讀到的值：{spreadsheet_id}")
-            st.info("請確認 Streamlit Secrets → connections.gsheets.spreadsheet 只放 ID（不是 URL）")
-            st.stop()
-
         spreadsheet = client.open_by_key(spreadsheet_id)
         return spreadsheet
-
     except gspread.exceptions.SpreadsheetNotFound:
         st.error("找不到該試算表")
-        st.info(f"請確認 spreadsheet ID 是否正確：{spreadsheet_id}")
-        st.info("也請確認服務帳號 email 已加入試算表並給予「編輯者」權限")
+        st.info(f"請確認 ID 是否正確：{spreadsheet_id}")
+        st.info(
+            "也請確認服務帳號 'yips-824@precise-plane-481307-u2.iam.gserviceaccount.com' 已加入試算表並給予「編輯者」權限")
         st.stop()
     except gspread.exceptions.APIError as e:
-        err_msg = str(e).lower()
-        if "403" in err_msg or "permission" in err_msg:
+        err = str(e).lower()
+        if "403" in err or "permission" in err:
             st.error("權限不足（403 Forbidden）")
             st.info("""
-            解決步驟：
-            1. 開啟你的 Google Sheet
+            請執行以下步驟：
+            1. 開啟你的 Google Sheet（ID: 17GqTXQOxLSRLqd0DuNE24XVC20caWwpkXYJB6vwNwzA）
             2. 點擊右上角「分享」
-            3. 加入服務帳號的 email（格式通常是 xxx@xxx.iam.gserviceaccount.com）
+            3. 加入 email：yips-824@precise-plane-481307-u2.iam.gserviceaccount.com
             4. 權限選擇「編輯者」
             """)
-        elif "429" in err_msg:
-            st.warning("Google API 限流（429），請稍後再試...")
+            st.stop()
         else:
             st.error(f"Google API 錯誤：{e}")
-        st.stop()
+            st.stop()
     except Exception as e:
-        st.error(f"連線失敗：{type(e).__name__} - {str(e)}")
+        st.error(f"連線失敗：{type(e).__name__} - {e}")
         st.stop()
 
 
