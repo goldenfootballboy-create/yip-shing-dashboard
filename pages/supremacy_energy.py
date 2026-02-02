@@ -192,6 +192,8 @@ if len(display_df) > 0:
             status_color = {"Quoting": "#ffaa00", "Confirmed": "#00aa00",
                             "In Production": "#0066ff", "Completed": "#66cc66"}.get(row["Status"], "#888888")
 
+            work_order_display = f"<br><small style='color:#666;'>Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>" if row["Work_Order"] else ""
+
             manpower_records = st.session_state.manpower_df[
                 st.session_state.manpower_df["Quote_Number"] == row["Quote_Number"]
             ]
@@ -210,20 +212,23 @@ if len(display_df) > 0:
 
             escaped_detail = html.escape(row["Project_Detail"])
 
-            # 內容緊密顯示（無多餘空行）
+            # Quote Number 與 Work Order（緊密）
             st.markdown(f"""
             <h5 style="margin:0 0 6px 0; color:#1fb429;">Quote Number：{row["Quote_Number"]}</h5>
             <small style="color:#666;">Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>
             """, unsafe_allow_html=True)
 
+            # Project Detail（深藍色，緊接上面）
             st.markdown(f"""
             <p style="margin:10px 0 12px 0; font-size:1rem; color:#1e3a8a; line-height:1.6; white-space: pre-wrap;">
                 {escaped_detail}
             </p>
             """, unsafe_allow_html=True)
 
+            # 借調記錄（帶分隔線）
             st.markdown(manpower_html, unsafe_allow_html=True)
 
+            # 狀態與日期
             st.markdown(f"""
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
                 <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:20px; font-weight:bold; font-size:0.85rem;">
@@ -242,7 +247,10 @@ if len(display_df) > 0:
                 if st.button("Delete", key=del_key, type="secondary", use_container_width=True):
                     st.session_state[confirm_del_key] = True
 
-            # 編輯模式
+            # 分隔線放在按鈕下面（每個項目結束後）
+            st.markdown("---")
+
+            # 編輯模式（保持原邏輯）
             if st.session_state.get(edit_mode_key, False):
                 original_idx = st.session_state.projects_df[
                     st.session_state.projects_df["Quote_Number"] == row["Quote_Number"]
