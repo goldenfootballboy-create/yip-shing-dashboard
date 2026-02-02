@@ -212,32 +212,28 @@ if len(display_df) > 0:
 
             escaped_detail = html.escape(row["Project_Detail"])
 
-            # 卡片內容拆成多段
+            # 取消卡片後的內容顯示（直接垂直排列）
             st.markdown(f"""
-            <div style="background: white; border-left: 5px solid {status_color}; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 20px;">
-                <div>
-                    <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
-                    {work_order_display}
+            <h5 style="margin:0 0 8px 0; color:#1fb429;">{row["Quote_Number"]}</h5>
+            {work_order_display}
             """, unsafe_allow_html=True)
 
             st.markdown(f"""
-                    <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; white-space: pre-wrap;">{escaped_detail}</p>
-                </div>
+            <p style="margin:16px 0 0 0; font-size:1rem; color:#333; line-height:1.6; white-space: pre-wrap;">{escaped_detail}</p>
             """, unsafe_allow_html=True)
 
             st.markdown(manpower_html, unsafe_allow_html=True)
 
             st.markdown(f"""
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-                    <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:20px; font-weight:bold; font-size:0.85rem;">
-                        {row["Status"]}
-                    </span>
-                    <small style="color:#888;">{date_str}</small>
-                </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+                <span style="background:{status_color}; color:white; padding:5px 14px; border-radius:20px; font-weight:bold; font-size:0.85rem;">
+                    {row["Status"]}
+                </span>
+                <small style="color:#888;">{date_str}</small>
             </div>
             """, unsafe_allow_html=True)
 
-            # 按鈕
+            # 按鈕（保持原樣）
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Edit", key=edit_key, use_container_width=True):
@@ -246,7 +242,7 @@ if len(display_df) > 0:
                 if st.button("Delete", key=del_key, type="secondary", use_container_width=True):
                     st.session_state[confirm_del_key] = True
 
-            # 編輯模式
+            # 編輯模式（使用 edit_mode_key）
             if st.session_state.get(edit_mode_key, False):
                 original_idx = st.session_state.projects_df[
                     st.session_state.projects_df["Quote_Number"] == row["Quote_Number"]
