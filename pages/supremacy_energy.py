@@ -198,7 +198,8 @@ if len(display_df) > 0:
                 st.session_state.manpower_df["Quote_Number"] == row["Quote_Number"]
             ]
             if len(manpower_records) > 0:
-                manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee;'>"
+                # 移除分隔線，只保留內容
+                manpower_html = "<div style='margin-top:12px;'>"
                 manpower_html += "<small style='color:#000; font-weight:bold;'>借調：</small><br>"
                 for _, rec in manpower_records.iterrows():
                     start = rec["Start_Date"].strftime("%Y-%m-%d") if pd.notna(rec["Start_Date"]) else "—"
@@ -206,26 +207,27 @@ if len(display_df) > 0:
                     manpower_html += f"<small style='color:#000;'>• {rec['Staff']} ({start} → {end})</small><br>"
                 manpower_html += "</div>"
             else:
-                manpower_html = "<div style='margin-top:12px; padding-top:12px; border-top:1px solid #eee; color:#999;'><small>無借調記錄</small></div>"
+                # 無借調記錄也移除分隔線，改成簡單文字
+                manpower_html = "<div style='margin-top:12px; color:#999;'><small>無借調記錄</small></div>"
 
             date_str = row["Date"].strftime("%Y-%m-%d") if pd.notna(row["Date"]) else "—"
 
             escaped_detail = html.escape(row["Project_Detail"])
 
-            # Quote Number 與 Work Order（緊密）
+            # Quote Number 與 Work Order
             st.markdown(f"""
             <h5 style="margin:0 0 6px 0; color:#1fb429;">Quote Number：{row["Quote_Number"]}</h5>
             <small style="color:#666;">Work Order: <strong>{row['Work_Order'] or '無'}</strong></small>
             """, unsafe_allow_html=True)
 
-            # Project Detail（深藍色，緊接上面）
+            # Project Detail（深藍色）
             st.markdown(f"""
             <p style="margin:10px 0 12px 0; font-size:1rem; color:#1e3a8a; line-height:1.6; white-space: pre-wrap;">
                 {escaped_detail}
             </p>
             """, unsafe_allow_html=True)
 
-            # 借調記錄（帶分隔線）
+            # 借調記錄（無分隔線）
             st.markdown(manpower_html, unsafe_allow_html=True)
 
             # 狀態與日期
