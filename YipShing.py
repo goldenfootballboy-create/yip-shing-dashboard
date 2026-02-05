@@ -196,21 +196,21 @@ def generate_overview_pdf(specs, project_info, qty):
         left_content.append(Spacer(1, 2))
 
         engine_data = [
-            ["發動機型號", spec.get('genset_model', '—'), "S/N", spec.get('genset_sn', '—')],
-            ["發動機顏色", spec.get('engine_color', '—'), "年份", spec.get('engine_year', '—')],
-            ["發動機加熱器", f"{spec.get('engine_heater', '—')} kW", "", ""],
+            ["發動機型號：", spec.get('genset_model', '—'), "S/N：", spec.get('genset_sn', '—')],
+            ["發動機顏色：", spec.get('engine_color', '—'), "年份：", spec.get('engine_year', '—')],
+            ["發動機加熱器：", f"{spec.get('engine_heater', '—')} kW：", "", ""],
         ]
 
         alt_data = [
-            ["電球型號", spec.get('alt_model', '—'), "S/N", spec.get('alt_sn', '—')],
-            ["電球顏色", spec.get('alt_color', '—'), "", ""],
-            ["Droop", spec.get('droop', '—'), "PMG", spec.get('pmg', '—')],
-            ["加熱器", spec.get('alt_heater', '—'), "", ""],
+            ["電球型號：", spec.get('alt_model', '—'), "S/N：", spec.get('alt_sn', '—')],
+            ["電球顏色：", spec.get('alt_color', '—'), "", ""],
+            ["Droop：", spec.get('droop', '—'), "PMG：", spec.get('pmg', '—')],
+            ["加熱器：", spec.get('alt_heater', '—'), "", ""],
         ]
 
         # 發動機表格
         if engine_data:
-            engine_table = Table(engine_data, colWidths=[80, 80, 40, 100])
+            engine_table = Table(engine_data, colWidths=[50, 50, 40, 100])
             engine_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8.5),
@@ -227,7 +227,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # 電球表格
         if alt_data:
-            alt_table = Table(alt_data, colWidths=[80, 80, 40, 100])
+            alt_table = Table(alt_data, colWidths=[50, 50, 40, 100])
             alt_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8.5),
