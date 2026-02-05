@@ -148,7 +148,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
     # 大標題
     elements.append(Paragraph(
-        f"專案：{project_info.get('Project_Name', '—')}　｜ 共　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}",
+        f"專案：{project_info.get('Project_Name', '—')}　｜　共　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}　｜　客戶：{project_info.get('Customer', '—')}",
         heading1
     ))
     elements.append(Spacer(1, 12))
@@ -168,24 +168,30 @@ def generate_overview_pdf(specs, project_info, qty):
         # 左欄內容
         left_content.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
         left_content.append(Spacer(1, 2))
-        left_content.append(Paragraph(f"Prime (kW): {spec.get('prime', '—')}", normal))
-        left_content.append(Paragraph(f"Standby (kW): {spec.get('standby', '—')}", normal))
-        left_content.append(Paragraph(f"RPM: {spec.get('rpm', '—')}", normal))
-        left_content.append(
-            Paragraph(f"電壓 / 頻率： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
+        left_content.append(Paragraph(f"Prime (kW)   : {spec.get('prime', '—')}", normal))
+        left_content.append(Paragraph(f"Standby (kW) : {spec.get('standby', '—')}", normal))
+        left_content.append(Paragraph(f"RPM          : {spec.get('rpm', '—')}", normal))
+        left_content.append(Paragraph(f"電壓 / 頻率   : {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
         left_content.append(Spacer(1, 5))
 
         left_content.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
         left_content.append(Spacer(1, 2))
-        left_content.append(
-            Paragraph(f"發動機型號： {spec.get('genset_model', '—')}　S/N： {spec.get('genset_sn', '—')}", normal))
-        left_content.append(
-            Paragraph(f"發動機顏色： {spec.get('engine_color', '—')}　年份： {spec.get('engine_year', '—')}", normal))
-        left_content.append(Paragraph(f"發動機加熱器： {spec.get('engine_heater', '—')} kW", normal))
-        left_content.append(Paragraph(f"電球型號： {spec.get('alt_model', '—')}　S/N： {spec.get('alt_sn', '—')}", normal))
-        left_content.append(Paragraph(f"電球顏色： {spec.get('alt_color', '—')}", normal))
+
         left_content.append(Paragraph(
-            f"Droop： {spec.get('droop', '—')}　PMG： {spec.get('pmg', '—')}　加熱器： {spec.get('alt_heater', '—')}",
+            f"發動機型號　： {spec.get('genset_model', '—'): <15}　｜ S/N： {spec.get('genset_sn', '—')}", normal))
+        left_content.append(Paragraph(
+            f"發動機顏色　： {spec.get('engine_color', '—'): <15}　｜ 年份： {spec.get('engine_year', '—')}", normal))
+        left_content.append(Paragraph(
+            f"發動機加熱器： {spec.get('engine_heater', '—')} kW", normal))
+
+        left_content.append(Spacer(1, 2))
+
+        left_content.append(Paragraph(
+            f"電球型號　　： {spec.get('alt_model', '—'): <15}　｜ S/N： {spec.get('alt_sn', '—')}", normal))
+        left_content.append(Paragraph(
+            f"電球顏色　　： {spec.get('alt_color', '—')}", normal))
+        left_content.append(Paragraph(
+            f"Droop　　　　： {spec.get('droop', '—'): <15}　｜ PMG： {spec.get('pmg', '—'): <10}　｜ 加熱器： {spec.get('alt_heater', '—')}",
             normal))
 
         # 右欄內容
