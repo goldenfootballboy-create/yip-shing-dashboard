@@ -168,10 +168,28 @@ def generate_overview_pdf(specs, project_info, qty):
         # 左欄內容
         left_content.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
         left_content.append(Spacer(1, 2))
-        left_content.append(Paragraph(f"Prime (kW)   : {spec.get('prime', '—')}", normal))
-        left_content.append(Paragraph(f"Standby (kW) : {spec.get('standby', '—')}", normal))
-        left_content.append(Paragraph(f"RPM          : {spec.get('rpm', '—')}", normal))
-        left_content.append(Paragraph(f"電壓 / 頻率   : {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
+
+        # 建立一個 2 欄的小表格來對齊
+        power_data = [
+            ["Prime (kW)", f"{spec.get('prime', '—')}"],
+            ["Standby (kW)", f"{spec.get('standby', '—')}"],
+            ["RPM", f"{spec.get('rpm', '—')}"],
+            ["電壓 / 頻率", f"{spec.get('voltage', '—')} / {spec.get('frequency', '—')}"]
+        ]
+
+        power_table = Table(power_data, colWidths=[120, 135])
+        power_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8.5),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+            ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
+        ]))
+        left_content.append(power_table)
+        
         left_content.append(Spacer(1, 5))
 
         left_content.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
@@ -184,7 +202,7 @@ def generate_overview_pdf(specs, project_info, qty):
         left_content.append(Paragraph(
             f"發動機加熱器： {spec.get('engine_heater', '—')} kW", normal))
 
-        left_content.append(Spacer(1, 2))
+        left_content.append(Spacer(1, 5))
 
         left_content.append(Paragraph(
             f"電球型號　　： {spec.get('alt_model', '—'): <15}　｜ S/N： {spec.get('alt_sn', '—')}", normal))
