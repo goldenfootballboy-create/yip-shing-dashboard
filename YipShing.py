@@ -148,7 +148,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
     # 大標題
     elements.append(Paragraph(
-        f"專案：{project_info.get('Project_Name', '—')}　｜　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}",
+        f"專案：{project_info.get('Project_Name', '—')}　｜ 共　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}",
         heading1
     ))
     elements.append(Spacer(1, 12))
@@ -2714,8 +2714,13 @@ with st.sidebar:
         st.session_state.view_mode = "all"
 
     st.markdown("---")
-    st.markdown("### Search Project Name")
-    search_term = st.text_input("Enter Project Name (partial match)", value="", key="search_input", label_visibility="collapsed")
+    st.markdown("### Search Project Name / Customer Name")
+    search_term = st.text_input(
+        "輸入專案名稱 或 客戶名稱 (部分匹配)",
+        value="",
+        key="search_input",
+        label_visibility="collapsed"
+    )
 
     st.markdown("---")
 
@@ -2823,7 +2828,13 @@ filtered_df = df.copy()
 has_search = search_term.strip() != ""
 if has_search:
     search_term_lower = search_term.strip().lower()
-    filtered_df = filtered_df[filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)]
+
+    # 建立 mask：Project_Name 或 Customer 任一欄位包含搜尋詞
+    mask_project = filtered_df["Project_Name"].str.lower().str.contains(search_term_lower, na=False)
+    mask_customer = filtered_df.get("Customer", pd.Series([""] * len(filtered_df), index=filtered_df.index)) \
+        .str.lower().str.contains(search_term_lower, na=False)
+
+    filtered_df = filtered_df[mask_project | mask_customer]
 
 if st.session_state.view_mode == "delay":
     filtered_df = filtered_df[
