@@ -1,5 +1,3 @@
-26/1
-
 import streamlit as st
 import pandas as pd
 import json
@@ -1809,7 +1807,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 "anson@topone-power.com",
                 "michelle@ysdiesel.com.hk",
                 "serena@topone-power.com",
-                "warehouse@ysdiesel.com.hk"
+                "warehouse@ysdiesel.com.hk",
+                "Natural@ysdiesel.com.hk"
 
 
             ]
@@ -2544,7 +2543,8 @@ if st.session_state.get("spec_dialog_open", False):
                 "anson@topone-power.com",
                 "michelle@ysdiesel.com.hk",
                 "serena@topone-power.com",
-                "warehouse@ysdiesel.com.hk"
+                "warehouse@ysdiesel.com.hk",
+                "Natural@ysdiesel.com.hk"
 
             ]
 
