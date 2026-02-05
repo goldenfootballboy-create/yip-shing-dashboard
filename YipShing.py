@@ -254,7 +254,7 @@ def generate_overview_pdf(specs, project_info, qty):
         ]
 
         if any(any(cell for cell in row) for row in radiator_data):  # 如果有資料才加表格
-            radiator_table = Table(radiator_data, colWidths=[70, 110, 40, 90, 50, 80])
+            radiator_table = Table(radiator_data, colWidths=[60, 110, 40, 80, 50, 40])
             radiator_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8.5),
@@ -282,7 +282,7 @@ def generate_overview_pdf(specs, project_info, qty):
         ]
 
         if any(any(cell for cell in row) for row in cooling_data):
-            cooling_table = Table(cooling_data, colWidths=[90, 100, 40, 80, 60, 90])
+            cooling_table = Table(cooling_data, colWidths=[60, 110, 40, 80, 50, 40])
             cooling_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8.5),
@@ -304,7 +304,7 @@ def generate_overview_pdf(specs, project_info, qty):
         ]
 
         if any(any(cell for cell in row) for row in base_data):
-            base_table = Table(base_data, colWidths=[70, 110, 40, 70, 50, 80])
+            base_table = Table(base_data, colWidths=[60, 110, 40, 80, 50, 40])
             base_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8.5),
@@ -335,7 +335,7 @@ def generate_overview_pdf(specs, project_info, qty):
         ]
 
         if any(any(cell for cell in row) for row in container_panel_data):
-            container_panel_table = Table(container_panel_data, colWidths=[90, 110, 40, 90, 50, 80])
+            container_panel_table = Table(container_panel_data, colWidths=[60, 110, 40, 80, 50, 40])
             container_panel_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8.5),
