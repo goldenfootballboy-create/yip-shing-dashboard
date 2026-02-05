@@ -198,7 +198,7 @@ def generate_overview_pdf(specs, project_info, qty):
         engine_data = [
             ["發動機型號：", spec.get('genset_model', '—'), "S/N：", spec.get('genset_sn', '—')],
             ["發動機顏色：", spec.get('engine_color', '—'), "年份：", spec.get('engine_year', '—')],
-            ["發動機加熱器：", f"{spec.get('engine_heater', '—')} kW：", "", ""],
+            ["發動機加熱器：", f"{spec.get('engine_heater', '—')} kW", "", ""],
         ]
 
         alt_data = [
