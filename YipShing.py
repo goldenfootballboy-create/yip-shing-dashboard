@@ -189,28 +189,56 @@ def generate_overview_pdf(specs, project_info, qty):
             ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
         ]))
         left_content.append(power_table)
-        
+
         left_content.append(Spacer(1, 5))
 
         left_content.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
         left_content.append(Spacer(1, 2))
 
-        left_content.append(Paragraph(
-            f"發動機型號　： {spec.get('genset_model', '—'): <15}　｜ S/N： {spec.get('genset_sn', '—')}", normal))
-        left_content.append(Paragraph(
-            f"發動機顏色　： {spec.get('engine_color', '—'): <15}　｜ 年份： {spec.get('engine_year', '—')}", normal))
-        left_content.append(Paragraph(
-            f"發動機加熱器： {spec.get('engine_heater', '—')} kW", normal))
+        engine_data = [
+            ["發動機型號", spec.get('genset_model', '—'), "S/N", spec.get('genset_sn', '—')],
+            ["發動機顏色", spec.get('engine_color', '—'), "年份", spec.get('engine_year', '—')],
+            ["發動機加熱器", f"{spec.get('engine_heater', '—')} kW", "", ""],
+        ]
 
-        left_content.append(Spacer(1, 5))
+        alt_data = [
+            ["電球型號", spec.get('alt_model', '—'), "S/N", spec.get('alt_sn', '—')],
+            ["電球顏色", spec.get('alt_color', '—'), "", ""],
+            ["Droop", spec.get('droop', '—'), "PMG", spec.get('pmg', '—')],
+            ["加熱器", spec.get('alt_heater', '—'), "", ""],
+        ]
 
-        left_content.append(Paragraph(
-            f"電球型號　　： {spec.get('alt_model', '—'): <15}　｜ S/N： {spec.get('alt_sn', '—')}", normal))
-        left_content.append(Paragraph(
-            f"電球顏色　　： {spec.get('alt_color', '—')}", normal))
-        left_content.append(Paragraph(
-            f"Droop　　　　： {spec.get('droop', '—'): <15}　｜ PMG： {spec.get('pmg', '—'): <10}　｜ 加熱器： {spec.get('alt_heater', '—')}",
-            normal))
+        # 發動機表格
+        if engine_data:
+            engine_table = Table(engine_data, colWidths=[80, 120, 40, 100])
+            engine_table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8.5),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('ALIGN', (2, 0), (2, -1), 'LEFT'),
+                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
+            ]))
+            left_content.append(engine_table)
+
+        left_content.append(Spacer(1, 2))
+
+        # 電球表格
+        if alt_data:
+            alt_table = Table(alt_data, colWidths=[80, 120, 40, 100])
+            alt_table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8.5),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('ALIGN', (2, 0), (2, -1), 'LEFT'),
+                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
+            ]))
+            left_content.append(alt_table)
 
         # 右欄內容
         right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
