@@ -240,114 +240,92 @@ def generate_overview_pdf(specs, project_info, qty):
             ]))
             left_content.append(alt_table)
 
-        # 右欄內容 - 使用 Table 結構化呈現
-
+        # 右欄內容
         right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
         right_content.append(Spacer(1, 2))
 
-        # 1. 水箱相關表格
-        radiator_data = [
-            ["水箱型號", spec.get('rad_model', '—'), "S/N", spec.get('rad_sn', '—'), "溫度", spec.get('rad_temp', '—')],
-            ["風扇呎吋", spec.get('fan_size', '—'), "負責部門",
-             f"<font color=red>{spec.get('fan_department', '—')}</font>", "", ""],
-            ["水箱護罩", spec.get('radiator_guard', '—'), "", "", "", ""],
-        ]
+        # 水箱型號 / S/N / 溫度
+        right_content.append(Paragraph(
+            f"水箱型號　　： {spec.get('rad_model', '—')}　　S/N　　： {spec.get('rad_sn', '—')}　　溫度　： {spec.get('rad_temp', '—')}",
+            normal
+        ))
 
-        if any(any(cell for cell in row) for row in radiator_data):  # 如果有資料才加表格
-            radiator_table = Table(radiator_data, colWidths=[60, 110, 40, 80, 50, 40])
-            radiator_table.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8.5),
-                ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('ALIGN', (0, 0), (0, -1), 'LEFT'),  # 標籤左對齊
-                ('ALIGN', (1, 0), (1, -1), 'LEFT'),  # 值左對齊
-                ('ALIGN', (2, 0), (2, -1), 'LEFT'),
-                ('ALIGN', (3, 0), (3, -1), 'LEFT'),
-                ('ALIGN', (4, 0), (4, -1), 'LEFT'),
-                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
-            ]))
-            right_content.append(radiator_table)
-            right_content.append(Spacer(1, 3))
+        # 風扇呎吋 + 負責部門
+        right_content.append(Paragraph(
+            f"風扇呎吋　　： {spec.get('fan_size', '—')}　　　負責部門　： <font color=red>{spec.get('fan_department', '—')}</font>",
+            normal
+        ))
 
-        # 2. 附加冷卻相關（燃油冷卻器、冷卻液感測器、低水位開關）
-        cooling_data = [
-            ["燃油冷卻器", spec.get('fuel_cooler', '—'), "貨源", spec.get('fuel_cooler_source', '—'), "負責部門",
-             f"<font color=red>{spec.get('fuel_cooler_department', '—')}</font>"],
-            ["冷卻液溫度感測器", spec.get('coolant_sensor', '—'), "貨源", spec.get('coolant_sensor_source', '—'),
-             "負責部門", f"<font color=red>{spec.get('coolant_sensor_department', '—')}</font>"],
-            ["低水位浮球開關", spec.get('low_water', '—'), "貨源", spec.get('low_water_source', '—'), "負責部門",
-             f"<font color=red>{spec.get('low_water_department', '—')}</font>"],
-        ]
+        # 水箱護罩
+        right_content.append(Paragraph(
+            f"水箱護罩　　： {spec.get('radiator_guard', '—')}",
+            normal
+        ))
 
-        if any(any(cell for cell in row) for row in cooling_data):
-            cooling_table = Table(cooling_data, colWidths=[60, 110, 40, 80, 50, 40])
-            cooling_table.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8.5),
-                ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
-            ]))
-            right_content.append(cooling_table)
-            right_content.append(Spacer(1, 3))
+        right_content.append(Spacer(1, 3))
 
-        # 3. 底架 & 避震器
-        base_data = [
-            ["底架型號", spec.get('base_model', '—'), "S/N", spec.get('base_sn', '—'), "", ""],
-            ["避震器型號", spec.get('avm_model', '—'), "數量", spec.get('avm_qty', '—'), "貨源",
-             spec.get('avm_source', '—')],
-            ["負責部門", f"<font color=red>{spec.get('avm_department', '—')}</font>", "", "", "", ""],
-        ]
+        # 燃油冷卻器
+        right_content.append(Paragraph(
+            f"燃油冷卻器　： {spec.get('fuel_cooler', '—')}　　　貨源　： {spec.get('fuel_cooler_source', '—')}　　　負責部門　： <font color=red>{spec.get('fuel_cooler_department', '—')}</font>",
+            normal
+        ))
 
-        if any(any(cell for cell in row) for row in base_data):
-            base_table = Table(base_data, colWidths=[60, 110, 40, 80, 50, 40])
-            base_table.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8.5),
-                ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
-            ]))
-            right_content.append(base_table)
+        # 冷卻液溫度感測器
+        right_content.append(Paragraph(
+            f"冷卻液溫度感測器　： {spec.get('coolant_sensor', '—')}　　　貨源　： {spec.get('coolant_sensor_source', '—')}　　　負責部門　： <font color=red>{spec.get('coolant_sensor_department', '—')}</font>",
+            normal
+        ))
+
+        # 低水位浮球開關
+        right_content.append(Paragraph(
+            f"低水位浮球開關　： {spec.get('low_water', '—')}　　　貨源　： {spec.get('low_water_source', '—')}　　　負責部門　： <font color=red>{spec.get('low_water_department', '—')}</font>",
+            normal
+        ))
+
+        right_content.append(Spacer(1, 3))
+
+        # 底架型號 / S/N
+        right_content.append(Paragraph(
+            f"底架型號　　： {spec.get('base_model', '—')}　　　S/N　　： {spec.get('base_sn', '—')}",
+            normal
+        ))
+
+        # 避震器
+        right_content.append(Paragraph(
+            f"避震器型號　： {spec.get('avm_model', '—')}　　　數量　： {spec.get('avm_qty', '—')}　　　貨源　： {spec.get('avm_source', '—')}　　　負責部門　： <font color=red>{spec.get('avm_department', '—')}</font>",
+            normal
+        ))
 
         right_content.append(Spacer(1, 5))
 
-        # 4. Container / Panel / Breaker 部分
         right_content.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
         right_content.append(Spacer(1, 2))
 
-        container_panel_data = [
-            ["貨櫃尺寸", spec.get('cont_size', '—'), "類型", spec.get('cont_type', '—'), "", ""],
-            ["控制器型號", spec.get('panel_model', '—'), "S/N", spec.get('panel_sn', '—'), "貨源",
-             spec.get('panel_source', '—')],
-            ["負責部門", f"<font color=red>{spec.get('panel_department', '—')}</font>", "", "", "", ""],
-            ["CO 探測器 (OLED)", spec.get('co_detector', '—'), "貨源", spec.get('co_source', '—'), "負責部門",
-             f"<font color=red>{spec.get('co_department', '—')}</font>"],
-            ["斷路器", f"{spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}",
-             "S/N", spec.get('breaker_sn', '—'), "貨源", spec.get('breaker_source', '—')],
-            ["負責部門", f"<font color=red>{spec.get('breaker_department', '—')}</font>", "", "", "", ""],
-        ]
+        # 貨櫃尺寸 / 類型
+        right_content.append(Paragraph(
+            f"貨櫃尺寸　　： {spec.get('cont_size', '—')}　　　類型　： {spec.get('cont_type', '—')}",
+            normal
+        ))
 
-        if any(any(cell for cell in row) for row in container_panel_data):
-            container_panel_table = Table(container_panel_data, colWidths=[60, 110, 40, 80, 50, 40])
-            container_panel_table.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8.5),
-                ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
-            ]))
-            right_content.append(container_panel_table)
+        # 控制器型號 / S/N / 貨源 / 負責部門
+        right_content.append(Paragraph(
+            f"控制器型號　： {spec.get('panel_model', '—')}　　　S/N　　： {spec.get('panel_sn', '—')}　　　貨源　： {spec.get('panel_source', '—')}　　　負責部門　： <font color=red>{spec.get('panel_department', '—')}</font>",
+            normal
+        ))
 
-        # 最後的左右並排表格（無邊框）保持不變
+        # CO 探測器
+        right_content.append(Paragraph(
+            f"CO 探測器 (OLED)　： {spec.get('co_detector', '—')}　　　貨源　： {spec.get('co_source', '—')}　　　負責部門　： <font color=red>{spec.get('co_department', '—')}</font>",
+            normal
+        ))
+
+        # 斷路器
+        right_content.append(Paragraph(
+            f"斷路器　　　： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　　S/N　　： {spec.get('breaker_sn', '—')}　　　貨源　： {spec.get('breaker_source', '—')}　　　負責部門　： <font color=red>{spec.get('breaker_department', '—')}</font>",
+            normal
+        ))
+
+        # 左右並排表格（無邊框）保持不變
         table = Table([[left_content, right_content]], colWidths=[255, 255])
         table.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
