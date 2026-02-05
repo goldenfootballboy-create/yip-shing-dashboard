@@ -210,7 +210,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # 發動機表格
         if engine_data:
-            engine_table = Table(engine_data, colWidths=[80, 120, 40, 100])
+            engine_table = Table(engine_data, colWidths=[80, 80, 40, 100])
             engine_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8.5),
@@ -227,7 +227,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # 電球表格
         if alt_data:
-            alt_table = Table(alt_data, colWidths=[80, 120, 40, 100])
+            alt_table = Table(alt_data, colWidths=[80, 80, 40, 100])
             alt_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
                 ('FONTSIZE', (0, 0), (-1, -1), 8.5),
