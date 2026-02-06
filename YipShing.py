@@ -241,6 +241,7 @@ def generate_overview_pdf(specs, project_info, qty):
             left_content.append(alt_table)
 
         # 右欄內容
+        # 右欄內容
         right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
         right_content.append(Spacer(1, 2))
 
@@ -250,9 +251,11 @@ def generate_overview_pdf(specs, project_info, qty):
             normal
         ))
 
-        # 風扇呎吋 + 負責部門
+        # 風扇呎吋 + 負責部門（負責部門靠右）
+        fan_dept = spec.get('fan_department', '—')
+        fan_dept_text = f"負責部門：<font color=red>{fan_dept}</font>" if fan_dept and fan_dept != '—' else ""
         right_content.append(Paragraph(
-            f"風扇呎吋　　： {spec.get('fan_size', '—')}　　　負責部門　： <font color=red>{spec.get('fan_department', '—')}</font>",
+            f"風扇呎吋　　： {spec.get('fan_size', '—')}　　　　　　　　　　　　　{fan_dept_text}",
             normal
         ))
 
@@ -265,20 +268,47 @@ def generate_overview_pdf(specs, project_info, qty):
         right_content.append(Spacer(1, 3))
 
         # 燃油冷卻器
+        fuel_cooler = spec.get('fuel_cooler', '—')
+        fuel_source = spec.get('fuel_cooler_source', '—')
+        fuel_dept = spec.get('fuel_cooler_department', '—')
+        fuel_extra = []
+        if fuel_source and fuel_source != '—':
+            fuel_extra.append(f"貨源：{fuel_source}")
+        if fuel_dept and fuel_dept != '—':
+            fuel_extra.append(f"負責部門：<font color=red>{fuel_dept}</font>")
+        fuel_extra_text = "　　".join(fuel_extra) if fuel_extra else ""
         right_content.append(Paragraph(
-            f"燃油冷卻器　： {spec.get('fuel_cooler', '—')}　　　貨源　： {spec.get('fuel_cooler_source', '—')}　　　負責部門　： <font color=red>{spec.get('fuel_cooler_department', '—')}</font>",
+            f"燃油冷卻器　： {fuel_cooler}　　　　　　　　　　　　　{fuel_extra_text}",
             normal
         ))
 
         # 冷卻液溫度感測器
+        coolant_sensor = spec.get('coolant_sensor', '—')
+        coolant_source = spec.get('coolant_sensor_source', '—')
+        coolant_dept = spec.get('coolant_sensor_department', '—')
+        coolant_extra = []
+        if coolant_source and coolant_source != '—':
+            coolant_extra.append(f"貨源：{coolant_source}")
+        if coolant_dept and coolant_dept != '—':
+            coolant_extra.append(f"負責部門：<font color=red>{coolant_dept}</font>")
+        coolant_extra_text = "　　".join(coolant_extra) if coolant_extra else ""
         right_content.append(Paragraph(
-            f"冷卻液溫度感測器　： {spec.get('coolant_sensor', '—')}　　　貨源　： {spec.get('coolant_sensor_source', '—')}　　　負責部門　： <font color=red>{spec.get('coolant_sensor_department', '—')}</font>",
+            f"冷卻液溫度感測器　： {coolant_sensor}　　　　　　　　　　　　　{coolant_extra_text}",
             normal
         ))
 
         # 低水位浮球開關
+        low_water = spec.get('low_water', '—')
+        low_water_source = spec.get('low_water_source', '—')
+        low_water_dept = spec.get('low_water_department', '—')
+        low_water_extra = []
+        if low_water_source and low_water_source != '—':
+            low_water_extra.append(f"貨源：{low_water_source}")
+        if low_water_dept and low_water_dept != '—':
+            low_water_extra.append(f"負責部門：<font color=red>{low_water_dept}</font>")
+        low_water_extra_text = "　　".join(low_water_extra) if low_water_extra else ""
         right_content.append(Paragraph(
-            f"低水位浮球開關　： {spec.get('low_water', '—')}　　　貨源　： {spec.get('low_water_source', '—')}　　　負責部門　： <font color=red>{spec.get('low_water_department', '—')}</font>",
+            f"低水位浮球開關　： {low_water}　　　　　　　　　　　　　{low_water_extra_text}",
             normal
         ))
 
@@ -286,13 +316,23 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # 底架型號 / S/N
         right_content.append(Paragraph(
-            f"底架型號　　： {spec.get('base_model', '—')}　　　S/N　　： {spec.get('base_sn', '—')}",
+            f"底架型號　　： {spec.get('base_model', '—')}　　S/N　　： {spec.get('base_sn', '—')}",
             normal
         ))
 
         # 避震器
+        avm_model = spec.get('avm_model', '—')
+        avm_qty = spec.get('avm_qty', '—')
+        avm_source = spec.get('avm_source', '—')
+        avm_dept = spec.get('avm_department', '—')
+        avm_extra = []
+        if avm_source and avm_source != '—':
+            avm_extra.append(f"貨源：{avm_source}")
+        if avm_dept and avm_dept != '—':
+            avm_extra.append(f"負責部門：<font color=red>{avm_dept}</font>")
+        avm_extra_text = "　　".join(avm_extra) if avm_extra else ""
         right_content.append(Paragraph(
-            f"避震器型號　： {spec.get('avm_model', '—')}　　　數量　： {spec.get('avm_qty', '—')}　　　貨源　： {spec.get('avm_source', '—')}　　　負責部門　： <font color=red>{spec.get('avm_department', '—')}</font>",
+            f"避震器型號　： {avm_model}　　數量　： {avm_qty}　　　　　　　　　　　　　{avm_extra_text}",
             normal
         ))
 
@@ -303,25 +343,54 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # 貨櫃尺寸 / 類型
         right_content.append(Paragraph(
-            f"貨櫃尺寸　　： {spec.get('cont_size', '—')}　　　類型　： {spec.get('cont_type', '—')}",
+            f"貨櫃尺寸　　： {spec.get('cont_size', '—')}　　類型　： {spec.get('cont_type', '—')}",
             normal
         ))
 
-        # 控制器型號 / S/N / 貨源 / 負責部門
+        # 控制器型號 / S/N + 貨源 / 負責部門（靠右）
+        panel_model = spec.get('panel_model', '—')
+        panel_sn = spec.get('panel_sn', '—')
+        panel_source = spec.get('panel_source', '—')
+        panel_dept = spec.get('panel_department', '—')
+        panel_extra = []
+        if panel_source and panel_source != '—':
+            panel_extra.append(f"貨源：{panel_source}")
+        if panel_dept and panel_dept != '—':
+            panel_extra.append(f"負責部門：<font color=red>{panel_dept}</font>")
+        panel_extra_text = "　　".join(panel_extra) if panel_extra else ""
         right_content.append(Paragraph(
-            f"控制器型號　： {spec.get('panel_model', '—')}　　　S/N　　： {spec.get('panel_sn', '—')}　　　貨源　： {spec.get('panel_source', '—')}　　　負責部門　： <font color=red>{spec.get('panel_department', '—')}</font>",
+            f"控制器型號　： {panel_model}　　S/N　　： {panel_sn}　　　　　　　　　　　　　{panel_extra_text}",
             normal
         ))
 
         # CO 探測器
+        co_detector = spec.get('co_detector', '—')
+        co_source = spec.get('co_source', '—')
+        co_dept = spec.get('co_department', '—')
+        co_extra = []
+        if co_source and co_source != '—':
+            co_extra.append(f"貨源：{co_source}")
+        if co_dept and co_dept != '—':
+            co_extra.append(f"負責部門：<font color=red>{co_dept}</font>")
+        co_extra_text = "　　".join(co_extra) if co_extra else ""
         right_content.append(Paragraph(
-            f"CO 探測器 (OLED)　： {spec.get('co_detector', '—')}　　　貨源　： {spec.get('co_source', '—')}　　　負責部門　： <font color=red>{spec.get('co_department', '—')}</font>",
+            f"CO 探測器 (OLED)　： {co_detector}　　　　　　　　　　　　　{co_extra_text}",
             normal
         ))
 
         # 斷路器
+        breaker_main = f"{spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}"
+        breaker_sn = spec.get('breaker_sn', '—')
+        breaker_source = spec.get('breaker_source', '—')
+        breaker_dept = spec.get('breaker_department', '—')
+        breaker_extra = []
+        if breaker_source and breaker_source != '—':
+            breaker_extra.append(f"貨源：{breaker_source}")
+        if breaker_dept and breaker_dept != '—':
+            breaker_extra.append(f"負責部門：<font color=red>{breaker_dept}</font>")
+        breaker_extra_text = "　　".join(breaker_extra) if breaker_extra else ""
         right_content.append(Paragraph(
-            f"斷路器　　　： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　　S/N　　： {spec.get('breaker_sn', '—')}　　　貨源　： {spec.get('breaker_source', '—')}　　　負責部門　： <font color=red>{spec.get('breaker_department', '—')}</font>",
+            f"斷路器　　　： {breaker_main}　　S/N　　： {breaker_sn}　　　　　　　　　　　　　{breaker_extra_text}",
             normal
         ))
 
