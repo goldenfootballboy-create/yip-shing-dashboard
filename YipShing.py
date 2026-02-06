@@ -241,13 +241,12 @@ def generate_overview_pdf(specs, project_info, qty):
             left_content.append(alt_table)
 
         # 右欄內容
-        # 右欄內容
         right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
         right_content.append(Spacer(1, 2))
 
         # 水箱型號 / S/N / 溫度
         right_content.append(Paragraph(
-            f"水箱型號　　： {spec.get('rad_model', '—')}　　S/N　　： {spec.get('rad_sn', '—')}　　溫度　： {spec.get('rad_temp', '—')}",
+            f"水箱型號　　： {spec.get('rad_model', '—')}　　S/N　　　　： {spec.get('rad_sn', '—')}　　溫度　： {spec.get('rad_temp', '—')}",
             normal
         ))
 
@@ -277,7 +276,6 @@ def generate_overview_pdf(specs, project_info, qty):
             f"燃油冷卻器　： {spec.get('fuel_cooler', '—')}",
             normal
         ))
-        # 燃油冷卻器 次要資訊
         fuel_source = spec.get('fuel_cooler_source', '—')
         fuel_dept = spec.get('fuel_cooler_department', '—')
         fuel_parts = []
@@ -331,7 +329,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # 底架型號 / S/N
         right_content.append(Paragraph(
-            f"底架型號　　： {spec.get('base_model', '—')}　　S/N　　： {spec.get('base_sn', '—')}",
+            f"底架型號　　： {spec.get('base_model', '—')}　　S/N　　　　： {spec.get('base_sn', '—')}",
             normal
         ))
 
@@ -364,9 +362,9 @@ def generate_overview_pdf(specs, project_info, qty):
             normal
         ))
 
-        # 控制器
+        # 控制器型號 / S/N
         right_content.append(Paragraph(
-            f"控制器型號　： {spec.get('panel_model', '—')}　　S/N　　： {spec.get('panel_sn', '—')}",
+            f"控制器型號　： {spec.get('panel_model', '—')}　　S/N　　　　： {spec.get('panel_sn', '—')}",
             normal
         ))
         panel_source = spec.get('panel_source', '—')
@@ -402,7 +400,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # 斷路器
         right_content.append(Paragraph(
-            f"斷路器　　　： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N　　： {spec.get('breaker_sn', '—')}",
+            f"斷路器　　　： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N　　　　： {spec.get('breaker_sn', '—')}",
             normal
         ))
         breaker_source = spec.get('breaker_source', '—')
@@ -433,16 +431,25 @@ def generate_overview_pdf(specs, project_info, qty):
         parts = spec.get("parts", [])
         if parts:
             elements.append(Paragraph("配件清單", heading3))
-            elements.append(Spacer(1, 3))
+            elements.append(Spacer(1, 6))  # 原 3 → 改成 6，開頭多一點空間
+
             for p in parts:
                 name = p.get("name", "—")
                 source = p.get("source", "—")
                 dept = p.get("department", "—")
-                elements.append(Paragraph(
-                    f"• {name}　（貨源：{source}，負責部門：<font color=red>{dept}</font>）",
-                    small
-                ))
-            elements.append(Spacer(1, 5))
+
+                # 如果沒有貨源和部門，就只顯示名稱
+                if (source == "—" or not source) and (dept == "—" or not dept):
+                    text = f"• {name}"
+                else:
+                    # 貨源與部門部分向右靠，使用更多全形空格推右
+                    extra_text = f"（貨源：{source}，負責部門：<font color=red>{dept}</font>）"
+                    text = f"• {name}　　　　　　　　　　　　　{extra_text}"  # 加了大量全形空格把括號推右
+
+                elements.append(Paragraph(text, small))
+                elements.append(Spacer(1, 4))  # 每行後加 4 點空間，讓行距更寬鬆（原來沒有）
+
+            elements.append(Spacer(1, 5))  # 整個清單結束後多一點空間
 
         # 出貨檢查清單 ─ 2欄 + 使用 √ 和 □
         checklist = spec.get("delivery_checklist", [])
