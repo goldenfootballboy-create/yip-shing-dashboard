@@ -377,10 +377,8 @@ def generate_overview_pdf(specs, project_info, qty):
         parts = spec.get("parts", [])
         if parts:
             elements.append(Paragraph("配件清單", heading3))
-            elements.append(Spacer(1, 6))
+            elements.append(Spacer(1, 6))  # 原 3 → 改成 6，開頭多一點空間
 
-            # 準備 Table 資料
-            table_data = []
             for p in parts:
                 name = p.get("name", "—")
                 source = p.get("source", "—")
@@ -388,28 +386,16 @@ def generate_overview_pdf(specs, project_info, qty):
 
                 # 如果沒有貨源和部門，就只顯示名稱
                 if (source == "—" or not source) and (dept == "—" or not dept):
-                    extra = ""
+                    text = f"• {name}"
                 else:
-                    extra = f"（貨源：{source}，負責部門：<font color=red>{dept}</font>）"
+                    # 貨源與部門部分向右靠，使用更多全形空格推右
+                    extra_text = f"（貨源：{source}，負責部門：<font color=red>{dept}</font>）"
+                    text = f"• {name}　　　　　　　　　　　　　{extra_text}"  # 加了大量全形空格把括號推右
 
-                table_data.append([f"• {name}", extra])
+                elements.append(Paragraph(text, small))
+                elements.append(Spacer(1, 4))  # 每行後加 4 點空間，讓行距更寬鬆（原來沒有）
 
-            # 建立 Table
-            parts_table = Table(table_data, colWidths=[320, 200])  # 左欄寬一點，右欄放括號內容
-            parts_table.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8),  # small 字體大小
-                ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('ALIGN', (0, 0), (0, -1), 'LEFT'),  # 左欄左對齊（名稱）
-                ('ALIGN', (1, 0), (1, -1), 'RIGHT'),  # 右欄右對齊（括號內容）
-                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),  # 無邊框
-            ]))
-
-            elements.append(parts_table)
-            elements.append(Spacer(1, 8))
-
+            elements.append(Spacer(1, 8))  # 整個清單結束後多一點空間
         # 出貨檢查清單 ─ 2欄 + 使用 √ 和 □
         checklist = spec.get("delivery_checklist", [])
         if checklist:
