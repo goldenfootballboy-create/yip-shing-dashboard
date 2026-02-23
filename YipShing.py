@@ -161,7 +161,12 @@ def generate_overview_pdf(specs, project_info, qty):
 
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", heading2))
         elements.append(Spacer(1, 5))
-
+        # ───────────── 新增：櫃號顯示（放在「第 X 台」正下方） ─────────────
+        elements.append(Paragraph(
+            f"櫃號 / Cabinet No.： <b>{spec.get('cabinet_no', '—')}</b>",
+            heading3
+        ))
+        elements.append(Spacer(1, 8))  # 調整空間，讓櫃號與下面的 Prime 區塊有適當間距（可改成 6 或 10）
         left_content = []
         right_content = []
 
