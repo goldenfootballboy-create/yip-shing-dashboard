@@ -1284,7 +1284,15 @@ if st.session_state.get("show_edit_spec_dialog", False):
         for i in range(qty):
             with tabs[i]:
                 current = specs[i] if i < len(specs) else {}
-
+                # ───────────── 新增：櫃號 ─────────────
+                st.markdown("### 櫃號 / Cabinet No.")
+                e_cabinet_no = st.text_input(
+                    "櫃號（如Openset請留空）",
+                    value=current.get("cabinet_no", ""),
+                    placeholder="例：TOPU12345",
+                    key=f"edit_cabinet_no_{idx_to_edit}_{i}"
+                )
+                st.markdown("---")  # 可選：加分隔線讓視覺更清楚
                 st.markdown("### Prime & Standby Power")
                 col1, col2 = st.columns(2)
                 with col1:
@@ -1833,6 +1841,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 if 'checklist' not in locals() or not isinstance(checklist, list):
                     checklist = []
                 spec_data = {
+                    "cabinet_no": e_cabinet_no.strip(),
                     "prime": e_prime.strip(),
                     "standby": e_standby.strip(),
                     "voltage": "" if e_voltage == "--" else e_voltage,
@@ -3209,4 +3218,3 @@ else:
 
 st.markdown("---")
 st.caption("Projects Management System")
-
