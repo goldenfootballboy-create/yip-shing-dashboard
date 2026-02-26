@@ -105,48 +105,52 @@ def generate_overview_pdf(specs, project_info, qty):
         'Normal',
         parent=styles['Normal'],
         fontName='NotoSansTC',
-        fontSize=8.5,
-        leading=10,
-        alignment=TA_LEFT
+        fontSize=9,
+        leading=11,
+        alignment=TA_LEFT,
+        spaceAfter=4
     )
 
     small = ParagraphStyle(
         'Small',
         parent=normal,
-        fontSize=8,
-        leading=9
+        fontSize=8.5,
+        leading=10
     )
 
     heading1 = ParagraphStyle(
         'Heading1',
         parent=styles['Heading1'],
-        fontName='NotoSansTC',
-        fontSize=15,
+        fontName='NotoSansTC-Bold',
+        fontSize=14,
         alignment=TA_CENTER,
-        spaceAfter=8
+        spaceAfter=10,
+        textColor=HexColor('#1fb429')
     )
 
     heading2 = ParagraphStyle(
         'Heading2',
         parent=styles['Heading2'],
-        fontName='NotoSansTC',
+        fontName='NotoSansTC-Bold',
         fontSize=12,
-        spaceBefore=6,
-        spaceAfter=4
+        spaceBefore=8,
+        spaceAfter=6,
+        textColor=HexColor('#1fb429')
     )
 
     heading3 = ParagraphStyle(
         'Heading3',
         parent=styles['Heading3'],
-        fontName='NotoSansTC',
+        fontName='NotoSansTC-Bold',
         fontSize=10.5,
-        spaceBefore=4,
-        spaceAfter=3
+        spaceBefore=6,
+        spaceAfter=4,
+        textColor=HexColor('#1fb429')
     )
 
     elements = []
 
-    # 大標題
+    # 大標題（加入客戶名稱）
     elements.append(Paragraph(
         f"專案：{project_info.get('Project_Name', '—')}　｜　共　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}　｜　客戶：{project_info.get('Customer', '—')}",
         heading1
@@ -161,31 +165,25 @@ def generate_overview_pdf(specs, project_info, qty):
 
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", heading2))
         elements.append(Spacer(1, 5))
-        # ───────────── 新增：櫃號顯示（放在「第 X 台」正下方） ─────────────
-        elements.append(Paragraph(
-            f"櫃號 / Cabinet No.： <b>{spec.get('cabinet_no', '—')}</b>",
-            heading3
-        ))
-        elements.append(Spacer(1, 8))  # 調整空間，讓櫃號與下面的 Prime 區塊有適當間距（可改成 6 或 10）
+
         left_content = []
         right_content = []
 
-        # 左欄內容
+        # 左欄內容 - Prime & Standby Power
         left_content.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
         left_content.append(Spacer(1, 2))
 
-        # 建立一個 2 欄的小表格來對齊
         power_data = [
-            ["Prime (kW)", f"{spec.get('prime', '—')}"],
-            ["Standby (kW)", f"{spec.get('standby', '—')}"],
-            ["RPM", f"{spec.get('rpm', '—')}"],
+            ["Prime (kW)", spec.get('prime', '—')],
+            ["Standby (kW)", spec.get('standby', '—')],
+            ["RPM", spec.get('rpm', '—')],
             ["電壓 / 頻率", f"{spec.get('voltage', '—')} / {spec.get('frequency', '—')}"]
         ]
 
         power_table = Table(power_data, colWidths=[120, 135])
         power_table.setStyle(TableStyle([
             ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
-            ('FONTSIZE', (0, 0), (-1, -1), 8.5),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
             ('LEFTPADDING', (0, 0), (-1, -1), 0),
             ('RIGHTPADDING', (0, 0), (-1, -1), 0),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -194,9 +192,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
         ]))
         left_content.append(power_table)
-
         left_content.append(Spacer(1, 5))
 
+        # Engine & Alternator（無條件顯示，因為型號/S/N 等核心欄位通常有值）
         left_content.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
         left_content.append(Spacer(1, 2))
 
@@ -213,12 +211,11 @@ def generate_overview_pdf(specs, project_info, qty):
             ["加熱器：", spec.get('alt_heater', '—'), "", ""],
         ]
 
-        # 發動機表格
         if engine_data:
-            engine_table = Table(engine_data, colWidths=[60, 50, 40, 100])
+            engine_table = Table(engine_data, colWidths=[60, 90, 40, 100])
             engine_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8.5),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
                 ('LEFTPADDING', (0, 0), (-1, -1), 0),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 8),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -227,15 +224,13 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
             ]))
             left_content.append(engine_table)
+            left_content.append(Spacer(1, 2))
 
-        left_content.append(Spacer(1, 2))
-
-        # 電球表格
         if alt_data:
-            alt_table = Table(alt_data, colWidths=[50, 50, 40, 100])
+            alt_table = Table(alt_data, colWidths=[60, 90, 40, 100])
             alt_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), 'NotoSansTC'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8.5),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
                 ('LEFTPADDING', (0, 0), (-1, -1), 0),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 8),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -245,61 +240,64 @@ def generate_overview_pdf(specs, project_info, qty):
             ]))
             left_content.append(alt_table)
 
-        # 右欄內容
+        # 右欄內容 - Radiator & Base Frame（只顯示有值的項目）
         right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
-        right_content.append(Spacer(1, 4))  # 標題後多一點空間
+        right_content.append(Spacer(1, 2))
 
-        # 水箱型號 / S/N / 溫度
+        # 水箱型號 / S/N / 溫度（這些核心欄位正常顯示）
         right_content.append(Paragraph(
             f"水箱型號　　： {spec.get('rad_model', '—')}　　S/N　　： {spec.get('rad_sn', '—')}　　溫度　： {spec.get('rad_temp', '—')}",
             normal
         ))
-        right_content.append(Spacer(1, 3))  # 這行後加空間
+        right_content.append(Spacer(1, 3))
 
-        # 風扇呎吋
-        right_content.append(Paragraph(
-            f"風扇呎吋　　： {spec.get('fan_size', '—')}",
-            normal
-        ))
-        right_content.append(Spacer(1, 2))  # 小間距
+        # 風扇呎吋 + 負責部門（只在有值時顯示）
+        fan_text = f"風扇呎吋　　： {spec.get('fan_size', '—')}"
+        fan_dept = spec.get('fan_department', '')
+        if fan_dept and fan_dept != "--":
+            fan_text += f"　負責部門：<font color=red>{fan_dept}</font>"
+        right_content.append(Paragraph(fan_text, normal))
+        right_content.append(Spacer(1, 2))
 
         # 水箱護罩
         right_content.append(Paragraph(
             f"水箱護罩　　： {spec.get('radiator_guard', '—')}",
             normal
         ))
-        right_content.append(Spacer(1, 2))  # 組結束後較大空間
+        right_content.append(Spacer(1, 3))
 
-        # 燃油冷卻器
-        right_content.append(Paragraph(
-            f"燃油冷卻器　： {spec.get('fuel_cooler', '—')}",
-            normal
-        ))
+        # 燃油冷卻器（只顯示名稱 + 有值的貨源/部門）
+        fuel_text = f"燃油冷卻器　： {spec.get('fuel_cooler', '—')}"
+        fuel_source = spec.get('fuel_cooler_source', '')
+        fuel_dept = spec.get('fuel_cooler_department', '')
+        if fuel_source and fuel_source != "--":
+            fuel_text += f"　貨源：{fuel_source}"
+        if fuel_dept and fuel_dept != "--":
+            fuel_text += f"　負責部門：<font color=red>{fuel_dept}</font>"
+        right_content.append(Paragraph(fuel_text, normal))
         right_content.append(Spacer(1, 2))
 
-        # 冷卻液溫度感測器 + 括號
-        right_content.append(Paragraph(
-            f"冷卻液溫度感測器　： {spec.get('coolant_sensor', '—')}",
-            normal
-        ))
-        coolant_source = spec.get('coolant_sensor_source', '—')
-        coolant_dept = spec.get('coolant_sensor_department', '—')
-        if coolant_source != '—' or coolant_dept != '—':
-            extra = f"（貨源　： {coolant_source}　負責部門　： <font color=red>{coolant_dept}</font>）"
-            right_content.append(Paragraph(extra, normal))
-            right_content.append(Spacer(1, 2))
+        # 冷卻液溫度感測器
+        coolant_text = f"冷卻液溫度感測器　： {spec.get('coolant_sensor', '—')}"
+        coolant_source = spec.get('coolant_sensor_source', '')
+        coolant_dept = spec.get('coolant_sensor_department', '')
+        if coolant_source and coolant_source != "--":
+            coolant_text += f"　貨源：{coolant_source}"
+        if coolant_dept and coolant_dept != "--":
+            coolant_text += f"　負責部門：<font color=red>{coolant_dept}</font>"
+        right_content.append(Paragraph(coolant_text, normal))
+        right_content.append(Spacer(1, 2))
 
-        # 低水位浮球開關 + 括號
-        right_content.append(Paragraph(
-            f"低水位浮球開關　： {spec.get('low_water', '—')}",
-            normal
-        ))
-        low_source = spec.get('low_water_source', '—')
-        low_dept = spec.get('low_water_department', '—')
-        if low_source != '—' or low_dept != '—':
-            extra = f"（貨源　： {low_source}　負責部門　： <font color=red>{low_dept}</font>）"
-            right_content.append(Paragraph(extra, normal))
-            right_content.append(Spacer(1, 2))
+        # 低水位浮球開關
+        low_text = f"低水位浮球開關　： {spec.get('low_water', '—')}"
+        low_source = spec.get('low_water_source', '')
+        low_dept = spec.get('low_water_department', '')
+        if low_source and low_source != "--":
+            low_text += f"　貨源：{low_source}"
+        if low_dept and low_dept != "--":
+            low_text += f"　負責部門：<font color=red>{low_dept}</font>"
+        right_content.append(Paragraph(low_text, normal))
+        right_content.append(Spacer(1, 3))
 
         # 底架型號 / S/N
         right_content.append(Paragraph(
@@ -308,66 +306,56 @@ def generate_overview_pdf(specs, project_info, qty):
         ))
         right_content.append(Spacer(1, 2))
 
-        # 避震器 + 括號
-        right_content.append(Paragraph(
-            f"避震器型號　： {spec.get('avm_model', '—')}　　數量　： {spec.get('avm_qty', '—')}",
-            normal
-        ))
-        avm_source = spec.get('avm_source', '—')
-        avm_dept = spec.get('avm_department', '—')
-        if avm_source != '—' or avm_dept != '—':
-            extra = f"（貨源　： {avm_source}　負責部門　： <font color=red>{avm_dept}</font>）"
-            right_content.append(Paragraph(extra, normal))
-            right_content.append(Spacer(1, 5))
+        # 避震器
+        avm_text = f"避震器型號　： {spec.get('avm_model', '—')}　　數量　： {spec.get('avm_qty', '—')}"
+        avm_source = spec.get('avm_source', '')
+        avm_dept = spec.get('avm_department', '')
+        if avm_source and avm_source != "--":
+            avm_text += f"　貨源：{avm_source}"
+        if avm_dept and avm_dept != "--":
+            avm_text += f"　負責部門：<font color=red>{avm_dept}</font>"
+        right_content.append(Paragraph(avm_text, normal))
+        right_content.append(Spacer(1, 5))
 
-        # Container / Panel / Breaker 部分
+        # Container / Panel / Breaker（同樣只顯示有值的部分）
         right_content.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", heading3))
         right_content.append(Spacer(1, 2))
 
-        # 貨櫃尺寸 / 類型
-        right_content.append(Paragraph(
-            f"貨櫃尺寸　　： {spec.get('cont_size', '—')}　　類型　： {spec.get('cont_type', '—')}",
-            normal
-        ))
+        cont_text = f"貨櫃尺寸　　： {spec.get('cont_size', '—')}　　類型　： {spec.get('cont_type', '—')}"
+        right_content.append(Paragraph(cont_text, normal))
         right_content.append(Spacer(1, 2))
 
-        # 控制器型號 / S/N + 括號
-        right_content.append(Paragraph(
-            f"控制器型號　： {spec.get('panel_model', '—')}　　S/N　　： {spec.get('panel_sn', '—')}",
-            normal
-        ))
-        panel_source = spec.get('panel_source', '—')
-        panel_dept = spec.get('panel_department', '—')
-        if panel_source != '—' or panel_dept != '—':
-            extra = f"（貨源　： {panel_source}　負責部門　： <font color=red>{panel_dept}</font>）"
-            right_content.append(Paragraph(extra, normal))
-            right_content.append(Spacer(1, 2))
+        panel_text = f"控制器型號　： {spec.get('panel_model', '—')}　　S/N　　： {spec.get('panel_sn', '—')}"
+        panel_source = spec.get('panel_source', '')
+        panel_dept = spec.get('panel_department', '')
+        if panel_source and panel_source != "--":
+            panel_text += f"　貨源：{panel_source}"
+        if panel_dept and panel_dept != "--":
+            panel_text += f"　負責部門：<font color=red>{panel_dept}</font>"
+        right_content.append(Paragraph(panel_text, normal))
+        right_content.append(Spacer(1, 2))
 
-        # CO 探測器 + 括號
-        right_content.append(Paragraph(
-            f"CO 探測器 (OLED)　： {spec.get('co_detector', '—')}",
-            normal
-        ))
-        co_source = spec.get('co_source', '—')
-        co_dept = spec.get('co_department', '—')
-        if co_source != '—' or co_dept != '—':
-            extra = f"（貨源　： {co_source}　負責部門　： <font color=red>{co_dept}</font>）"
-            right_content.append(Paragraph(extra, normal))
-            right_content.append(Spacer(1, 2))
+        co_text = f"CO 探測器 (OLED)　： {spec.get('co_detector', '—')}"
+        co_source = spec.get('co_source', '')
+        co_dept = spec.get('co_department', '')
+        if co_source and co_source != "--":
+            co_text += f"　貨源：{co_source}"
+        if co_dept and co_dept != "--":
+            co_text += f"　負責部門：<font color=red>{co_dept}</font>"
+        right_content.append(Paragraph(co_text, normal))
+        right_content.append(Spacer(1, 2))
 
-        # 斷路器 + 括號
-        right_content.append(Paragraph(
-            f"斷路器　　　： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N　　： {spec.get('breaker_sn', '—')}",
-            normal
-        ))
-        breaker_source = spec.get('breaker_source', '—')
-        breaker_dept = spec.get('breaker_department', '—')
-        if breaker_source != '—' or breaker_dept != '—':
-            extra = f"（貨源　： {breaker_source}　負責部門　： <font color=red>{breaker_dept}</font>）"
-            right_content.append(Paragraph(extra, normal))
-            right_content.append(Spacer(1, 3))
+        breaker_text = f"斷路器　　　： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N　　： {spec.get('breaker_sn', '—')}"
+        breaker_source = spec.get('breaker_source', '')
+        breaker_dept = spec.get('breaker_department', '')
+        if breaker_source and breaker_source != "--":
+            breaker_text += f"　貨源：{breaker_source}"
+        if breaker_dept and breaker_dept != "--":
+            breaker_text += f"　負責部門：<font color=red>{breaker_dept}</font>"
+        right_content.append(Paragraph(breaker_text, normal))
+        right_content.append(Spacer(1, 3))
 
-        # 左右並排表格（無邊框）保持不變
+        # 左右並排表格（無邊框）
         table = Table([[left_content, right_content]], colWidths=[255, 255])
         table.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
@@ -378,30 +366,31 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(table)
         elements.append(Spacer(1, 6))
 
-        # 配件清單
+        # 配件清單（只顯示有值的項目）
         parts = spec.get("parts", [])
         if parts:
             elements.append(Paragraph("配件清單", heading3))
-            elements.append(Spacer(1, 3))  # 原 3 → 改成 6，開頭多一點空間
+            elements.append(Spacer(1, 3))
 
             for p in parts:
                 name = p.get("name", "—")
-                source = p.get("source", "—")
-                dept = p.get("department", "—")
+                source = p.get("source", "")
+                dept = p.get("department", "")
 
-                # 如果沒有貨源和部門，就只顯示名稱
-                if (source == "—" or not source) and (dept == "—" or not dept):
-                    text = f"• {name}"
-                else:
-                    # 貨源與部門部分向右靠，使用更多全形空格推右
-                    extra_text = f"（貨源：{source}，負責部門：<font color=red>{dept}</font>）"
-                    text = f"• {name}　　　　　　　　　　　　　{extra_text}"  # 加了大量全形空格把括號推右
+                line = f"• {name}"
+                if source and source != "--":
+                    line += f" (貨源：{source}"
+                if dept and dept != "--":
+                    line += f"，負責部門：<font color=red>{dept}</font>"
+                if " (貨源：" in line or "，負責部門：" in line:
+                    line += ")"
 
-                elements.append(Paragraph(text, small))
-                elements.append(Spacer(1, 4))  # 每行後加 4 點空間，讓行距更寬鬆（原來沒有）
+                elements.append(Paragraph(line, small))
+                elements.append(Spacer(1, 2))
 
-            elements.append(Spacer(1, 5))  # 整個清單結束後多一點空間
-        # 出貨檢查清單 ─ 2欄 + 使用 √ 和 □
+            elements.append(Spacer(1, 5))
+
+        # 出貨檢查清單（保持原樣，或可再優化只顯示有勾選的項目）
         checklist = spec.get("delivery_checklist", [])
         if checklist:
             elements.append(Paragraph("出貨檢查清單", heading3))
@@ -433,7 +422,7 @@ def generate_overview_pdf(specs, project_info, qty):
             elements.append(checklist_table)
             elements.append(Spacer(1, 6))
 
-        # 備註（放在第一頁最後）
+        # 備註
         remarks = spec.get("remarks", "").strip()
         if remarks:
             elements.append(Paragraph("備註", heading3))
