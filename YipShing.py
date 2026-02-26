@@ -10,6 +10,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 import time
 from datetime import datetime, timezone, timedelta
+from reportlab.lib.colors import HexColor
 # reportlab 相關 import
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import (
@@ -88,7 +89,6 @@ def generate_overview_pdf(specs, project_info, qty):
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
     buffer = BytesIO()
 
-    # 邊距壓縮
     doc = SimpleDocTemplate(
         buffer,
         pagesize=letter,
@@ -100,7 +100,6 @@ def generate_overview_pdf(specs, project_info, qty):
 
     styles = getSampleStyleSheet()
 
-    # 字體與行距壓縮
     normal = ParagraphStyle(
         'Normal',
         parent=styles['Normal'],
@@ -150,7 +149,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
     elements = []
 
-    # 大標題（加入客戶名稱）
+    # 大標題
     elements.append(Paragraph(
         f"專案：{project_info.get('Project_Name', '—')}　｜　共　{qty} 台　｜　類型：{project_info.get('Project_Type', '—')}　｜　客戶：{project_info.get('Customer', '—')}",
         heading1
@@ -169,7 +168,7 @@ def generate_overview_pdf(specs, project_info, qty):
         left_content = []
         right_content = []
 
-        # 左欄內容 - Prime & Standby Power
+        # Prime & Standby Power（核心欄位正常顯示）
         left_content.append(Paragraph("Prime & Standby Power (功效＆電壓)", heading3))
         left_content.append(Spacer(1, 2))
 
@@ -194,7 +193,7 @@ def generate_overview_pdf(specs, project_info, qty):
         left_content.append(power_table)
         left_content.append(Spacer(1, 5))
 
-        # Engine & Alternator（無條件顯示，因為型號/S/N 等核心欄位通常有值）
+        # Engine & Alternator（核心欄位正常顯示）
         left_content.append(Paragraph("Engine & Alternator (發動機 & 電球)", heading3))
         left_content.append(Spacer(1, 2))
 
@@ -240,11 +239,11 @@ def generate_overview_pdf(specs, project_info, qty):
             ]))
             left_content.append(alt_table)
 
-        # 右欄內容 - Radiator & Base Frame（只顯示有值的項目）
+        # 右欄內容 - Radiator & Base Frame
         right_content.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", heading3))
         right_content.append(Spacer(1, 2))
 
-        # 水箱型號 / S/N / 溫度（這些核心欄位正常顯示）
+        # 水箱型號 / S/N / 溫度（核心欄位正常顯示）
         right_content.append(Paragraph(
             f"水箱型號　　： {spec.get('rad_model', '—')}　　S/N　　： {spec.get('rad_sn', '—')}　　溫度　： {spec.get('rad_temp', '—')}",
             normal
@@ -355,7 +354,7 @@ def generate_overview_pdf(specs, project_info, qty):
         right_content.append(Paragraph(breaker_text, normal))
         right_content.append(Spacer(1, 3))
 
-        # 左右並排表格（無邊框）
+        # 左右並排表格
         table = Table([[left_content, right_content]], colWidths=[255, 255])
         table.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
@@ -390,7 +389,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
             elements.append(Spacer(1, 5))
 
-        # 出貨檢查清單（保持原樣，或可再優化只顯示有勾選的項目）
+        # 出貨檢查清單（保持原樣）
         checklist = spec.get("delivery_checklist", [])
         if checklist:
             elements.append(Paragraph("出貨檢查清單", heading3))
