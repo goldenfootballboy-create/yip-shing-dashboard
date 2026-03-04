@@ -227,10 +227,6 @@ def generate_overview_pdf(specs, project_info, qty):
 
         elements.append(Paragraph(line, normal))
 
-        elements.append(Spacer(1, 12))
-
-        elements.append(Spacer(1, 12))
-
         # ==================== Container / Panel / Breaker ====================
         elements.append(Paragraph("Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)", h3_style))
         elements.append(Paragraph(f"貨櫃尺寸　　： {spec.get('cont_size', '—')}　　類型　： {spec.get('cont_type', '—')}", normal))
