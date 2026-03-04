@@ -195,14 +195,10 @@ def generate_overview_pdf(specs, project_info, qty):
             ("燃油冷卻器", 'fuel_cooler', 'fuel_cooler_source', 'fuel_cooler_department'),
             ("冷卻液溫度感測器", 'coolant_sensor', 'coolant_sensor_source', 'coolant_sensor_department'),
             ("低水位浮球開關", 'low_water', 'low_water_source', 'low_water_department'),
-            ("避震器", 'avm_model', 'avm_source', 'avm_department'),
         ]:
             val = spec.get(val_key, '—')
             src = spec.get(src_key, '')
             dept = spec.get(dept_key, '')
-
-            if val == '—' and not src and not dept:
-                continue
 
             line = f"{title}　： {val}"
             extra = []
@@ -214,6 +210,24 @@ def generate_overview_pdf(specs, project_info, qty):
                 line += f"　（{'，'.join(extra)}）"
 
             elements.append(Paragraph(line, normal))
+
+            # ==================== 避震器單獨處理（加上數量） ====================
+        avm_val = f"型號 {spec.get('avm_model', '—')}　數量 {spec.get('avm_qty', '—')}"
+        avm_src = spec.get('avm_source', '')
+        avm_dept = spec.get('avm_department', '')
+
+        line = f"避震器　： {avm_val}"
+        extra = []
+        if avm_src and avm_src != "--":
+            extra.append(f"貨源：{avm_src}")
+        if avm_dept and avm_dept != "--":
+            extra.append(f"負責部門：<font color=red>{avm_dept}</font>")
+        if extra:
+            line += f"　（{'，'.join(extra)}）"
+
+        elements.append(Paragraph(line, normal))
+
+        elements.append(Spacer(1, 12))
 
         elements.append(Spacer(1, 12))
 
