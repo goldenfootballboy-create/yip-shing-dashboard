@@ -86,27 +86,56 @@ def fullscreen_loading(message="正在處理，請稍候..."):
 
 from reportlab.lib.colors import HexColor
 
+
 def generate_overview_pdf(specs, project_info, qty):
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
     pdfmetrics.registerFont(TTFont('NotoSansTC-Bold', 'fonts/NotoSansTC-Bold.ttf'))
 
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=35, leftMargin=35, topMargin=45, bottomMargin=35)
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=35, leftMargin=35, topMargin=50, bottomMargin=35)
 
     styles = getSampleStyleSheet()
 
-    title_style = ParagraphStyle('Title', parent=styles['Heading1'],
-                                 fontName='NotoSansTC-Bold', fontSize=16,
-                                 alignment=TA_CENTER, spaceAfter=15,
-                                 textColor=HexColor('#1e88e5'))
+    # ==================== 頂部大標題 (專案名稱 + 台數) ====================
+    top_title_style = ParagraphStyle(
+        'TopTitle',
+        parent=styles['Heading1'],
+        fontName='NotoSansTC-Bold',
+        fontSize=18,
+        alignment=TA_CENTER,
+        spaceAfter=8,
+        textColor=HexColor('#1e88e5')
+    )
 
-    h3_style = ParagraphStyle('H3', parent=styles['Heading2'],
-                              fontName='NotoSansTC-Bold', fontSize=13,
-                              spaceBefore=14, spaceAfter=8,
-                              textColor=HexColor('#1e88e5'))
+    # ==================== 第二行詳細資訊 ====================
+    info_style = ParagraphStyle(
+        'Info',
+        parent=styles['Normal'],
+        fontName='NotoSansTC-Bold',
+        fontSize=11.5,
+        alignment=TA_CENTER,
+        spaceAfter=20,
+        textColor=HexColor('#263238')
+    )
 
-    normal = ParagraphStyle('Normal', parent=styles['Normal'],
-                            fontName='NotoSansTC', fontSize=10.5, leading=13, spaceAfter=5)
+    normal = ParagraphStyle(
+        'Normal',
+        parent=styles['Normal'],
+        fontName='NotoSansTC',
+        fontSize=10.5,
+        leading=13,
+        spaceAfter=5
+    )
+
+    h3_style = ParagraphStyle(
+        'H3',
+        parent=styles['Heading2'],
+        fontName='NotoSansTC-Bold',
+        fontSize=13,
+        spaceBefore=14,
+        spaceAfter=8,
+        textColor=HexColor('#1e88e5')
+    )
 
     elements = []
 
@@ -116,10 +145,36 @@ def generate_overview_pdf(specs, project_info, qty):
 
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
-        # 第 X 台 + 櫃號
+        # ==================== PDF 最頂部 (新版) ====================
+        project_name = project_info.get('Project_Name', '—')
+        project_type = project_info.get('Project_Type', '—')
+        customer = project_info.get('Customer', '—')
+
+        # 第一行：大字「TP25/210 (2 台)」
+        elements.append(Paragraph(f"{project_name} ({qty} 台)", top_title_style))
+
+        # 第二行：詳細資訊（包含客戶名）
+        elements.append(Paragraph(
+            f"專案：{project_name}　｜　{qty} 台　｜　類型：{project_type}　｜　客戶：{customer}",
+            info_style
+        ))
+
+        elements.append(Spacer(1, 18))
+
+        # ==================== 第 X 台 + 櫃號 ====================
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", h3_style))
+
         cabinet = spec.get('cabinet_no') or spec.get('container_number') or '—'
         elements.append(Paragraph(f"櫃號 / Cabinet No.： <b>{cabinet}</b>", normal))
+        elements.append(Spacer(1, 12))
+
+        # ==================== 以下內容保持不變 ====================
+        # Prime & Standby Power
+        elements.append(Paragraph("Prime & Standby Power (功效＆電壓)", h3_style))
+        elements.append(Paragraph(f"Prime (kW)　　： {spec.get('prime', '—')}", normal))
+        elements.append(Paragraph(f"Standby (kW)　： {spec.get('standby', '—')}", normal))
+        elements.append(Paragraph(f"RPM　　　　　： {spec.get('rpm', '—')}", normal))
+        elements.append(Paragraph(f"電壓 / 頻率　： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
         elements.append(Spacer(1, 12))
 
         # Prime & Standby Power
