@@ -168,7 +168,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
 
         # Prime & Standby Power
-        elements.append(Paragraph("Prime & Standby Power (功效＆電壓)", h3_style))
+        elements.append(Paragraph("Prime & Standby Power (功率＆電壓)", h3_style))
         elements.append(Paragraph(f"Prime (kW)　　： {spec.get('prime', '—')}", normal))
         elements.append(Paragraph(f"Standby (kW)　： {spec.get('standby', '—')}", normal))
         elements.append(Paragraph(f"RPM　　　　　： {spec.get('rpm', '—')}", normal))
@@ -804,7 +804,7 @@ def render_project_card(row, idx):
                         # Prime & Standby Power
                         st.markdown(
                             """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
-                            Prime & Standby Power (功效＆電壓)
+                            Prime & Standby Power (功率＆電壓)
                             </h3>""",
                             unsafe_allow_html=True
                         )
@@ -1259,11 +1259,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         e_alt_color = st.text_input("Color(顏色)", value=current.get("alt_color", ""), key=f"edit_alt_color_{idx_to_edit}_{i}")
                     col_d1, col_d2, col_d3 = st.columns(3)
                     with col_d1:
-                        e_droop = st.selectbox("DroopKit", ["--", "Include", "Not Include"], index=safe_index(current.get("droop", "--"), ["--", "Include", "Not Include"]), key=f"edit_droop_{idx_to_edit}_{i}")
+                        e_droop = st.selectbox("DroopKit", ["--", "包含", "不包含"], index=safe_index(current.get("droop", "--"), ["--", "包含", "不包含"]), key=f"edit_droop_{idx_to_edit}_{i}")
                     with col_d2:
                         e_pmg = st.text_input("PMG", value=current.get("pmg", ""), key=f"edit_pmg_{idx_to_edit}_{i}")
                     with col_d3:
-                        e_alt_heater = st.selectbox("Alternator Heater", ["--", "Include", "Not Include"], index=safe_index(current.get("alt_heater", "--"), ["--", "Include", "Not Include"]), key=f"edit_alt_heater_{idx_to_edit}_{i}")
+                        e_alt_heater = st.selectbox("Alternator Heater", ["--", "包含", "不包含"], index=safe_index(current.get("alt_heater", "--"), ["--", "包含", "不包含"]), key=f"edit_alt_heater_{idx_to_edit}_{i}")
 
                 st.markdown("---")
 
@@ -1297,8 +1297,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                     col_r1, col_r2 = st.columns(2)
                     with col_r1:
-                        e_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"],
-                                                        index=safe_index(current.get("radiator_guard", "--"), ["--", "Include", "Not Include"]),
+                        e_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "包含", "不包含"],
+                                                        index=safe_index(current.get("radiator_guard", "--"), ["--", "包含", "不包含"]),
                                                         key=f"edit_radiator_guard_{idx_to_edit}_{i}")
 
                     # Fuel Cooler 組（新增 Include / Not Include 下拉選單）
@@ -1318,9 +1318,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     with col_fuel_title:
                         st.markdown("**燃油冷卻器**")
                     with col_fuel_include:
-                        e_fuel_cooler = st.selectbox("", ["--", "Include", "Not Include"],
+                        e_fuel_cooler = st.selectbox("", ["--", "包含", "不包含"],
                                                      index=safe_index(current.get("fuel_cooler", "--"),
-                                                                      ["--", "Include", "Not Include"]),
+                                                                      ["--", "包含", "不包含"]),
                                                      key=f"edit_fuel_cooler_{idx_to_edit}_{i}",
                                                      label_visibility="collapsed")
                     with col_fuel_source:
@@ -1345,8 +1345,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     with col_title:
                         st.markdown("**Coolant temperature sensor**")
                     with col_include:
-                        e_coolant_sensor = st.selectbox("", ["--", "Include", "Not Include"],
-                                                        index=safe_index(current.get("coolant_sensor", "--"), ["--", "Include", "Not Include"]),
+                        e_coolant_sensor = st.selectbox("", ["--", "包含", "不包含"],
+                                                        index=safe_index(current.get("coolant_sensor", "--"), ["--", "包含", "不包含"]),
                                                         key=f"edit_coolant_sensor_{idx_to_edit}_{i}",
                                                         label_visibility="collapsed")
                     with col_source:
@@ -1364,8 +1364,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     with col_title:
                         st.markdown("**Low water level float switch**")
                     with col_include:
-                        e_low_water = st.selectbox("", ["--", "Include", "Not Include"],
-                                                   index=safe_index(current.get("low_water", "--"), ["--", "Include", "Not Include"]),
+                        e_low_water = st.selectbox("", ["--", "包含", "不包含"],
+                                                   index=safe_index(current.get("low_water", "--"), ["--", "包含", "不包含"]),
                                                    key=f"edit_low_water_{idx_to_edit}_{i}",
                                                    label_visibility="collapsed")
                     with col_source:
@@ -1463,15 +1463,15 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                     key=f"edit_anti_noise_{idx_to_edit}_{i}")
                     col_i1, col_i2 = st.columns(2)
                     with col_i1:
-                        e_internal_silencer = st.selectbox("Internal Silencer (內部消聲器)", ["--", "Include", "Not Include"],
-                                                           index=safe_index("--" if is_open_or_marine else current.get("internal_silencer", "--"), ["--", "Include", "Not Include"]),
+                        e_internal_silencer = st.selectbox("Internal Silencer (內部消聲器)", ["--", "包含", "不包含"],
+                                                           index=safe_index("--" if is_open_or_marine else current.get("internal_silencer", "--"), ["--", "包含", "不包含"]),
                                                            key=f"edit_internal_silencer_{idx_to_edit}_{i}")
                     with col_i2:
-                        e_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["--", "Include", "Not Include"],
-                                                  index=safe_index("--" if is_open_or_marine else current.get("ss_locks", "--"), ["--", "Include", "Not Include"]),
+                        e_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["--", "包含", "不包含"],
+                                                  index=safe_index("--" if is_open_or_marine else current.get("ss_locks", "--"), ["--", "包含", "不包含"]),
                                                   key=f"edit_ss_locks_{idx_to_edit}_{i}")
-                    e_emergency_stop = st.selectbox("Emergency Stop Button (緊急暫停)", ["--", "Include", "Not Include"],
-                                                    index=safe_index("--" if is_open_or_marine else current.get("emergency_stop", "--"), ["--", "Include", "Not Include"]),
+                    e_emergency_stop = st.selectbox("Emergency Stop Button (緊急暫停)", ["--", "包含", "不包含"],
+                                                    index=safe_index("--" if is_open_or_marine else current.get("emergency_stop", "--"), ["--", "包含", "不包含"]),
                                                     key=f"edit_emergency_stop_{idx_to_edit}_{i}")
 
                     st.markdown("---")
@@ -1514,8 +1514,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     with col_co_include:
                         e_co_detector = st.selectbox(
                             "CO 探測器 (OLED)",
-                            ["--", "Include", "Not Include"],
-                            index=safe_index(current.get("co_detector", "--"), ["--", "Include", "Not Include"]),
+                            ["--", "包含", "不包含"],
+                            index=safe_index(current.get("co_detector", "--"), ["--", "包含", "不包含"]),
                             key=f"edit_co_detector_{idx_to_edit}_{i}",
                             label_visibility="visible"
                         )
@@ -1589,8 +1589,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     with col_door_include:
                         e_door_limit_switch = st.selectbox(
                             "Door Limit Switch",
-                            ["--", "Include", "Not Include"],
-                            index=safe_index(current.get("door_limit_switch", "--"), ["--", "Include", "Not Include"]),
+                            ["--", "包含", "不包含"],
+                            index=safe_index(current.get("door_limit_switch", "--"), ["--", "包含", "不包含"]),
                             key=f"edit_door_limit_switch_{idx_to_edit}_{i}",
                             label_visibility="visible"
                         )
@@ -2083,11 +2083,11 @@ if st.session_state.get("spec_dialog_open", False):
                         s_alt_color = st.text_input("Color(顏色)", key=f"dlg_alt_color_{i}")
                     col_d1, col_d2, col_d3 = st.columns(3)
                     with col_d1:
-                        s_droop = st.selectbox("DroopKit", ["--", "Include", "Not Include"], key=f"dlg_droop_{i}")
+                        s_droop = st.selectbox("DroopKit", ["--", "包含", "不包含"], key=f"dlg_droop_{i}")
                     with col_d2:
                         s_pmg = st.text_input("PMG", key=f"dlg_pmg_{i}")
                     with col_d3:
-                        s_alt_heater = st.selectbox("Alternator Heater (交流發電機加熱器)", ["--", "Include", "Not Include"], key=f"dlg_alt_heater_{i}")
+                        s_alt_heater = st.selectbox("Alternator Heater (交流發電機加熱器)", ["--", "包含", "不包含"], key=f"dlg_alt_heater_{i}")
 
                 st.markdown("---")
 
@@ -2121,7 +2121,7 @@ if st.session_state.get("spec_dialog_open", False):
                                                         label_visibility="collapsed")
                     col_r1, col_r2 = st.columns(2)
                     with col_r1:
-                        s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "Include", "Not Include"], key=f"dlg_radiator_guard_{i}")
+                        s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "包含", "不包含"], key=f"dlg_radiator_guard_{i}")
 
                     # Fuel Cooler 組（改成 [4, 1, 1, 2] 比例，插入 Include / Not Include）
                     col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
@@ -2135,7 +2135,7 @@ if st.session_state.get("spec_dialog_open", False):
                         st.markdown("<div style='height: 43px;'></div>", unsafe_allow_html=True)
                         s_fuel_cooler = st.selectbox(
                             "",
-                            ["--", "Include", "Not Include"],
+                            ["--", "包含", "不包含"],
                             key=f"dlg_fuel_cooler_{i}",
                             label_visibility="collapsed"
                         )
@@ -2162,7 +2162,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_title:
                         st.markdown("**Coolant temperature sensor**")
                     with col_include:
-                        s_coolant_sensor = st.selectbox("", ["--", "Include", "Not Include"],
+                        s_coolant_sensor = st.selectbox("", ["--", "包含", "不包含"],
                                                         key=f"dlg_coolant_sensor_{i}",
                                                         label_visibility="collapsed")
                     with col_source:
@@ -2177,7 +2177,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_title:
                         st.markdown("**Low water level float switch**")
                     with col_include:
-                        s_low_water = st.selectbox("", ["--", "Include", "Not Include"],
+                        s_low_water = st.selectbox("", ["--", "包含", "不包含"],
                                                    key=f"dlg_low_water_{i}",
                                                    label_visibility="collapsed")
                     with col_source:
@@ -2251,10 +2251,10 @@ if st.session_state.get("spec_dialog_open", False):
                         s_anti_noise = st.selectbox("Anti-Noise(78-80Dba @7M 75% loading)", ["--", "Yes", "No"], index=0 if is_open_or_marine else 0, key=f"dlg_anti_noise_{i}")
                     col_i1, col_i2 = st.columns(2)
                     with col_i1:
-                        s_internal_silencer = st.selectbox("Internal Silencer (內部消聲器)", ["--", "Include", "Not Include"], index=0 if is_open_or_marine else 0, key=f"dlg_internal_silencer_{i}")
+                        s_internal_silencer = st.selectbox("Internal Silencer (內部消聲器)", ["--", "包含", "不包含"], index=0 if is_open_or_marine else 0, key=f"dlg_internal_silencer_{i}")
                     with col_i2:
-                        s_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["--", "Include", "Not Include"], index=0 if is_open_or_marine else 0, key=f"dlg_ss_locks_{i}")
-                    s_emergency_stop = st.selectbox("Emergency Stop Button (緊急暫停)", ["--", "Include", "Not Include"], index=0 if is_open_or_marine else 0, key=f"dlg_emergency_stop_{i}")
+                        s_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["--", "包含", "不包含"], index=0 if is_open_or_marine else 0, key=f"dlg_ss_locks_{i}")
+                    s_emergency_stop = st.selectbox("Emergency Stop Button (緊急暫停)", ["--", "包含", "不包含"], index=0 if is_open_or_marine else 0, key=f"dlg_emergency_stop_{i}")
 
                     st.markdown("---")
 
@@ -2293,7 +2293,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_co_include:
                         s_co_detector = st.selectbox(
                             "CO 探測器 (OLED)",
-                            ["--", "Include", "Not Include"],
+                            ["--", "包含", "不包含"],
                             key=f"dlg_co_detector_{i}",
                             label_visibility="visible"
                         )
@@ -2358,7 +2358,7 @@ if st.session_state.get("spec_dialog_open", False):
                     with col_door_include:
                         s_door_limit_switch = st.selectbox(
                             "Door Limit Switch",
-                            ["--", "Include", "Not Include"],
+                            ["--", "包含", "不包含"],
                             key=f"dlg_door_limit_switch_{i}",
                             label_visibility="visible"
                         )
