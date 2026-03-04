@@ -268,8 +268,6 @@ def generate_overview_pdf(specs, project_info, qty):
             breaker_line += f"　（{'，'.join(extra)}）"
         elements.append(Paragraph(breaker_line, normal))
 
-        elements.append(Spacer(1, 15))
-
         # 配件清單（也統一括號格式）
         parts = spec.get("parts", [])
         if parts:
@@ -288,15 +286,39 @@ def generate_overview_pdf(specs, project_info, qty):
                     line += f"　（{'，'.join(extra)}）"
                 elements.append(Paragraph(line, normal))
 
-        # 出貨檢查清單
+        # ==================== 出貨檢查清單（分兩欄，每欄13個） ====================
         checklist = spec.get("delivery_checklist", [])
         if checklist:
-            elements.append(Spacer(1, 8))
             elements.append(Paragraph("出貨檢查清單", h3_style))
-            for item in checklist:
-                ch = "√" if item.get("checked", False) else "□"
-                elements.append(Paragraph(f"{ch} {item.get('name', '—')}", normal))
+            elements.append(Spacer(1, 6))
 
+            # 自動分成兩欄，每欄最多13個
+            mid = 13  # 你想要每欄13個
+            left_items = checklist[:mid]
+            right_items = checklist[mid:]
+
+            left_check = []
+            for item in left_items:
+                ch = "√" if item.get("checked", False) else "□"
+                name = item.get("name", "—")
+                left_check.append(Paragraph(f"{ch} {name}", normal))
+
+            right_check = []
+            for item in right_items:
+                ch = "√" if item.get("checked", False) else "□"
+                name = item.get("name", "—")
+                right_check.append(Paragraph(f"{ch} {name}", normal))
+
+            # 建立兩欄表格
+            checklist_table = Table([[left_check, right_check]], colWidths=[255, 255])
+            checklist_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),   # 不要格線
+            ]))
+
+            elements.append(checklist_table)
         # 備註
         remarks = spec.get("remarks", "").strip()
         if remarks:
