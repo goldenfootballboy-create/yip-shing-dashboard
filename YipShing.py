@@ -160,7 +160,6 @@ def generate_overview_pdf(specs, project_info, qty):
         ))
 
 
-
         # ==================== 第 X 台 + 櫃號 ====================
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", h3_style))
 
@@ -184,7 +183,6 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(f"電球型號　　： {spec.get('alt_model', '—')}　　S/N： {spec.get('alt_sn', '—')}", normal))
         elements.append(Paragraph(f"電球顏色　　： {spec.get('alt_color', '—')}", normal))
         elements.append(Paragraph(f"Droop　　： {spec.get('droop', '—')}　　PMG： {spec.get('pmg', '—')}　　加熱器： {spec.get('alt_heater', '—')}", normal))
-        elements.append(Spacer(1, 12))
 
         # ==================== Radiator & Base Frame ====================
         elements.append(Paragraph("Radiator & Base Frame (水箱 & 底架)", h3_style))
