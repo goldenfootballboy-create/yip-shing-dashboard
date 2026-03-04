@@ -922,7 +922,8 @@ def render_project_card(row, idx):
                     st.markdown(f"**Remarks:**")
                     st.markdown(f"{spec.get('remarks', '—')}")
 
-        if st.button("📊 OverView 完整規格總覽", key=f"overall_spec_btn_{idx}", use_container_width=True, type="secondary"):
+        if st.button("📊 OverView 完整規格總覽", key=f"overall_spec_btn_{idx}", use_container_width=True,
+                     type="secondary"):
             @st.dialog(f"完整規格總覽 – {row['Project_Name']} ({qty} 台)", width="large")
             def overall_spec_overview():
                 st.markdown(f"**專案：{row['Project_Name']}**　｜　**{qty} 台**　｜　**類型：{row['Project_Type']}**")
@@ -974,12 +975,15 @@ def render_project_card(row, idx):
                             </h3>""",
                             unsafe_allow_html=True
                         )
-                        st.markdown(f"**發動機型號**： {spec.get('genset_model', '—')}　　**S/N**： {spec.get('genset_sn', '—')}")
-                        st.markdown(f"**發動機顏色**： {spec.get('engine_color', '—')}　　**年份**： {spec.get('engine_year', '—')}")
+                        st.markdown(
+                            f"**發動機型號**： {spec.get('genset_model', '—')}　　**S/N**： {spec.get('genset_sn', '—')}")
+                        st.markdown(
+                            f"**發動機顏色**： {spec.get('engine_color', '—')}　　**年份**： {spec.get('engine_year', '—')}")
                         st.markdown(f"**發動機加熱器**： {spec.get('engine_heater', '—')} kW")
                         st.markdown(f"**電球型號**： {spec.get('alt_model', '—')}　　**S/N**： {spec.get('alt_sn', '—')}")
                         st.markdown(f"**電球顏色**： {spec.get('alt_color', '—')}")
-                        st.markdown(f"**Droop**： {spec.get('droop', '—')}　　**PMG**： {spec.get('pmg', '—')}　　**加熱器**： {spec.get('alt_heater', '—')}")
+                        st.markdown(
+                            f"**Droop**： {spec.get('droop', '—')}　　**PMG**： {spec.get('pmg', '—')}　　**加熱器**： {spec.get('alt_heater', '—')}")
 
                         st.divider()
 
@@ -990,8 +994,11 @@ def render_project_card(row, idx):
                             </h3>""",
                             unsafe_allow_html=True
                         )
-                        st.markdown(f"**水箱型號**： {spec.get('rad_model', '—')}　　**S/N**： {spec.get('rad_sn', '—')}　　**溫度**： {spec.get('rad_temp', '—')}")
-                        st.markdown(f"**風扇呎吋**： {spec.get('fan_size', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('fan_department', '—')}</span>", unsafe_allow_html=True)
+                        st.markdown(
+                            f"**水箱型號**： {spec.get('rad_model', '—')}　　**S/N**： {spec.get('rad_sn', '—')}　　**溫度**： {spec.get('rad_temp', '—')}")
+                        st.markdown(
+                            f"**風扇呎吋**： {spec.get('fan_size', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('fan_department', '—')}</span>",
+                            unsafe_allow_html=True)
                         st.markdown(f"**水箱護罩**： {spec.get('radiator_guard', '—')}")
                         st.markdown(
                             f"**燃油冷卻器**： {spec.get('fuel_cooler', '—')}　　貨源 {spec.get('fuel_cooler_source', '—')}　　負責部門 <span style='color:red;'>{spec.get('fuel_cooler_department', '—')}</span>",
@@ -1016,10 +1023,17 @@ def render_project_card(row, idx):
                             </h3>""",
                             unsafe_allow_html=True
                         )
-                        st.markdown(f"**貨櫃尺寸**： {spec.get('cont_size', '—')}　　**類型**： {spec.get('cont_type', '—')}")
-                        st.markdown(f"**控制器型號**： {spec.get('panel_model', '—')}　　**S/N**： {spec.get('panel_sn', '—')}　　**貨源**： {spec.get('panel_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('panel_department', '—')}</span>", unsafe_allow_html=True)
-                        st.markdown(f"**CO 探測器 (OLED)**： {spec.get('co_detector', '—')}　　**貨源**： {spec.get('co_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('co_department', '—')}</span>", unsafe_allow_html=True)
-                        st.markdown(f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}　　**S/N**： {spec.get('breaker_sn', '—')}　　**貨源**： {spec.get('breaker_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('breaker_department', '—')}</span>", unsafe_allow_html=True)
+                        st.markdown(
+                            f"**貨櫃尺寸**： {spec.get('cont_size', '—')}　　**類型**： {spec.get('cont_type', '—')}")
+                        st.markdown(
+                            f"**控制器型號**： {spec.get('panel_model', '—')}　　**S/N**： {spec.get('panel_sn', '—')}　　**貨源**： {spec.get('panel_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('panel_department', '—')}</span>",
+                            unsafe_allow_html=True)
+                        st.markdown(
+                            f"**CO 探測器 (OLED)**： {spec.get('co_detector', '—')}　　**貨源**： {spec.get('co_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('co_department', '—')}</span>",
+                            unsafe_allow_html=True)
+                        st.markdown(
+                            f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}　　**S/N**： {spec.get('breaker_sn', '—')}　　**貨源**： {spec.get('breaker_source', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('breaker_department', '—')}</span>",
+                            unsafe_allow_html=True)
 
                         st.divider()
 
@@ -1032,7 +1046,9 @@ def render_project_card(row, idx):
                                 source = p.get("source", "—")
                                 dept = p.get("department", "—")
                                 if name:
-                                    st.markdown(f"- **{name}**　（貨源：{source}，負責部門：<span style='color:red;'>{dept}</span>）", unsafe_allow_html=True)
+                                    st.markdown(
+                                        f"- **{name}**　（貨源：{source}，負責部門：<span style='color:red;'>{dept}</span>）",
+                                        unsafe_allow_html=True)
 
                         st.divider()
 
@@ -1051,6 +1067,16 @@ def render_project_card(row, idx):
                         if remarks:
                             st.subheader("備註")
                             st.info(remarks)
+
+                # ───────────── 新增：PDF 下載按鈕 ─────────────
+                if st.button("📄 下載 PDF 版本", type="primary", use_container_width=True):
+                    pdf_bytes = generate_overview_pdf(specs, row, qty)  # 使用你原本的 PDF 生成函數
+                    st.download_button(
+                        label="點擊下載 PDF",
+                        data=pdf_bytes,
+                        file_name=f"{row['Project_Name']}_Overview.pdf",
+                        mime="application/pdf"
+                    )
 
                 st.markdown("---")
                 if st.button("關閉", type="primary", use_container_width=True):
