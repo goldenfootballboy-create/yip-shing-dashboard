@@ -101,7 +101,7 @@ def generate_overview_pdf(specs, project_info, qty):
         'TopTitle',
         parent=styles['Heading1'],
         fontName='NotoSansTC-Bold',
-        fontSize=18,
+        fontSize=22,
         alignment=TA_CENTER,
         spaceAfter=8,
         textColor=HexColor('#1e88e5')
@@ -112,7 +112,7 @@ def generate_overview_pdf(specs, project_info, qty):
         'Info',
         parent=styles['Normal'],
         fontName='NotoSansTC-Bold',
-        fontSize=11.5,
+        fontSize=14.5,
         alignment=TA_CENTER,
         spaceAfter=20,
         textColor=HexColor('#263238')
@@ -122,8 +122,8 @@ def generate_overview_pdf(specs, project_info, qty):
         'Normal',
         parent=styles['Normal'],
         fontName='NotoSansTC',
-        fontSize=10.5,
-        leading=13,
+        fontSize=13,
+        leading=15,
         spaceAfter=5
     )
 
