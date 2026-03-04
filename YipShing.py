@@ -267,7 +267,11 @@ def generate_overview_pdf(specs, project_info, qty):
         # 配件清單（也統一括號格式）
         parts = spec.get("parts", [])
         if parts:
+            elements.append(PageBreak())  # ← 強制換頁
+
             elements.append(Paragraph("配件清單", h3_style))
+            elements.append(Spacer(1, 6))
+
             for p in parts:
                 name = p.get("name", "—")
                 src = p.get("source", "")
