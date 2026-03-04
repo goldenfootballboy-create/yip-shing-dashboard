@@ -166,16 +166,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         cabinet = spec.get('cabinet_no') or spec.get('container_number') or '—'
         elements.append(Paragraph(f"櫃號 / Cabinet No.： <b>{cabinet}</b>", normal))
-        elements.append(Spacer(1, 12))
-
-        # ==================== 以下內容保持不變 ====================
-        # Prime & Standby Power
-        elements.append(Paragraph("Prime & Standby Power (功效＆電壓)", h3_style))
-        elements.append(Paragraph(f"Prime (kW)　　： {spec.get('prime', '—')}", normal))
-        elements.append(Paragraph(f"Standby (kW)　： {spec.get('standby', '—')}", normal))
-        elements.append(Paragraph(f"RPM　　　　　： {spec.get('rpm', '—')}", normal))
-        elements.append(Paragraph(f"電壓 / 頻率　： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 5))
 
         # Prime & Standby Power
         elements.append(Paragraph("Prime & Standby Power (功效＆電壓)", h3_style))
@@ -183,7 +174,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(f"Standby (kW)　： {spec.get('standby', '—')}", normal))
         elements.append(Paragraph(f"RPM　　　　　： {spec.get('rpm', '—')}", normal))
         elements.append(Paragraph(f"電壓 / 頻率　： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}", normal))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 5))
 
         # Engine & Alternator
         elements.append(Paragraph("Engine & Alternator (發動機 & 電球)", h3_style))
