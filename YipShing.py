@@ -10,7 +10,6 @@ import gspread
 from google.oauth2.service_account import Credentials
 import time
 from datetime import datetime, timezone, timedelta
-import streamlit_sortables as ss
 # reportlab 相關 import
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import (
@@ -3150,42 +3149,14 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    sortable_items = []
-    for idx, proj in filtered_df.iterrows():
-        # 這裡可以自訂卡片顯示的標題（或用 render_project_card 的簡化版）
-        card_title = f"{proj['Project_Name']} • {proj['Project_Type']} • {proj['Customer'] or '—'}"
-        sortable_items.append({
-            'id': idx,  # 用來記錄原始索引
-            'label': card_title,  # 顯示在拖拽卡片上的文字
-            'value': proj.to_dict()  # 完整資料（拖拽後可取回）
-        })
-
-    # 使用 sortables 顯示可拖拽列表
-    sorted_items = sortables(
-        sortable_items,
-        key="project_card_sortable",  # 唯一 key，避免衝突
-        label="拖動卡片改變專案順序（可拖拽上下調整）",
-        item_style={
-            "padding": "12px",
-            "margin": "8px 0",
-            "border": "1px solid #ddd",
-            "border-radius": "8px",
-            "background-color": "#f9f9f9",
-            "cursor": "grab",
-            "box-shadow": "0 2px 4px rgba(0,0,0,0.1)"
-        },
-        container_style={
-            "display": "flex",
-            "flex-direction": "column",
-            "gap": "8px"
-        }
-    )
-
-    # 根據拖拽後的新順序渲染卡片
-    for item in sorted_items:
-        original_idx = item['id']
-        proj = filtered_df.loc[original_idx]
-        render_project_card(proj, original_idx)
-
+    rows = filtered_df.to_dict('records')
+    for i in range(0, len(rows), 2):
+        col1, col2 = st.columns(2)
+        with col1:
+            if i < len(rows):
+                render_project_card(rows[i], filtered_df.index[i])
+        with col2:
+            if i + 1 < len(rows):
+                render_project_card(rows[i + 1], filtered_df.index[i + 1])
 st.markdown("---")
 st.caption("Projects Management System")
