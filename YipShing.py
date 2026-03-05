@@ -122,7 +122,7 @@ def generate_overview_pdf(specs, project_info, qty):
         'Normal',
         parent=styles['Normal'],
         fontName='NotoSansTC',
-        fontSize=13,
+        fontSize=15,
         leading=15,
         spaceAfter=5
     )
@@ -131,7 +131,7 @@ def generate_overview_pdf(specs, project_info, qty):
         'H3',
         parent=styles['Heading2'],
         fontName='NotoSansTC-Bold',
-        fontSize=15,
+        fontSize=16.5,
         spaceBefore=14,
         spaceAfter=8,
         textColor=HexColor('#1e88e5')
