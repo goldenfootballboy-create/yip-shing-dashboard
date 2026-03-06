@@ -3007,7 +3007,7 @@ if st.session_state.view_mode == "calendar":
             })
 
     try:
-        manpower_raw = worksheet_manpower.get_all_records()
+        manpower_raw = supremacy_manpower.get_all_records()
         manpower_df = pd.DataFrame(manpower_raw)
         if not manpower_df.empty:
             manpower_df["Quote_Number"] = manpower_df["Quote_Number"].astype(str).str.replace(r"\.0$", "", regex=True)
