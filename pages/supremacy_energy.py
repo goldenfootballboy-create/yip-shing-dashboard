@@ -114,6 +114,36 @@ def save_manpower():
 with st.sidebar:
     st.header("SUPREMACY ENERGY")
 
+    # ───────────── 新增：年月篩選 ─────────────
+    st.markdown("### 篩選專案（依日期）")
+
+    # 取得所有可用的年份（從資料中動態提取，避免硬編碼）
+    if not st.session_state.projects_df.empty:
+        available_years = sorted(
+            st.session_state.projects_df["Date"].dt.year.dropna().unique().astype(int),
+            reverse=True
+        )
+    else:
+        available_years = [date.today().year]
+
+    # 年份選擇（包含「全部」選項）
+    selected_year = st.selectbox(
+        "年份",
+        options=["全部"] + available_years,
+        index=0,  # 預設「全部」
+        key="filter_year"
+    )
+
+    # 月份選擇（1~12 + 全部）
+    month_options = ["全部"] + [f"{m:02d} 月" for m in range(1, 13)]
+    selected_month = st.selectbox(
+        "月份",
+        options=month_options,
+        index=0,  # 預設「全部」
+        key="filter_month"
+    )
+
+    st.markdown("---")
     st.markdown("### New Project")
 
     with st.form(key="supremacy_new_project", clear_on_submit=True):
@@ -161,20 +191,45 @@ with st.sidebar:
 # 主畫面
 # ==============================================
 st.title("SUPREMACY ENERGY")
-
-# 搜尋過濾
+# 搜尋過濾 + 年月篩選
 display_df = st.session_state.projects_df.copy()
+
+# 先套用文字搜尋（Quote Number 或 Work Order）
 if search_query:
     query = search_query.strip().lower()
-    mask = (
+    mask_search = (
         display_df["Quote_Number"].astype(str).str.lower().str.contains(query) |
         display_df["Work_Order"].astype(str).str.lower().str.contains(query)
     )
-    display_df = display_df[mask].reset_index(drop=True)
-    if len(display_df) > 0:
-        st.success(f"找到 {len(display_df)} 個符合的專案")
+    display_df = display_df[mask_search]
+
+# 再套用年份篩選
+if selected_year != "全部":
+    try:
+        year_int = int(selected_year)
+        mask_year = display_df["Date"].dt.year == year_int
+        display_df = display_df[mask_year]
+    except:
+        pass  # 如果轉換失敗就忽略
+
+# 再套用月份篩選
+if selected_month != "全部":
+    try:
+        month_str = selected_month.split(" ")[0]  # "01 月" → "01"
+        month_int = int(month_str)
+        mask_month = display_df["Date"].dt.month == month_int
+        display_df = display_df[mask_month]
+    except:
+        pass
+
+# 顯示結果訊息
+if len(display_df) > 0:
+    st.success(f"找到 {len(display_df)} 個符合的專案")
+else:
+    if search_query or selected_year != "全部" or selected_month != "全部":
+        st.info("無符合條件的專案，請調整篩選條件")
     else:
-        st.info("無搜尋結果")
+        st.info("尚未新增任何副業專案")
 
 # 卡片顯示（一行 2 張卡片 + 安全顯示）
 if len(display_df) > 0:
