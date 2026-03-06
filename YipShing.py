@@ -623,7 +623,7 @@ df = pd.DataFrame(data)
 # 讀取 checklist 工作表
 worksheet_checklist = spreadsheet.worksheet("checklist")
 checklist_raw = pd.DataFrame(worksheet_checklist.get_all_records())
-
+worksheet_manpower  = spreadsheet.worksheet("supremacy_manpower")
 # 處理 checklist_db
 checklist_db = {}
 if not checklist_raw.empty:
