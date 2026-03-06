@@ -3149,7 +3149,13 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
+    # 先按照 Lead_Time 排序（從早到晚）
+    filtered_df = filtered_df.sort_values(by='Lead_Time', ascending=True)  # ascending=True: 最早日期先顯示
+
+    # 轉成 records
     rows = filtered_df.to_dict('records')
+
+    # 兩列顯示卡片（保持原樣）
     for i in range(0, len(rows), 2):
         col1, col2 = st.columns(2)
         with col1:
