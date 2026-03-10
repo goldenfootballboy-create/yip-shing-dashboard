@@ -30,6 +30,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+import plotly.express as px
+import plotly.graph_objects as go
 # 全域變數
 max_retries = 3  # 可選，未來若需重試邏輯再用
 # 香港時區 (UTC+8)
@@ -1096,6 +1098,82 @@ def render_project_card(row, idx):
             st.success(f"已成功刪除專案：{row['Project_Name']}")
             st.rerun()
 
+
+# Analysis 展開區域
+if st.session_state.get("show_analysis", False):
+    st.markdown("## 📊 Project Timeline Analysis")
+    st.markdown("每個專案從 Parts Arrival 到 Cleaning Complete 的時間進程（Gantt 圖）")
+
+    # 準備資料給 Plotly
+    timeline_data = []
+    for _, row in df.iterrows():
+        project = row["Project_Name"]
+
+        # 收集有日期的階段
+        stages = []
+        if pd.notna(row.get("Parts_Arrival")):
+            stages.append(("Parts Arrival", row["Parts_Arrival"]))
+        if pd.notna(row.get("Installation_Complete")):
+            stages.append(("Installation Complete", row["Installation_Complete"]))
+        if pd.notna(row.get("Testing_Complete")):
+            stages.append(("Testing Complete", row["Testing_Complete"]))
+        if pd.notna(row.get("Cleaning_Complete")):
+            stages.append(("Cleaning Complete", row["Cleaning_Complete"]))
+
+        # 如果有至少兩個階段，才畫線
+        if len(stages) >= 2:
+            for j in range(len(stages) - 1):
+                start_name, start_date = stages[j]
+                end_name, end_date = stages[j + 1]
+                duration_days = (end_date - start_date).days
+                timeline_data.append({
+                    "Project": project,
+                    "Task": f"{start_name} → {end_name}",
+                    "Start": start_date,
+                    "Finish": end_date,
+                    "Duration": duration_days,
+                    "Color": "#1fb429" if duration_days <= 30 else "#ffaa00" if duration_days <= 60 else "#dc3545"
+                })
+
+    if timeline_data:
+        df_timeline = pd.DataFrame(timeline_data)
+
+        # 用 Plotly 畫 Gantt 圖（水平條形）
+        fig = px.timeline(
+            df_timeline,
+            x_start="Start",
+            x_end="Finish",
+            y="Project",
+            color="Color",
+            text="Task",
+            title="Project Stage Duration (Parts Arrival → Cleaning Complete)",
+            labels={"Project": "專案名稱"},
+            color_discrete_map={
+                "#1fb429": "≤30天",
+                "#ffaa00": "31-60天",
+                "#dc3545": ">60天"
+            }
+        )
+
+        fig.update_yaxes(autorange="reversed")  # 讓最新專案在上面
+        fig.update_layout(
+            xaxis_title="日期",
+            yaxis_title="專案",
+            height=600 + len(df_timeline) * 30,  # 動態高度
+            showlegend=True,
+            bargap=0.1
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        # 額外文字說明
+        st.info("顏色說明：綠色 = ≤30天，黃色 = 31-60天，紅色 = >60天")
+    else:
+        st.info("目前沒有足夠的日期資料來繪製時間軸圖表（至少需要兩個階段日期）")
+
+    if st.button("關閉 Analysis", type="secondary"):
+        st.session_state["show_analysis"] = False
+        st.rerun()
 # Edit Project Specification Dialog
 if st.session_state.get("show_edit_spec_dialog", False):
 
@@ -2801,6 +2879,8 @@ with st.sidebar:
     if st.button("📅Calendar", use_container_width=True, type="primary", key="btn_calendar"):
         st.session_state.view_mode = "calendar"
         st.rerun()
+    if st.button("📊 Analysis", type="primary", use_container_width=True, key="analysis_btn"):
+        st.session_state["show_analysis"] = True
 
     if "view_mode" not in st.session_state:
         st.session_state.view_mode = "all"
