@@ -1099,7 +1099,7 @@ def render_project_card(row, idx):
             st.rerun()
 
 
-# Analysis 展開區域
+# Analysis 展開區域 - 改成這樣
 if st.session_state.get("show_analysis", False):
     st.markdown("## 📊 Project Timeline Analysis")
     st.markdown("每個專案從 Parts Arrival 到 Cleaning Complete 的時間進程（Gantt 圖）")
@@ -1108,7 +1108,6 @@ if st.session_state.get("show_analysis", False):
     for _, row in df.iterrows():
         project = row["Project_Name"]
 
-        # 收集階段（強制轉 datetime，並過濾無效值）
         stages = []
         for stage_name, col_name in [
             ("Parts Arrival", "Parts_Arrival"),
@@ -1117,18 +1116,25 @@ if st.session_state.get("show_analysis", False):
             ("Cleaning Complete", "Cleaning_Complete"),
         ]:
             date_val = row.get(col_name)
-            if pd.notna(date_val) and isinstance(date_val, (pd.Timestamp, datetime.datetime)):
-                stages.append((stage_name, pd.to_datetime(date_val)))
 
-        # 至少要有兩個階段才畫
+            # 更安全的檢查與轉換
+            if pd.notna(date_val):
+                try:
+                    dt = pd.to_datetime(date_val)
+                    if pd.notna(dt):  # 再次確認不是 NaT
+                        stages.append((stage_name, dt))
+                except (ValueError, TypeError):
+                    pass  # 轉換失敗就跳過
+
+        # 至少兩個階段才畫
         if len(stages) >= 2:
             for j in range(len(stages) - 1):
                 start_name, start_date = stages[j]
                 end_name, end_date = stages[j + 1]
 
-                # 確保 start < end，否則跳過或交換（視需求）
+                # 確保 start < end
                 if start_date >= end_date:
-                    continue  # 或交換：start_date, end_date = end_date, start_date
+                    continue
 
                 duration_days = (end_date - start_date).days
                 timeline_data.append({
@@ -1143,39 +1149,43 @@ if st.session_state.get("show_analysis", False):
     if timeline_data:
         df_timeline = pd.DataFrame(timeline_data)
 
-        # 強制確保 Start/Finish 是 datetime
-        df_timeline["Start"] = pd.to_datetime(df_timeline["Start"])
-        df_timeline["Finish"] = pd.to_datetime(df_timeline["Finish"])
+        # 強制確保 datetime 格式
+        df_timeline["Start"] = pd.to_datetime(df_timeline["Start"], errors='coerce')
+        df_timeline["Finish"] = pd.to_datetime(df_timeline["Finish"], errors='coerce')
 
-        # 用 Plotly 畫圖
-        fig = px.timeline(
-            df_timeline,
-            x_start="Start",
-            x_end="Finish",
-            y="Project",
-            color="Color",
-            text="Task",
-            title="Project Stage Duration (Parts Arrival → Cleaning Complete)",
-            labels={"Project": "專案名稱"},
-            color_discrete_map={
-                "#1fb429": "≤30天",
-                "#ffaa00": "31-60天",
-                "#dc3545": ">60天"
-            }
-        )
+        # 過濾掉任何 NaT 的行
+        df_timeline = df_timeline.dropna(subset=["Start", "Finish"])
 
-        fig.update_yaxes(autorange="reversed")  # 最新專案放上面
-        fig.update_layout(
-            xaxis_title="日期",
-            yaxis_title="專案",
-            height=600 + len(df_timeline) * 30,  # 動態高度
-            showlegend=True,
-            bargap=0.1
-        )
+        if df_timeline.empty:
+            st.info("經過清理後沒有有效日期資料可繪製圖表")
+        else:
+            fig = px.timeline(
+                df_timeline,
+                x_start="Start",
+                x_end="Finish",
+                y="Project",
+                color="Color",
+                text="Task",
+                title="Project Stage Duration (Parts Arrival → Cleaning Complete)",
+                labels={"Project": "專案名稱"},
+                color_discrete_map={
+                    "#1fb429": "≤30天",
+                    "#ffaa00": "31-60天",
+                    "#dc3545": ">60天"
+                }
+            )
 
-        st.plotly_chart(fig, use_container_width=True)
+            fig.update_yaxes(autorange="reversed")
+            fig.update_layout(
+                xaxis_title="日期",
+                yaxis_title="專案",
+                height=600 + len(df_timeline) * 30,
+                showlegend=True,
+                bargap=0.1
+            )
 
-        st.info("顏色說明：綠色 = ≤30天，黃色 = 31-60天，紅色 = >60天")
+            st.plotly_chart(fig, use_container_width=True)
+            st.info("顏色說明：綠色 = ≤30天，黃色 = 31-60天，紅色 = >60天")
     else:
         st.info("目前沒有足夠的有效日期資料來繪製時間軸圖表（至少需要兩個階段的日期）")
 
