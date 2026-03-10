@@ -1104,27 +1104,32 @@ if st.session_state.get("show_analysis", False):
     st.markdown("## 📊 Project Timeline Analysis")
     st.markdown("每個專案從 Parts Arrival 到 Cleaning Complete 的時間進程（Gantt 圖）")
 
-    # 準備資料給 Plotly
     timeline_data = []
     for _, row in df.iterrows():
         project = row["Project_Name"]
 
-        # 收集有日期的階段
+        # 收集階段（強制轉 datetime，並過濾無效值）
         stages = []
-        if pd.notna(row.get("Parts_Arrival")):
-            stages.append(("Parts Arrival", row["Parts_Arrival"]))
-        if pd.notna(row.get("Installation_Complete")):
-            stages.append(("Installation Complete", row["Installation_Complete"]))
-        if pd.notna(row.get("Testing_Complete")):
-            stages.append(("Testing Complete", row["Testing_Complete"]))
-        if pd.notna(row.get("Cleaning_Complete")):
-            stages.append(("Cleaning Complete", row["Cleaning_Complete"]))
+        for stage_name, col_name in [
+            ("Parts Arrival", "Parts_Arrival"),
+            ("Installation Complete", "Installation_Complete"),
+            ("Testing Complete", "Testing_Complete"),
+            ("Cleaning Complete", "Cleaning_Complete"),
+        ]:
+            date_val = row.get(col_name)
+            if pd.notna(date_val) and isinstance(date_val, (pd.Timestamp, datetime.datetime)):
+                stages.append((stage_name, pd.to_datetime(date_val)))
 
-        # 如果有至少兩個階段，才畫線
+        # 至少要有兩個階段才畫
         if len(stages) >= 2:
             for j in range(len(stages) - 1):
                 start_name, start_date = stages[j]
                 end_name, end_date = stages[j + 1]
+
+                # 確保 start < end，否則跳過或交換（視需求）
+                if start_date >= end_date:
+                    continue  # 或交換：start_date, end_date = end_date, start_date
+
                 duration_days = (end_date - start_date).days
                 timeline_data.append({
                     "Project": project,
@@ -1138,7 +1143,11 @@ if st.session_state.get("show_analysis", False):
     if timeline_data:
         df_timeline = pd.DataFrame(timeline_data)
 
-        # 用 Plotly 畫 Gantt 圖（水平條形）
+        # 強制確保 Start/Finish 是 datetime
+        df_timeline["Start"] = pd.to_datetime(df_timeline["Start"])
+        df_timeline["Finish"] = pd.to_datetime(df_timeline["Finish"])
+
+        # 用 Plotly 畫圖
         fig = px.timeline(
             df_timeline,
             x_start="Start",
@@ -1155,7 +1164,7 @@ if st.session_state.get("show_analysis", False):
             }
         )
 
-        fig.update_yaxes(autorange="reversed")  # 讓最新專案在上面
+        fig.update_yaxes(autorange="reversed")  # 最新專案放上面
         fig.update_layout(
             xaxis_title="日期",
             yaxis_title="專案",
@@ -1166,10 +1175,9 @@ if st.session_state.get("show_analysis", False):
 
         st.plotly_chart(fig, use_container_width=True)
 
-        # 額外文字說明
         st.info("顏色說明：綠色 = ≤30天，黃色 = 31-60天，紅色 = >60天")
     else:
-        st.info("目前沒有足夠的日期資料來繪製時間軸圖表（至少需要兩個階段日期）")
+        st.info("目前沒有足夠的有效日期資料來繪製時間軸圖表（至少需要兩個階段的日期）")
 
     if st.button("關閉 Analysis", type="secondary"):
         st.session_state["show_analysis"] = False
