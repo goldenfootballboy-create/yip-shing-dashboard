@@ -291,35 +291,42 @@ def generate_overview_pdf(specs, project_info, qty):
         # ==================== 出貨檢查清單（分兩欄，每欄13個） ====================
         checklist = spec.get("delivery_checklist", [])
         if checklist:
-            elements.append(Paragraph("出貨檢查清單", h3_style))
-            elements.append(Spacer(1, 6))
+            elements.append(Paragraph("出貨檢查清單", heading3))
+            elements.append(Spacer(1, 5))  # 加大間距
 
-            # 自動分成兩欄，每欄最多13個
-            mid = 13  # 你想要每欄13個
-            left_items = checklist[:mid]
-            right_items = checklist[mid:]
+            # 分3欄：1欄9個, 2欄9個，3欄8個
+            col1_end = 9
+            col2_end = 18
+            left_items = checklist[:col1_end]
+            middle_items = checklist[col1_end:col2_end]
+            right_items = checklist[col2_end:]
 
             left_check = []
             for item in left_items:
                 ch = "√" if item.get("checked", False) else "□"
                 name = item.get("name", "—")
-                left_check.append(Paragraph(f"{ch} {name}", normal))
+                left_check.append(Paragraph(f"{ch} {name}", small))
+
+            middle_check = []
+            for item in middle_items:
+                ch = "√" if item.get("checked", False) else "□"
+                name = item.get("name", "—")
+                middle_check.append(Paragraph(f"{ch} {name}", small))
 
             right_check = []
             for item in right_items:
                 ch = "√" if item.get("checked", False) else "□"
                 name = item.get("name", "—")
-                right_check.append(Paragraph(f"{ch} {name}", normal))
+                right_check.append(Paragraph(f"{ch} {name}", small))
 
-            # 建立兩欄表格
-            checklist_table = Table([[left_check, right_check]], colWidths=[255, 255])
+            # 建立3欄表格（無格線）
+            checklist_table = Table([[left_check, middle_check, right_check]], colWidths=[170, 170, 170])
             checklist_table.setStyle(TableStyle([
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('LEFTPADDING', (0, 0), (-1, -1), 5),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),   # 不要格線
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
             ]))
-
             elements.append(checklist_table)
         # 備註
         remarks = spec.get("remarks", "").strip()
