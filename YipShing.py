@@ -288,45 +288,54 @@ def generate_overview_pdf(specs, project_info, qty):
                     line += f"　（{'，'.join(extra)}）"
                 elements.append(Paragraph(line, normal))
 
-        # ==================== 出貨檢查清單（分兩欄，每欄13個） ====================
+        # ==================== 出貨檢查清單（分三欄：9 + 9 + 8） ====================
         checklist = spec.get("delivery_checklist", [])
         if checklist:
-            elements.append(Paragraph("出貨檢查清單", heading3))
-            elements.append(Spacer(1, 5))  # 加大間距
+            elements.append(Paragraph("出貨檢查清單", h3_style))
+            elements.append(Spacer(1, 6))
 
-            # 分3欄：1欄9個, 2欄9個，3欄8個
-            col1_end = 9
-            col2_end = 18
-            left_items = checklist[:col1_end]
-            middle_items = checklist[col1_end:col2_end]
-            right_items = checklist[col2_end:]
+            # ────────────── 定義每欄最大項目數 ──────────────
+            col1_max = 9
+            col2_max = 9
+            col3_max = 8
 
-            left_check = []
-            for item in left_items:
-                ch = "√" if item.get("checked", False) else "□"
-                name = item.get("name", "—")
-                left_check.append(Paragraph(f"{ch} {name}", small))
+            # 分割清單
+            col1_items = checklist[:col1_max]
+            col2_items = checklist[col1_max:col1_max + col2_max]
+            col3_items = checklist[col1_max + col2_max:col1_max + col2_max + col3_max]
 
-            middle_check = []
-            for item in middle_items:
-                ch = "√" if item.get("checked", False) else "□"
-                name = item.get("name", "—")
-                middle_check.append(Paragraph(f"{ch} {name}", small))
+            # 轉成 Paragraph 列表
+            def make_check_paragraphs(items):
+                return [
+                    Paragraph(
+                        f"{'√' if item.get('checked', False) else '□'} {item.get('name', '—')}",
+                        normal
+                    )
+                    for item in items
+                ]
 
-            right_check = []
-            for item in right_items:
-                ch = "√" if item.get("checked", False) else "□"
-                name = item.get("name", "—")
-                right_check.append(Paragraph(f"{ch} {name}", small))
+            col1_paras = make_check_paragraphs(col1_items)
+            col2_paras = make_check_paragraphs(col2_items)
+            col3_paras = make_check_paragraphs(col3_items)
 
-            # 建立3欄表格（無格線）
-            checklist_table = Table([[left_check, middle_check, right_check]], colWidths=[170, 170, 170])
+            # 建立三欄表格（一行三列）
+            # colWidths 總寬度約 500–520 左右，依紙張邊距調整
+            checklist_table = Table(
+                [[col1_paras, col2_paras, col3_paras]],
+                colWidths=[170, 170, 170]  # ← 可微調，例如 [165, 170, 165]
+            )
+
             checklist_table.setStyle(TableStyle([
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # 頂端對齊
+                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                ('GRID', (0, 0), (-1, -1), 0, colors.transparent),  # 無格線
+                # 可選：如果想加垂直分隔線
+                # ('LINEAFTER',    (0,0), (0,-1), 0.5, colors.grey),
+                # ('LINEAFTER',    (1,0), (1,-1), 0.5, colors.grey),
             ]))
+
             elements.append(checklist_table)
         # 備註
         remarks = spec.get("remarks", "").strip()
