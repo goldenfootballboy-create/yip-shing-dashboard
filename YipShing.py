@@ -191,7 +191,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(f"水箱型號　　： {spec.get('rad_model', '—')}　　S/N　　： {spec.get('rad_sn', '—')}　　溫度　： {spec.get('rad_temp', '—')}", normal))
         elements.append(Paragraph(f"風扇呎吋　　： {spec.get('fan_size', '—')}", normal))
         elements.append(Paragraph(f"水箱護罩　　： {spec.get('radiator_guard', '—')}", normal))
-
+        elements.append(Paragraph(f"底架型號　　： {spec.get('base_model', '—')}   S/N　　：{spec.get('base_sn','—')}", normal))
         # 使用括號格式（與 Overview 完全一致）
         for title, val_key, src_key, dept_key in [
             ("燃油冷卻器", 'fuel_cooler', 'fuel_cooler_source', 'fuel_cooler_department'),
