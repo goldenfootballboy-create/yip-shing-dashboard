@@ -94,28 +94,39 @@ def generate_overview_pdf(specs, project_info, qty):
     pdfmetrics.registerFont(TTFont('NotoSansTC-Bold', 'fonts/NotoSansTC-Bold.ttf'))
 
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=35, leftMargin=35, topMargin=50, bottomMargin=35)
+
+    # 改小 topMargin，讓內容貼近頂部
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=35,
+        leftMargin=35,
+        topMargin=20,  # ← 原 50 改成 20 或 15 更貼頂
+        bottomMargin=35
+    )
 
     styles = getSampleStyleSheet()
 
-    # ==================== 頂部大標題 (專案名稱 + 台數) ====================
+    # 頂部大標題樣式：去掉預設的 spaceBefore
     top_title_style = ParagraphStyle(
         'TopTitle',
         parent=styles['Heading1'],
         fontName='NotoSansTC-Bold',
         fontSize=22,
         alignment=TA_CENTER,
+        spaceBefore=0,  # ← 關鍵：設為 0，避免 Paragraph 自己留白
         spaceAfter=8,
         textColor=HexColor('#1e88e5')
     )
 
-    # ==================== 第二行詳細資訊 ====================
+    # 第二行詳細資訊（保持原樣，或也可微調 spaceBefore）
     info_style = ParagraphStyle(
         'Info',
         parent=styles['Normal'],
         fontName='NotoSansTC-Bold',
         fontSize=14.5,
         alignment=TA_CENTER,
+        spaceBefore=4,  # ← 稍微留一點與大標題的間距
         spaceAfter=20,
         textColor=HexColor('#263238')
     )
