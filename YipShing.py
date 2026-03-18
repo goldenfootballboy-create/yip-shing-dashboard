@@ -256,14 +256,23 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(co_line, normal))
 
         # 斷路器
-        breaker_line = f"斷路器　　　： {spec.get('breaker_type', '—')} {spec.get('breaker_rating', '—')} {spec.get('poles', '—')}　　S/N　　： {spec.get('breaker_sn', '—')}"
+        breaker_line = (
+            f"斷路器　　　： {spec.get('breaker_type', '—')} "
+            f"{spec.get('breaker_rating', '—')} "
+            f"{spec.get('poles', '—')}　　"
+            f"控制電壓： {spec.get('control_voltage', '—')}　　"
+            f"S/N　　： {spec.get('breaker_sn', '—')}"
+        )
+
         extra = []
         if spec.get('breaker_source') and spec.get('breaker_source') != "--":
             extra.append(f"貨源：{spec.get('breaker_source')}")
         if spec.get('breaker_department') and spec.get('breaker_department') != "--":
             extra.append(f"負責部門：<font color=red>{spec.get('breaker_department')}</font>")
+
         if extra:
             breaker_line += f"　（{'，'.join(extra)}）"
+
         elements.append(Paragraph(breaker_line, normal))
 
         # 配件清單（也統一括號格式）
@@ -902,6 +911,9 @@ def render_project_card(row, idx):
                             f"**風扇呎吋**： {spec.get('fan_size', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('fan_department', '—')}</span>",
                             unsafe_allow_html=True)
                         st.markdown(f"**水箱護罩**： {spec.get('radiator_guard', '—')}")
+
+                        st.markdown(
+                            f"**底架型號**： {spec.get('base_model', '—')}　　**S/N**： {spec.get('base_sn', '—')}")
 
                         # 使用括號格式
                         for title, val, src, dept in [
