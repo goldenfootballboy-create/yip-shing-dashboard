@@ -271,6 +271,7 @@ def generate_overview_pdf(specs, project_info, qty):
             f"斷路器　　　： {spec.get('breaker_type', '—')} "
             f"{spec.get('breaker_rating', '—')} "
             f"{spec.get('poles', '—')}　　"
+            f"Spring Charging： {spec.get('spring_charging', '—')}　　"
             f"控制電壓： {spec.get('control_voltage', '—')}　　"
             f"S/N　　： {spec.get('breaker_sn', '—')}"
         )
@@ -984,7 +985,14 @@ def render_project_card(row, idx):
                         st.markdown(co_line, unsafe_allow_html=True)
 
                         # 斷路器
-                        breaker_line = f"**斷路器**： {spec.get('breaker_type', '—')}　{spec.get('breaker_rating', '—')}　{spec.get('poles', '—')}　　**S/N**： {spec.get('breaker_sn', '—')}"
+                        breaker_line = (
+                            f"**斷路器**： {spec.get('breaker_type', '—')}　"
+                            f"{spec.get('breaker_rating', '—')}　"
+                            f"{spec.get('poles', '—')}　　"
+                            f"**控制電壓**： {spec.get('control_voltage', '—')}　　"
+                            f"**Spring Charging**： {spec.get('spring_charging', '—')}　　"
+                            f"**S/N**： {spec.get('breaker_sn', '—')}"
+                        )
                         extra = []
                         if spec.get('breaker_source') and spec.get('breaker_source') != '—':
                             extra.append(f"貨源：{spec.get('breaker_source')}")
