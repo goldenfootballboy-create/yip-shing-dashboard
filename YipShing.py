@@ -192,7 +192,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph("Engine & Alternator (發動機 & 電球)", h3_style))
         elements.append(Paragraph(
             f"發動機型號　： {spec.get('genset_model', '—')}　　"
-            f"<font name='NotoSansTC' size=12>&emsp;&emsp;&emsp;</font>"
+            f"&#8203;　　　　"
             f"S/N： {spec.get('genset_sn', '—')}",
             normal
         ))
