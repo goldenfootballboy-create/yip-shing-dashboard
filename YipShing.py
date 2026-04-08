@@ -1150,60 +1150,7 @@ def render_project_card(row, idx):
             st.rerun()
 
 
-# ==================== Gantt Chart ====================
-if st.button("📊 顯示 Gantt Chart (專案時間軸)", type="primary", use_container_width=True):
-    st.markdown("### 專案 Gantt Chart（從 Parts Arrival 到 Delivery Complete）")
 
-    gantt_data = []
-
-    for _, row in df.iterrows():
-        project = row["Project_Name"]
-
-        # 收集每個階段的開始與結束時間
-        stages = [
-            ("零件到貨", "Parts_Arrival"),
-            ("安裝完成", "Installation_Complete"),
-            ("測試完成", "Testing_Complete"),
-            ("清潔完成", "Cleaning_Complete"),
-            ("交付完成", "Delivery_Complete")
-        ]
-
-        for stage_name, col in stages:
-            start_date = row.get(col)
-            if pd.notna(start_date):
-                gantt_data.append({
-                    "Project": project,
-                    "Task": stage_name,
-                    "Start": start_date,
-                    "Finish": start_date + pd.Timedelta(days=1),  # 讓每階段至少顯示1天
-                    "Color": "#1fb429"
-                })
-
-    if gantt_data:
-        gantt_df = pd.DataFrame(gantt_data)
-
-        fig = px.timeline(
-            gantt_df,
-            x_start="Start",
-            x_end="Finish",
-            y="Project",
-            color="Color",
-            title="專案進度 Gantt Chart",
-            labels={"Project": "專案名稱"},
-            text="Task"
-        )
-
-        fig.update_yaxes(autorange="reversed")  # 讓最新專案在最上面
-        fig.update_layout(
-            height=600 + len(gantt_df) * 25,  # 自動調整高度
-            xaxis_title="日期",
-            showlegend=False,
-            bargap=0.15
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("目前沒有足夠的日期資料可以畫 Gantt Chart")
 # Edit Project Specification Dialog
 if st.session_state.get("show_edit_spec_dialog", False):
 
