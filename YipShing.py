@@ -2805,43 +2805,43 @@ if st.session_state.get("show_edit_info_dialog", False):
                 st.session_state.edit_info_saving = True
                 st.rerun()
 
-        with col_cancel:
-            if st.button("Cancel", type="secondary", use_container_width=True):
-                st.session_state["show_edit_info_dialog"] = False
-                st.session_state.edit_info_active = False
-                st.rerun()
+            if st.session_state.get("edit_info_saving", False):
+                fullscreen_loading("正在儲存基本資訊，請稍候...")
 
-        if st.session_state.get("edit_info_saving", False):
-            fullscreen_loading("正在儲存基本資訊，請稍候...")
+                if not e_name.strip():
+                    st.error("Project Name required!")
+                elif e_name != row_to_edit["Project_Name"] and e_name in df["Project_Name"].values:
+                    st.error("Name exists!")
+                else:
+                    df.at[idx_to_edit, "Project_Type"] = e_type
+                    df.at[idx_to_edit, "Project_Name"] = e_name
+                    df.at[idx_to_edit, "Year"] = int(e_year)
+                    df.at[idx_to_edit, "Customer"] = e_customer
+                    df.at[idx_to_edit, "Supervisor"] = e_supervisor
+                    df.at[idx_to_edit, "Qty"] = e_qty
+                    df.at[idx_to_edit, "Real_Count"] = e_qty
+                    df.at[idx_to_edit, "Progress_Reminder"] = e_reminder
 
-            if not e_name.strip():
-                st.error("Project Name required!")
-            elif e_name != row_to_edit["Project_Name"] and e_name in df["Project_Name"].values:
-                st.error("Name exists!")
-            else:
-                df.at[idx_to_edit, "Project_Type"] = e_type
-                df.at[idx_to_edit, "Project_Name"] = e_name
-                df.at[idx_to_edit, "Year"] = int(e_year)
-                df.at[idx_to_edit, "Lead_Time"] = e_leadtime
-                df.at[idx_to_edit, "Customer"] = e_customer
-                df.at[idx_to_edit, "Supervisor"] = e_supervisor
-                df.at[idx_to_edit, "Qty"] = e_qty
-                df.at[idx_to_edit, "Real_Count"] = e_qty
-                df.at[idx_to_edit, "Progress_Reminder"] = e_reminder
-                df.at[idx_to_edit, "Parts_Arrival"] = e_parts_arrival if e_parts_arrival else None
-                df.at[idx_to_edit, "Installation_Complete"] = e_install_complete if e_install_complete else None
-                df.at[idx_to_edit, "Testing_Complete"] = e_testing_complete if e_testing_complete else None
-                df.at[idx_to_edit, "Cleaning_Complete"] = e_cleaning_complete if e_cleaning_complete else None
-                df.at[idx_to_edit, "Delivery_Complete"] = e_delivery_complete if e_delivery_complete else None
+                    # ←←← 關鍵修正：全部轉成 pd.to_datetime
+                    df.at[idx_to_edit, "Lead_Time"] = pd.to_datetime(e_leadtime) if e_leadtime is not None else pd.NaT
+                    df.at[idx_to_edit, "Parts_Arrival"] = pd.to_datetime(
+                        e_parts_arrival) if e_parts_arrival is not None else pd.NaT
+                    df.at[idx_to_edit, "Installation_Complete"] = pd.to_datetime(
+                        e_install_complete) if e_install_complete is not None else pd.NaT
+                    df.at[idx_to_edit, "Testing_Complete"] = pd.to_datetime(
+                        e_testing_complete) if e_testing_complete is not None else pd.NaT
+                    df.at[idx_to_edit, "Cleaning_Complete"] = pd.to_datetime(
+                        e_cleaning_complete) if e_cleaning_complete is not None else pd.NaT
+                    df.at[idx_to_edit, "Delivery_Complete"] = pd.to_datetime(
+                        e_delivery_complete) if e_delivery_complete is not None else pd.NaT
 
-                save_projects()
-                st.cache_data.clear()
+                    save_projects()
+                    st.cache_data.clear()
 
-                st.success("基本資訊已成功更新！")
-                st.session_state["show_edit_info_dialog"] = False
-                st.session_state.edit_info_active = False
-                st.session_state.edit_info_saving = False
-                st.rerun()
+                    st.success("基本資訊已成功更新！")
+                    st.session_state["show_edit_info_dialog"] = False
+                    st.session_state.edit_info_saving = False
+                    st.rerun()
     edit_info_dialog()
 
 # Sidebar & 主畫面
