@@ -1951,11 +1951,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
             recipient_emails = [
 
 
-                "anson@topone-power.com",
-                "michelle@ysdiesel.com.hk",
-                "serena@topone-power.com",
-                "warehouse@ysdiesel.com.hk",
-                "Natural@ysdiesel.com.hk"
+                "anson@topone-power.com"
+
 
 
             ]
@@ -2687,11 +2684,7 @@ if st.session_state.get("spec_dialog_open", False):
 
             # 收件人列表
             recipient_emails = [
-                "anson@topone-power.com",
-                "michelle@ysdiesel.com.hk",
-                "serena@topone-power.com",
-                "warehouse@ysdiesel.com.hk",
-                "Natural@ysdiesel.com.hk"
+                "anson@topone-power.com"
 
             ]
 
