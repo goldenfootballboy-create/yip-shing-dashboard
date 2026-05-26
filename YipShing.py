@@ -2001,8 +2001,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.rerun()
     edit_spec_dialog()
 
+import streamlit as st
+import pandas as pd
+import json
+
 # ==============================================
-# New Spec - Excel 頂部格式版（已按照你最新要求設計）
+# New Spec - Excel 頂部格式版（已優化為 5 欄位結構）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -2016,7 +2020,7 @@ if st.session_state.get("spec_dialog_open", False):
     def spec_dialog():
         st.markdown("**專案基本資料**")
 
-        # ==================== 頂部格式（完全按照你描述的 A:B 標籤 + C:E 輸入） ====================
+        # ==================== 頂部格式（A:B 標籤 + C:E 輸入） ====================
         # SO#
         c1, c2 = st.columns([2, 5])
         with c1:
@@ -2054,53 +2058,73 @@ if st.session_state.get("spec_dialog_open", False):
             st.write("**Type**")
         with type_col2:
             project_type = st.selectbox("", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"],
-                                        index=0, key="dlg_type")
+                                         index=0, key="dlg_type")
 
         st.markdown("---")
 
-        # ==================== 主表格（Component | Must Feature | Optional Feature） ====================
-        columns = ["Component", "Must Feature", "Optional Feature"]
-
+        # ==================== 主表格（完全還原 Excel 5 欄位結構） ====================
+        # 建立完全對應圖片的數據結構
         default_data = {
-            "Component": ["Engine"]*7 + ["Alternator"]*4 + ["Radiator"]*4 + ["Base Frame"]*2 + ["Container"]*2 + ["Breaker"]*3 + ["Control Panel"]*2 + ["Battery"]*2 + ["Fuel Tank"]*3 + ["Oil Tank"]*2,
-            "Must Feature": ["Model", "Year", "Power(Prime/Standby kw)", "RPM", "Voltage/Frequency", "Heater", "Color",
-                            "Model", "Winding", "Droop", "Color",
-                            "Model", "Degree", "Fan Size", "Protection Cover",
-                            "Model", "Anti-Vibration Mounts",
-                            "Type", "Dimension",
-                            "Model", "Type", "Rating",
-                            "Model", "Module",
-                            "Model", "Battery Switch",
-                            "Volumn", "Layer", "Fuel Water Separator",
-                            "Volumn", "Donaldson Breather"],
-            "Optional Feature": ["Oil Coolant Temperature sensor", "Oil Pressure sensor", "Hand Swing Pump", "Silencer", "Flexible Pipe & Flange", "Exhaust Pipe", "",
-                                 "Heater", "PMG", "", "",
-                                 "Fuel Cooler", "Low Water level Switch", "Murphy Coolant Level Switch", "",
-                                 "Color", "",
-                                 "CO Detector", "Color",
-                                 "Gear Motor", "Shunt trip", "closing coil",
-                                 "UV relay", "",
-                                 "Charger Model", "",
-                                 "Fuel Level Gauge with level", "Fuel Level Switch", "Fuel Level Sensor",
-                                 "Donaldson Breather", "Murphy Coolant Level Switch"]
+            "Component": [
+                "Engine", "Engine", "Engine", "Engine", "Engine", "Engine", "Engine",
+                "Alternator", "Alternator", "Alternator", "Alternator",
+                "Radiator", "Radiator", "Radiator", "Radiator",
+                "Base Frame", "Base Frame",
+                "Container", "Container",
+                "Breaker", "Breaker", "Breaker", "Breaker",
+                "Control Panel", "Control Panel",
+                "Battery", "Battery",
+                "Fuel Tank", "Fuel Tank", "Fuel Tank", "Fuel Tank",
+                "Oil Tank", "Oil Tank"
+            ],
+            "Must Feature": [
+                "Model", "Year", "Power(Prime/Standby kw)", "RPM", "Voltage/Frequency", "Heater", "Color",
+                "Model", "Winding", "Droop", "Color",
+                "Model", "Degree", "Fan Size", "Protection Cover",
+                "Model", "Anti-Vibration Mounts",
+                "Type", "Dimension",
+                "Model", "Type", "Rating", "",
+                "Model", "Module",
+                "Model", "Battery Switch",
+                "Volumn", "Layer", "Fuel Water Seperator", "",
+                "Volumn", ""
+            ],
+            "Must Value": [""] * 33,  # 提供使用者輸入的空白欄位
+            "Optional Feature": [
+                "Oil Coolant Temperature sensor", "Oil Pressure sensor", "Hand Swing Pump", "Silencer", "Fexible Pipe & Flange", "Exhaust Pipe", "",
+                "Heater", "PMG", "", "",
+                "Fuel Cooler", "Low Water level Switch", "Murphy Coolant Level Switch", "",
+                "Color", "",
+                "CO Detector", "Color",
+                "Gear Motor", "Shunt trip", "closing coil", "UV relay",
+                "", "",
+                "Charger Model", "",
+                "Fuel Level Gauge with level", "Fuel Level Switch", "Fuel Level Sensor", "Donaldson Breather",
+                "Donaldson Breather", "Murphy Coolant Level Switch"
+            ],
+            "Optional Value": [""] * 33  # 提供使用者輸入的空白欄位
         }
 
         df_input = pd.DataFrame(default_data)
 
+        # 透過 column_config 鎖定項目名稱，只允許填寫 Value
         edited_df = st.data_editor(
             df_input,
             use_container_width=True,
             num_rows="fixed",
             hide_index=True,
             column_config={
-                "Component": st.column_config.TextColumn(disabled=True, width="small"),
-                "Must Feature": st.column_config.TextColumn(width="medium"),
-                "Optional Feature": st.column_config.TextColumn(width="medium"),
+                "Component": st.column_config.TextColumn("Component", disabled=True, width="small"),
+                "Must Feature": st.column_config.TextColumn("Must Feature", disabled=True, width="medium"),
+                "Must Value": st.column_config.TextColumn("Must Value ✍️", width="medium"),
+                "Optional Feature": st.column_config.TextColumn("Optional Feature", disabled=True, width="medium"),
+                "Optional Value": st.column_config.TextColumn("Optional Value ✍️", width="medium"),
             }
         )
 
-        st.caption("💡 點擊格子即可編輯，像 Excel 一樣操作")
+        st.caption("💡 點擊 **Must Value** 或 **Optional Value** 即可直接像 Excel 一樣打字或輸入內容。")
 
+        # ==================== 按鈕儲存邏輯 ====================
         col_save, col_cancel = st.columns(2)
         with col_save:
             if st.button("💾 Save & Close", type="primary", use_container_width=True):
@@ -2109,23 +2133,28 @@ if st.session_state.get("spec_dialog_open", False):
                 temp_project["Product_Category"] = product_category
                 temp_project["Product_Code"] = product_code
                 temp_project["Qty"] = qty_input
+                temp_project["Project_Type"] = project_type
 
-                # 儲存表格資料
+                # 儲存表格資料 (保留所有填寫的欄位)
                 specs = []
                 for _, row in edited_df.iterrows():
                     spec_data = {
                         "component": row["Component"],
                         "must_feature": row["Must Feature"],
-                        "optional_feature": row["Optional Feature"]
+                        "must_value": row["Must Value"],
+                        "optional_feature": row["Optional Feature"],
+                        "optional_value": row["Optional Value"]
                     }
                     specs.append(spec_data)
 
+                # 格式化輸出以配合你原本的後台機制
                 first_spec = specs[0] if specs else {}
-                visible_lines = f"Model: {first_spec.get('must_feature','—')}"
+                visible_lines = f"Model: {first_spec.get('must_value','—')}"
                 extra_json = json.dumps(specs, ensure_ascii=False)
                 temp_project["Project_Spec"] = visible_lines + "||EXTRA||" + extra_json
 
                 st.session_state.new_spec_saving = True
+                st.session_state.spec_dialog_open = False
                 st.rerun()
 
         with col_cancel:
@@ -2134,7 +2163,6 @@ if st.session_state.get("spec_dialog_open", False):
                 st.rerun()
 
     spec_dialog()
-
 # Edit Project Info Dialog
 if st.session_state.get("show_edit_info_dialog", False):
     if st.session_state.dialog_active != "edit_info":
