@@ -2002,7 +2002,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# New Spec - Excel 表格版（已完全按照你最新格式設計）
+# New Spec - Excel 頂部格式版（已按照你最新要求設計）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -2016,88 +2016,90 @@ if st.session_state.get("spec_dialog_open", False):
     def spec_dialog():
         st.markdown("**專案基本資料**")
 
-        # ==================== 頂部格式 (A1 ~ A4) ====================
-        col_so, col_cat = st.columns([1, 3])
-        with col_so:
+        # ==================== 頂部格式（完全按照你描述的 A:B 標籤 + C:E 輸入） ====================
+        # SO#
+        c1, c2 = st.columns([2, 5])
+        with c1:
             st.write("**SO#**")
+        with c2:
             so_number = st.text_input("", key="dlg_so_number", label_visibility="collapsed")
-        with col_cat:
+
+        # Product Category
+        c1, c2 = st.columns([2, 5])
+        with c1:
             st.write("**Product Category**")
+        with c2:
             product_category = st.text_input("", key="dlg_product_category", label_visibility="collapsed")
 
-        col_code, col_qty = st.columns([1, 3])
-        with col_code:
+        # Product Code
+        c1, c2 = st.columns([2, 5])
+        with c1:
             st.write("**Product Code**")
+        with c2:
             product_code = st.text_input("", key="dlg_product_code", label_visibility="collapsed")
-        with col_qty:
+
+        # QTY
+        c1, c2 = st.columns([2, 5])
+        with c1:
             st.write("**QTY**")
+        with c2:
             qty_input = st.number_input("", min_value=1, value=qty, key="dlg_qty_input", label_visibility="collapsed")
 
         st.markdown("---")
         st.markdown("**Specification**")
 
-        # ==================== Specification 表格 ====================
-        # 表格欄位設計（按照你描述的 Must Feature + Optional Feature）
-        columns = [
-            "Component", "Must Feature", "Optional Feature"
-        ]
+        # Type 下拉選單
+        type_col1, type_col2 = st.columns([2, 5])
+        with type_col1:
+            st.write("**Type**")
+        with type_col2:
+            project_type = st.selectbox("", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"],
+                                        index=0, key="dlg_type")
 
-        # 預設資料（Engine 區塊為主，其他可自行擴充）
-        default_rows = [
-            ["Engine", "Model", "Oil Coolant Temperature sensor"],
-            ["Engine", "Year", "Oil Pressure sensor"],
-            ["Engine", "Power(Prime/Standby kw)", "Hand Swing Pump"],
-            ["Engine", "RPM", "Silencer"],
-            ["Engine", "Voltage/Frequency", "Flexible Pipe & Flange"],
-            ["Engine", "Heater", "Exhaust Pipe"],
-            ["Engine", "Color", ""],
-            # Alternator
-            ["Alternator", "Model", "Heater"],
-            ["Alternator", "Winding", "PMG"],
-            ["Alternator", "Droop", ""],
-            ["Alternator", "Color", ""],
-            # Radiator
-            ["Radiator", "Model", "Fuel Cooler"],
-            ["Radiator", "Degree", "Low Water level Switch"],
-            ["Radiator", "Fan Size", "Murphy Coolant Level Switch"],
-            ["Radiator", "Protection Cover", ""],
-            # Base Frame
-            ["Base Frame", "Model", "Color"],
-            ["Base Frame", "Anti-Vibration Mounts", ""],
-            # Container
-            ["Container", "Type", "CO Detector"],
-            ["Container", "Dimension", "Color"],
-            # Breaker
-            ["Breaker", "Model", "Gear Motor"],
-            ["Breaker", "Type", "Shunt trip"],
-            ["Breaker", "Rating", "closing coil"],
-            # Control Panel
-            ["Control Panel", "Model", "UV relay"],
-            ["Control Panel", "Module", ""],
-        ]
+        st.markdown("---")
 
-        # 建立表格（每台機器重複一次）
-        data = []
-        for i in range(qty):
-            for row in default_rows:
-                data.append([f"第 {i+1} 台 - {row[0]}"] + row[1:])
+        # ==================== 主表格（Component | Must Feature | Optional Feature） ====================
+        columns = ["Component", "Must Feature", "Optional Feature"]
 
-        df_input = pd.DataFrame(data, columns=columns)
+        default_data = {
+            "Component": ["Engine"]*7 + ["Alternator"]*4 + ["Radiator"]*4 + ["Base Frame"]*2 + ["Container"]*2 + ["Breaker"]*3 + ["Control Panel"]*2 + ["Battery"]*2 + ["Fuel Tank"]*3 + ["Oil Tank"]*2,
+            "Must Feature": ["Model", "Year", "Power(Prime/Standby kw)", "RPM", "Voltage/Frequency", "Heater", "Color",
+                            "Model", "Winding", "Droop", "Color",
+                            "Model", "Degree", "Fan Size", "Protection Cover",
+                            "Model", "Anti-Vibration Mounts",
+                            "Type", "Dimension",
+                            "Model", "Type", "Rating",
+                            "Model", "Module",
+                            "Model", "Battery Switch",
+                            "Volumn", "Layer", "Fuel Water Separator",
+                            "Volumn", "Donaldson Breather"],
+            "Optional Feature": ["Oil Coolant Temperature sensor", "Oil Pressure sensor", "Hand Swing Pump", "Silencer", "Flexible Pipe & Flange", "Exhaust Pipe", "",
+                                 "Heater", "PMG", "", "",
+                                 "Fuel Cooler", "Low Water level Switch", "Murphy Coolant Level Switch", "",
+                                 "Color", "",
+                                 "CO Detector", "Color",
+                                 "Gear Motor", "Shunt trip", "closing coil",
+                                 "UV relay", "",
+                                 "Charger Model", "",
+                                 "Fuel Level Gauge with level", "Fuel Level Switch", "Fuel Level Sensor",
+                                 "Donaldson Breather", "Murphy Coolant Level Switch"]
+        }
 
-        # 顯示 Excel 風格表格
+        df_input = pd.DataFrame(default_data)
+
         edited_df = st.data_editor(
             df_input,
             use_container_width=True,
             num_rows="fixed",
             hide_index=True,
             column_config={
-                "Component": st.column_config.TextColumn(disabled=True),
+                "Component": st.column_config.TextColumn(disabled=True, width="small"),
                 "Must Feature": st.column_config.TextColumn(width="medium"),
                 "Optional Feature": st.column_config.TextColumn(width="medium"),
             }
         )
 
-        st.caption("💡 像 Excel 一樣點擊格子即可修改，可直接複製貼上")
+        st.caption("💡 點擊格子即可編輯，像 Excel 一樣操作")
 
         col_save, col_cancel = st.columns(2)
         with col_save:
@@ -2108,17 +2110,16 @@ if st.session_state.get("spec_dialog_open", False):
                 temp_project["Product_Code"] = product_code
                 temp_project["Qty"] = qty_input
 
-                # 轉成規格列表（供後續儲存）
+                # 儲存表格資料
                 specs = []
                 for _, row in edited_df.iterrows():
                     spec_data = {
                         "component": row["Component"],
                         "must_feature": row["Must Feature"],
-                        "optional_feature": row["Optional Feature"],
+                        "optional_feature": row["Optional Feature"]
                     }
                     specs.append(spec_data)
 
-                # 儲存到 Project_Spec
                 first_spec = specs[0] if specs else {}
                 visible_lines = f"Model: {first_spec.get('must_feature','—')}"
                 extra_json = json.dumps(specs, ensure_ascii=False)
