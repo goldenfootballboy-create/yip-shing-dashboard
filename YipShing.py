@@ -2002,7 +2002,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# New Spec - Excel 表格版（已按照最新圖片調整頂部）
+# New Spec - Excel 表格版（已按照最新圖片格式設計）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -2012,45 +2012,59 @@ if st.session_state.get("spec_dialog_open", False):
     temp_project = st.session_state.temp_project
     qty = temp_project.get("Qty", 1)
 
-
     @st.dialog("Project Specification - Excel 表格輸入", width="large")
     def spec_dialog():
         st.markdown("**專案基本資料**")
 
-        # ==================== 頂部欄位（按照你圖片格式） ====================
-        col1, col2 = st.columns([1, 3])
-        with col1:
+        # 頂部欄位（完全按照你圖片格式）
+        c1, c2 = st.columns([1, 3])
+        with c1:
             st.write("**SO#**")
-            so_number = st.text_input("", key="so_number", label_visibility="collapsed")
-
-        with col2:
+            so_number = st.text_input("", key="dlg_so_number", label_visibility="collapsed")
+        with c2:
             st.write("**Product Category**")
-            product_category = st.text_input("", key="product_category", label_visibility="collapsed")
+            product_category = st.text_input("", key="dlg_product_category", label_visibility="collapsed")
 
-        col3, col4 = st.columns([1, 3])
-        with col3:
+        c3, c4 = st.columns([1, 3])
+        with c3:
             st.write("**Product Code**")
-            product_code = st.text_input("", key="product_code", label_visibility="collapsed")
-
-        with col4:
+            product_code = st.text_input("", key="dlg_product_code", label_visibility="collapsed")
+        with c4:
             st.write("**QTY**")
-            qty_input = st.number_input("", min_value=1, value=qty, key="qty_input", label_visibility="collapsed")
+            qty_input = st.number_input("", min_value=1, value=qty, key="dlg_qty_input", label_visibility="collapsed")
 
         st.markdown("---")
         st.markdown(f"**Specification - {qty} 台機器**（請在下方表格填寫）")
 
-        # ==================== 多台機器表格 ====================
+        # ==================== 表格欄位（根據圖片 Must Feature + Optional Feature） ====================
         columns = [
-            "第幾台", "Type", "Model", "Year", "Prime (kW)", "Standby (kW)",
-            "RPM", "Voltage/Frequency", "Heater (kW)", "Color",
-            "Alternator Model", "Alternator S/N", "Droop", "PMG",
-            "Radiator Model", "Fan Size", "Fuel Cooler", "Low Water Switch",
-            "Base Frame Model", "Anti-Vibration Mounts", "Container Type",
-            "Breaker Type", "Control Panel Model", "Remarks"
+            "第幾台", "Type",
+            # Engine
+            "Engine Model", "Year", "Power(Prime/Standby kw)", "RPM", "Voltage/Frequency", "Heater", "Color",
+            # Alternator
+            "Alternator Model", "Winding", "Droop", "Color",
+            # Radiator
+            "Radiator Model", "Degree", "Fan Size", "Protection Cover",
+            # Base Frame
+            "Base Frame Model", "Anti-Vibration Mounts",
+            # Container
+            "Container Type", "Dimension",
+            # Breaker
+            "Breaker Model", "Type", "Rating",
+            # Control Panel
+            "Control Panel Model", "Module",
+            # Battery
+            "Battery Model", "Battery Switch",
+            # Fuel Tank
+            "Fuel Tank Volume", "Layer", "Fuel Water Separator",
+            # Oil Tank
+            "Oil Tank Volume",
+            # 備註
+            "Remarks"
         ]
 
         default_data = {col: [""] * qty for col in columns}
-        default_data["第幾台"] = [f"第 {i + 1} 台" for i in range(qty)]
+        default_data["第幾台"] = [f"第 {i+1} 台" for i in range(qty)]
         default_data["Type"] = [temp_project.get("Project_Type", "Enclosure")] * qty
 
         df_input = pd.DataFrame(default_data)
@@ -2062,58 +2076,30 @@ if st.session_state.get("spec_dialog_open", False):
             hide_index=True,
             column_config={
                 "第幾台": st.column_config.TextColumn(disabled=True),
-                "Type": st.column_config.SelectboxColumn(
-                    options=["Enclosure", "Open Set", "Scania", "Marine", "K50G3"]),
-                "Voltage/Frequency": st.column_config.SelectboxColumn(
-                    options=["--", "380/50Hz", "400/50Hz", "415/50Hz", "480/60Hz", "Muti-Voltage"]),
-                "RPM": st.column_config.SelectboxColumn(options=["--", "1500", "1800", "1500&1800"]),
-                "Droop": st.column_config.SelectboxColumn(options=["--", "包含", "不包含"]),
-                "PMG": st.column_config.SelectboxColumn(options=["--", "包含", "不包含"]),
+                "Type": st.column_config.SelectboxColumn(options=["Enclosure", "Open Set", "Scania", "Marine", "K50G3"]),
             }
         )
+
+        st.caption("💡 像 Excel 一樣點擊格子修改，可直接複製貼上")
 
         col_save, col_cancel = st.columns(2)
         with col_save:
             if st.button("💾 Save & Close", type="primary", use_container_width=True):
-                # 儲存頂部欄位
+                # 儲存頂部資料
                 temp_project["SO_Number"] = so_number
                 temp_project["Product_Category"] = product_category
                 temp_project["Product_Code"] = product_code
                 temp_project["Qty"] = qty_input
 
-                # 儲存多台機器規格
+                # 轉成規格列表
                 specs = []
                 for _, row in edited_df.iterrows():
-                    spec_data = {
-                        "machine_no": row["第幾台"],
-                        "type": row["Type"],
-                        "model": row["Model"],
-                        "year": row["Year"],
-                        "prime": row["Prime (kW)"],
-                        "standby": row["Standby (kW)"],
-                        "rpm": row["RPM"],
-                        "voltage_frequency": row["Voltage/Frequency"],
-                        "heater": row["Heater (kW)"],
-                        "color": row["Color"],
-                        "alt_model": row["Alternator Model"],
-                        "alt_sn": row["Alternator S/N"],
-                        "droop": row["Droop"],
-                        "pmg": row["PMG"],
-                        "radiator_model": row["Radiator Model"],
-                        "fan_size": row["Fan Size"],
-                        "fuel_cooler": row["Fuel Cooler"],
-                        "low_water_switch": row["Low Water Switch"],
-                        "base_frame_model": row["Base Frame Model"],
-                        "avm": row["Anti-Vibration Mounts"],
-                        "container_type": row["Container Type"],
-                        "breaker_type": row["Breaker Type"],
-                        "control_panel_model": row["Control Panel Model"],
-                        "remarks": row["Remarks"],
-                    }
+                    spec_data = {col: row[col] for col in columns}
                     specs.append(spec_data)
 
+                # 儲存到 Project_Spec
                 first_spec = specs[0] if specs else {}
-                visible_lines = f"Model: {first_spec.get('model', '—')} | Prime/Standby: {first_spec.get('prime', '—')}/{first_spec.get('standby', '—')}"
+                visible_lines = f"Model: {first_spec.get('Engine Model','—')} | Prime/Standby: {first_spec.get('Power(Prime/Standby kw)','—')}"
                 extra_json = json.dumps(specs, ensure_ascii=False)
                 temp_project["Project_Spec"] = visible_lines + "||EXTRA||" + extra_json
 
@@ -2124,7 +2110,6 @@ if st.session_state.get("spec_dialog_open", False):
             if st.button("Cancel", type="secondary", use_container_width=True):
                 st.session_state.spec_dialog_open = False
                 st.rerun()
-
 
     spec_dialog()
 
