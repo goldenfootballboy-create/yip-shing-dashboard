@@ -2062,20 +2062,19 @@ if st.session_state.get("spec_dialog_open", False):
 
         st.markdown("---")
 
-        # ==================== 主表格（完全還原 Excel 5 欄位結構） ====================
-        # 建立完全對應圖片的數據結構
+        # 建立像 Excel 一樣乾淨的留白數據結構
         default_data = {
             "Component": [
-                "Engine", "Engine", "Engine", "Engine", "Engine", "Engine", "Engine",
-                "Alternator", "Alternator", "Alternator", "Alternator",
-                "Radiator", "Radiator", "Radiator", "Radiator",
-                "Base Frame", "Base Frame",
-                "Container", "Container",
-                "Breaker", "Breaker", "Breaker", "Breaker",
-                "Control Panel", "Control Panel",
-                "Battery", "Battery",
-                "Fuel Tank", "Fuel Tank", "Fuel Tank", "Fuel Tank",
-                "Oil Tank", "Oil Tank"
+                "Engine", "", "", "", "", "", "",  # 只有第一行顯示，其餘留白
+                "Alternator", "", "", "",
+                "Radiator", "", "", "",
+                "Base Frame", "",
+                "Container", "",
+                "Breaker", "", "", "",
+                "Control Panel", "",
+                "Battery", "",
+                "Fuel Tank", "", "", "",
+                "Oil Tank", ""
             ],
             "Must Feature": [
                 "Model", "Year", "Power(Prime/Standby kw)", "RPM", "Voltage/Frequency", "Heater", "Color",
@@ -2089,9 +2088,10 @@ if st.session_state.get("spec_dialog_open", False):
                 "Volumn", "Layer", "Fuel Water Seperator", "",
                 "Volumn", ""
             ],
-            "Must Value": [""] * 33,  # 提供使用者輸入的空白欄位
+            "Must Value": [""] * 33,
             "Optional Feature": [
-                "Oil Coolant Temperature sensor", "Oil Pressure sensor", "Hand Swing Pump", "Silencer", "Fexible Pipe & Flange", "Exhaust Pipe", "",
+                "Oil Coolant Temperature sensor", "Oil Pressure sensor", "Hand Swing Pump", "Silencer",
+                "Fexible Pipe & Flange", "Exhaust Pipe", "",
                 "Heater", "PMG", "", "",
                 "Fuel Cooler", "Low Water level Switch", "Murphy Coolant Level Switch", "",
                 "Color", "",
@@ -2102,7 +2102,7 @@ if st.session_state.get("spec_dialog_open", False):
                 "Fuel Level Gauge with level", "Fuel Level Switch", "Fuel Level Sensor", "Donaldson Breather",
                 "Donaldson Breather", "Murphy Coolant Level Switch"
             ],
-            "Optional Value": [""] * 33  # 提供使用者輸入的空白欄位
+            "Optional Value": [""] * 33
         }
 
         df_input = pd.DataFrame(default_data)
