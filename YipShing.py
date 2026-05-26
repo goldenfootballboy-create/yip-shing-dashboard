@@ -2001,10 +2001,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.rerun()
     edit_spec_dialog()
 
-
-
 # ==============================================
-# New Spec - Excel 表格版（根據你上傳的圖片格式）
+# New Spec - Excel 表格版（已按照最新圖片調整頂部）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -2014,32 +2012,49 @@ if st.session_state.get("spec_dialog_open", False):
     temp_project = st.session_state.temp_project
     qty = temp_project.get("Qty", 1)
 
+
     @st.dialog("Project Specification - Excel 表格輸入", width="large")
     def spec_dialog():
-        st.markdown(f"**請填寫 {qty} 台機器的規格**（像 Excel 一樣直接編輯）")
+        st.markdown("**專案基本資料**")
 
-        # 根據你 Excel 圖片的欄位設計表格
+        # ==================== 頂部欄位（按照你圖片格式） ====================
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.write("**SO#**")
+            so_number = st.text_input("", key="so_number", label_visibility="collapsed")
+
+        with col2:
+            st.write("**Product Category**")
+            product_category = st.text_input("", key="product_category", label_visibility="collapsed")
+
+        col3, col4 = st.columns([1, 3])
+        with col3:
+            st.write("**Product Code**")
+            product_code = st.text_input("", key="product_code", label_visibility="collapsed")
+
+        with col4:
+            st.write("**QTY**")
+            qty_input = st.number_input("", min_value=1, value=qty, key="qty_input", label_visibility="collapsed")
+
+        st.markdown("---")
+        st.markdown(f"**Specification - {qty} 台機器**（請在下方表格填寫）")
+
+        # ==================== 多台機器表格 ====================
         columns = [
-            "第幾台", "Type", "Model", "Year",
-            "Prime (kW)", "Standby (kW)", "RPM",
-            "Voltage/Frequency", "Heater (kW)", "Color",
-            "Alternator Model", "Alternator S/N",
-            "Droop", "PMG",
-            "Radiator Model", "Fan Size",
-            "Fuel Cooler", "Low Water Switch",
-            "Base Frame Model", "Anti-Vibration Mounts",
-            "Container Type", "Breaker Type",
-            "Control Panel Model", "Remarks"
+            "第幾台", "Type", "Model", "Year", "Prime (kW)", "Standby (kW)",
+            "RPM", "Voltage/Frequency", "Heater (kW)", "Color",
+            "Alternator Model", "Alternator S/N", "Droop", "PMG",
+            "Radiator Model", "Fan Size", "Fuel Cooler", "Low Water Switch",
+            "Base Frame Model", "Anti-Vibration Mounts", "Container Type",
+            "Breaker Type", "Control Panel Model", "Remarks"
         ]
 
-        # 建立空白表格
         default_data = {col: [""] * qty for col in columns}
-        default_data["第幾台"] = [f"第 {i+1} 台" for i in range(qty)]
+        default_data["第幾台"] = [f"第 {i + 1} 台" for i in range(qty)]
         default_data["Type"] = [temp_project.get("Project_Type", "Enclosure")] * qty
 
         df_input = pd.DataFrame(default_data)
 
-        # 顯示 Excel 風格的可編輯表格
         edited_df = st.data_editor(
             df_input,
             use_container_width=True,
@@ -2047,23 +2062,30 @@ if st.session_state.get("spec_dialog_open", False):
             hide_index=True,
             column_config={
                 "第幾台": st.column_config.TextColumn(disabled=True),
-                "Type": st.column_config.SelectboxColumn(options=["Enclosure", "Open Set", "Scania", "Marine", "K50G3"]),
-                "Voltage/Frequency": st.column_config.SelectboxColumn(options=["--", "380/50Hz", "400/50Hz", "415/50Hz", "480/60Hz", "Muti-Voltage"]),
+                "Type": st.column_config.SelectboxColumn(
+                    options=["Enclosure", "Open Set", "Scania", "Marine", "K50G3"]),
+                "Voltage/Frequency": st.column_config.SelectboxColumn(
+                    options=["--", "380/50Hz", "400/50Hz", "415/50Hz", "480/60Hz", "Muti-Voltage"]),
                 "RPM": st.column_config.SelectboxColumn(options=["--", "1500", "1800", "1500&1800"]),
                 "Droop": st.column_config.SelectboxColumn(options=["--", "包含", "不包含"]),
                 "PMG": st.column_config.SelectboxColumn(options=["--", "包含", "不包含"]),
             }
         )
 
-        st.caption("💡 像 Excel 一樣點擊格子即可修改，可直接複製貼上")
-
         col_save, col_cancel = st.columns(2)
         with col_save:
             if st.button("💾 Save & Close", type="primary", use_container_width=True):
+                # 儲存頂部欄位
+                temp_project["SO_Number"] = so_number
+                temp_project["Product_Category"] = product_category
+                temp_project["Product_Code"] = product_code
+                temp_project["Qty"] = qty_input
+
+                # 儲存多台機器規格
                 specs = []
                 for _, row in edited_df.iterrows():
                     spec_data = {
-                        "cabinet_no": "",  # 如需櫃號可另外加
+                        "machine_no": row["第幾台"],
                         "type": row["Type"],
                         "model": row["Model"],
                         "year": row["Year"],
@@ -2090,9 +2112,8 @@ if st.session_state.get("spec_dialog_open", False):
                     }
                     specs.append(spec_data)
 
-                # 儲存到 temp_project
                 first_spec = specs[0] if specs else {}
-                visible_lines = f"Model: {first_spec.get('model','—')} | Prime/Standby: {first_spec.get('prime','—')}/{first_spec.get('standby','—')}"
+                visible_lines = f"Model: {first_spec.get('model', '—')} | Prime/Standby: {first_spec.get('prime', '—')}/{first_spec.get('standby', '—')}"
                 extra_json = json.dumps(specs, ensure_ascii=False)
                 temp_project["Project_Spec"] = visible_lines + "||EXTRA||" + extra_json
 
@@ -2104,7 +2125,9 @@ if st.session_state.get("spec_dialog_open", False):
                 st.session_state.spec_dialog_open = False
                 st.rerun()
 
+
     spec_dialog()
+
 # Edit Project Info Dialog
 if st.session_state.get("show_edit_info_dialog", False):
     if st.session_state.dialog_active != "edit_info":
