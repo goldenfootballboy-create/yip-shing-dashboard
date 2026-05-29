@@ -2003,7 +2003,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
 
 # ==============================================
-# New Spec - Excel 一體化表格版（已修正儲存問題）
+# New Spec - Excel 表格版（穩定版）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -2017,7 +2017,7 @@ if st.session_state.get("spec_dialog_open", False):
     def spec_dialog():
         st.markdown("**專案基本資料**")
 
-        # 頂部格式（A1 ~ A4）
+        # 頂部格式（SO#、Product Category、Product Code、QTY）
         c1, c2 = st.columns([2, 5])
         with c1: st.write("**SO#**")
         with c2: so_number = st.text_input("", key="dlg_so_number", label_visibility="collapsed")
@@ -2035,34 +2035,22 @@ if st.session_state.get("spec_dialog_open", False):
         with c2: qty_input = st.number_input("", min_value=1, value=qty, key="dlg_qty_input", label_visibility="collapsed")
 
         st.markdown("---")
-        st.markdown("**Specification**")
+        st.markdown("**Specification 表格**")
 
-        # 主表格（Component | Must Feature | Must Value | Optional Feature | Optional Value）
+        # 主表格
         columns = ["Component", "Must Feature", "Must Value", "Optional Feature", "Optional Value"]
 
         default_data = {
-            "Component": [""]*38,
-            "Must Feature": ["SO#","Product Category","Product Code","QTY","Type",
-                             "Model","Year","Power(Prime/Standby kw)","RPM","Voltage/Frequency","Heater","Color",
-                             "Model","Winding","Droop","Color",
-                             "Model","Degree","Fan Size","Protection Cover",
-                             "Model","Anti-Vibration Mounts",
-                             "Type","Dimension",
-                             "Model","Type","Rating",
-                             "Model","Module",
-                             "Model","Battery Switch",
-                             "Volumn","Layer","Fuel Water Separator",
-                             "Volumn","Donaldson Breather"],
-            "Must Value": [""]*38,
-            "Optional Feature": [""]*38,
-            "Optional Value": [""]*38
+            "Component": [""] * 30,
+            "Must Feature": [""] * 30,
+            "Must Value": [""] * 30,
+            "Optional Feature": [""] * 30,
+            "Optional Value": [""] * 30,
         }
 
-        # 填入基本資料預設值
-        default_data["Must Value"][0] = ""           # SO#
-        default_data["Must Value"][1] = ""           # Product Category
-        default_data["Must Value"][2] = ""           # Product Code
-        default_data["Must Value"][3] = str(qty)     # QTY
+        # 前5列放基本資料
+        default_data["Must Feature"][0:5] = ["SO#", "Product Category", "Product Code", "QTY", "Type"]
+        default_data["Must Value"][3] = str(qty)  # QTY 預設值
         default_data["Must Value"][4] = temp_project.get("Project_Type", "Enclosure")
 
         df_input = pd.DataFrame(default_data)
@@ -2083,17 +2071,18 @@ if st.session_state.get("spec_dialog_open", False):
         col_save, col_cancel = st.columns(2)
         with col_save:
             if st.button("💾 Save & Close", type="primary", use_container_width=True):
-                # === 1. 提取頂部基本資料 ===
+                # 儲存基本資料
                 temp_project["SO_Number"] = edited_df.iloc[0]["Must Value"]
                 temp_project["Product_Category"] = edited_df.iloc[1]["Must Value"]
                 temp_project["Product_Code"] = edited_df.iloc[2]["Must Value"]
                 temp_project["Qty"] = int(edited_df.iloc[3]["Must Value"] or qty)
                 temp_project["Project_Type"] = edited_df.iloc[4]["Must Value"]
 
-                # === 2. 提取規格資料（從第5列開始）===
+                # 儲存規格資料（從第5列開始）
                 specs = []
                 for _, row in edited_df.iloc[5:].iterrows():
-                    if row["Must Feature"].strip() == "": continue
+                    if row["Must Feature"].strip() == "":
+                        continue
                     spec_data = {
                         "component": row["Component"],
                         "must_feature": row["Must Feature"],
@@ -2103,7 +2092,7 @@ if st.session_state.get("spec_dialog_open", False):
                     }
                     specs.append(spec_data)
 
-                # 打包成原本系統需要的格式
+                # 打包成原本格式
                 first_spec = specs[0] if specs else {}
                 visible_lines = f"Model: {first_spec.get('must_value','—')}"
                 extra_json = json.dumps(specs, ensure_ascii=False)
