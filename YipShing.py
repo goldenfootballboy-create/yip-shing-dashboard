@@ -2003,7 +2003,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
 
 # ==============================================
-# New Spec - Excel 頂部格式版（已優化為 5 欄位結構）
+# New Spec - Excel 一體化表格版（已修正儲存問題）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -2017,124 +2017,83 @@ if st.session_state.get("spec_dialog_open", False):
     def spec_dialog():
         st.markdown("**專案基本資料**")
 
-        # ==================== 頂部格式（A:B 標籤 + C:E 輸入） ====================
-        # SO#
+        # 頂部格式（A1 ~ A4）
         c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**SO#**")
-        with c2:
-            so_number = st.text_input("", key="dlg_so_number", label_visibility="collapsed")
+        with c1: st.write("**SO#**")
+        with c2: so_number = st.text_input("", key="dlg_so_number", label_visibility="collapsed")
 
-        # Product Category
         c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**Product Category**")
-        with c2:
-            product_category = st.text_input("", key="dlg_product_category", label_visibility="collapsed")
+        with c1: st.write("**Product Category**")
+        with c2: product_category = st.text_input("", key="dlg_product_category", label_visibility="collapsed")
 
-        # Product Code
         c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**Product Code**")
-        with c2:
-            product_code = st.text_input("", key="dlg_product_code", label_visibility="collapsed")
+        with c1: st.write("**Product Code**")
+        with c2: product_code = st.text_input("", key="dlg_product_code", label_visibility="collapsed")
 
-        # QTY
         c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**QTY**")
-        with c2:
-            qty_input = st.number_input("", min_value=1, value=qty, key="dlg_qty_input", label_visibility="collapsed")
+        with c1: st.write("**QTY**")
+        with c2: qty_input = st.number_input("", min_value=1, value=qty, key="dlg_qty_input", label_visibility="collapsed")
 
         st.markdown("---")
         st.markdown("**Specification**")
 
-        # Type 下拉選單
-        type_col1, type_col2 = st.columns([2, 5])
-        with type_col1:
-            st.write("**Type**")
-        with type_col2:
-            project_type = st.selectbox("", ["Enclosure", "Open Set", "Scania", "Marine", "K50G3"],
-                                         index=0, key="dlg_type")
+        # 主表格（Component | Must Feature | Must Value | Optional Feature | Optional Value）
+        columns = ["Component", "Must Feature", "Must Value", "Optional Feature", "Optional Value"]
 
-        st.markdown("---")
-
-        # 建立像 Excel 一樣乾淨的留白數據結構
         default_data = {
-            "Component": [
-                "Engine", "", "", "", "", "", "",  # 只有第一行顯示，其餘留白
-                "Alternator", "", "", "",
-                "Radiator", "", "", "",
-                "Base Frame", "",
-                "Container", "",
-                "Breaker", "", "", "",
-                "Control Panel", "",
-                "Battery", "",
-                "Fuel Tank", "", "", "",
-                "Oil Tank", ""
-            ],
-            "Must Feature": [
-                "Model", "Year", "Power(Prime/Standby kw)", "RPM", "Voltage/Frequency", "Heater", "Color",
-                "Model", "Winding", "Droop", "Color",
-                "Model", "Degree", "Fan Size", "Protection Cover",
-                "Model", "Anti-Vibration Mounts",
-                "Type", "Dimension",
-                "Model", "Type", "Rating", "",
-                "Model", "Module",
-                "Model", "Battery Switch",
-                "Volumn", "Layer", "Fuel Water Seperator", "",
-                "Volumn", ""
-            ],
-            "Must Value": [""] * 33,
-            "Optional Feature": [
-                "Oil Coolant Temperature sensor", "Oil Pressure sensor", "Hand Swing Pump", "Silencer",
-                "Fexible Pipe & Flange", "Exhaust Pipe", "",
-                "Heater", "PMG", "", "",
-                "Fuel Cooler", "Low Water level Switch", "Murphy Coolant Level Switch", "",
-                "Color", "",
-                "CO Detector", "Color",
-                "Gear Motor", "Shunt trip", "closing coil", "UV relay",
-                "", "",
-                "Charger Model", "",
-                "Fuel Level Gauge with level", "Fuel Level Switch", "Fuel Level Sensor", "Donaldson Breather",
-                "Donaldson Breather", "Murphy Coolant Level Switch"
-            ],
-            "Optional Value": [""] * 33
+            "Component": [""]*38,
+            "Must Feature": ["SO#","Product Category","Product Code","QTY","Type",
+                             "Model","Year","Power(Prime/Standby kw)","RPM","Voltage/Frequency","Heater","Color",
+                             "Model","Winding","Droop","Color",
+                             "Model","Degree","Fan Size","Protection Cover",
+                             "Model","Anti-Vibration Mounts",
+                             "Type","Dimension",
+                             "Model","Type","Rating",
+                             "Model","Module",
+                             "Model","Battery Switch",
+                             "Volumn","Layer","Fuel Water Separator",
+                             "Volumn","Donaldson Breather"],
+            "Must Value": [""]*38,
+            "Optional Feature": [""]*38,
+            "Optional Value": [""]*38
         }
+
+        # 填入基本資料預設值
+        default_data["Must Value"][0] = ""           # SO#
+        default_data["Must Value"][1] = ""           # Product Category
+        default_data["Must Value"][2] = ""           # Product Code
+        default_data["Must Value"][3] = str(qty)     # QTY
+        default_data["Must Value"][4] = temp_project.get("Project_Type", "Enclosure")
 
         df_input = pd.DataFrame(default_data)
 
-        # 透過 column_config 鎖定項目名稱，只允許填寫 Value
         edited_df = st.data_editor(
             df_input,
             use_container_width=True,
             num_rows="fixed",
             hide_index=True,
             column_config={
-                "Component": st.column_config.TextColumn("Component", disabled=True, width="small"),
-                "Must Feature": st.column_config.TextColumn("Must Feature", disabled=True, width="medium"),
-                "Must Value": st.column_config.TextColumn("Must Value ✍️", width="medium"),
-                "Optional Feature": st.column_config.TextColumn("Optional Feature", disabled=True, width="medium"),
-                "Optional Value": st.column_config.TextColumn("Optional Value ✍️", width="medium"),
+                "Component": st.column_config.TextColumn(disabled=True),
+                "Must Feature": st.column_config.TextColumn(disabled=True),
             }
         )
 
-        st.caption("💡 點擊 **Must Value** 或 **Optional Value** 即可直接像 Excel 一樣打字或輸入內容。")
+        st.caption("💡 請在 **Must Value** 和 **Optional Value** 欄位填寫資料")
 
-        # ==================== 按鈕儲存邏輯 ====================
         col_save, col_cancel = st.columns(2)
         with col_save:
             if st.button("💾 Save & Close", type="primary", use_container_width=True):
-                # 儲存頂部資料
-                temp_project["SO_Number"] = so_number
-                temp_project["Product_Category"] = product_category
-                temp_project["Product_Code"] = product_code
-                temp_project["Qty"] = qty_input
-                temp_project["Project_Type"] = project_type
+                # === 1. 提取頂部基本資料 ===
+                temp_project["SO_Number"] = edited_df.iloc[0]["Must Value"]
+                temp_project["Product_Category"] = edited_df.iloc[1]["Must Value"]
+                temp_project["Product_Code"] = edited_df.iloc[2]["Must Value"]
+                temp_project["Qty"] = int(edited_df.iloc[3]["Must Value"] or qty)
+                temp_project["Project_Type"] = edited_df.iloc[4]["Must Value"]
 
-                # 儲存表格資料 (保留所有填寫的欄位)
+                # === 2. 提取規格資料（從第5列開始）===
                 specs = []
-                for _, row in edited_df.iterrows():
+                for _, row in edited_df.iloc[5:].iterrows():
+                    if row["Must Feature"].strip() == "": continue
                     spec_data = {
                         "component": row["Component"],
                         "must_feature": row["Must Feature"],
@@ -2144,14 +2103,13 @@ if st.session_state.get("spec_dialog_open", False):
                     }
                     specs.append(spec_data)
 
-                # 格式化輸出以配合你原本的後台機制
+                # 打包成原本系統需要的格式
                 first_spec = specs[0] if specs else {}
                 visible_lines = f"Model: {first_spec.get('must_value','—')}"
                 extra_json = json.dumps(specs, ensure_ascii=False)
                 temp_project["Project_Spec"] = visible_lines + "||EXTRA||" + extra_json
 
                 st.session_state.new_spec_saving = True
-                st.session_state.spec_dialog_open = False
                 st.rerun()
 
         with col_cancel:
