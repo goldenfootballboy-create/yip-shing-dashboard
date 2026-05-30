@@ -2071,9 +2071,8 @@ if st.session_state.get("spec_dialog_open", False):
                 with st.expander("Engine (發動機)", expanded=True):
                     col_feature, col_option = st.columns([1, 1])
 
-                    # ==================== Feature ====================
                     with col_feature:
-                        st.markdown("<h3 style='color: #1e88e5; margin-bottom: 12px;'>Feature</h3>",
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
                                     unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
@@ -2087,13 +2086,18 @@ if st.session_state.get("spec_dialog_open", False):
                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N (序號)")
+                        with col_input: s_genset_sn = st.text_input("", key=f"dlg_genset_sn_{i}",
+                                                                    label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Colour (顏色)")
                         with col_input: s_engine_color = st.text_input("", key=f"dlg_engine_color_{i}",
                                                                        label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Prime/Standby (kW)")
-                        with col_input: s_prime_standby = st.text_input("",
+                        with col_input: s_prime_standby = st.text_input("", placeholder="例如: 100/110",
                                                                         key=f"dlg_prime_standby_{i}",
                                                                         label_visibility="collapsed")
 
@@ -2116,14 +2120,8 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input: s_engine_heater = st.text_input("", key=f"dlg_engine_heater_{i}",
                                                                         label_visibility="collapsed")
 
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("S/N (序號)")
-                        with col_input: s_genset_sn = st.text_input("", key=f"dlg_genset_sn_{i}",
-                                                                    label_visibility="collapsed")
-
-                    # ==================== Option ====================
                     with col_option:
-                        st.markdown("<h3 style='color: #1e88e5; margin-bottom: 12px;'>Feature</h3>",
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
                                     unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
@@ -2157,21 +2155,24 @@ if st.session_state.get("spec_dialog_open", False):
                                                                        label_visibility="collapsed")
 
                 st.markdown("---")
+
                 # ==================== Alternator (電球) ====================
                 with st.expander("Alternator (電球)", expanded=True):
                     col_feature, col_option = st.columns([1, 1])
 
-                    # ==================== Feature ====================
                     with col_feature:
-                        st.markdown("**Feature**")
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Model (型號)")
-                        with col_input: s_alt_model = st.text_input("", key=f"dlg_alt_model_{i}", label_visibility="collapsed")
+                        with col_input: s_alt_model = st.text_input("", key=f"dlg_alt_model_{i}",
+                                                                    label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Winding")
-                        with col_input: s_alt_winding = st.text_input("", key=f"dlg_alt_winding_{i}", label_visibility="collapsed")
+                        with col_input: s_alt_winding = st.text_input("", key=f"dlg_alt_winding_{i}",
+                                                                      label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Droop")
@@ -2179,19 +2180,22 @@ if st.session_state.get("spec_dialog_open", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Color")
-                        with col_input: s_alt_color = st.text_input("", key=f"dlg_alt_color_{i}", label_visibility="collapsed")
+                        with col_input: s_alt_color = st.text_input("", key=f"dlg_alt_color_{i}",
+                                                                    label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("S/N")
-                        with col_input: s_alt_sn = st.text_input("", key=f"dlg_alt_sn_{i}", label_visibility="collapsed")
+                        with col_input: s_alt_sn = st.text_input("", key=f"dlg_alt_sn_{i}",
+                                                                 label_visibility="collapsed")
 
-                    # ==================== Option ====================
                     with col_option:
-                        st.markdown("**Option**")
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
+                                    unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Heater")
-                        with col_input: s_alt_heater = st.text_input("", key=f"dlg_alt_heater_{i}", label_visibility="collapsed")
+                        with col_input: s_alt_heater = st.text_input("", key=f"dlg_alt_heater_{i}",
+                                                                     label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("PMG")
@@ -2203,7 +2207,6 @@ if st.session_state.get("spec_dialog_open", False):
                 with st.expander("Radiator (水箱)", expanded=True):
                     col_feature, col_option = st.columns([1, 1])
 
-                    # ==================== Feature ====================
                     with col_feature:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
                                     unsafe_allow_html=True)
@@ -2228,7 +2231,6 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input: s_radiator_guard = st.text_input("", key=f"dlg_radiator_guard_{i}",
                                                                          label_visibility="collapsed")
 
-                    # ==================== Option ====================
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
                                     unsafe_allow_html=True)
@@ -2249,10 +2251,256 @@ if st.session_state.get("spec_dialog_open", False):
                                                                          label_visibility="collapsed")
 
                 st.markdown("---")
+
+                # ==================== Base Frame (底架) ====================
+                with st.expander("Base Frame (底架)", expanded=True):
+                    col_feature, col_option = st.columns([1, 1])
+
+                    with col_feature:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Model (型號)")
+                        with col_input: s_base_model = st.text_input("", key=f"dlg_base_model_{i}",
+                                                                     label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Anti-Vibration Mounts (避震腳)")
+                        with col_input: s_avm = st.text_input("", key=f"dlg_avm_{i}", label_visibility="collapsed")
+
+                    with col_option:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Color")
+                        with col_input: s_base_color = st.text_input("", key=f"dlg_base_color_{i}",
+                                                                     label_visibility="collapsed")
+
+                st.markdown("---")
+
+                # ==================== Container (貨櫃) ====================
+                with st.expander("Container (貨櫃)", expanded=True):
+                    col_feature, col_option = st.columns([1, 1])
+
+                    with col_feature:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Type (型號)")
+                        with col_input: s_cont_type = st.text_input("", key=f"dlg_cont_type_{i}",
+                                                                    label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Dimension (呎吋)")
+                        with col_input: s_cont_size = st.text_input("", key=f"dlg_cont_size_{i}",
+                                                                    label_visibility="collapsed")
+
+                    with col_option:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("CO Detector")
+                        with col_input: s_co_detector = st.text_input("", key=f"dlg_co_detector_{i}",
+                                                                      label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Color")
+                        with col_input: s_cont_color = st.text_input("", key=f"dlg_cont_color_{i}",
+                                                                     label_visibility="collapsed")
+
+                st.markdown("---")
+
+                # ==================== Breaker (斷路器) ====================
+                with st.expander("Breaker (斷路器)", expanded=True):
+                    col_feature, col_option = st.columns([1, 1])
+
+                    with col_feature:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Model (型號)")
+                        with col_input: s_breaker_model = st.text_input("", key=f"dlg_breaker_model_{i}",
+                                                                        label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Type (類型)")
+                        with col_input: s_breaker_type = st.text_input("", key=f"dlg_breaker_type_{i}",
+                                                                       label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Rating")
+                        with col_input: s_breaker_rating = st.text_input("", key=f"dlg_breaker_rating_{i}",
+                                                                         label_visibility="collapsed")
+
+                    with col_option:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Gear Motor")
+                        with col_input: s_gear_motor = st.text_input("", key=f"dlg_gear_motor_{i}",
+                                                                     label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Shunt Trip")
+                        with col_input: s_shunt_trip = st.text_input("", key=f"dlg_shunt_trip_{i}",
+                                                                     label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Closing Coil")
+                        with col_input: s_closing_coil = st.text_input("", key=f"dlg_closing_coil_{i}",
+                                                                       label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("UV Relay")
+                        with col_input: s_uv_relay = st.text_input("", key=f"dlg_uv_relay_{i}",
+                                                                   label_visibility="collapsed")
+
+                st.markdown("---")
+
+                # ==================== Control Panel (控制器) ====================
+                with st.expander("Control Panel (控制器)", expanded=True):
+                    col_feature, col_option = st.columns([1, 1])
+
+                    with col_feature:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Model (型號)")
+                        with col_input: s_panel_model = st.text_input("", key=f"dlg_panel_model_{i}",
+                                                                      label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Module")
+                        with col_input: s_panel_module = st.text_input("", key=f"dlg_panel_module_{i}",
+                                                                       label_visibility="collapsed")
+
+                st.markdown("---")
+
+                # ==================== Battery (電池) ====================
+                with st.expander("Battery (電池)", expanded=True):
+                    col_feature, col_option = st.columns([1, 1])
+
+                    with col_feature:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Model (型號)")
+                        with col_input: s_battery_model = st.text_input("", key=f"dlg_battery_model_{i}",
+                                                                        label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Battery Switch")
+                        with col_input: s_battery_switch = st.text_input("", key=f"dlg_battery_switch_{i}",
+                                                                         label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Rating")
+                        with col_input: s_battery_rating = st.text_input("", key=f"dlg_battery_rating_{i}",
+                                                                         label_visibility="collapsed")
+
+                    with col_option:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Charger Model")
+                        with col_input: s_charger_model = st.text_input("", key=f"dlg_charger_model_{i}",
+                                                                        label_visibility="collapsed")
+
+                st.markdown("---")
+
+                # ==================== Fuel Tank (燃油箱) ====================
+                with st.expander("Fuel Tank (燃油箱)", expanded=True):
+                    col_feature, col_option = st.columns([1, 1])
+
+                    with col_feature:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Volume")
+                        with col_input: s_fuel_volume = st.text_input("", key=f"dlg_fuel_volume_{i}",
+                                                                      label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Layer")
+                        with col_input: s_fuel_layer = st.text_input("", key=f"dlg_fuel_layer_{i}",
+                                                                     label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Fuel Water Separator")
+                        with col_input: s_fuel_water_separator = st.text_input("", key=f"dlg_fuel_water_separator_{i}",
+                                                                               label_visibility="collapsed")
+
+                    with col_option:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Fuel Level Gauge with level")
+                        with col_input: s_fuel_gauge = st.text_input("", key=f"dlg_fuel_gauge_{i}",
+                                                                     label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Fuel Level Switch")
+                        with col_input: s_fuel_level_switch = st.text_input("", key=f"dlg_fuel_level_switch_{i}",
+                                                                            label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Fuel Level Sensor")
+                        with col_input: s_fuel_level_sensor = st.text_input("", key=f"dlg_fuel_level_sensor_{i}",
+                                                                            label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Donaldson Breather")
+                        with col_input: s_donaldson_breather = st.text_input("", key=f"dlg_donaldson_breather_{i}",
+                                                                             label_visibility="collapsed")
+
+                st.markdown("---")
+
+                # ==================== Oil Tank (機油箱) ====================
+                with st.expander("Oil Tank (機油箱)", expanded=True):
+                    col_feature, col_option = st.columns([1, 1])
+
+                    with col_feature:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Volume")
+                        with col_input: s_oil_volume = st.text_input("", key=f"dlg_oil_volume_{i}",
+                                                                     label_visibility="collapsed")
+
+                    with col_option:
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Donaldson Breather")
+                        with col_input: s_oil_donaldson = st.text_input("", key=f"dlg_oil_donaldson_{i}",
+                                                                        label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Murphy Coolant Level Switch")
+                        with col_input: s_murphy_oil = st.text_input("", key=f"dlg_murphy_oil_{i}",
+                                                                     label_visibility="collapsed")
+
+                st.markdown("---")
+
+                # ==================== Remarks ====================
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
                 # ==================== 收集資料 ====================
                 spec_data = {
+                    # ==================== Engine ====================
                     "genset_model": s_genset_model,
                     "engine_year": s_engine_year,
                     "genset_sn": s_genset_sn,
@@ -2263,7 +2511,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "frequency": s_frequency.strip(),
                     "engine_heater": s_engine_heater,
 
-                    # Alternator
+                    # ==================== Alternator ====================
                     "alt_model": s_alt_model,
                     "alt_winding": s_alt_winding,
                     "droop": s_droop,
@@ -2272,7 +2520,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "alt_heater": s_alt_heater,
                     "pmg": s_pmg,
 
-                    # Radiator
+                    # ==================== Radiator ====================
                     "rad_model": s_rad_model,
                     "rad_temp": s_rad_temp,
                     "fan_size": s_fan_size,
@@ -2281,13 +2529,51 @@ if st.session_state.get("spec_dialog_open", False):
                     "low_water": s_low_water,
                     "murphy_coolant": s_murphy_coolant,
 
-                    "coolant_sensor": s_coolant_sensor,
-                    "oil_pressure": s_oil_pressure,
-                    "hand_pump": s_hand_pump,
-                    "silencer": s_silencer,
-                    "flex_pipe": s_flex_pipe,
-                    "exhaust_pipe": s_exhaust_pipe,
+                    # ==================== Base Frame ====================
+                    "base_model": s_base_model,
+                    "avm": s_avm,
+                    "base_color": s_base_color,
 
+                    # ==================== Container ====================
+                    "cont_type": s_cont_type,
+                    "cont_size": s_cont_size,
+                    "co_detector": s_co_detector,
+                    "cont_color": s_cont_color,
+
+                    # ==================== Breaker ====================
+                    "breaker_model": s_breaker_model,
+                    "breaker_type": s_breaker_type,
+                    "breaker_rating": s_breaker_rating,
+                    "gear_motor": s_gear_motor,
+                    "shunt_trip": s_shunt_trip,
+                    "closing_coil": s_closing_coil,
+                    "uv_relay": s_uv_relay,
+
+                    # ==================== Control Panel ====================
+                    "panel_model": s_panel_model,
+                    "panel_module": s_panel_module,
+
+                    # ==================== Battery ====================
+                    "battery_model": s_battery_model,
+                    "battery_switch": s_battery_switch,
+                    "battery_rating": s_battery_rating,
+                    "charger_model": s_charger_model,
+
+                    # ==================== Fuel Tank ====================
+                    "fuel_volume": s_fuel_volume,
+                    "fuel_layer": s_fuel_layer,
+                    "fuel_water_separator": s_fuel_water_separator,
+                    "fuel_gauge": s_fuel_gauge,
+                    "fuel_level_switch": s_fuel_level_switch,
+                    "fuel_level_sensor": s_fuel_level_sensor,
+                    "donaldson_breather": s_donaldson_breather,
+
+                    # ==================== Oil Tank ====================
+                    "oil_volume": s_oil_volume,
+                    "oil_donaldson": s_oil_donaldson,
+                    "murphy_oil": s_murphy_oil,
+
+                    # ==================== Remarks ====================
                     "remarks": s_remarks.strip()
                 }
                 specs.append(spec_data)
