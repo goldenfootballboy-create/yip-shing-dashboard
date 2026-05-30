@@ -2071,26 +2071,78 @@ if st.session_state.get("spec_dialog_open", False):
                 with st.expander("Engine (發動機)", expanded=True):
                     col_feature, col_option = st.columns([1, 1])
 
-                    # ==================== LEFT: Feature (全部獨立一行) ====================
+                    # ==================== LEFT: Feature ====================
                     with col_feature:
                         st.markdown("**Feature**")
 
-                        s_genset_model = st.text_input("Model (型號)", key=f"dlg_genset_model_{i}")
-                        s_engine_year = st.text_input("Year (年份)", key=f"dlg_engine_year_{i}")
-                        s_genset_sn = st.text_input("S/N (序號)", key=f"dlg_genset_sn_{i}")
-                        s_engine_color = st.text_input("Colour (顏色)", key=f"dlg_engine_color_{i}")
-                        s_prime = st.text_input("Prime (kW)", key=f"dlg_prime_{i}")
-                        s_standby = st.text_input("Standby (kW)", key=f"dlg_standby_{i}")
-                        s_rpm = st.selectbox("RPM (轉速)", ["--", "1500", "1800", "1500&1800"], key=f"dlg_rpm_{i}")
-                        s_voltage = st.selectbox("Voltage (電壓)", ["--", "380", "400", "415", "440", "480", "Multi-Voltage"], key=f"dlg_voltage_{i}")
-                        s_frequency = st.selectbox("Frequency (頻率)", ["--", "50Hz", "60Hz", "50Hz&60Hz"], key=f"dlg_frequency_{i}")
-                        s_engine_heater = st.text_input("Heater (加熱器) kW", key=f"dlg_engine_heater_{i}")
+                        # 使用與 Option 相同的排版方式
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label:
+                            st.markdown("Model (型號)")
+                        with col_input:
+                            s_genset_model = st.text_input("", key=f"dlg_genset_model_{i}", label_visibility="collapsed")
 
-                    # ==================== RIGHT: Option (全部獨立一行) ====================
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label:
+                            st.markdown("Year (年份)")
+                        with col_input:
+                            s_engine_year = st.text_input("", key=f"dlg_engine_year_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label:
+                            st.markdown("S/N (序號)")
+                        with col_input:
+                            s_genset_sn = st.text_input("", key=f"dlg_genset_sn_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label:
+                            st.markdown("Colour (顏色)")
+                        with col_input:
+                            s_engine_color = st.text_input("", key=f"dlg_engine_color_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label:
+                            st.markdown("Prime (kW)")
+                        with col_input:
+                            s_prime = st.text_input("", key=f"dlg_prime_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label:
+                            st.markdown("Standby (kW)")
+                        with col_input:
+                            s_standby = st.text_input("", key=f"dlg_standby_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label:
+                            st.markdown("RPM (轉速)")
+                        with col_input:
+                            s_rpm = st.selectbox("", ["--", "1500", "1800", "1500&1800"],
+                                               key=f"dlg_rpm_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label:
+                            st.markdown("Voltage (電壓)")
+                        with col_input:
+                            s_voltage = st.selectbox("", ["--", "380", "400", "415", "440", "480", "Multi-Voltage"],
+                                                   key=f"dlg_voltage_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label:
+                            st.markdown("Frequency (頻率)")
+                        with col_input:
+                            s_frequency = st.selectbox("", ["--", "50Hz", "60Hz", "50Hz&60Hz"],
+                                                     key=f"dlg_frequency_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label:
+                            st.markdown("Heater (加熱器) kW")
+                        with col_input:
+                            s_engine_heater = st.text_input("", key=f"dlg_engine_heater_{i}", label_visibility="collapsed")
+
+                    # ==================== RIGHT: Option ====================
                     with col_option:
                         st.markdown("**Option**")
 
-                        # 每個 Option 都獨立一行（標題 + 輸入框）
                         col_label, col_input = st.columns([2, 3])
                         with col_label:
                             st.markdown("Oil Coolant Temp Sensor")
@@ -2131,34 +2183,6 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input:
                             s_exhaust_pipe = st.selectbox("", ["--", "包含", "不包含"],
                                                         key=f"dlg_exhaust_pipe_{i}", label_visibility="collapsed")
-
-                st.markdown("---")
-
-                # Alternator (電球)
-                with st.expander("Alternator (電球)", expanded=False):
-                    col_title, col_source = st.columns([6, 1])
-                    with col_title:
-                        st.markdown("**Alternator (電球)**")
-                    with col_source:
-                        s_alt_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_alt_source_{i}", label_visibility="collapsed")
-
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        s_alt_model = st.text_input("Alternator Model", key=f"dlg_alt_model_{i}")
-                    with col2:
-                        s_alt_sn = st.text_input("S/N", key=f"dlg_alt_sn_{i}")
-                    with col3:
-                        s_alt_color = st.text_input("Color", key=f"dlg_alt_color_{i}")
-
-                    col_d1, col_d2, col_d3 = st.columns(3)
-                    with col_d1:
-                        s_droop = st.selectbox("DroopKit", ["--", "包含", "不包含"], key=f"dlg_droop_{i}")
-                    with col_d2:
-                        s_pmg = st.text_input("PMG", key=f"dlg_pmg_{i}")
-                    with col_d3:
-                        s_alt_heater = st.selectbox("Alternator Heater", ["--", "包含", "不包含"], key=f"dlg_alt_heater_{i}")
-
-                # ←←← 這裡繼續貼上你原本的 Radiator & Base Frame、Container、Parts、Delivery Checklist 等區塊 ←←←
                 st.markdown("---")
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
