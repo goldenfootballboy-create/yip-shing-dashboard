@@ -2086,23 +2086,14 @@ if st.session_state.get("spec_dialog_open", False):
                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("S/N (序號)")
-                        with col_input: s_genset_sn = st.text_input("", key=f"dlg_genset_sn_{i}",
-                                                                    label_visibility="collapsed")
-
-                        col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Colour (顏色)")
                         with col_input: s_engine_color = st.text_input("", key=f"dlg_engine_color_{i}",
                                                                        label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Prime (kW)")
+                        with col_label: st.markdown("Prime/Standby(kW)")
                         with col_input: s_prime = st.text_input("", key=f"dlg_prime_{i}", label_visibility="collapsed")
 
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Standby (kW)")
-                        with col_input: s_standby = st.text_input("", key=f"dlg_standby_{i}",
-                                                                  label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("RPM (轉速)")
@@ -2122,6 +2113,10 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Heater (加熱器) kW")
                         with col_input: s_engine_heater = st.text_input("", key=f"dlg_engine_heater_{i}",
                                                                         label_visibility="collapsed")
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N (序號)")
+                        with col_input: s_genset_sn = st.text_input("", key=f"dlg_genset_sn_{i}",
+                                                                    label_visibility="collapsed")
 
                     # ==================== Option ====================
                     with col_option:
@@ -2168,8 +2163,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "engine_year": s_engine_year,
                     "genset_sn": s_genset_sn,
                     "engine_color": s_engine_color,
-                    "prime": s_prime.strip(),
-                    "standby": s_standby.strip(),
+                    "Prime/Standby(kW)": s_prime/Standby.strip(),
                     "rpm": s_rpm.strip(),
                     "voltage": s_voltage.strip(),
                     "frequency": s_frequency.strip(),
