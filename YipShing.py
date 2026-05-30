@@ -2205,38 +2205,6 @@ if st.session_state.get("spec_dialog_open", False):
 
                     # ==================== Feature ====================
                     with col_feature:
-                        st.markdown("**Feature**")
-
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Model (型號)")
-                        with col_input: s_rad_model = st.text_input("", key=f"dlg_rad_model_{i}", label_visibility="collapsed")
-
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Degree (温度)")
-                        with col_input: s_rad_temp = st.text_input("", key=f"dlg_rad_temp_{i}", label_visibility="collapsed")
-
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Fan Size (扇呎吋)")
-                        with col_input: s_fan_size = st.text_input("", key=f"dlg_fan_size_{i}", label_visibility="collapsed")
-
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Protection Cover (保護罩)")
-                        with col_input: s_radiator_guard = st.text_input("", key=f"dlg_radiator_guard_{i}", label_visibility="collapsed")
-
-                    # ==================== Option ====================
-                    with col_option:
-                        st.markdown("**Option**")
-                        # 如需之後新增 Option，可在此加入
-                        st.info("Option 欄位可後續新增", icon="ℹ️")
-
-                st.markdown("---")
-
-                # ==================== Radiator (水箱) ====================
-                with st.expander("Radiator (水箱)", expanded=True):
-                    col_feature, col_option = st.columns([1, 1])
-
-                    # ==================== Feature ====================
-                    with col_feature:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
                                     unsafe_allow_html=True)
 
