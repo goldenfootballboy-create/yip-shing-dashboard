@@ -2073,7 +2073,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                     # ==================== Feature ====================
                     with col_feature:
-                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                        st.markdown("<h3 style='color: #1e88e5; margin-bottom: 12px;'>Feature</h3>",
                                     unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
@@ -2123,7 +2123,8 @@ if st.session_state.get("spec_dialog_open", False):
 
                     # ==================== Option ====================
                     with col_option:
-                        st.markdown("**Option**")
+                        st.markdown("<h3 style='color: #1e88e5; margin-bottom: 12px;'>Feature</h3>",
+                                    unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Oil Coolant Temp Sensor")
@@ -2269,13 +2270,13 @@ if st.session_state.get("spec_dialog_open", False):
                     "engine_year": s_engine_year,
                     "genset_sn": s_genset_sn,
                     "engine_color": s_engine_color,
-                    "prime_standby": s_prime_standby.strip() if 's_prime_standby' in locals() else s_prime.strip(),
+                    "prime_standby": s_prime_standby.strip() if 's_prime_standby' in locals() else "",
                     "rpm": s_rpm.strip(),
                     "voltage": s_voltage.strip(),
                     "frequency": s_frequency.strip(),
                     "engine_heater": s_engine_heater,
 
-                    # Alternator 新增欄位
+                    # Alternator
                     "alt_model": s_alt_model,
                     "alt_winding": s_alt_winding,
                     "droop": s_droop,
@@ -2283,6 +2284,12 @@ if st.session_state.get("spec_dialog_open", False):
                     "alt_sn": s_alt_sn,
                     "alt_heater": s_alt_heater,
                     "pmg": s_pmg,
+
+                    # Radiator 新增
+                    "rad_model": s_rad_model,
+                    "rad_temp": s_rad_temp,
+                    "fan_size": s_fan_size,
+                    "radiator_guard": s_radiator_guard,
 
                     "coolant_sensor": s_coolant_sensor,
                     "oil_pressure": s_oil_pressure,
