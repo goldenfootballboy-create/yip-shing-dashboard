@@ -2067,6 +2067,25 @@ if st.session_state.get("spec_dialog_open", False):
 
         for i in range(qty):
             with tabs[i]:
+                # ==================== 基本資訊 (Engine 上方) ====================
+                st.markdown("### 基本資訊")
+
+                col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
+
+                with col1:
+                    s_so_number = st.text_input("SO#", key=f"dlg_so_number_{i}")
+
+                with col2:
+                    s_product_category = st.text_input("Product Category", key=f"dlg_product_category_{i}")
+
+                with col3:
+                    s_product_code = st.text_input("Product Code", key=f"dlg_product_code_{i}")
+
+                with col4:
+                    st.markdown("**QTY**")
+                    st.markdown(f"<h3 style='margin: 0; color: #1e88e5;'>{qty}</h3>", unsafe_allow_html=True)
+
+                st.markdown("---")
                 # ==================== Engine (發動機) ====================
                 with st.expander("Engine (發動機)", expanded=True):
                     col_feature, col_option = st.columns([1, 1])
@@ -2574,7 +2593,11 @@ if st.session_state.get("spec_dialog_open", False):
                     "murphy_oil": s_murphy_oil,
 
                     # ==================== Remarks ====================
-                    "remarks": s_remarks.strip()
+                    "remarks": s_remarks.strip(),
+                    "so_number": s_so_number,
+                    "product_category": s_product_category,
+                    "product_code": s_product_code,
+                    "qty": qty  # 固定數量
                 }
                 specs.append(spec_data)
         # PDF 按鈕
