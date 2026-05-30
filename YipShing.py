@@ -2093,7 +2093,6 @@ if st.session_state.get("spec_dialog_open", False):
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Prime/Standby (kW)")
                         with col_input: s_prime_standby = st.text_input("",
-                                                                        placeholder="例如: 100/110",
                                                                         key=f"dlg_prime_standby_{i}",
                                                                         label_visibility="collapsed")
 
@@ -2156,7 +2155,47 @@ if st.session_state.get("spec_dialog_open", False):
                                                                        label_visibility="collapsed")
 
                 st.markdown("---")
+                # ==================== Alternator (電球) ====================
+                with st.expander("Alternator (電球)", expanded=True):
+                    col_feature, col_option = st.columns([1, 1])
 
+                    # ==================== Feature ====================
+                    with col_feature:
+                        st.markdown("**Feature**")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Model (型號)")
+                        with col_input: s_alt_model = st.text_input("", key=f"dlg_alt_model_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Winding")
+                        with col_input: s_alt_winding = st.text_input("", key=f"dlg_alt_winding_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Droop")
+                        with col_input: s_droop = st.text_input("", key=f"dlg_droop_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Color")
+                        with col_input: s_alt_color = st.text_input("", key=f"dlg_alt_color_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N")
+                        with col_input: s_alt_sn = st.text_input("", key=f"dlg_alt_sn_{i}", label_visibility="collapsed")
+
+                    # ==================== Option ====================
+                    with col_option:
+                        st.markdown("**Option**")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Heater")
+                        with col_input: s_alt_heater = st.text_input("", key=f"dlg_alt_heater_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("PMG")
+                        with col_input: s_pmg = st.text_input("", key=f"dlg_pmg_{i}", label_visibility="collapsed")
+
+                st.markdown("---")
                 # ==================== Remarks ====================
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
@@ -2166,11 +2205,20 @@ if st.session_state.get("spec_dialog_open", False):
                     "engine_year": s_engine_year,
                     "genset_sn": s_genset_sn,
                     "engine_color": s_engine_color,
-                    "prime_standby": s_prime_standby.strip(),
+                    "prime_standby": s_prime_standby.strip() if 's_prime_standby' in locals() else s_prime.strip(),
                     "rpm": s_rpm.strip(),
                     "voltage": s_voltage.strip(),
                     "frequency": s_frequency.strip(),
                     "engine_heater": s_engine_heater,
+
+                    # Alternator 新增欄位
+                    "alt_model": s_alt_model,
+                    "alt_winding": s_alt_winding,
+                    "droop": s_droop,
+                    "alt_color": s_alt_color,
+                    "alt_sn": s_alt_sn,
+                    "alt_heater": s_alt_heater,
+                    "pmg": s_pmg,
 
                     "coolant_sensor": s_coolant_sensor,
                     "oil_pressure": s_oil_pressure,
