@@ -95,37 +95,27 @@ def generate_overview_pdf(specs, project_info, qty):
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(
-        buffer,
-        pagesize=letter,
-        rightMargin=35,
-        leftMargin=35,
-        topMargin=20,
-        bottomMargin=35
+        buffer, pagesize=letter,
+        rightMargin=30, leftMargin=30,
+        topMargin=25, bottomMargin=35
     )
 
     styles = getSampleStyleSheet()
 
-    top_title_style = ParagraphStyle(
-        'TopTitle', parent=styles['Heading1'], fontName='NotoSansTC-Bold',
-        fontSize=22, alignment=TA_CENTER, spaceBefore=0, spaceAfter=8,
-        textColor=HexColor('#1e88e5')
-    )
+    top_title_style = ParagraphStyle('TopTitle', parent=styles['Heading1'],
+        fontName='NotoSansTC-Bold', fontSize=22, alignment=TA_CENTER,
+        spaceBefore=0, spaceAfter=8, textColor=HexColor('#1e88e5'))
 
-    info_style = ParagraphStyle(
-        'Info', parent=styles['Normal'], fontName='NotoSansTC-Bold',
-        fontSize=14.5, alignment=TA_CENTER, spaceBefore=4, spaceAfter=20,
-        textColor=HexColor('#263238')
-    )
+    info_style = ParagraphStyle('Info', parent=styles['Normal'],
+        fontName='NotoSansTC-Bold', fontSize=14, alignment=TA_CENTER,
+        spaceBefore=4, spaceAfter=20, textColor=HexColor('#263238'))
 
-    h3_style = ParagraphStyle(
-        'H3', parent=styles['Heading2'], fontName='NotoSansTC-Bold',
-        fontSize=15, spaceBefore=14, spaceAfter=8, textColor=HexColor('#1e88e5')
-    )
+    h3_style = ParagraphStyle('H3', parent=styles['Heading2'],
+        fontName='NotoSansTC-Bold', fontSize=15, spaceBefore=14, spaceAfter=8,
+        textColor=HexColor('#1e88e5'))
 
-    normal = ParagraphStyle(
-        'Normal', parent=styles['Normal'], fontName='NotoSansTC',
-        fontSize=12, leading=15, spaceAfter=5
-    )
+    normal = ParagraphStyle('Normal', parent=styles['Normal'],
+        fontName='NotoSansTC', fontSize=11.5, leading=14, spaceAfter=4)
 
     elements = []
 
@@ -135,7 +125,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
-        # ==================== PDF 標題 ====================
+        # ==================== 標題 ====================
         project_name = project_info.get('Project_Name', '—')
         project_type = project_info.get('Project_Type', '—')
         customer = project_info.get('Customer', '—')
@@ -145,94 +135,197 @@ def generate_overview_pdf(specs, project_info, qty):
             f"專案：{project_name}　｜　{qty} 台　｜　類型：{project_type}　｜　客戶：{customer}",
             info_style
         ))
-
         elements.append(Paragraph(f"第 {machine_idx + 1} 台", h3_style))
-        elements.append(Spacer(1, 8))
+        elements.append(Spacer(1, 10))
 
-        # ==================== SO# / Product Category / Product Code ====================
+        # SO# / Product Category / Product Code
         elements.append(Paragraph(
             f"SO#： {spec.get('so_number', '—')}　　｜　"
             f"Product Category： {spec.get('product_category', '—')}　　｜　"
-            f"Product Code： {spec.get('product_code', '—')}",
-            normal
-        ))
+            f"Product Code： {spec.get('product_code', '—')}", normal))
         elements.append(Spacer(1, 12))
 
         # ==================== Engine ====================
         elements.append(Paragraph("Engine (發動機)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('genset_model', '—')}", normal))
-        elements.append(Paragraph(f"Year： {spec.get('engine_year', '—')}　　Colour： {spec.get('engine_color', '—')}", normal))
-        elements.append(Paragraph(f"S/N： {spec.get('genset_sn', '—')}", normal))
-        elements.append(Paragraph(f"Prime/Standby (kW)： {spec.get('prime_standby', '—')}", normal))
-        elements.append(Paragraph(f"RPM： {spec.get('rpm', '—')}　　Voltage： {spec.get('voltage', '—')}　　Frequency： {spec.get('frequency', '—')}", normal))
-        elements.append(Paragraph(f"Heater： {spec.get('engine_heater', '—')} kW", normal))
+        data = [
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('genset_model', '—'), "Oil Coolant Temp Sensor： " + spec.get('coolant_sensor', '—')],
+            ["Year (年份)： " + spec.get('engine_year', '—'), "Oil Pressure Sensor： " + spec.get('oil_pressure', '—')],
+            ["S/N (序號)： " + spec.get('genset_sn', '—'), "Hand Swing Pump： " + spec.get('hand_pump', '—')],
+            ["Colour (顏色)： " + spec.get('engine_color', '—'), "Silencer： " + spec.get('silencer', '—')],
+            ["Prime/Standby (kW)： " + spec.get('prime_standby', '—'), "Flexible Pipe & Flange： " + spec.get('flex_pipe', '—')],
+            ["RPM (轉速)： " + spec.get('rpm', '—'), "Exhaust Pipe： " + spec.get('exhaust_pipe', '—')],
+            ["Voltage (電壓)： " + spec.get('voltage', '—'), ""],
+            ["Frequency (頻率)： " + spec.get('frequency', '—'), ""],
+            ["Heater (加熱器) kW： " + spec.get('engine_heater', '—'), ""],
+        ]
+        t = Table(data, colWidths=[260, 260])
+        t.setStyle(TableStyle([('FONTNAME', (0,0), (-1,-1), 'NotoSansTC'),
+                               ('FONTSIZE', (0,0), (-1,-1), 11),
+                               ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                               ('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Alternator ====================
         elements.append(Paragraph("Alternator (電球)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('alt_model', '—')}　　S/N： {spec.get('alt_sn', '—')}", normal))
-        elements.append(Paragraph(f"Winding： {spec.get('alt_winding', '—')}　　Color： {spec.get('alt_color', '—')}", normal))
-        elements.append(Paragraph(f"Droop： {spec.get('droop', '—')}　　PMG： {spec.get('pmg', '—')}　　Heater： {spec.get('alt_heater', '—')}", normal))
+        data = [
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('alt_model', '—'), "Heater： " + spec.get('alt_heater', '—')],
+            ["Winding： " + spec.get('alt_winding', '—'), "PMG： " + spec.get('pmg', '—')],
+            ["Droop： " + spec.get('droop', '—'), ""],
+            ["Color： " + spec.get('alt_color', '—'), ""],
+            ["S/N： " + spec.get('alt_sn', '—'), ""],
+        ]
+        t = Table(data, colWidths=[260, 260])
+        t.setStyle(TableStyle([('FONTNAME', (0,0), (-1,-1), 'NotoSansTC'),
+                               ('FONTSIZE', (0,0), (-1,-1), 11),
+                               ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                               ('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Radiator ====================
         elements.append(Paragraph("Radiator (水箱)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('rad_model', '—')}　　Temperature： {spec.get('rad_temp', '—')}", normal))
-        elements.append(Paragraph(f"Fan Size： {spec.get('fan_size', '—')}　　Protection Cover： {spec.get('radiator_guard', '—')}", normal))
-        elements.append(Paragraph(f"Fuel Cooler： {spec.get('fuel_cooler', '—')}", normal))
-        elements.append(Paragraph(f"Low Water Level Switch： {spec.get('low_water', '—')}", normal))
-        elements.append(Paragraph(f"Murphy Coolant Level Switch： {spec.get('murphy_coolant', '—')}", normal))
+        data = [
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('rad_model', '—'), "Fuel Cooler： " + spec.get('fuel_cooler', '—')],
+            ["Degree (温度)： " + spec.get('rad_temp', '—'), "Low Water Level Switch： " + spec.get('low_water', '—')],
+            ["Fan Size (扇呎吋)： " + spec.get('fan_size', '—'), "Murphy Coolant Level Switch： " + spec.get('murphy_coolant', '—')],
+            ["Protection Cover (保護罩)： " + spec.get('radiator_guard', '—'), ""],
+        ]
+        t = Table(data, colWidths=[260, 260])
+        t.setStyle(TableStyle([('FONTNAME', (0,0), (-1,-1), 'NotoSansTC'),
+                               ('FONTSIZE', (0,0), (-1,-1), 11),
+                               ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                               ('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Base Frame ====================
         elements.append(Paragraph("Base Frame (底架)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('base_model', '—')}", normal))
-        elements.append(Paragraph(f"Anti-Vibration Mounts： {spec.get('avm', '—')}", normal))
-        elements.append(Paragraph(f"Color： {spec.get('base_color', '—')}", normal))
+        data = [
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('base_model', '—'), "Color： " + spec.get('base_color', '—')],
+            ["Anti-Vibration Mounts (避震腳)： " + spec.get('avm', '—'), ""],
+        ]
+        t = Table(data, colWidths=[260, 260])
+        t.setStyle(TableStyle([('FONTNAME', (0,0), (-1,-1), 'NotoSansTC'),
+                               ('FONTSIZE', (0,0), (-1,-1), 11),
+                               ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                               ('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Container ====================
         elements.append(Paragraph("Container (貨櫃)", h3_style))
-        elements.append(Paragraph(f"Type： {spec.get('cont_type', '—')}　　Dimension： {spec.get('cont_size', '—')}", normal))
-        elements.append(Paragraph(f"CO Detector： {spec.get('co_detector', '—')}　　Color： {spec.get('cont_color', '—')}", normal))
+        data = [
+            ["Feature", "Option"],
+            ["Type (型號)： " + spec.get('cont_type', '—'), "CO Detector： " + spec.get('co_detector', '—')],
+            ["Dimension (呎吋)： " + spec.get('cont_size', '—'), "Color： " + spec.get('cont_color', '—')],
+        ]
+        t = Table(data, colWidths=[260, 260])
+        t.setStyle(TableStyle([('FONTNAME', (0,0), (-1,-1), 'NotoSansTC'),
+                               ('FONTSIZE', (0,0), (-1,-1), 11),
+                               ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                               ('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Breaker ====================
         elements.append(Paragraph("Breaker (斷路器)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('breaker_model', '—')}　　Type： {spec.get('breaker_type', '—')}　　Rating： {spec.get('breaker_rating', '—')}", normal))
-        elements.append(Paragraph(f"Gear Motor： {spec.get('gear_motor', '—')}　　Shunt Trip： {spec.get('shunt_trip', '—')}", normal))
-        elements.append(Paragraph(f"Closing Coil： {spec.get('closing_coil', '—')}　　UV Relay： {spec.get('uv_relay', '—')}", normal))
+        data = [
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('breaker_model', '—'), "Gear Motor： " + spec.get('gear_motor', '—')],
+            ["Type (類型)： " + spec.get('breaker_type', '—'), "Shunt Trip： " + spec.get('shunt_trip', '—')],
+            ["Rating： " + spec.get('breaker_rating', '—'), "Closing Coil： " + spec.get('closing_coil', '—')],
+            ["", "UV Relay： " + spec.get('uv_relay', '—')],
+        ]
+        t = Table(data, colWidths=[260, 260])
+        t.setStyle(TableStyle([('FONTNAME', (0,0), (-1,-1), 'NotoSansTC'),
+                               ('FONTSIZE', (0,0), (-1,-1), 11),
+                               ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                               ('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Control Panel ====================
         elements.append(Paragraph("Control Panel (控制器)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('panel_model', '—')}　　Module： {spec.get('panel_module', '—')}", normal))
+        data = [
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('panel_model', '—'), ""],
+            ["Module： " + spec.get('panel_module', '—'), ""],
+        ]
+        t = Table(data, colWidths=[260, 260])
+        t.setStyle(TableStyle([('FONTNAME', (0,0), (-1,-1), 'NotoSansTC'),
+                               ('FONTSIZE', (0,0), (-1,-1), 11),
+                               ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                               ('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Battery ====================
         elements.append(Paragraph("Battery (電池)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('battery_model', '—')}　　Switch： {spec.get('battery_switch', '—')}　　Rating： {spec.get('battery_rating', '—')}", normal))
-        elements.append(Paragraph(f"Charger Model： {spec.get('charger_model', '—')}", normal))
+        data = [
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('battery_model', '—'), "Charger Model： " + spec.get('charger_model', '—')],
+            ["Battery Switch： " + spec.get('battery_switch', '—'), ""],
+            ["Rating： " + spec.get('battery_rating', '—'), ""],
+        ]
+        t = Table(data, colWidths=[260, 260])
+        t.setStyle(TableStyle([('FONTNAME', (0,0), (-1,-1), 'NotoSansTC'),
+                               ('FONTSIZE', (0,0), (-1,-1), 11),
+                               ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                               ('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Fuel Tank ====================
         elements.append(Paragraph("Fuel Tank (燃油箱)", h3_style))
-        elements.append(Paragraph(f"Volume： {spec.get('fuel_volume', '—')}　　Layer： {spec.get('fuel_layer', '—')}", normal))
-        elements.append(Paragraph(f"Fuel Water Separator： {spec.get('fuel_water_separator', '—')}", normal))
-        elements.append(Paragraph(f"Fuel Level Gauge： {spec.get('fuel_gauge', '—')}", normal))
-        elements.append(Paragraph(f"Fuel Level Switch / Sensor： {spec.get('fuel_level_switch', '—')} / {spec.get('fuel_level_sensor', '—')}", normal))
-        elements.append(Paragraph(f"Donaldson Breather： {spec.get('donaldson_breather', '—')}", normal))
+        data = [
+            ["Feature", "Option"],
+            ["Volume： " + spec.get('fuel_volume', '—'), "Fuel Level Gauge： " + spec.get('fuel_gauge', '—')],
+            ["Layer： " + spec.get('fuel_layer', '—'), "Fuel Level Switch： " + spec.get('fuel_level_switch', '—')],
+            ["Fuel Water Separator： " + spec.get('fuel_water_separator', '—'), "Fuel Level Sensor： " + spec.get('fuel_level_sensor', '—')],
+            ["", "Donaldson Breather： " + spec.get('donaldson_breather', '—')],
+        ]
+        t = Table(data, colWidths=[260, 260])
+        t.setStyle(TableStyle([('FONTNAME', (0,0), (-1,-1), 'NotoSansTC'),
+                               ('FONTSIZE', (0,0), (-1,-1), 11),
+                               ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                               ('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Oil Tank ====================
         elements.append(Paragraph("Oil Tank (機油箱)", h3_style))
-        elements.append(Paragraph(f"Volume： {spec.get('oil_volume', '—')}", normal))
-        elements.append(Paragraph(f"Donaldson Breather： {spec.get('oil_donaldson', '—')}", normal))
-        elements.append(Paragraph(f"Murphy Coolant Level Switch： {spec.get('murphy_oil', '—')}", normal))
+        data = [
+            ["Feature", "Option"],
+            ["Volume： " + spec.get('oil_volume', '—'), "Donaldson Breather： " + spec.get('oil_donaldson', '—')],
+            ["", "Murphy Coolant Level Switch： " + spec.get('murphy_oil', '—')],
+        ]
+        t = Table(data, colWidths=[260, 260])
+        t.setStyle(TableStyle([('FONTNAME', (0,0), (-1,-1), 'NotoSansTC'),
+                               ('FONTSIZE', (0,0), (-1,-1), 11),
+                               ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                               ('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Remarks ====================
         remarks = spec.get("remarks", "").strip()
         if remarks:
-            elements.append(Spacer(1, 12))
             elements.append(Paragraph("Remarks / 備註", h3_style))
             elements.append(Paragraph(remarks, normal))
+            elements.append(Spacer(1, 12))
 
     doc.build(elements)
     pdf_bytes = buffer.getvalue()
     buffer.close()
     return pdf_bytes
-def send_update_notification_email(project_name, old_specs, new_specs, recipient_emails, project_info):
+
+##def send_update_notification_email(project_name, old_specs, new_specs, recipient_emails, project_info):
+
     st.write("開始發送信 debug...")
     if not recipient_emails:
         st.warning("沒有收件人，跳過發信")
@@ -474,6 +567,7 @@ def send_update_notification_email(project_name, old_specs, new_specs, recipient
         st.error(f"發送失敗：{str(e)}")
         st.write("錯誤類型：", type(e).__name__)
         st.write("完整錯誤：", str(e))
+        ##
 # 頁面設定
 st.set_page_config(
     page_title="YIP SHING Project Dashboard",
