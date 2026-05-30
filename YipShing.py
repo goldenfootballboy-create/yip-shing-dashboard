@@ -2001,8 +2001,10 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.rerun()
     edit_spec_dialog()
 
+
+
 # ==============================================
-# New Spec - 空白大表格版（已修正 Save 沒反應問題）
+# Project Specification Dialog (新增用)
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -2011,106 +2013,738 @@ if st.session_state.get("spec_dialog_open", False):
 
     temp_project = st.session_state.temp_project
     qty = temp_project.get("Qty", 1)
+    project_type = temp_project["Project_Type"]
+    is_open_or_marine = project_type in ["Open Set", "Marine"]
 
-
-    @st.dialog("New Project Specification - 空白大表格", width="large")
+    @st.dialog("Project Specification", width="large")
     def spec_dialog():
-        st.markdown(f"**請填寫 {qty} 台機器的規格**（完全空白表格，可自由填寫）")
+        st.markdown(f"**請填寫 {qty} 台機器的規格**")
 
-        # 頂部基本資料
-        c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**SO#**")
-        with c2:
-            so_number = st.text_input("", key="dlg_so_number", label_visibility="collapsed")
-
-        c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**Product Category**")
-        with c2:
-            product_category = st.text_input("", key="dlg_product_category", label_visibility="collapsed")
-
-        c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**Product Code**")
-        with c2:
-            product_code = st.text_input("", key="dlg_product_code", label_visibility="collapsed")
-
-        c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**QTY**")
-        with c2:
-            qty_input = st.number_input("", min_value=1, value=qty, key="dlg_qty_input", label_visibility="collapsed")
-
-        st.markdown("---")
-
-        # 完全空白的大表格
-        default_df = pd.DataFrame({
-            "欄位名稱": [""] * 20,
-            "第1台": [""] * 20,
-            "第2台": [""] * 20,
-            "第3台": [""] * 20,
-            "第4台": [""] * 20,
-            "第5台": [""] * 20,
-            "備註": [""] * 20
-        })
-
-        edited_df = st.data_editor(
-            default_df,
-            use_container_width=True,
-            num_rows="dynamic",  # 可以自由增加或刪除列
-            hide_index=True,
+        st.markdown(
+            """
+            <style>
+            div[data-testid="column"] {
+                display: flex !important;
+                align-items: center !important;
+            }
+            div[data-testid="column"] div[data-testid="stTextInput"] > div > div,
+            div[data-testid="column"] div[data-testid="stSelectbox"] > div > div {
+                width: 100% !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
         )
 
-        st.caption("💡 第一欄填欄位名稱（如 Model、Prime kW、Color...），其他欄填對應數值")
+        tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
+        specs = []
+        if qty > 1:
+            st.markdown("---")
+            st.markdown("### 規格快速複製工具")
+            if st.button("📋 從第 1 台複製規格 → 所有其他台",
+                         type="primary",
+                         use_container_width=True,
+                         help="點擊後會把目前第1台已填寫的規格，複製到第2台～最後一台"):
+
+                source_i = 0
+
+                static_fields = [
+                    "prime", "standby", "voltage", "frequency", "rpm",
+                    "genset_model", "engine_color", "engine_year", "engine_heater", "engine_source",
+                    "alt_model", "alt_color", "droop", "pmg", "alt_heater", "alt_source",
+                    "rad_model", "rad_temp", "fan_size", "rad_source", "radiator_guard",
+                    "fuel_cooler", "fuel_cooler_source",
+                    "coolant_sensor", "coolant_sensor_source",
+                    "low_water", "low_water_source",
+                    "base_model", "base_source",
+                    "avm", "avm_model", "avm_qty", "avm_source",
+                    "cont_size", "cont_type", "cont_color", "fork_slot", "anti_noise",
+                    "internal_silencer", "ss_locks", "emergency_stop", "cont_source",
+                    "panel_model", "co_detector", "panel_source", "co_source",
+                    "breaker_type", "breaker_rating", "poles", "spring_charging", "control_voltage", "breaker_source",
+                    "remarks"
+                ]
+
+                for field in static_fields:
+                    src_key = f"dlg_{field}_{source_i}"
+                    if src_key in st.session_state:
+                        value = st.session_state[src_key]
+                        for target_i in range(1, qty):
+                            target_key = f"dlg_{field}_{target_i}"
+                            st.session_state[target_key] = value
+
+                # 複製 Parts 動態列表（深拷貝）
+                src_parts_key = f"dlg_parts_{source_i}"
+                if src_parts_key in st.session_state and st.session_state[src_parts_key]:
+                    original_parts = st.session_state[src_parts_key]
+                    copied_parts = [dict(p) for p in original_parts]
+                    for target_i in range(1, qty):
+                        target_key = f"dlg_parts_{target_i}"
+                        if target_key in st.session_state:
+                            del st.session_state[target_key]
+                        st.session_state[target_key] = copied_parts[:]
+                        _ = st.session_state[target_key]
+
+                # 複製 Delivery Checklist 動態列表（深拷貝）
+                src_checklist_key = f"dlg_delivery_checklist_{source_i}"
+                if src_checklist_key in st.session_state and st.session_state[src_checklist_key]:
+                    original_checklist = st.session_state[src_checklist_key]
+                    copied_checklist = [dict(item) for item in original_checklist]
+                    for target_i in range(1, qty):
+                        target_key = f"dlg_delivery_checklist_{target_i}"
+                        if target_key in st.session_state:
+                            del st.session_state[target_key]
+                        st.session_state[target_key] = copied_checklist[:]
+                        _ = st.session_state[target_key]
+
+                # 新增：複製所有負責部門下拉欄位（Panel、Breaker、Fuel Cooler、Anti-Vibration Mount、Coolant sensor、Low water、Fan、Door Limit Switch、CO 等）
+                dept_fields = [
+                    "panel_department",
+                    "breaker_department",
+                    "fuel_cooler_department",
+                    "avm_department",
+                    "coolant_sensor_department",
+                    "low_water_department",
+                    "fan_department",
+                    "door_limit_department",
+                    "co_department"
+                    # 如果未來加更多部門欄位，直接加在這裡
+                ]
+
+                for field in dept_fields:
+                    src_key = f"dlg_{field}_{source_i}"
+                    if src_key in st.session_state:
+                        value = st.session_state[src_key]
+                        for target_i in range(1, qty):
+                            target_key = f"dlg_{field}_{target_i}"
+                            st.session_state[target_key] = value
+
+                st.success("已成功將第 1 台的規格（含配件、打勾與所有負責部門）複製到其他所有台！")
+                st.rerun()
+        for i in range(qty):
+            with tabs[i]:
+                st.markdown("### Prime & Standby Power")
+                col1, col2 = st.columns(2)
+                with col1:
+                    s_prime = st.text_input("Prime (kW)", key=f"dlg_prime_{i}")
+                    s_voltage = st.selectbox("Voltage(電壓)", ["--", "380", "400", "415", "440", "480","Muti-Voltage"], key=f"dlg_voltage_{i}")
+                    s_frequency = st.selectbox("Frequency(頻率)", ["--", "50Hz", "60Hz","50Hz&60Hz"], key=f"dlg_frequency_{i}")
+                with col2:
+                    s_standby = st.text_input("Standby (kW)", key=f"dlg_standby_{i}")
+                    s_rpm = st.selectbox("RPM(轉速)", ["--", "1500", "1800","1500&1800"], key=f"dlg_rpm_{i}")
+
+                st.markdown("---")
+
+                with st.expander("Engine & Alternator Group(發動機＆電球)", expanded=True):
+                    col_title, col_source = st.columns([6, 1])
+                    with col_title:
+                        st.markdown("**Engine 發動機**")
+                    with col_source:
+                        s_engine_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_engine_source_{i}", label_visibility="collapsed")
+
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        s_genset_model = st.text_input("Genset model(發動機型號)", key=f"dlg_genset_model_{i}")
+                    with col2:
+                        s_genset_sn = st.text_input("S/N", key=f"dlg_genset_sn_{i}")
+                    with col3:
+                        s_engine_color = st.text_input("Color(顏色)", key=f"dlg_engine_color_{i}")
+                    with col4:
+                        s_engine_year = st.text_input("Year(年份)", key=f"dlg_engine_year_{i}")
+                    s_engine_heater = st.text_input("Engine Heater(發動機加熱器) kW", key=f"dlg_engine_heater_{i}")
+
+                    st.markdown("---")
+
+                    col_title, col_source = st.columns([6, 1])
+                    with col_title:
+                        st.markdown("**Alternator (電球)**")
+                    with col_source:
+                        s_alt_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_alt_source_{i}", label_visibility="collapsed")
+
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        s_alt_model = st.text_input("Alternator Model(電球型號)", key=f"dlg_alt_model_{i}")
+                    with col2:
+                        s_alt_sn = st.text_input("S/N", key=f"dlg_alt_sn_{i}")
+                    with col3:
+                        s_alt_color = st.text_input("Color(顏色)", key=f"dlg_alt_color_{i}")
+                    col_d1, col_d2, col_d3 = st.columns(3)
+                    with col_d1:
+                        s_droop = st.selectbox("DroopKit", ["--", "包含", "不包含"], key=f"dlg_droop_{i}")
+                    with col_d2:
+                        s_pmg = st.text_input("PMG", key=f"dlg_pmg_{i}")
+                    with col_d3:
+                        s_alt_heater = st.selectbox("Alternator Heater (交流發電機加熱器)", ["--", "包含", "不包含"], key=f"dlg_alt_heater_{i}")
+
+                st.markdown("---")
+
+                with st.expander("Radiator & Base Frame Group(水箱＆底架)", expanded=False):
+                    col_title, col_source = st.columns([6, 1])
+                    with col_title:
+                        st.markdown("**Radiator (水箱)**")
+                    with col_source:
+                        s_rad_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_rad_source_{i}", label_visibility="collapsed")
+
+                    # Radiator model、S/N、Temperature 保持 3 欄
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        s_rad_model = st.text_input("Radiator model(水箱型號)", key=f"dlg_rad_model_{i}")
+                    with col2:
+                        s_rad_sn = st.text_input("S/N", key=f"dlg_rad_sn_{i}")
+                    with col3:
+                        s_rad_temp = st.text_input("Temperature(温度)", key=f"dlg_rad_temp_{i}")
+
+                    # 風扇呎吋 + 負責部門 放在同一行（並排）
+                    col_fan, col_dept = st.columns([3, 2])
+
+                    with col_fan:
+                        s_fan_size = st.text_input("風扇呎吋", key=f"dlg_fan_size_{i}")
+
+                    with col_dept:
+                        # 加一個透明高度調整區塊（高度與 text_input 的 label 高度接近）
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                        s_fan_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
+                                                        key=f"dlg_fan_department_{i}",
+                                                        label_visibility="collapsed")
+                    col_r1, col_r2 = st.columns(2)
+                    with col_r1:
+                        s_radiator_guard = st.selectbox("Radiator Guard (水箱護罩)", ["--", "包含", "不包含"], key=f"dlg_radiator_guard_{i}")
+
+                    # Fuel Cooler 組（改成 [4, 1, 1, 2] 比例，插入 Include / Not Include）
+                    col_fuel_title, col_fuel_include, col_fuel_source, col_fuel_dept = st.columns([4, 1, 1, 2])
+
+                    with col_fuel_title:
+                        st.markdown("<div style='height: 43px;'></div>", unsafe_allow_html=True)
+                        st.markdown("**燃油冷卻器**")
+
+                    with col_fuel_include:
+                        # 補高度，讓下拉選單與標題齊平
+                        st.markdown("<div style='height: 43px;'></div>", unsafe_allow_html=True)
+                        s_fuel_cooler = st.selectbox(
+                            "",
+                            ["--", "包含", "不包含"],
+                            key=f"dlg_fuel_cooler_{i}",
+                            label_visibility="collapsed"
+                        )
+
+                    with col_fuel_source:
+                        st.markdown("**貨源**")
+                        s_fuel_cooler_source = st.selectbox(
+                            "貨源",
+                            ["--", "HK", "DG"],
+                            key=f"dlg_fuel_cooler_source_{i}",
+                            label_visibility="collapsed"
+                        )
+
+                    with col_fuel_dept:
+                        st.markdown("**負責部門**")
+                        s_fuel_cooler_department = st.selectbox(
+                            "負責部門",
+                            ["--", "Michelle", "倉庫"],
+                            key=f"dlg_fuel_cooler_department_{i}",
+                            label_visibility="collapsed"
+                        )
+
+                    col_title, col_include, col_source, col_dept = st.columns([4, 1, 1, 2])
+                    with col_title:
+                        st.markdown("**Coolant temperature sensor**")
+                    with col_include:
+                        s_coolant_sensor = st.selectbox("", ["--", "包含", "不包含"],
+                                                        key=f"dlg_coolant_sensor_{i}",
+                                                        label_visibility="collapsed")
+                    with col_source:
+                        s_coolant_sensor_source = st.selectbox("貨源", ["--", "HK", "DG"],
+                                                               key=f"dlg_coolant_sensor_source_{i}",
+                                                               label_visibility="collapsed")
+                    with col_dept:
+                        s_coolant_sensor_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
+                                                                   key=f"dlg_coolant_sensor_department_{i}",
+                                                                   label_visibility="collapsed")
+                    col_title, col_include, col_source, col_dept = st.columns([4, 1, 1, 2])
+                    with col_title:
+                        st.markdown("**Low water level float switch**")
+                    with col_include:
+                        s_low_water = st.selectbox("", ["--", "包含", "不包含"],
+                                                   key=f"dlg_low_water_{i}",
+                                                   label_visibility="collapsed")
+                    with col_source:
+                        s_low_water_source = st.selectbox("貨源", ["--", "HK", "DG"],
+                                                          key=f"dlg_low_water_source_{i}",
+                                                          label_visibility="collapsed")
+                    with col_dept:
+                        s_low_water_department = st.selectbox("負責部門", ["--", "Michelle", "倉庫"],
+                                                              key=f"dlg_low_water_department_{i}",
+                                                              label_visibility="collapsed")
+                    st.markdown("---")
+
+                    col_title, col_source = st.columns([6, 1])
+                    with col_title:
+                        st.markdown("**Base Frame (底架)**")
+                    with col_source:
+                        s_base_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_base_source_{i}", label_visibility="collapsed")
+
+                    col_model, col_sn = st.columns(2)
+                    with col_model:
+                        s_base_model = st.text_input("Base Frame model(底架型號)", key=f"dlg_base_model_{i}")
+                    with col_sn:
+                        s_base_sn = st.text_input("S/N", key=f"dlg_base_sn_{i}")
+
+                    col_avm_title, col_avm_source, col_avm_dept = st.columns([5, 1, 2])
+
+                    with col_avm_title:
+                        st.markdown("**Anti-Vibration Mount**")
+
+                    with col_avm_source:
+                        st.markdown("**貨源**")
+                        s_avm_source = st.selectbox(
+                            "貨源",
+                            ["--", "HK", "DG"],
+                            key=f"dlg_avm_source_{i}",
+                            label_visibility="collapsed"
+                        )
+
+                    with col_avm_dept:
+                        st.markdown("**負責部門**")
+                        s_avm_department = st.selectbox(
+                            "負責部門",
+                            ["--", "Michelle", "倉庫"],
+                            key=f"dlg_avm_department_{i}",
+                            label_visibility="collapsed"
+                        )
+                    s_avm_model = st.text_input("Anti-Vibration Mount model(避震器型號)", key=f"dlg_avm_model_{i}")
+                    s_avm_qty = st.number_input("Qty(數量)", min_value=0, value=0, key=f"dlg_avm_qty_{i}")
+
+                st.markdown("---")
+
+                with st.expander("Container & Control & Circuit Breaker Group(貨櫃&控制器&斷路器)", expanded=False):
+                    col_title, col_source = st.columns([6, 1])
+                    with col_title:
+                        st.markdown("**Container (貨櫃)**")
+                    with col_source:
+                        s_cont_source = st.selectbox("貨源", ["--", "HK", "DG"], key=f"dlg_cont_source_{i}", label_visibility="collapsed")
+
+                    col_c1, col_c2, col_c3 = st.columns(3)
+                    with col_c1:
+                        s_cont_size = st.selectbox("Size(呎吋)", ["--", "20'ftHQ", "20'ftGP"], index=0 if is_open_or_marine else 0, key=f"dlg_cont_size_{i}")
+                    with col_c2:
+                        s_cont_type = st.selectbox("Type(種類)", ["--", "FIEO", "Motorized"], index=0 if is_open_or_marine else 0, key=f"dlg_cont_type_{i}")
+                    with col_c3:
+                        s_cont_color = st.text_input("Color(顏色)", key=f"dlg_cont_color_{i}")
+
+                    col_f1, col_f2 = st.columns(2)
+                    with col_f1:
+                        s_fork_slot = st.selectbox("是否帶叉槽位", ["--", "Yes", "No"], index=0 if is_open_or_marine else 0, key=f"dlg_fork_slot_{i}")
+                    with col_f2:
+                        s_anti_noise = st.selectbox("Anti-Noise(78-80Dba @7M 75% loading)", ["--", "Yes", "No"], index=0 if is_open_or_marine else 0, key=f"dlg_anti_noise_{i}")
+                    col_i1, col_i2 = st.columns(2)
+                    with col_i1:
+                        s_internal_silencer = st.selectbox("Internal Silencer (內部消聲器)", ["--", "包含", "不包含"], index=0 if is_open_or_marine else 0, key=f"dlg_internal_silencer_{i}")
+                    with col_i2:
+                        s_ss_locks = st.selectbox("304 Stainless Steel Door Locks & Hinges", ["--", "包含", "不包含"], index=0 if is_open_or_marine else 0, key=f"dlg_ss_locks_{i}")
+                    s_emergency_stop = st.selectbox("Emergency Stop Button (緊急暫停)", ["--", "包含", "不包含"], index=0 if is_open_or_marine else 0, key=f"dlg_emergency_stop_{i}")
+
+                    st.markdown("---")
+
+                    # Panel (控制器)
+                    col_panel_title, col_panel_source, col_panel_dept = st.columns([5, 1, 2])
+
+                    with col_panel_title:
+                        st.markdown("**Panel (控制器)**")
+
+                    with col_panel_source:
+                        st.markdown("**貨源**")
+                        s_panel_source = st.selectbox(
+                            "貨源",
+                            ["--", "HK", "DG"],
+                            key=f"dlg_panel_source_{i}",
+                            label_visibility="collapsed"
+                        )
+
+                    with col_panel_dept:
+                        st.markdown("**負責部門**")
+                        s_panel_department = st.selectbox(
+                            "負責部門",
+                            ["--", "Michelle", "倉庫"],
+                            key=f"dlg_panel_department_{i}",
+                            label_visibility="collapsed"
+                        )
+
+                    col_p1, col_p2 = st.columns(2)
+                    with col_p1:
+                        s_panel_model = st.text_input("Panel model(控制器型號)", key=f"dlg_panel_model_{i}")
+                    with col_p2:
+                        s_panel_sn = st.text_input("S/N", key=f"dlg_panel_sn_{i}")
+
+                    col_co_include, col_co_source, col_co_dept = st.columns([3, 2, 2])
+
+                    with col_co_include:
+                        s_co_detector = st.selectbox(
+                            "CO 探測器 (OLED)",
+                            ["--", "包含", "不包含"],
+                            key=f"dlg_co_detector_{i}",
+                            label_visibility="visible"
+                        )
+
+                    with col_co_source:
+                        s_co_source = st.selectbox(
+                            "貨源",
+                            ["--", "HK", "DG"],
+                            key=f"dlg_co_source_{i}",
+                            label_visibility="visible"
+                        )
+
+                    with col_co_dept:
+                        s_co_department = st.selectbox(
+                            "負責部門",
+                            ["--", "Michelle", "倉庫"],
+                            key=f"dlg_co_department_{i}",
+                            label_visibility="visible"
+                        )
+                    st.markdown("---")
+                    col_title, col_source, col_dept = st.columns([5, 1, 2])
+
+                    with col_title:
+                        st.markdown("**Circuit Breaker (斷路器)**")
+
+                    with col_source:
+                        st.markdown("**貨源**")
+                        s_breaker_source = st.selectbox(
+                            "貨源",
+                            ["--", "HK", "DG"],
+                            key=f"dlg_breaker_source_{i}",
+                            label_visibility="collapsed"
+                        )
+
+                    with col_dept:
+                        st.markdown("**負責部門**")
+                        s_breaker_department = st.selectbox(
+                            "負責部門",
+                            ["--", "Michelle", "倉庫"],
+                            key=f"dlg_breaker_department_{i}",
+                            label_visibility="collapsed"
+                        )
+
+                    col_b1, col_b2 = st.columns(2)
+                    with col_b1:
+                        s_breaker_type = st.selectbox("Breaker Type (斷路器種類)", ["--", "ACB", "MCCB"], key=f"dlg_breaker_type_{i}")
+                    with col_b2:
+                        s_breaker_rating = st.text_input("Breaker Rating (斷路器容量)", key=f"dlg_breaker_rating_{i}")
+
+                    col_p3, col_p4 = st.columns(2)
+                    with col_p3:
+                        s_poles = st.selectbox("Poles(極數)", ["--", "3P", "4P"], key=f"dlg_poles_{i}")
+                    with col_p4:
+                        s_spring_charging = st.selectbox("Spring Charging(斷路器操作)", ["--", "Motorized", "Single Usage"], key=f"dlg_spring_charging_{i}")
+
+                    s_control_voltage = st.text_input("Control Voltage(控制電壓)", key=f"dlg_control_voltage_{i}")
+
+                    s_breaker_sn = st.text_input("Breaker S/N", key=f"dlg_breaker_sn_{i}")
+
+                    col_door_include, col_door_source, col_door_dept = st.columns([3, 2, 2])
+
+                    with col_door_include:
+                        s_door_limit_switch = st.selectbox(
+                            "Door Limit Switch",
+                            ["--", "包含", "不包含"],
+                            key=f"dlg_door_limit_switch_{i}",
+                            label_visibility="visible"
+                        )
+
+                    with col_door_source:
+                        s_door_limit_source = st.selectbox(
+                            "貨源",
+                            ["--", "HK", "DG"],
+                            key=f"dlg_door_limit_source_{i}",
+                            label_visibility="visible"
+                        )
+
+                    with col_door_dept:
+                        s_door_limit_department = st.selectbox(
+                            "負責部門",
+                            ["--", "Michelle", "倉庫"],
+                            key=f"dlg_door_limit_department_{i}",
+                            label_visibility="visible"
+                        )
+                st.markdown("---")
+                with st.expander("Parts (配件) Group", expanded=False):
+                    part_key = f"dlg_parts_{i}"
+                    if part_key not in st.session_state:
+                        st.session_state[part_key] = []  # 沒有預設欄位
+
+                    parts_list = st.session_state[part_key]
+
+                    for j in range(len(parts_list)):
+                        # 順序：名稱、貨源、負責部門、刪除（刪除放最右）
+                        col_name, col_source, col_dept, col_delete = st.columns([4, 1, 2, 1])
+
+                        with col_name:
+                            # 輸入欄上方加空白高度區塊（推高輸入框位置）
+                            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+
+                            part_name = st.text_input(
+                                f"配件名稱/描述 {j + 1}",
+                                value=parts_list[j].get("name", ""),
+                                key=f"dlg_part_name_{i}_{j}",
+                                label_visibility="collapsed"
+                            )
+
+                        with col_source:
+                            st.markdown(
+                                "<div style='height: 28px; line-height: 28px; font-weight:'>貨源</div>",
+                                unsafe_allow_html=True
+                            )
+                            part_source = st.selectbox(
+                                "貨源",
+                                ["--", "HK", "DG"],
+                                index=safe_index(parts_list[j].get("source", "--"), ["--", "HK", "DG"]),
+                                key=f"dlg_part_source_{i}_{j}",
+                                label_visibility="collapsed"
+                            )
+
+                        with col_dept:
+                            st.markdown(
+                                "<div style='height: 28px; line-height: 28px;'>負責部門</div>",
+                                unsafe_allow_html=True
+                            )
+                            department = st.selectbox(
+                                "負責部門",
+                                ["--", "Michelle", "倉庫"],
+                                index=safe_index(parts_list[j].get("department", "--"), ["--", "Michelle", "倉庫"]),
+                                key=f"dlg_part_department_{i}_{j}",
+                                label_visibility="collapsed"
+                            )
+
+                        with col_delete:
+                            # 刪除按鈕上方加相同高度空白，讓按鈕與其他欄位對齊
+                            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                            if st.button("刪除", key=f"delete_dlg_part_{i}_{j}", type="secondary"):
+                                parts_list.pop(j)
+                                st.rerun()
+
+                        parts_list[j] = {
+                            "name": part_name.strip(),
+                            "source": part_source if part_source != "--" else "",
+                            "department": department if department != "--" else ""
+                        }
+
+                    if st.button("+ 新增配件", key=f"add_part_tab{i}_len{len(parts_list)}", type="secondary"):
+                        parts_list.append({"name": "", "source": "--", "department": "--"})
+                        st.rerun()
+
+                st.markdown("---")
+
+                with st.expander("Delivery Checklist (出貨檢查清單)", expanded=False):
+                    checklist_key = f"dlg_delivery_checklist_{i}"
+                    if checklist_key not in st.session_state:
+                        default_items = [
+                            "Load Test",
+                            "No load test",
+                            "灑水測試",
+                            "放油放水 Drain out all liquid",
+                            "Anti Freezer",
+                            "壓缸",
+                            "膠片(防uv茶式/透明)",
+                            "電球檔板(K50)",
+                            "隔熱棉",
+                            "Turbo 棉",
+                            "Cummins 鐵牌",
+                            "Warning 鐵牌",
+                            "Danger Label(415V/400V)",
+                            "Top One Power貼紙",
+                            "Warning 貼紙",
+                            "Standard Tools Kit 工具箱",
+                            "Test Report測試報告",
+                            "Test Video",
+                            "Manuals說明書",
+                            "Certificate證書",
+                            "Genset Label",
+                            "電球Label",
+                            "Sales photos",
+                            "Marketing photos",
+                            "Autocad drawing",
+                            "Wiring diagram"
+                        ]
+
+                        st.session_state[checklist_key] = [{"name": item, "checked": False} for item in default_items]
+
+                    checklist = st.session_state[checklist_key]
+
+                    for j in range(len(checklist)):
+                        col_check, col_name, col_delete = st.columns([1, 5, 1])
+                        with col_check:
+                            checked = st.checkbox("", value=checklist[j].get("checked", False), key=f"dlg_check_{i}_{j}")
+                        with col_name:
+                            name = st.text_input("", value=checklist[j].get("name", ""), key=f"dlg_check_name_{i}_{j}", label_visibility="collapsed")
+                        with col_delete:
+                            if len(checklist) > 1:
+                                if st.button("刪除", key=f"dlg_del_check_{i}_{j}", type="secondary"):
+                                    checklist.pop(j)
+                                    st.rerun()
+
+                        checklist[j] = {"name": name.strip(), "checked": checked}
+
+                    if st.button("+ 新增自定義項目", key=f"dlg_add_check_tab{i}_len{len(checklist)}", type="secondary"):
+                        checklist.append({"name": "", "checked": False})
+                        st.rerun()
+
+                st.markdown("---")
+
+                s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
+
+                spec_data = {
+                    "prime": s_prime.strip(),
+                    "standby": s_standby.strip(),
+                    "voltage": "" if s_voltage == "--" else s_voltage,
+                    "frequency": "" if s_frequency == "--" else s_frequency,
+                    "rpm": "" if s_rpm == "--" else s_rpm,
+                    "genset_model": s_genset_model,
+                    "genset_sn": s_genset_sn,
+                    "engine_color": s_engine_color,
+                    "engine_year": s_engine_year,
+                    "engine_heater": s_engine_heater,
+                    "engine_source": s_engine_source if s_engine_source != "--" else "",
+                    "alt_model": s_alt_model,
+                    "alt_sn": s_alt_sn,
+                    "alt_color": s_alt_color,
+                    "droop": s_droop if s_droop != "--" else "",
+                    "pmg": s_pmg,
+                    "alt_heater": s_alt_heater if s_alt_heater != "--" else "",
+                    "alt_source": s_alt_source if s_alt_source != "--" else "",
+                    "rad_model": s_rad_model,
+                    "rad_sn": s_rad_sn,
+                    "rad_temp": s_rad_temp,
+                    "fan_size": s_fan_size,
+                    "fan_department": s_fan_department if s_fan_department != "--" else "",
+                    "coolant_sensor": s_coolant_sensor if s_coolant_sensor != "--" else "",
+                    "coolant_sensor_source": s_coolant_sensor_source if s_coolant_sensor_source != "--" else "",
+                    "coolant_sensor_department": s_coolant_sensor_department if s_coolant_sensor_department != "--" else "",
+                    "low_water": s_low_water if s_low_water != "--" else "",
+                    "low_water_source": s_low_water_source if s_low_water_source != "--" else "",
+                    "low_water_department": s_low_water_department if s_low_water_department != "--" else "",
+                    "radiator_guard": s_radiator_guard if s_radiator_guard != "--" else "",
+                    "fuel_cooler": s_fuel_cooler if s_fuel_cooler != "--" else "",
+                    "fuel_cooler_source": s_fuel_cooler_source if s_fuel_cooler_source != "--" else "",
+                    "fuel_cooler_department": s_fuel_cooler_department if s_fuel_cooler_department != "--" else "",
+                    "base_model": s_base_model,
+                    "base_sn": s_base_sn,
+                    "base_source": s_base_source if s_base_source != "--" else "",
+                    "avm_source": s_avm_source if s_avm_source != "--" else "",
+                    "avm_department": s_avm_department if s_avm_department != "--" else "",
+                    "avm_model": s_avm_model,
+                    "avm_qty": int(s_avm_qty),  # 數字欄位轉 int
+                    "cont_size": s_cont_size if s_cont_size != "--" else "",
+                    "cont_type": s_cont_type if s_cont_type != "--" else "",
+                    "cont_color": s_cont_color,
+                    "fork_slot": s_fork_slot if s_fork_slot != "--" else "",
+                    "anti_noise": s_anti_noise if s_anti_noise != "--" else "",
+                    "internal_silencer": s_internal_silencer if s_internal_silencer != "--" else "",
+                    "ss_locks": s_ss_locks if s_ss_locks != "--" else "",
+                    "emergency_stop": s_emergency_stop if s_emergency_stop != "--" else "",
+                    "cont_source": s_cont_source if s_cont_source != "--" else "",
+                    "panel_model": s_panel_model,
+                    "panel_sn": s_panel_sn,
+                    "panel_source": s_panel_source if s_panel_source != "--" else "",
+                    "panel_department": s_panel_department if s_panel_department != "--" else "",
+                    "co_detector": s_co_detector if s_co_detector != "--" else "",
+                    "co_source": s_co_source if s_co_source != "--" else "",
+                    "co_department": s_co_department if s_co_department != "--" else "",
+                    # Circuit Breaker 欄位（補齊所有）
+                    "breaker_source": s_breaker_source if s_breaker_source != "--" else "",
+                    "breaker_department": s_breaker_department if s_breaker_department != "--" else "",
+                    "breaker_type": s_breaker_type if s_breaker_type != "--" else "",
+                    "breaker_rating": s_breaker_rating.strip() if s_breaker_rating else "",
+                    "poles": s_poles if s_poles != "--" else "",
+                    "spring_charging": s_spring_charging if s_spring_charging != "--" else "",
+                    "control_voltage": s_control_voltage.strip() if s_control_voltage else "",
+                    "breaker_sn": s_breaker_sn.strip() if s_breaker_sn else "",
+                    # Door Limit Switch
+                    "door_limit_switch": s_door_limit_switch if s_door_limit_switch != "--" else "",
+                    "door_limit_source": s_door_limit_source if s_door_limit_source != "--" else "",
+                    "door_limit_department": s_door_limit_department if s_door_limit_department != "--" else "",
+                    # 其他
+                    "parts": [p for p in parts_list if p["name"].strip()],
+                    "delivery_checklist": checklist,
+                    "remarks": s_remarks.strip()
+                }
+                specs.append(spec_data)
+        # PDF 匯出按鈕（放在 Save & Close 旁邊）
+        if st.button("📄 Export PDF ", type="secondary", use_container_width=True):
+            pdf_bytes = generate_overview_pdf(specs, temp_project, qty)
+            st.download_button(
+                label="下載 PDF",
+                data=pdf_bytes,
+                file_name=f"{temp_project['Project_Name']}_Overview.pdf",
+                mime="application/pdf"
+            )
+        # Send Email 按鈕（新增規格時的通知）
+        if st.button("📧 Send Email (通知新規格)", type="secondary", use_container_width=True):
+            # 新增時沒有舊規格，所以 old_specs 為空
+            old_specs = []  # 或 [{}] * qty，如果想顯示空變更
+
+            # 收件人列表
+            recipient_emails = [
+                "anson@topone-power.com"
+
+            ]
+
+            # 呼叫發送 email 函數
+            send_update_notification_email(
+                project_name=temp_project['Project_Name'],
+                old_specs=old_specs,
+                new_specs=specs,  # 新增的規格
+                recipient_emails=recipient_emails,
+                project_info=temp_project
+            )
         col_save, col_cancel = st.columns(2)
         with col_save:
-            if st.button("💾 Save & Close", type="primary", use_container_width=True):
-                # 儲存基本資料
-                temp_project["SO_Number"] = so_number
-                temp_project["Product_Category"] = product_category
-                temp_project["Product_Code"] = product_code
-                temp_project["Qty"] = qty_input
-
-                # 把整個表格存成 JSON
-                table_json = edited_df.to_json(orient="records", force_ascii=False)
-                temp_project["Project_Spec"] = table_json
-
+            save_disabled = st.session_state.get("new_spec_saving", False)
+            if st.button("Save & Close", type="primary", use_container_width=True, disabled=save_disabled):
                 st.session_state.new_spec_saving = True
                 st.rerun()
 
         with col_cancel:
             if st.button("Cancel", type="secondary", use_container_width=True):
                 st.session_state.spec_dialog_open = False
+                st.session_state.dialog_active = None
+                if "temp_project" in st.session_state:
+                    del st.session_state.temp_project
                 st.rerun()
 
+        if st.session_state.get("new_spec_saving", False):
+            fullscreen_loading("正在新增專案並儲存規格，請稍候...")
+
+            first_spec = specs[0] if specs else {}
+            visible_lines = [
+                f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
+                f"Alternator Model: {first_spec.get('alt_model', '—')} | S/N: {first_spec.get('alt_sn', '—')}",
+                f"Panel model: {first_spec.get('panel_model', '—')} | S/N: {first_spec.get('panel_sn', '—')}",
+                f"Breaker Type: {first_spec.get('breaker_type', '—')}"
+            ]
+            extra_json = json.dumps(specs, ensure_ascii=False)
+            spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_json
+
+            new_project = {
+                **temp_project,
+                "Project_Spec": spec_text,
+            }
+
+            global df
+            df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
+
+            save_projects()
+            st.cache_data.clear()
+
+            st.success(f"已成功新增專案（{qty} 台機器）！")
+            if "temp_project" in st.session_state:
+                del st.session_state.temp_project
+            st.session_state.spec_dialog_open = False
+            st.session_state.dialog_active = None
+            st.session_state.new_spec_saving = False
+            st.rerun()
 
     spec_dialog()
 
-# ==================== 儲存處理區塊（重要！） ====================
-if st.session_state.get("new_spec_saving", False):
-    fullscreen_loading("正在新增專案並儲存規格，請稍候...")
-
-    new_project = {
-        **temp_project,
-        "Project_Spec": temp_project.get("Project_Spec", "")
-    }
-
-    global df
-    df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
-
-    save_projects()
-    st.cache_data.clear()
-
-    st.success(f"已成功新增專案（{temp_project.get('Qty', qty)} 台機器）！")
-
-    if "temp_project" in st.session_state:
-        del st.session_state.temp_project
-    st.session_state.spec_dialog_open = False
-    st.session_state.dialog_active = None
-    st.session_state.new_spec_saving = False
-    st.rerun()
 # Edit Project Info Dialog
 if st.session_state.get("show_edit_info_dialog", False):
     if st.session_state.dialog_active != "edit_info":
