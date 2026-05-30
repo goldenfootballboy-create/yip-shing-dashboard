@@ -2092,16 +2092,16 @@ if st.session_state.get("spec_dialog_open", False):
 
     spec_dialog()
 
-# ==================== Save 後的處理區塊（必須放在 dialog 外面） ====================
+# ==================== Save 後的處理區塊（已修正 global df 錯誤） ====================
 if st.session_state.get("new_spec_saving", False):
     fullscreen_loading("正在新增專案並儲存規格，請稍候...")
 
+    # 直接使用 df（不需要 global，因為這是主程式碼層級）
     new_project = {
         **temp_project,
         "Project_Spec": temp_project.get("Project_Spec", "")
     }
 
-    global df
     df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
 
     save_projects()
