@@ -2237,29 +2237,48 @@ if st.session_state.get("spec_dialog_open", False):
 
                     # ==================== Feature ====================
                     with col_feature:
-                        st.markdown("**Feature**")
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Model (型號)")
-                        with col_input: s_rad_model = st.text_input("", key=f"dlg_rad_model_{i}", label_visibility="collapsed")
+                        with col_input: s_rad_model = st.text_input("", key=f"dlg_rad_model_{i}",
+                                                                    label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Degree (温度)")
-                        with col_input: s_rad_temp = st.text_input("", key=f"dlg_rad_temp_{i}", label_visibility="collapsed")
+                        with col_input: s_rad_temp = st.text_input("", key=f"dlg_rad_temp_{i}",
+                                                                   label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Fan Size (扇呎吋)")
-                        with col_input: s_fan_size = st.text_input("", key=f"dlg_fan_size_{i}", label_visibility="collapsed")
+                        with col_input: s_fan_size = st.text_input("", key=f"dlg_fan_size_{i}",
+                                                                   label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Protection Cover (保護罩)")
-                        with col_input: s_radiator_guard = st.text_input("", key=f"dlg_radiator_guard_{i}", label_visibility="collapsed")
+                        with col_input: s_radiator_guard = st.text_input("", key=f"dlg_radiator_guard_{i}",
+                                                                         label_visibility="collapsed")
 
                     # ==================== Option ====================
                     with col_option:
-                        st.markdown("**Option**")
-                        # 如需之後新增 Option，可在此加入
-                        st.info("Option 欄位可後續新增", icon="ℹ️")
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
+                                    unsafe_allow_html=True)
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Fuel Cooler")
+                        with col_input: s_fuel_cooler = st.text_input("", key=f"dlg_fuel_cooler_{i}",
+                                                                      label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Low Water Level Switch")
+                        with col_input: s_low_water = st.text_input("", key=f"dlg_low_water_{i}",
+                                                                    label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Murphy Coolant Level Switch")
+                        with col_input: s_murphy_coolant = st.text_input("", key=f"dlg_murphy_coolant_{i}",
+                                                                         label_visibility="collapsed")
 
                 st.markdown("---")
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
@@ -2285,11 +2304,14 @@ if st.session_state.get("spec_dialog_open", False):
                     "alt_heater": s_alt_heater,
                     "pmg": s_pmg,
 
-                    # Radiator 新增
+                    # Radiator
                     "rad_model": s_rad_model,
                     "rad_temp": s_rad_temp,
                     "fan_size": s_fan_size,
                     "radiator_guard": s_radiator_guard,
+                    "fuel_cooler": s_fuel_cooler,
+                    "low_water": s_low_water,
+                    "murphy_coolant": s_murphy_coolant,
 
                     "coolant_sensor": s_coolant_sensor,
                     "oil_pressure": s_oil_pressure,
