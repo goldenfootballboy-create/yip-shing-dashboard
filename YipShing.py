@@ -2002,7 +2002,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# New Spec - 完全空白大表格版（可自由填寫）
+# New Spec - 空白大表格版（已修正 Save 沒反應問題）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -2018,59 +2018,64 @@ if st.session_state.get("spec_dialog_open", False):
         st.markdown(f"**請填寫 {qty} 台機器的規格**（完全空白表格，可自由填寫）")
 
         # 頂部基本資料
-        col1, col2 = st.columns([1, 4])
-        with col1:
+        c1, c2 = st.columns([2, 5])
+        with c1:
             st.write("**SO#**")
-            so_number = st.text_input("", key="so_number", label_visibility="collapsed")
-        with col2:
-            st.write("**Product Category / Type**")
-            project_type = st.text_input("", value=temp_project.get("Project_Type", ""), key="project_type",
-                                         label_visibility="collapsed")
+        with c2:
+            so_number = st.text_input("", key="dlg_so_number", label_visibility="collapsed")
 
-        col3, col4 = st.columns([1, 4])
-        with col3:
+        c1, c2 = st.columns([2, 5])
+        with c1:
+            st.write("**Product Category**")
+        with c2:
+            product_category = st.text_input("", key="dlg_product_category", label_visibility="collapsed")
+
+        c1, c2 = st.columns([2, 5])
+        with c1:
             st.write("**Product Code**")
-            product_code = st.text_input("", key="product_code", label_visibility="collapsed")
-        with col4:
+        with c2:
+            product_code = st.text_input("", key="dlg_product_code", label_visibility="collapsed")
+
+        c1, c2 = st.columns([2, 5])
+        with c1:
             st.write("**QTY**")
-            qty_input = st.number_input("", min_value=1, value=qty, key="qty_input", label_visibility="collapsed")
+        with c2:
+            qty_input = st.number_input("", min_value=1, value=qty, key="dlg_qty_input", label_visibility="collapsed")
 
         st.markdown("---")
 
-        # 完全空白的大表格（預設 15 列，可自行增減）
+        # 完全空白的大表格
         default_df = pd.DataFrame({
-            "欄位名稱": [""] * 15,
-            "第1台": [""] * 15,
-            "第2台": [""] * 15,
-            "第3台": [""] * 15,
-            "第4台": [""] * 15,
-            "第5台": [""] * 15,
-            "備註": [""] * 15
+            "欄位名稱": [""] * 20,
+            "第1台": [""] * 20,
+            "第2台": [""] * 20,
+            "第3台": [""] * 20,
+            "第4台": [""] * 20,
+            "第5台": [""] * 20,
+            "備註": [""] * 20
         })
-
-        st.markdown("**規格表格**（可自由增加列、修改欄位名稱）")
 
         edited_df = st.data_editor(
             default_df,
             use_container_width=True,
-            num_rows="dynamic",  # 允許動態增加/刪除列
+            num_rows="dynamic",  # 可以自由增加或刪除列
             hide_index=True,
         )
 
-        st.caption("💡 使用方式：第一欄填欄位名稱（如 Model、Prime kW、Color...），下方填對應數值")
+        st.caption("💡 第一欄填欄位名稱（如 Model、Prime kW、Color...），其他欄填對應數值")
 
         col_save, col_cancel = st.columns(2)
         with col_save:
             if st.button("💾 Save & Close", type="primary", use_container_width=True):
                 # 儲存基本資料
                 temp_project["SO_Number"] = so_number
-                temp_project["Product_Category"] = project_type
+                temp_project["Product_Category"] = product_category
                 temp_project["Product_Code"] = product_code
                 temp_project["Qty"] = qty_input
 
-                # 把整個表格轉成 JSON 儲存
+                # 把整個表格存成 JSON
                 table_json = edited_df.to_json(orient="records", force_ascii=False)
-                temp_project["Project_Spec"] = table_json  # 直接存成 JSON
+                temp_project["Project_Spec"] = table_json
 
                 st.session_state.new_spec_saving = True
                 st.rerun()
@@ -2082,6 +2087,30 @@ if st.session_state.get("spec_dialog_open", False):
 
 
     spec_dialog()
+
+# ==================== 儲存處理區塊（重要！） ====================
+if st.session_state.get("new_spec_saving", False):
+    fullscreen_loading("正在新增專案並儲存規格，請稍候...")
+
+    new_project = {
+        **temp_project,
+        "Project_Spec": temp_project.get("Project_Spec", "")
+    }
+
+    global df
+    df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
+
+    save_projects()
+    st.cache_data.clear()
+
+    st.success(f"已成功新增專案（{temp_project.get('Qty', qty)} 台機器）！")
+
+    if "temp_project" in st.session_state:
+        del st.session_state.temp_project
+    st.session_state.spec_dialog_open = False
+    st.session_state.dialog_active = None
+    st.session_state.new_spec_saving = False
+    st.rerun()
 # Edit Project Info Dialog
 if st.session_state.get("show_edit_info_dialog", False):
     if st.session_state.dialog_active != "edit_info":
