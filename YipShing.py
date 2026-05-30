@@ -2001,6 +2001,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
             st.rerun()
     edit_spec_dialog()
 
+
+
 # ==============================================
 # New Spec - 簡化版（已修正 Save 後視窗不消失問題）
 # ==============================================
@@ -2012,12 +2014,11 @@ if st.session_state.get("spec_dialog_open", False):
     temp_project = st.session_state.temp_project
     qty = temp_project.get("Qty", 1)
 
-
     @st.dialog("Project Specification", width="large")
     def spec_dialog():
         st.markdown(f"**請填寫 {qty} 台機器的規格**")
 
-        tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
+        tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
 
         specs = []
         for i in range(qty):
@@ -2073,7 +2074,7 @@ if st.session_state.get("spec_dialog_open", False):
             if st.button("Save & Close", type="primary", use_container_width=True):
                 # 打包成原本系統需要的格式
                 first_spec = specs[0] if specs else {}
-                visible_lines = f"Model: {first_spec.get('model', '—')} | Power: {first_spec.get('power', '—')}"
+                visible_lines = f"Model: {first_spec.get('model','—')} | Power: {first_spec.get('power','—')}"
                 extra_json = json.dumps(specs, ensure_ascii=False)
                 temp_project["Project_Spec"] = visible_lines + "||EXTRA||" + extra_json
 
@@ -2089,31 +2090,84 @@ if st.session_state.get("spec_dialog_open", False):
                 st.session_state.dialog_active = None
                 st.rerun()
 
+        spec_dialog()
+        # PDF 匯出按鈕（放在 Save & Close 旁邊）
+        if st.button("📄 Export PDF ", type="secondary", use_container_width=True):
+            pdf_bytes = generate_overview_pdf(specs, temp_project, qty)
+            st.download_button(
+                label="下載 PDF",
+                data=pdf_bytes,
+                file_name=f"{temp_project['Project_Name']}_Overview.pdf",
+                mime="application/pdf"
+            )
+        # Send Email 按鈕（新增規格時的通知）
+        if st.button("📧 Send Email (通知新規格)", type="secondary", use_container_width=True):
+            # 新增時沒有舊規格，所以 old_specs 為空
+            old_specs = []  # 或 [{}] * qty，如果想顯示空變更
+
+            # 收件人列表
+            recipient_emails = [
+                "anson@topone-power.com"
+
+            ]
+
+            # 呼叫發送 email 函數
+            send_update_notification_email(
+                project_name=temp_project['Project_Name'],
+                old_specs=old_specs,
+                new_specs=specs,  # 新增的規格
+                recipient_emails=recipient_emails,
+                project_info=temp_project
+            )
+        col_save, col_cancel = st.columns(2)
+        with col_save:
+            save_disabled = st.session_state.get("new_spec_saving", False)
+            if st.button("Save & Close", type="primary", use_container_width=True, disabled=save_disabled):
+                st.session_state.new_spec_saving = True
+                st.rerun()
+
+        with col_cancel:
+            if st.button("Cancel", type="secondary", use_container_width=True):
+                st.session_state.spec_dialog_open = False
+                st.session_state.dialog_active = None
+                if "temp_project" in st.session_state:
+                    del st.session_state.temp_project
+                st.rerun()
+
+        if st.session_state.get("new_spec_saving", False):
+            fullscreen_loading("正在新增專案並儲存規格，請稍候...")
+
+            first_spec = specs[0] if specs else {}
+            visible_lines = [
+                f"Genset model: {first_spec.get('genset_model', '—')} | S/N: {first_spec.get('genset_sn', '—')}",
+                f"Alternator Model: {first_spec.get('alt_model', '—')} | S/N: {first_spec.get('alt_sn', '—')}",
+                f"Panel model: {first_spec.get('panel_model', '—')} | S/N: {first_spec.get('panel_sn', '—')}",
+                f"Breaker Type: {first_spec.get('breaker_type', '—')}"
+            ]
+            extra_json = json.dumps(specs, ensure_ascii=False)
+            spec_text = "\n".join(visible_lines) + "||EXTRA||" + extra_json
+
+            new_project = {
+                **temp_project,
+                "Project_Spec": spec_text,
+            }
+
+            global df
+            df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
+
+            save_projects()
+            st.cache_data.clear()
+
+            st.success(f"已成功新增專案（{qty} 台機器）！")
+            if "temp_project" in st.session_state:
+                del st.session_state.temp_project
+            st.session_state.spec_dialog_open = False
+            st.session_state.dialog_active = None
+            st.session_state.new_spec_saving = False
+            st.rerun()
 
     spec_dialog()
 
-# ==================== Save 後的處理區塊（已移除 global df） ====================
-if st.session_state.get("new_spec_saving", False):
-    fullscreen_loading("正在新增專案並儲存規格，請稍候...")
-
-    new_project = {
-        **temp_project,
-        "Project_Spec": temp_project.get("Project_Spec", "")
-    }
-
-    # 直接使用 df（不需要 global）
-    df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
-
-    save_projects()
-    st.cache_data.clear()
-
-    st.success(f"已成功新增專案（{qty} 台機器）！")
-
-    if "temp_project" in st.session_state:
-        del st.session_state.temp_project
-
-    st.session_state.new_spec_saving = False
-    st.rerun()
 # Edit Project Info Dialog
 if st.session_state.get("show_edit_info_dialog", False):
     if st.session_state.dialog_active != "edit_info":
