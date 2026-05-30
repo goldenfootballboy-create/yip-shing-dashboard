@@ -2002,7 +2002,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
     edit_spec_dialog()
 
 # ==============================================
-# New Spec - 空白大表格版（已修正 Save 後視窗不消失問題）
+# New Spec - 簡化版（已修正 Save 後視窗不消失問題）
 # ==============================================
 if st.session_state.get("spec_dialog_open", False):
     if st.session_state.dialog_active != "new_spec":
@@ -2013,71 +2013,71 @@ if st.session_state.get("spec_dialog_open", False):
     qty = temp_project.get("Qty", 1)
 
 
-    @st.dialog("New Project Specification - 空白大表格", width="large")
+    @st.dialog("Project Specification", width="large")
     def spec_dialog():
-        st.markdown(f"**請填寫 {qty} 台機器的規格**（完全空白表格，可自由填寫）")
+        st.markdown(f"**請填寫 {qty} 台機器的規格**")
 
-        # 頂部基本資料
-        c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**SO#**")
-        with c2:
-            so_number = st.text_input("", key="dlg_so_number", label_visibility="collapsed")
+        tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
 
-        c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**Product Category**")
-        with c2:
-            product_category = st.text_input("", key="dlg_product_category", label_visibility="collapsed")
+        specs = []
+        for i in range(qty):
+            with tabs[i]:
+                st.markdown("### Engine (發動機)")
 
-        c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**Product Code**")
-        with c2:
-            product_code = st.text_input("", key="dlg_product_code", label_visibility="collapsed")
+                col_feature, col_option = st.columns(2)
 
-        c1, c2 = st.columns([2, 5])
-        with c1:
-            st.write("**QTY**")
-        with c2:
-            qty_input = st.number_input("", min_value=1, value=qty, key="dlg_qty_input", label_visibility="collapsed")
+                with col_feature:
+                    st.markdown("**Feature**")
+                    model = st.text_input("Model", key=f"dlg_model_{i}")
+                    year = st.text_input("Year", key=f"dlg_year_{i}")
+                    power = st.text_input("Power(Prime/Standby kw)", key=f"dlg_power_{i}")
+                    rpm = st.text_input("RPM", key=f"dlg_rpm_{i}")
+                    voltage_freq = st.text_input("Voltage/Frequency", key=f"dlg_voltage_freq_{i}")
+                    heater = st.text_input("Heater", key=f"dlg_heater_{i}")
+                    colour = st.text_input("Colour", key=f"dlg_colour_{i}")
+                    sn = st.text_input("S/N", key=f"dlg_sn_{i}")
 
-        st.markdown("---")
+                with col_option:
+                    st.markdown("**Option**")
+                    opt1 = st.text_input("Oil Coolant Temperature sensor", key=f"dlg_opt1_{i}")
+                    opt2 = st.text_input("Oil Pressure sensor", key=f"dlg_opt2_{i}")
+                    opt3 = st.text_input("Hand Swing Pump", key=f"dlg_opt3_{i}")
+                    opt4 = st.text_input("Silencer", key=f"dlg_opt4_{i}")
+                    opt5 = st.text_input("Flexible Pipe & Flange", key=f"dlg_opt5_{i}")
+                    opt6 = st.text_input("Exhaust Pipe", key=f"dlg_opt6_{i}")
 
-        # 完全空白大表格（可自由增加列）
-        default_df = pd.DataFrame({
-            "欄位名稱": [""] * 20,
-            "第1台": [""] * 20,
-            "第2台": [""] * 20,
-            "第3台": [""] * 20,
-            "第4台": [""] * 20,
-            "第5台": [""] * 20,
-            "備註": [""] * 20
-        })
+                remarks = st.text_area("Remarks", height=80, key=f"dlg_remarks_{i}")
 
-        edited_df = st.data_editor(
-            default_df,
-            use_container_width=True,
-            num_rows="dynamic",  # 可自由增加或刪除列
-            hide_index=True,
-        )
+                spec_data = {
+                    "model": model,
+                    "year": year,
+                    "power": power,
+                    "rpm": rpm,
+                    "voltage_frequency": voltage_freq,
+                    "heater": heater,
+                    "colour": colour,
+                    "sn": sn,
+                    "option1": opt1,
+                    "option2": opt2,
+                    "option3": opt3,
+                    "option4": opt4,
+                    "option5": opt5,
+                    "option6": opt6,
+                    "remarks": remarks
+                }
+                specs.append(spec_data)
 
-        st.caption("💡 第一欄填欄位名稱，其餘欄位填對應數值")
-
+        # Save 按鈕
         col_save, col_cancel = st.columns(2)
         with col_save:
-            if st.button("💾 Save & Close", type="primary", use_container_width=True):
-                # 儲存基本資料
-                temp_project["SO_Number"] = so_number
-                temp_project["Product_Category"] = product_category
-                temp_project["Product_Code"] = product_code
-                temp_project["Qty"] = qty_input
+            if st.button("Save & Close", type="primary", use_container_width=True):
+                # 打包成原本系統需要的格式
+                first_spec = specs[0] if specs else {}
+                visible_lines = f"Model: {first_spec.get('model', '—')} | Power: {first_spec.get('power', '—')}"
+                extra_json = json.dumps(specs, ensure_ascii=False)
+                temp_project["Project_Spec"] = visible_lines + "||EXTRA||" + extra_json
 
-                # 把整個表格存成 JSON
-                table_json = edited_df.to_json(orient="records", force_ascii=False)
-                temp_project["Project_Spec"] = table_json
-
-                # 重要：明確關閉 dialog
+                # 關鍵修正：關閉 dialog
                 st.session_state.spec_dialog_open = False
                 st.session_state.dialog_active = None
                 st.session_state.new_spec_saving = True
@@ -2092,22 +2092,22 @@ if st.session_state.get("spec_dialog_open", False):
 
     spec_dialog()
 
-# ==================== Save 後的處理區塊（已修正 global df 錯誤） ====================
+# ==================== Save 後的處理區塊（必須放在 dialog 外面） ====================
 if st.session_state.get("new_spec_saving", False):
     fullscreen_loading("正在新增專案並儲存規格，請稍候...")
 
-    # 直接使用 df（不需要 global，因為這是主程式碼層級）
     new_project = {
         **temp_project,
         "Project_Spec": temp_project.get("Project_Spec", "")
     }
 
+    global df
     df = pd.concat([df, pd.DataFrame([new_project])], ignore_index=True)
 
     save_projects()
     st.cache_data.clear()
 
-    st.success(f"已成功新增專案（{temp_project.get('Qty', qty)} 台機器）！")
+    st.success(f"已成功新增專案（{qty} 台機器）！")
 
     if "temp_project" in st.session_state:
         del st.session_state.temp_project
