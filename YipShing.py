@@ -1518,11 +1518,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 st.markdown("---")
 
-                # ==================== Remarks ====================
-                s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
-                st.markdown("---")
-                e_remarks = st.text_area("Remarks", value=current.get("remarks", ""), height=150, key=f"edit_remarks_{idx_to_edit}_{i}")
 
+                # ==================== Remarks ====================
+                e_remarks = st.text_area("Remarks",
+                                        value=current.get("remarks", ""),
+                                        height=150,
+                                        key=f"edit_remarks_{idx_to_edit}_{i}")
                 # ==================== 收集資料 ====================
                 spec_data = {
                     "so_number": e_so_number,
