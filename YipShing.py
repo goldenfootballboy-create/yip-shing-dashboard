@@ -95,7 +95,7 @@ def generate_overview_pdf(specs, project_info, qty):
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=landscape(letter),   # ← 改成橫向
+        pagesize=landscape(letter),   # ← 自動橫向
         rightMargin=25,
         leftMargin=25,
         topMargin=20,
@@ -139,7 +139,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # ==================== 共用表格函數 ====================
         def create_table(data):
-            t = Table(data, colWidths=[290, 290])   # 橫向模式加大欄寬
+            t = Table(data, colWidths=[290, 290])   # 橫向加大欄寬
             style_commands = [
                 ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
                 ('FONTSIZE', (0,0), (0,0), 13),
@@ -164,8 +164,7 @@ def generate_overview_pdf(specs, project_info, qty):
             t.setStyle(TableStyle(style_commands))
             return t
 
-        # ==================== 第一頁 ====================
-        # Engine
+        # ==================== 第一頁內容 ====================
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
@@ -182,7 +181,6 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # Alternator
         data = [
             ["Alternator (電球)", ""],
             ["Feature", "Option"],
@@ -195,7 +193,6 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # Radiator
         data = [
             ["Radiator (水箱)", ""],
             ["Feature", "Option"],
@@ -207,7 +204,6 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # Base Frame
         data = [
             ["Base Frame (底架)", ""],
             ["Feature", "Option"],
@@ -217,7 +213,6 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # Container
         data = [
             ["Container (貨櫃)", ""],
             ["Feature", "Option"],
@@ -227,10 +222,10 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # ==================== 強制換頁，從 Breaker 開始放在第二頁 ====================
+        # ==================== 強制換頁（Breaker 開始放第二頁） ====================
         elements.append(PageBreak())
 
-        # ==================== Breaker (第二頁) ====================
+        # Breaker 開始
         data = [
             ["Breaker (斷路器)", ""],
             ["Feature", "Option"],
@@ -242,7 +237,6 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # ==================== Control Panel ====================
         data = [
             ["Control Panel (控制器)", ""],
             ["Feature", "Option"],
@@ -252,7 +246,6 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # ==================== Battery ====================
         data = [
             ["Battery (電池)", ""],
             ["Feature", "Option"],
@@ -263,7 +256,6 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # ==================== Fuel Tank ====================
         data = [
             ["Fuel Tank (燃油箱)", ""],
             ["Feature", "Option"],
@@ -275,7 +267,6 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # ==================== Oil Tank ====================
         data = [
             ["Oil Tank (機油箱)", ""],
             ["Feature", "Option"],
