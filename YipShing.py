@@ -137,6 +137,29 @@ def generate_overview_pdf(specs, project_info, qty):
         ))
         elements.append(Spacer(1, 10))
 
+        # ==================== 共用表格樣式生成函數 ====================
+        def create_table(data, title):
+            t = Table(data, colWidths=[255, 255])
+            style_commands = [
+                ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+                ('FONTSIZE', (0,0), (0,0), 13),
+                ('SPAN', (0,0), (1,0)),
+                ('ALIGN', (0,0), (1,0), 'CENTER'),
+                ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+                ('FONTSIZE', (0,1), (-1,-1), 10.5),
+                ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+            ]
+
+            # 條件：Option 有文字 → 整列變深色
+            for i in range(2, len(data)):          # 從第2行開始（跳過標題和 Feature/Option 行）
+                option_text = str(data[i][1]).strip()
+                if option_text and option_text not in ['—', '']:
+                    style_commands.append(('BACKGROUND', (0, i), (1, i), HexColor('#e6e6e6')))  # 深色背景
+
+            t.setStyle(TableStyle(style_commands))
+            return t
+
         # ==================== Engine ====================
         data = [
             ["Engine (發動機)", ""],
@@ -151,19 +174,8 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Frequency (頻率)： " + spec.get('frequency', '—'), ""],
             ["Heater (加熱器) kW： " + spec.get('engine_heater', '—'), ""],
         ]
-        t = Table(data, colWidths=[255, 255])
-        t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 10))
+        elements.append(create_table(data, "Engine"))
+        elements.append(Spacer(1, 12))
 
         # ==================== Alternator ====================
         data = [
@@ -175,19 +187,8 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Color： " + spec.get('alt_color', '—'), ""],
             ["S/N： " + spec.get('alt_sn', '—'), ""],
         ]
-        t = Table(data, colWidths=[255, 255])
-        t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 10))
+        elements.append(create_table(data, "Alternator"))
+        elements.append(Spacer(1, 12))
 
         # ==================== Radiator ====================
         data = [
@@ -198,19 +199,8 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Fan Size (扇呎吋)： " + spec.get('fan_size', '—'), "Murphy Coolant Level Switch： " + spec.get('murphy_coolant', '—')],
             ["Protection Cover (保護罩)： " + spec.get('radiator_guard', '—'), ""],
         ]
-        t = Table(data, colWidths=[255, 255])
-        t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 10))
+        elements.append(create_table(data, "Radiator"))
+        elements.append(Spacer(1, 12))
 
         # ==================== Base Frame ====================
         data = [
@@ -219,19 +209,8 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Model (型號)： " + spec.get('base_model', '—'), "Color： " + spec.get('base_color', '—')],
             ["Anti-Vibration Mounts (避震腳)： " + spec.get('avm', '—'), ""],
         ]
-        t = Table(data, colWidths=[255, 255])
-        t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 10))
+        elements.append(create_table(data, "Base Frame"))
+        elements.append(Spacer(1, 12))
 
         # ==================== Container ====================
         data = [
@@ -240,19 +219,8 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Type (型號)： " + spec.get('cont_type', '—'), "CO Detector： " + spec.get('co_detector', '—')],
             ["Dimension (呎吋)： " + spec.get('cont_size', '—'), "Color： " + spec.get('cont_color', '—')],
         ]
-        t = Table(data, colWidths=[255, 255])
-        t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 10))
+        elements.append(create_table(data, "Container"))
+        elements.append(Spacer(1, 12))
 
         # ==================== Breaker ====================
         data = [
@@ -263,19 +231,8 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Rating： " + spec.get('breaker_rating', '—'), "Closing Coil： " + spec.get('closing_coil', '—')],
             ["", "UV Relay： " + spec.get('uv_relay', '—')],
         ]
-        t = Table(data, colWidths=[255, 255])
-        t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 10))
+        elements.append(create_table(data, "Breaker"))
+        elements.append(Spacer(1, 12))
 
         # ==================== Control Panel ====================
         data = [
@@ -284,19 +241,8 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Model (型號)： " + spec.get('panel_model', '—'), ""],
             ["Module： " + spec.get('panel_module', '—'), ""],
         ]
-        t = Table(data, colWidths=[255, 255])
-        t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 10))
+        elements.append(create_table(data, "Control Panel"))
+        elements.append(Spacer(1, 12))
 
         # ==================== Battery ====================
         data = [
@@ -306,19 +252,8 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Battery Switch： " + spec.get('battery_switch', '—'), ""],
             ["Rating： " + spec.get('battery_rating', '—'), ""],
         ]
-        t = Table(data, colWidths=[255, 255])
-        t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 10))
+        elements.append(create_table(data, "Battery"))
+        elements.append(Spacer(1, 12))
 
         # ==================== Fuel Tank ====================
         data = [
@@ -329,19 +264,8 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Fuel Water Separator： " + spec.get('fuel_water_separator', '—'), "Fuel Level Sensor： " + spec.get('fuel_level_sensor', '—')],
             ["", "Donaldson Breather： " + spec.get('donaldson_breather', '—')],
         ]
-        t = Table(data, colWidths=[255, 255])
-        t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
-        elements.append(t)
-        elements.append(Spacer(1, 10))
+        elements.append(create_table(data, "Fuel Tank"))
+        elements.append(Spacer(1, 12))
 
         # ==================== Oil Tank ====================
         data = [
@@ -350,24 +274,13 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Volume： " + spec.get('oil_volume', '—'), "Donaldson Breather： " + spec.get('oil_donaldson', '—')],
             ["", "Murphy Coolant Level Switch： " + spec.get('murphy_oil', '—')],
         ]
-        t = Table(data, colWidths=[255, 255])
-        t.setStyle(TableStyle([
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
-        elements.append(t)
+        elements.append(create_table(data, "Oil Tank"))
         elements.append(Spacer(1, 12))
 
         # ==================== Remarks ====================
         remarks = spec.get("remarks", "").strip()
         if remarks:
-            elements.append(Paragraph("Remarks / 備註", normal))   # 使用 normal 避免 h3_style 錯誤
+            elements.append(Paragraph("Remarks / 備註", h3_style))  # 如果你之前有 h3_style 就保留，否則用 normal
             elements.append(Paragraph(remarks, normal))
 
     doc.build(elements)
