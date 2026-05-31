@@ -657,364 +657,31 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 
-# 專案卡片渲染（極簡版）
+# ==================== 極簡卡片（只保留 Edit Spec 按鈕） ====================
 def render_project_card(row, card_idx):
     project_name = row["Project_Name"]
-    project_type = row["Project_Type"]
-
-    # Checklist 狀態標籤
-    current_check = checklist_db.get(project_name, {"purchase": [], "done_p": [], "drawing": [], "done_d": []})
-    all_items = current_check["purchase"] + current_check["drawing"]
-    done_items = set(current_check["done_p"]) | set(current_check["done_d"])
-    real_items = [item for item in all_items if str(item).strip()]
-    has_missing = any(str(item).strip() and str(item) not in done_items for item in real_items)
-
-    if len(real_items) == 0:
-        status_tag = '<span style="background:#888888; color:white; padding:4px 10px; border-radius:20px; font-size:0.8rem;">待新增 Checklist</span>'
-    elif not has_missing:
-        status_tag = '<span style="background:#1fb429; color:white; padding:4px 10px; border-radius:20px; font-size:0.8rem;">✅ 完成</span>'
-    else:
-        status_tag = '<span style="background:#ff4444; color:white; padding:4px 10px; border-radius:20px; font-size:0.8rem;">待補</span>'
+    project_type = row.get("Project_Type", "")
 
     st.markdown(f"""
-    <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; margin: 12px 0;
-                background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <strong style="font-size: 1.15rem;">{project_name}</strong>
-                <span style="margin-left: 12px; color: #666; font-size: 0.95rem;">{project_type}</span>
-            </div>
-            <div>
-                {status_tag}
-            </div>
+    <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 18px 24px; margin: 12px 0;
+                background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center;">
+        <div style="font-size: 1.35rem; font-weight: bold; color: #1e3a8a;">
+            {project_name}
         </div>
-
-        <div style="margin-top: 12px; font-size: 0.95rem; color: #444;">
-            客戶：{row.get('Customer', '—')}　｜　
-            負責人：{row.get('Supervisor', '—')}　｜　
-            Qty：{row.get('Qty', 0)}　｜　
-            Lead Time：{pd.to_datetime(row.get('Lead_Time')).strftime('%Y-%m-%d') if pd.notna(row.get('Lead_Time')) else '—'}
+        <div style="margin-top: 4px; font-size: 0.95rem; color: #666;">
+            {project_type}
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 按鈕（使用 card_idx 保證唯一）
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("Edit Spec", key=f"spec_btn_{card_idx}", type="primary", use_container_width=True):
-            st.session_state["current_edit_idx"] = filtered_df.index[card_idx]  # 保留原始 index 給後續存檔用
-            st.session_state["show_edit_spec_dialog"] = True
-            st.rerun()
-    with col2:
-        if st.button("Edit Info", key=f"info_btn_{card_idx}", use_container_width=True):
-            st.session_state["current_edit_idx"] = filtered_df.index[card_idx]
-            st.session_state["show_edit_info_dialog"] = True
-            st.rerun()
-    with col3:
-        if st.button("Delete", key=f"del_{card_idx}", use_container_width=True):
-            st.session_state["delete_idx"] = filtered_df.index[card_idx]
-            st.session_state["show_delete_confirm"] = True
-
-        if st.button("📊 OverView 完整規格總覽", key=f"overall_spec_btn_{idx}", use_container_width=True,
-                     type="secondary"):
-            @st.dialog(f"完整規格總覽 – {row['Project_Name']} ({qty} 台)", width="large")
-            def overall_spec_overview():
-                st.markdown(f"**專案：{row['Project_Name']}**　｜　**{qty} 台**　｜　**類型：{row['Project_Type']}**")
-                st.markdown("---")
-
-                # 讀取規格資料
-                spec_text = row.get("Project_Spec", "")
-                specs = []
-                if "||EXTRA||" in spec_text:
-                    try:
-                        extra_json = spec_text.split("||EXTRA||")[1]
-                        specs = json.loads(extra_json)
-                        if not isinstance(specs, list):
-                            specs = [specs]
-                    except:
-                        specs = []
-                else:
-                    specs = []
-
-                if len(specs) < qty:
-                    specs += [{}] * (qty - len(specs))
-
-                overview_tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
-
-                for machine_idx in range(qty):
-                    with overview_tabs[machine_idx]:
-                        spec = specs[machine_idx] if machine_idx < len(specs) else {}
-
-                        # Prime & Standby Power
-                        st.markdown(
-                            """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
-                            Prime & Standby Power (功率＆電壓)
-                            </h3>""",
-                            unsafe_allow_html=True
-                        )
-                        c1, c2, c3 = st.columns(3)
-                        c1.metric("Prime (kW)", spec.get('prime', '—'))
-                        c2.metric("Standby (kW)", spec.get('standby', '—'))
-                        c3.metric("RPM", spec.get('rpm', '—'))
-                        st.markdown(f"**電壓 / 頻率**： {spec.get('voltage', '—')} / {spec.get('frequency', '—')}")
-
-                        st.divider()
-
-                        # Engine & Alternator
-                        st.markdown(
-                            """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
-                            Engine & Alternator (發動機 & 電球)
-                            </h3>""",
-                            unsafe_allow_html=True
-                        )
-                        st.markdown(
-                            f"**發動機型號**： {spec.get('genset_model', '—')}　　**S/N**： {spec.get('genset_sn', '—')}")
-                        st.markdown(
-                            f"**發動機顏色**： {spec.get('engine_color', '—')}　　**年份**： {spec.get('engine_year', '—')}")
-                        st.markdown(f"**發動機加熱器**： {spec.get('engine_heater', '—')} kW")
-                        st.markdown(f"**電球型號**： {spec.get('alt_model', '—')}　　**S/N**： {spec.get('alt_sn', '—')}")
-                        st.markdown(f"**電球顏色**： {spec.get('alt_color', '—')}")
-                        st.markdown(
-                            f"**Droop**： {spec.get('droop', '—')}　　**PMG**： {spec.get('pmg', '—')}　　**加熱器**： {spec.get('alt_heater', '—')}")
-
-                        st.divider()
-
-                        # Radiator & Base Frame（已改成括號格式顯示）
-                        st.markdown(
-                            """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
-                            Radiator & Base Frame (水箱 & 底架)
-                            </h3>""",
-                            unsafe_allow_html=True
-                        )
-                        st.markdown(
-                            f"**水箱型號**： {spec.get('rad_model', '—')}　　**S/N**： {spec.get('rad_sn', '—')}　　**溫度**： {spec.get('rad_temp', '—')}")
-                        st.markdown(
-                            f"**風扇呎吋**： {spec.get('fan_size', '—')}　　**負責部門**： <span style='color:red;'>{spec.get('fan_department', '—')}</span>",
-                            unsafe_allow_html=True)
-                        st.markdown(f"**水箱護罩**： {spec.get('radiator_guard', '—')}")
-
-                        st.markdown(
-                            f"**底架型號**： {spec.get('base_model', '—')}　　**S/N**： {spec.get('base_sn', '—')}")
-
-                        # 使用括號格式
-                        for title, val, src, dept in [
-                            ("燃油冷卻器", spec.get('fuel_cooler', '—'), spec.get('fuel_cooler_source', '—'),
-                             spec.get('fuel_cooler_department', '—')),
-                            ("冷卻液溫度感測器", spec.get('coolant_sensor', '—'),
-                             spec.get('coolant_sensor_source', '—'), spec.get('coolant_sensor_department', '—')),
-                            ("低水位浮球開關", spec.get('low_water', '—'), spec.get('low_water_source', '—'),
-                             spec.get('low_water_department', '—')),
-                            ("避震器", f"型號 {spec.get('avm_model', '—')}　數量 {spec.get('avm_qty', '—')}",
-                             spec.get('avm_source', '—'), spec.get('avm_department', '—')),
-                        ]:
-                            if val == '—' and src in ['—', ''] and dept in ['—', '']:
-                                continue
-                            line = f"**{title}**　： {val}"
-                            extra = []
-                            if src and src != '—':
-                                extra.append(f"貨源：{src}")
-                            if dept and dept != '—':
-                                extra.append(f"負責部門：<span style='color:red;'>{dept}</span>")
-                            if extra:
-                                line += f"　（{'，'.join(extra)}）"
-                            st.markdown(line, unsafe_allow_html=True)
-
-                        st.divider()
-
-                        # Container / Panel / Breaker（已改成括號格式）
-                        st.markdown(
-                            """<h3 style="color: #1e88e5; margin-bottom: 0.5rem; font-weight: bold;">
-                            Container / Panel / Breaker (貨櫃 & 控制器＆斷路器)
-                            </h3>""",
-                            unsafe_allow_html=True
-                        )
-                        st.markdown(
-                            f"**貨櫃尺寸**： {spec.get('cont_size', '—')}　　**類型**： {spec.get('cont_type', '—')}")
-
-                        # 控制器
-                        panel_line = f"**控制器型號**： {spec.get('panel_model', '—')}　　**S/N**： {spec.get('panel_sn', '—')}"
-                        extra = []
-                        if spec.get('panel_source') and spec.get('panel_source') != '—':
-                            extra.append(f"貨源：{spec.get('panel_source')}")
-                        if spec.get('panel_department') and spec.get('panel_department') != '—':
-                            extra.append(f"負責部門：<span style='color:red;'>{spec.get('panel_department')}</span>")
-                        if extra:
-                            panel_line += f"　（{'，'.join(extra)}）"
-                        st.markdown(panel_line, unsafe_allow_html=True)
-
-                        # CO 探測器
-                        co_line = f"**CO 探測器 (OLED)**： {spec.get('co_detector', '—')}"
-                        extra = []
-                        if spec.get('co_source') and spec.get('co_source') != '—':
-                            extra.append(f"貨源：{spec.get('co_source')}")
-                        if spec.get('co_department') and spec.get('co_department') != '—':
-                            extra.append(f"負責部門：<span style='color:red;'>{spec.get('co_department')}</span>")
-                        if extra:
-                            co_line += f"　（{'，'.join(extra)}）"
-                        st.markdown(co_line, unsafe_allow_html=True)
-
-                        # 斷路器
-                        breaker_line = (
-                            f"**斷路器**： {spec.get('breaker_type', '—')}　"
-                            f"{spec.get('breaker_rating', '—')}　"
-                            f"{spec.get('poles', '—')}　　"
-                            f"**控制電壓**： {spec.get('control_voltage', '—')}　　"
-                            f"**Spring Charging**： {spec.get('spring_charging', '—')}　　"
-                            f"**S/N**： {spec.get('breaker_sn', '—')}"
-                        )
-                        extra = []
-                        if spec.get('breaker_source') and spec.get('breaker_source') != '—':
-                            extra.append(f"貨源：{spec.get('breaker_source')}")
-                        if spec.get('breaker_department') and spec.get('breaker_department') != '—':
-                            extra.append(f"負責部門：<span style='color:red;'>{spec.get('breaker_department')}</span>")
-                        if extra:
-                            breaker_line += f"　（{'，'.join(extra)}）"
-                        st.markdown(breaker_line, unsafe_allow_html=True)
-
-                        st.divider()
-
-                        # Parts & Checklist & Remarks（保持原樣）
-                        parts = spec.get("parts", [])
-                        if parts:
-                            st.subheader("配件清單")
-                            for p in parts:
-                                name = p.get("name", "").strip()
-                                source = p.get("source", "—")
-                                dept = p.get("department", "—")
-                                if name:
-                                    st.markdown(
-                                        f"- **{name}**　（貨源：{source}，負責部門：<span style='color:red;'>{dept}</span>）",
-                                        unsafe_allow_html=True)
-
-                        checklist = spec.get("delivery_checklist", [])
-                        if checklist:
-                            st.subheader("出貨檢查清單")
-                            for item in checklist:
-                                name = item.get("name", "—")
-                                ch = "[√]" if item.get("checked", False) else "[X]"
-                                st.markdown(f"{ch} {name}")
-
-                        remarks = spec.get("remarks", "").strip()
-                        if remarks:
-                            st.subheader("備註")
-                            st.info(remarks)
-
-                # ==================== PDF 下載按鈕 ====================
-                if st.button("📄 下載 PDF 版本", type="primary", use_container_width=True):
-                    pdf_bytes = generate_overview_pdf(specs, row, qty)
-                    st.download_button(
-                        label="點擊下載 PDF",
-                        data=pdf_bytes,
-                        file_name=f"{row['Project_Name']}JobDetail.pdf",
-                        mime="application/pdf"
-                    )
-
-                st.markdown("---")
-                if st.button("關閉", type="primary", use_container_width=True):
-                    st.rerun()
-
-            overall_spec_overview()
-        if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
-            st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
-
-        if st.session_state.get(f"cl_open_{idx}", False):
-            current = checklist_db.get(project_name, {"purchase": [], "done_p": [], "drawing": [], "done_d": []})
-
-            st.markdown("<h4 style='text-align:center;'>Purchase List        Drawings Submission</h4>", unsafe_allow_html=True)
-
-            new_purchase = []
-            new_done_p = set()
-            new_drawing = []
-            new_done_d = set()
-
-            max_rows = max(len(current["purchase"]), len(current["drawing"]), 6)
-
-            for i in range(max_rows):
-                c1, c2 = st.columns(2)
-                with c1:
-                    text = current["purchase"][i] if i < len(current["purchase"]) else ""
-                    checked = text in current["done_p"]
-                    col_chk, col_txt = st.columns([1,7])
-                    with col_chk:
-                        chk = st.checkbox("", value=checked, key=f"p_{idx}_{i}")
-                    with col_txt:
-                        txt = st.text_input("", value=text, key=f"pt_{idx}_{i}", label_visibility="collapsed")
-                    if txt.strip():
-                        new_purchase.append(txt.strip())
-                        if chk:
-                            new_done_p.add(txt.strip())
-                with c2:
-                    text = current["drawing"][i] if i < len(current["drawing"]) else ""
-                    checked = text in current["done_d"]
-                    col_chk, col_txt = st.columns([1,7])
-                    with col_chk:
-                        chk = st.checkbox("", value=checked, key=f"d_{idx}_{i}")
-                    with col_txt:
-                        txt = st.text_input("", value=text, key=f"dt_{idx}_{i}", label_visibility="collapsed")
-                    if txt.strip():
-                        new_drawing.append(txt.strip())
-                        if chk:
-                            new_done_d.add(txt.strip())
-
-            if st.button("SAVE CHECKLIST", key=f"save_cl_{idx}", type="primary", use_container_width=True):
-                checklist_db[project_name] = {
-                    "purchase": new_purchase,
-                    "done_p": list(new_done_p),
-                    "drawing": new_drawing,
-                    "done_d": list(new_done_d)
-                }
-                save_checklist()
-                st.cache_data.clear()
-                st.success("Checklist 已永久儲存到 Google Sheets！")
-                st.rerun()
-
-    col_edit_spec, col_edit_info, col_delete = st.columns(3)
-    with col_edit_spec:
-        if st.button("Edit Project Spec.", key=f"spec_btn_{idx}", type="primary", use_container_width=True):
-            st.session_state["current_edit_idx"] = idx
-            st.session_state["show_edit_spec_dialog"] = True
-            st.rerun()
-    with col_edit_info:
-        if st.button("Edit Info.", key=f"info_btn_{idx}", type="secondary", use_container_width=True):
-            st.session_state["current_edit_idx"] = idx
-            st.session_state["show_edit_info_dialog"] = True
-            st.rerun()
-    with col_delete:
-        if st.button("Delete", key=f"del_{idx}", type="secondary", use_container_width=True):
-            st.session_state["delete_idx"] = idx
-            st.session_state["show_delete_confirm"] = True
-
-    delete_placeholder = st.empty()
-    if st.session_state.get("show_delete_confirm", False) and st.session_state.get("delete_idx") == idx:
-        with delete_placeholder.container():
-            st.markdown("---")
-            st.warning(f"確定要刪除專案 **{row['Project_Name']}** 嗎？此動作無法復原！")
-            col_yes, col_no = st.columns(2)
-            with col_yes:
-                delete_disabled = st.session_state.get(f"deleting_{idx}", False)
-                if st.button("確認刪除", type="primary", key=f"confirm_del_{idx}", disabled=delete_disabled):
-                    st.session_state[f"deleting_{idx}"] = True
-                    st.rerun()
-            with col_no:
-                if st.button("取消", key=f"cancel_del_{idx}"):
-                    st.session_state["show_delete_confirm"] = False
-                    st.rerun()
-
-        if st.session_state.get(f"deleting_{idx}", False):
-            fullscreen_loading("正在刪除專案，請稍候...")
-
-            df.drop(idx, inplace=True)
-            df.reset_index(drop=True, inplace=True)
-            save_projects()
-            checklist_db.pop(row["Project_Name"], None)
-            save_checklist()
-            st.cache_data.clear()
-            st.session_state["show_delete_confirm"] = False
-            st.session_state[f"deleting_{idx}"] = False
-            st.success(f"已成功刪除專案：{row['Project_Name']}")
-            st.rerun()
-
-
+    # 只保留一個 Edit Spec 按鈕
+    if st.button("Edit Spec",
+                 key=f"spec_btn_{card_idx}",
+                 type="primary",
+                 use_container_width=True):
+        st.session_state["current_edit_idx"] = filtered_df.index[card_idx]
+        st.session_state["show_edit_spec_dialog"] = True
+        st.rerun()
 
 # Edit Project Specification Dialog
 if st.session_state.get("show_edit_spec_dialog", False):
@@ -2719,10 +2386,10 @@ else:
         col1, col2 = st.columns(2)
         with col1:
             if i < len(rows):
-                render_project_card(rows[i], i)  # ← 使用迴圈計數 i（保證唯一）
+                render_project_card(rows[i], i)
         with col2:
             if i + 1 < len(rows):
-                render_project_card(rows[i + 1], i + 1)  # ← 使用迴圈計數 i+1
+                render_project_card(rows[i + 1], i + 1)
 
     # 兩列顯示卡片（保持原樣）
     for i in range(0, len(rows), 2):
