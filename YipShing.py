@@ -94,9 +94,9 @@ def generate_overview_pdf(specs, project_info, qty):
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=letter,
-        rightMargin=28,
-        leftMargin=28,
+        pagesize=landscape(letter),   # ← 改成橫向
+        rightMargin=25,
+        leftMargin=25,
         topMargin=20,
         bottomMargin=25
     )
@@ -138,7 +138,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # ==================== 共用表格函數 ====================
         def create_table(data):
-            t = Table(data, colWidths=[255, 255])
+            t = Table(data, colWidths=[290, 290])   # 橫向模式加大欄寬
             style_commands = [
                 ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
                 ('FONTSIZE', (0,0), (0,0), 13),
@@ -163,7 +163,7 @@ def generate_overview_pdf(specs, project_info, qty):
             t.setStyle(TableStyle(style_commands))
             return t
 
-        # ==================== 第一頁內容 ====================
+        # ==================== 第一頁 ====================
         # Engine
         data = [
             ["Engine (發動機)", ""],
@@ -229,7 +229,7 @@ def generate_overview_pdf(specs, project_info, qty):
         # ==================== 強制換頁，從 Breaker 開始放在第二頁 ====================
         elements.append(PageBreak())
 
-        # ==================== Breaker (第二頁開始) ====================
+        # ==================== Breaker (第二頁) ====================
         data = [
             ["Breaker (斷路器)", ""],
             ["Feature", "Option"],
