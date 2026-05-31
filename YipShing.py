@@ -30,6 +30,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+from reportlab.lib.pagesizes import letter, landscape
 import plotly.express as px
 import plotly.graph_objects as go
 # 全域變數
