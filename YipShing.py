@@ -137,8 +137,8 @@ def generate_overview_pdf(specs, project_info, qty):
         ))
         elements.append(Spacer(1, 10))
 
-        # ==================== 共用表格樣式生成函數 ====================
-        def create_table(data, title):
+        # ==================== 共用表格產生函數（自動判斷 Option 是否有內容） ====================
+        def create_table(data):
             t = Table(data, colWidths=[255, 255])
             style_commands = [
                 ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
@@ -151,11 +151,11 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
             ]
 
-            # 條件：Option 有文字 → 整列變深色
-            for i in range(2, len(data)):          # 從第2行開始（跳過標題和 Feature/Option 行）
+            # 自動為 Option 有內容的列加上深色背景
+            for i in range(2, len(data)):   # 從第 3 行開始（跳過標題列與 Feature/Option 列）
                 option_text = str(data[i][1]).strip()
                 if option_text and option_text not in ['—', '']:
-                    style_commands.append(('BACKGROUND', (0, i), (1, i), HexColor('#e6e6e6')))  # 深色背景
+                    style_commands.append(('BACKGROUND', (0, i), (1, i), HexColor('#e6e6e6')))
 
             t.setStyle(TableStyle(style_commands))
             return t
@@ -174,7 +174,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Frequency (頻率)： " + spec.get('frequency', '—'), ""],
             ["Heater (加熱器) kW： " + spec.get('engine_heater', '—'), ""],
         ]
-        elements.append(create_table(data, "Engine"))
+        elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
         # ==================== Alternator ====================
@@ -187,7 +187,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Color： " + spec.get('alt_color', '—'), ""],
             ["S/N： " + spec.get('alt_sn', '—'), ""],
         ]
-        elements.append(create_table(data, "Alternator"))
+        elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
         # ==================== Radiator ====================
@@ -199,7 +199,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Fan Size (扇呎吋)： " + spec.get('fan_size', '—'), "Murphy Coolant Level Switch： " + spec.get('murphy_coolant', '—')],
             ["Protection Cover (保護罩)： " + spec.get('radiator_guard', '—'), ""],
         ]
-        elements.append(create_table(data, "Radiator"))
+        elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
         # ==================== Base Frame ====================
@@ -209,7 +209,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Model (型號)： " + spec.get('base_model', '—'), "Color： " + spec.get('base_color', '—')],
             ["Anti-Vibration Mounts (避震腳)： " + spec.get('avm', '—'), ""],
         ]
-        elements.append(create_table(data, "Base Frame"))
+        elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
         # ==================== Container ====================
@@ -219,7 +219,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Type (型號)： " + spec.get('cont_type', '—'), "CO Detector： " + spec.get('co_detector', '—')],
             ["Dimension (呎吋)： " + spec.get('cont_size', '—'), "Color： " + spec.get('cont_color', '—')],
         ]
-        elements.append(create_table(data, "Container"))
+        elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
         # ==================== Breaker ====================
@@ -231,7 +231,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Rating： " + spec.get('breaker_rating', '—'), "Closing Coil： " + spec.get('closing_coil', '—')],
             ["", "UV Relay： " + spec.get('uv_relay', '—')],
         ]
-        elements.append(create_table(data, "Breaker"))
+        elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
         # ==================== Control Panel ====================
@@ -241,7 +241,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Model (型號)： " + spec.get('panel_model', '—'), ""],
             ["Module： " + spec.get('panel_module', '—'), ""],
         ]
-        elements.append(create_table(data, "Control Panel"))
+        elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
         # ==================== Battery ====================
@@ -252,7 +252,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Battery Switch： " + spec.get('battery_switch', '—'), ""],
             ["Rating： " + spec.get('battery_rating', '—'), ""],
         ]
-        elements.append(create_table(data, "Battery"))
+        elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
         # ==================== Fuel Tank ====================
@@ -264,7 +264,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Fuel Water Separator： " + spec.get('fuel_water_separator', '—'), "Fuel Level Sensor： " + spec.get('fuel_level_sensor', '—')],
             ["", "Donaldson Breather： " + spec.get('donaldson_breather', '—')],
         ]
-        elements.append(create_table(data, "Fuel Tank"))
+        elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
         # ==================== Oil Tank ====================
@@ -274,13 +274,13 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Volume： " + spec.get('oil_volume', '—'), "Donaldson Breather： " + spec.get('oil_donaldson', '—')],
             ["", "Murphy Coolant Level Switch： " + spec.get('murphy_oil', '—')],
         ]
-        elements.append(create_table(data, "Oil Tank"))
+        elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
         # ==================== Remarks ====================
         remarks = spec.get("remarks", "").strip()
         if remarks:
-            elements.append(Paragraph("Remarks / 備註", h3_style))  # 如果你之前有 h3_style 就保留，否則用 normal
+            elements.append(Paragraph("Remarks / 備註", normal))
             elements.append(Paragraph(remarks, normal))
 
     doc.build(elements)
