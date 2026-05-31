@@ -150,7 +150,7 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
             ]
 
-            # 僅 Option 格子（第2欄）有內容時變色
+            # 僅 Option 格子有內容時變色
             for i in range(2, len(data)):
                 option_cell = str(data[i][1]).strip()
                 if '：' in option_cell:
@@ -158,12 +158,13 @@ def generate_overview_pdf(specs, project_info, qty):
                 else:
                     option_value = option_cell
                 if option_value and option_value not in ['—', '']:
-                    style_commands.append(('BACKGROUND', (1, i), (1, i), HexColor('#e6e6e6')))  # 只變右側 Option 格
+                    style_commands.append(('BACKGROUND', (1, i), (1, i), HexColor('#e6e6e6')))
 
             t.setStyle(TableStyle(style_commands))
             return t
 
-        # ==================== Engine ====================
+        # ==================== 第一頁內容 ====================
+        # Engine
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
@@ -180,7 +181,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # ==================== Alternator ====================
+        # Alternator
         data = [
             ["Alternator (電球)", ""],
             ["Feature", "Option"],
@@ -193,7 +194,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # ==================== Radiator ====================
+        # Radiator
         data = [
             ["Radiator (水箱)", ""],
             ["Feature", "Option"],
@@ -205,7 +206,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # ==================== Base Frame ====================
+        # Base Frame
         data = [
             ["Base Frame (底架)", ""],
             ["Feature", "Option"],
@@ -215,7 +216,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # ==================== Container ====================
+        # Container
         data = [
             ["Container (貨櫃)", ""],
             ["Feature", "Option"],
@@ -225,7 +226,10 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
 
-        # ==================== Breaker ====================
+        # ==================== 強制換頁，從 Breaker 開始放在第二頁 ====================
+        elements.append(PageBreak())
+
+        # ==================== Breaker (第二頁開始) ====================
         data = [
             ["Breaker (斷路器)", ""],
             ["Feature", "Option"],
