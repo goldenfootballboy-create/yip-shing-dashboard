@@ -87,7 +87,6 @@ def fullscreen_loading(message="正在處理，請稍候..."):
 
 
 from reportlab.lib.colors import HexColor
-
 def generate_overview_pdf(specs, project_info, qty):
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
     pdfmetrics.registerFont(TTFont('NotoSansTC-Bold', 'fonts/NotoSansTC-Bold.ttf'))
@@ -130,14 +129,14 @@ def generate_overview_pdf(specs, project_info, qty):
 
         elements.append(Paragraph(f"{project_name} ({qty} 台)  - 第 {machine_idx + 1} 台", top_title_style))
         elements.append(Paragraph(
-            f"SO#：{spec.get('so_number', '—')}　｜　"
-            f"Category：{spec.get('product_category', '—')}　｜　"
-            f"Code：{spec.get('product_code', '—')}　｜　客戶：{customer}",
+            f"SO#：{spec.get('so_number', '')}　｜　"
+            f"Category：{spec.get('product_category', '')}　｜　"
+            f"Code：{spec.get('product_code', '')}　｜　客戶：{customer}",
             info_style
         ))
         elements.append(Spacer(1, 10))
 
-        # ==================== 共用表格產生函數（自動判斷 Option 是否有內容） ====================
+        # ==================== 共用表格函數（自動判斷 Option 是否有內容 → 深色） ====================
         def create_table(data):
             t = Table(data, colWidths=[255, 255])
             style_commands = [
@@ -151,8 +150,8 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
             ]
 
-            # 自動為 Option 有內容的列加上深色背景
-            for i in range(2, len(data)):   # 從第 3 行開始（跳過標題列與 Feature/Option 列）
+            # Option 有輸入文字 → 整列變深色
+            for i in range(2, len(data)):
                 option_text = str(data[i][1]).strip()
                 if option_text and option_text not in ['—', '']:
                     style_commands.append(('BACKGROUND', (0, i), (1, i), HexColor('#e6e6e6')))
@@ -164,15 +163,15 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + spec.get('genset_model', '—'), "Oil Coolant Temp Sensor： " + spec.get('coolant_sensor', '—')],
-            ["Year (年份)： " + spec.get('engine_year', '—'), "Oil Pressure Sensor： " + spec.get('oil_pressure', '—')],
-            ["S/N (序號)： " + spec.get('genset_sn', '—'), "Hand Swing Pump： " + spec.get('hand_pump', '—')],
-            ["Colour (顏色)： " + spec.get('engine_color', '—'), "Silencer： " + spec.get('silencer', '—')],
-            ["Prime/Standby (kW)： " + spec.get('prime_standby', '—'), "Flexible Pipe & Flange： " + spec.get('flex_pipe', '—')],
-            ["RPM (轉速)： " + spec.get('rpm', '—'), "Exhaust Pipe： " + spec.get('exhaust_pipe', '—')],
-            ["Voltage (電壓)： " + spec.get('voltage', '—'), ""],
-            ["Frequency (頻率)： " + spec.get('frequency', '—'), ""],
-            ["Heater (加熱器) kW： " + spec.get('engine_heater', '—'), ""],
+            ["Model (型號)： " + (spec.get('genset_model') or ''), "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
+            ["Year (年份)： " + (spec.get('engine_year') or ''), "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
+            ["S/N (序號)： " + (spec.get('genset_sn') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
+            ["Colour (顏色)： " + (spec.get('engine_color') or ''), "Silencer： " + (spec.get('silencer') or '')],
+            ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''), "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
+            ["RPM (轉速)： " + (spec.get('rpm') or ''), "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
+            ["Voltage (電壓)： " + (spec.get('voltage') or ''), ""],
+            ["Frequency (頻率)： " + (spec.get('frequency') or ''), ""],
+            ["Heater (加熱器) kW： " + (spec.get('engine_heater') or ''), ""],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
@@ -181,11 +180,11 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Alternator (電球)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + spec.get('alt_model', '—'), "Heater： " + spec.get('alt_heater', '—')],
-            ["Winding： " + spec.get('alt_winding', '—'), "PMG： " + spec.get('pmg', '—')],
-            ["Droop： " + spec.get('droop', '—'), ""],
-            ["Color： " + spec.get('alt_color', '—'), ""],
-            ["S/N： " + spec.get('alt_sn', '—'), ""],
+            ["Model (型號)： " + (spec.get('alt_model') or ''), "Heater： " + (spec.get('alt_heater') or '')],
+            ["Winding： " + (spec.get('alt_winding') or ''), "PMG： " + (spec.get('pmg') or '')],
+            ["Droop： " + (spec.get('droop') or ''), ""],
+            ["Color： " + (spec.get('alt_color') or ''), ""],
+            ["S/N： " + (spec.get('alt_sn') or ''), ""],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
@@ -194,10 +193,10 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Radiator (水箱)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + spec.get('rad_model', '—'), "Fuel Cooler： " + spec.get('fuel_cooler', '—')],
-            ["Degree (温度)： " + spec.get('rad_temp', '—'), "Low Water Level Switch： " + spec.get('low_water', '—')],
-            ["Fan Size (扇呎吋)： " + spec.get('fan_size', '—'), "Murphy Coolant Level Switch： " + spec.get('murphy_coolant', '—')],
-            ["Protection Cover (保護罩)： " + spec.get('radiator_guard', '—'), ""],
+            ["Model (型號)： " + (spec.get('rad_model') or ''), "Fuel Cooler： " + (spec.get('fuel_cooler') or '')],
+            ["Degree (温度)： " + (spec.get('rad_temp') or ''), "Low Water Level Switch： " + (spec.get('low_water') or '')],
+            ["Fan Size (扇呎吋)： " + (spec.get('fan_size') or ''), "Murphy Coolant Level Switch： " + (spec.get('murphy_coolant') or '')],
+            ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), ""],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
@@ -206,8 +205,8 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Base Frame (底架)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + spec.get('base_model', '—'), "Color： " + spec.get('base_color', '—')],
-            ["Anti-Vibration Mounts (避震腳)： " + spec.get('avm', '—'), ""],
+            ["Model (型號)： " + (spec.get('base_model') or ''), "Color： " + (spec.get('base_color') or '')],
+            ["Anti-Vibration Mounts (避震腳)： " + (spec.get('avm') or ''), ""],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
@@ -216,8 +215,8 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Container (貨櫃)", ""],
             ["Feature", "Option"],
-            ["Type (型號)： " + spec.get('cont_type', '—'), "CO Detector： " + spec.get('co_detector', '—')],
-            ["Dimension (呎吋)： " + spec.get('cont_size', '—'), "Color： " + spec.get('cont_color', '—')],
+            ["Type (型號)： " + (spec.get('cont_type') or ''), "CO Detector： " + (spec.get('co_detector') or '')],
+            ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
@@ -226,10 +225,10 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Breaker (斷路器)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + spec.get('breaker_model', '—'), "Gear Motor： " + spec.get('gear_motor', '—')],
-            ["Type (類型)： " + spec.get('breaker_type', '—'), "Shunt Trip： " + spec.get('shunt_trip', '—')],
-            ["Rating： " + spec.get('breaker_rating', '—'), "Closing Coil： " + spec.get('closing_coil', '—')],
-            ["", "UV Relay： " + spec.get('uv_relay', '—')],
+            ["Model (型號)： " + (spec.get('breaker_model') or ''), "Gear Motor： " + (spec.get('gear_motor') or '')],
+            ["Type (類型)： " + (spec.get('breaker_type') or ''), "Shunt Trip： " + (spec.get('shunt_trip') or '')],
+            ["Rating： " + (spec.get('breaker_rating') or ''), "Closing Coil： " + (spec.get('closing_coil') or '')],
+            ["", "UV Relay： " + (spec.get('uv_relay') or '')],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
@@ -238,8 +237,8 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Control Panel (控制器)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + spec.get('panel_model', '—'), ""],
-            ["Module： " + spec.get('panel_module', '—'), ""],
+            ["Model (型號)： " + (spec.get('panel_model') or ''), ""],
+            ["Module： " + (spec.get('panel_module') or ''), ""],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
@@ -248,9 +247,9 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Battery (電池)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + spec.get('battery_model', '—'), "Charger Model： " + spec.get('charger_model', '—')],
-            ["Battery Switch： " + spec.get('battery_switch', '—'), ""],
-            ["Rating： " + spec.get('battery_rating', '—'), ""],
+            ["Model (型號)： " + (spec.get('battery_model') or ''), "Charger Model： " + (spec.get('charger_model') or '')],
+            ["Battery Switch： " + (spec.get('battery_switch') or ''), ""],
+            ["Rating： " + (spec.get('battery_rating') or ''), ""],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
@@ -259,10 +258,10 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Fuel Tank (燃油箱)", ""],
             ["Feature", "Option"],
-            ["Volume： " + spec.get('fuel_volume', '—'), "Fuel Level Gauge： " + spec.get('fuel_gauge', '—')],
-            ["Layer： " + spec.get('fuel_layer', '—'), "Fuel Level Switch： " + spec.get('fuel_level_switch', '—')],
-            ["Fuel Water Separator： " + spec.get('fuel_water_separator', '—'), "Fuel Level Sensor： " + spec.get('fuel_level_sensor', '—')],
-            ["", "Donaldson Breather： " + spec.get('donaldson_breather', '—')],
+            ["Volume： " + (spec.get('fuel_volume') or ''), "Fuel Level Gauge： " + (spec.get('fuel_gauge') or '')],
+            ["Layer： " + (spec.get('fuel_layer') or ''), "Fuel Level Switch： " + (spec.get('fuel_level_switch') or '')],
+            ["Fuel Water Separator： " + (spec.get('fuel_water_separator') or ''), "Fuel Level Sensor： " + (spec.get('fuel_level_sensor') or '')],
+            ["", "Donaldson Breather： " + (spec.get('donaldson_breather') or '')],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
@@ -271,8 +270,8 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Oil Tank (機油箱)", ""],
             ["Feature", "Option"],
-            ["Volume： " + spec.get('oil_volume', '—'), "Donaldson Breather： " + spec.get('oil_donaldson', '—')],
-            ["", "Murphy Coolant Level Switch： " + spec.get('murphy_oil', '—')],
+            ["Volume： " + (spec.get('oil_volume') or ''), "Donaldson Breather： " + (spec.get('oil_donaldson') or '')],
+            ["", "Murphy Coolant Level Switch： " + (spec.get('murphy_oil') or '')],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 12))
