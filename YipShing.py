@@ -656,7 +656,7 @@ def save_checklist():
 def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
-# 專案卡片渲染
+
 # 專案卡片渲染（簡約版 - 無進度條）
 def render_project_card(row, idx):
     project_name = row["Project_Name"]
@@ -2693,8 +2693,11 @@ if len(filtered_df) == 0:
     else:
         st.info("No projects match the selected filters or search term.")
 else:
-    progress_series = filtered_df.apply(calculate_progress, axis=1)
-    filtered_df = filtered_df.assign(Progress=progress_series).sort_values(by="Progress", ascending=False).drop(columns="Progress")
+    # 按照 Lead Time 由早到晚排序（最合理的方式）
+    if 'Lead_Time' in filtered_df.columns and not filtered_df.empty:
+        filtered_df = filtered_df.sort_values(by='Lead_Time', ascending=True)
+    else:
+        filtered_df = filtered_df.sort_values(by='Project_Name', ascending=True)
 
     counter = filtered_df.groupby("Project_Type")["Qty"].sum().astype(int).sort_index()
     total_qty = int(filtered_df["Qty"].sum())
