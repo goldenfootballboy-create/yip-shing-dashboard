@@ -136,7 +136,7 @@ def generate_overview_pdf(specs, project_info, qty):
         ))
         elements.append(Spacer(1, 10))
 
-        # ==================== 共用表格函數（自動判斷 Option 是否有內容 → 深色） ====================
+        # ==================== 共用表格函數 ====================
         def create_table(data):
             t = Table(data, colWidths=[255, 255])
             style_commands = [
@@ -150,10 +150,15 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
             ]
 
-            # Option 有輸入文字 → 整列變深色
+            # 只判斷 Option 欄位「冒號後面的實際值」是否有內容
             for i in range(2, len(data)):
-                option_text = str(data[i][1]).strip()
-                if option_text and option_text not in ['—', '']:
+                option_cell = str(data[i][1]).strip()
+                # 取出冒號後的內容
+                if '：' in option_cell:
+                    option_value = option_cell.split('：', 1)[1].strip()
+                else:
+                    option_value = option_cell
+                if option_value and option_value not in ['—', '']:
                     style_commands.append(('BACKGROUND', (0, i), (1, i), HexColor('#e6e6e6')))
 
             t.setStyle(TableStyle(style_commands))
