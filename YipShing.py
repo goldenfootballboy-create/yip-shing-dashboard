@@ -95,7 +95,7 @@ def generate_overview_pdf(specs, project_info, qty):
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=landscape(letter),   # ← 自動橫向
+        pagesize=landscape(letter),   # ← 自動變橫向 A4
         rightMargin=25,
         leftMargin=25,
         topMargin=20,
@@ -110,7 +110,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
     info_style = ParagraphStyle('Info', parent=styles['Normal'],
         fontName='NotoSansTC-Bold', fontSize=13, alignment=TA_CENTER,
-        spaceBefore=4, spaceAfter=15, textColor=HexColor('#263238'))
+        spaceBefore=4, spaceAfter=12, textColor=HexColor('#263238'))
 
     normal = ParagraphStyle('Normal', parent=styles['Normal'],
         fontName='NotoSansTC', fontSize=10.8, leading=13, spaceAfter=3)
@@ -135,7 +135,7 @@ def generate_overview_pdf(specs, project_info, qty):
             f"Code：{spec.get('product_code', '')}　｜　客戶：{customer}",
             info_style
         ))
-        elements.append(Spacer(1, 10))
+        elements.append(Spacer(1, 8))
 
         # ==================== 共用表格函數 ====================
         def create_table(data):
@@ -164,7 +164,8 @@ def generate_overview_pdf(specs, project_info, qty):
             t.setStyle(TableStyle(style_commands))
             return t
 
-        # ==================== 第一頁內容 ====================
+        # ==================== 所有區塊一次顯示（盡量塞在一張橫向 A4） ====================
+        # Engine
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
@@ -179,8 +180,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Heater (加熱器) kW： " + (spec.get('engine_heater') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
+        # Alternator
         data = [
             ["Alternator (電球)", ""],
             ["Feature", "Option"],
@@ -191,8 +193,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["S/N： " + (spec.get('alt_sn') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
+        # Radiator
         data = [
             ["Radiator (水箱)", ""],
             ["Feature", "Option"],
@@ -202,8 +205,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
+        # Base Frame
         data = [
             ["Base Frame (底架)", ""],
             ["Feature", "Option"],
@@ -211,8 +215,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Anti-Vibration Mounts (避震腳)： " + (spec.get('avm') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
+        # Container
         data = [
             ["Container (貨櫃)", ""],
             ["Feature", "Option"],
@@ -220,12 +225,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
-        # ==================== 強制換頁（Breaker 開始放第二頁） ====================
-        elements.append(PageBreak())
-
-        # Breaker 開始
+        # Breaker
         data = [
             ["Breaker (斷路器)", ""],
             ["Feature", "Option"],
@@ -235,8 +237,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["", "UV Relay： " + (spec.get('uv_relay') or '')],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
+        # Control Panel
         data = [
             ["Control Panel (控制器)", ""],
             ["Feature", "Option"],
@@ -244,8 +247,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Module： " + (spec.get('panel_module') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
+        # Battery
         data = [
             ["Battery (電池)", ""],
             ["Feature", "Option"],
@@ -254,8 +258,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Rating： " + (spec.get('battery_rating') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
+        # Fuel Tank
         data = [
             ["Fuel Tank (燃油箱)", ""],
             ["Feature", "Option"],
@@ -265,8 +270,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["", "Donaldson Breather： " + (spec.get('donaldson_breather') or '')],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
+        # Oil Tank
         data = [
             ["Oil Tank (機油箱)", ""],
             ["Feature", "Option"],
