@@ -150,16 +150,15 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
             ]
 
-            # 只判斷 Option 欄位「冒號後面的實際值」是否有內容
+            # 僅 Option 格子（第2欄）有內容時變色
             for i in range(2, len(data)):
                 option_cell = str(data[i][1]).strip()
-                # 取出冒號後的內容
                 if '：' in option_cell:
                     option_value = option_cell.split('：', 1)[1].strip()
                 else:
                     option_value = option_cell
                 if option_value and option_value not in ['—', '']:
-                    style_commands.append(('BACKGROUND', (0, i), (1, i), HexColor('#e6e6e6')))
+                    style_commands.append(('BACKGROUND', (1, i), (1, i), HexColor('#e6e6e6')))  # 只變右側 Option 格
 
             t.setStyle(TableStyle(style_commands))
             return t
