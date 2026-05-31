@@ -657,12 +657,12 @@ def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 
-# 專案卡片渲染（簡約版 - 無進度條）
-def render_project_card(row, idx):
+# 專案卡片渲染（極簡版）
+def render_project_card(row, card_idx):
     project_name = row["Project_Name"]
     project_type = row["Project_Type"]
 
-    # 簡單的 checklist 狀態標籤
+    # Checklist 狀態標籤
     current_check = checklist_db.get(project_name, {"purchase": [], "done_p": [], "drawing": [], "done_d": []})
     all_items = current_check["purchase"] + current_check["drawing"]
     done_items = set(current_check["done_p"]) | set(current_check["done_d"])
@@ -693,26 +693,26 @@ def render_project_card(row, idx):
             客戶：{row.get('Customer', '—')}　｜　
             負責人：{row.get('Supervisor', '—')}　｜　
             Qty：{row.get('Qty', 0)}　｜　
-            Lead Time：{fmt(row.get('Lead_Time'))}
+            Lead Time：{pd.to_datetime(row.get('Lead_Time')).strftime('%Y-%m-%d') if pd.notna(row.get('Lead_Time')) else '—'}
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 按鈕區域
+    # 按鈕（使用 card_idx 保證唯一）
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("Edit Spec", key=f"spec_btn_{idx}", use_container_width=True, type="primary"):
-            st.session_state["current_edit_idx"] = idx
+        if st.button("Edit Spec", key=f"spec_btn_{card_idx}", type="primary", use_container_width=True):
+            st.session_state["current_edit_idx"] = filtered_df.index[card_idx]  # 保留原始 index 給後續存檔用
             st.session_state["show_edit_spec_dialog"] = True
             st.rerun()
     with col2:
-        if st.button("Edit Info", key=f"info_btn_{idx}", use_container_width=True):
-            st.session_state["current_edit_idx"] = idx
+        if st.button("Edit Info", key=f"info_btn_{card_idx}", use_container_width=True):
+            st.session_state["current_edit_idx"] = filtered_df.index[card_idx]
             st.session_state["show_edit_info_dialog"] = True
             st.rerun()
     with col3:
-        if st.button("Delete", key=f"del_{idx}", use_container_width=True):
-            st.session_state["delete_idx"] = idx
+        if st.button("Delete", key=f"del_{card_idx}", use_container_width=True):
+            st.session_state["delete_idx"] = filtered_df.index[card_idx]
             st.session_state["show_delete_confirm"] = True
 
         if st.button("📊 OverView 完整規格總覽", key=f"overall_spec_btn_{idx}", use_container_width=True,
@@ -2714,6 +2714,15 @@ else:
 
     # 轉成 records
     rows = filtered_df.to_dict('records')
+
+    for i in range(0, len(rows), 2):
+        col1, col2 = st.columns(2)
+        with col1:
+            if i < len(rows):
+                render_project_card(rows[i], i)  # ← 使用迴圈計數 i（保證唯一）
+        with col2:
+            if i + 1 < len(rows):
+                render_project_card(rows[i + 1], i + 1)  # ← 使用迴圈計數 i+1
 
     # 兩列顯示卡片（保持原樣）
     for i in range(0, len(rows), 2):
