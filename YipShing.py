@@ -88,7 +88,6 @@ def fullscreen_loading(message="正在處理，請稍候..."):
 
 from reportlab.lib.colors import HexColor
 
-
 def generate_overview_pdf(specs, project_info, qty):
     pdfmetrics.registerFont(TTFont('NotoSansTC', 'fonts/NotoSansTC-Regular.ttf'))
     pdfmetrics.registerFont(TTFont('NotoSansTC-Bold', 'fonts/NotoSansTC-Bold.ttf'))
@@ -99,7 +98,7 @@ def generate_overview_pdf(specs, project_info, qty):
         pagesize=letter,
         rightMargin=28,
         leftMargin=28,
-        topMargin=18,
+        topMargin=20,
         bottomMargin=25
     )
 
@@ -107,15 +106,11 @@ def generate_overview_pdf(specs, project_info, qty):
 
     top_title_style = ParagraphStyle('TopTitle', parent=styles['Heading1'],
         fontName='NotoSansTC-Bold', fontSize=21, alignment=TA_CENTER,
-        spaceBefore=0, spaceAfter=6, textColor=HexColor('#1e88e5'))
+        spaceBefore=0, spaceAfter=8, textColor=HexColor('#1e88e5'))
 
     info_style = ParagraphStyle('Info', parent=styles['Normal'],
         fontName='NotoSansTC-Bold', fontSize=13, alignment=TA_CENTER,
-        spaceBefore=3, spaceAfter=12, textColor=HexColor('#263238'))
-
-    h3_style = ParagraphStyle('H3', parent=styles['Heading2'],
-        fontName='NotoSansTC-Bold', fontSize=14, spaceBefore=8, spaceAfter=5,
-        textColor=HexColor('#1e88e5'))
+        spaceBefore=4, spaceAfter=15, textColor=HexColor('#263238'))
 
     normal = ParagraphStyle('Normal', parent=styles['Normal'],
         fontName='NotoSansTC', fontSize=10.8, leading=13, spaceAfter=3)
@@ -140,11 +135,11 @@ def generate_overview_pdf(specs, project_info, qty):
             f"Code：{spec.get('product_code', '—')}　｜　客戶：{customer}",
             info_style
         ))
-        elements.append(Spacer(1, 8))
+        elements.append(Spacer(1, 10))
 
         # ==================== Engine ====================
-        elements.append(Paragraph("Engine (發動機)", h3_style))
         data = [
+            ["Engine (發動機)", ""],
             ["Feature", "Option"],
             ["Model (型號)： " + spec.get('genset_model', '—'), "Oil Coolant Temp Sensor： " + spec.get('coolant_sensor', '—')],
             ["Year (年份)： " + spec.get('engine_year', '—'), "Oil Pressure Sensor： " + spec.get('oil_pressure', '—')],
@@ -168,58 +163,211 @@ def generate_overview_pdf(specs, project_info, qty):
             ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
         ]))
         elements.append(t)
+        elements.append(Spacer(1, 10))
 
-        # ==================== 其餘區塊（緊湊顯示） ====================
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Alternator (電球)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('alt_model', '—')}　　S/N： {spec.get('alt_sn', '—')}", normal))
-        elements.append(Paragraph(f"Winding： {spec.get('alt_winding', '—')}　　Droop： {spec.get('droop', '—')}　　Color： {spec.get('alt_color', '—')}", normal))
-        elements.append(Paragraph(f"Heater： {spec.get('alt_heater', '—')}　　PMG： {spec.get('pmg', '—')}", normal))
+        # ==================== Alternator ====================
+        data = [
+            ["Alternator (電球)", ""],
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('alt_model', '—'), "Heater： " + spec.get('alt_heater', '—')],
+            ["Winding： " + spec.get('alt_winding', '—'), "PMG： " + spec.get('pmg', '—')],
+            ["Droop： " + spec.get('droop', '—'), ""],
+            ["Color： " + spec.get('alt_color', '—'), ""],
+            ["S/N： " + spec.get('alt_sn', '—'), ""],
+        ]
+        t = Table(data, colWidths=[255, 255])
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0,0), (0,0), 13),
+            ('SPAN', (0,0), (1,0)),
+            ('ALIGN', (0,0), (1,0), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+            ('FONTSIZE', (0,1), (-1,-1), 10.5),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 10))
 
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Radiator (水箱)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('rad_model', '—')}　　Degree： {spec.get('rad_temp', '—')}", normal))
-        elements.append(Paragraph(f"Fan Size： {spec.get('fan_size', '—')}　　Protection Cover： {spec.get('radiator_guard', '—')}", normal))
-        elements.append(Paragraph(f"Fuel Cooler： {spec.get('fuel_cooler', '—')}　　Low Water： {spec.get('low_water', '—')}　　Murphy： {spec.get('murphy_coolant', '—')}", normal))
+        # ==================== Radiator ====================
+        data = [
+            ["Radiator (水箱)", ""],
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('rad_model', '—'), "Fuel Cooler： " + spec.get('fuel_cooler', '—')],
+            ["Degree (温度)： " + spec.get('rad_temp', '—'), "Low Water Level Switch： " + spec.get('low_water', '—')],
+            ["Fan Size (扇呎吋)： " + spec.get('fan_size', '—'), "Murphy Coolant Level Switch： " + spec.get('murphy_coolant', '—')],
+            ["Protection Cover (保護罩)： " + spec.get('radiator_guard', '—'), ""],
+        ]
+        t = Table(data, colWidths=[255, 255])
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0,0), (0,0), 13),
+            ('SPAN', (0,0), (1,0)),
+            ('ALIGN', (0,0), (1,0), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+            ('FONTSIZE', (0,1), (-1,-1), 10.5),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 10))
 
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Base Frame (底架)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('base_model', '—')}　　AVM： {spec.get('avm', '—')}　　Color： {spec.get('base_color', '—')}", normal))
+        # ==================== Base Frame ====================
+        data = [
+            ["Base Frame (底架)", ""],
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('base_model', '—'), "Color： " + spec.get('base_color', '—')],
+            ["Anti-Vibration Mounts (避震腳)： " + spec.get('avm', '—'), ""],
+        ]
+        t = Table(data, colWidths=[255, 255])
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0,0), (0,0), 13),
+            ('SPAN', (0,0), (1,0)),
+            ('ALIGN', (0,0), (1,0), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+            ('FONTSIZE', (0,1), (-1,-1), 10.5),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 10))
 
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Container (貨櫃)", h3_style))
-        elements.append(Paragraph(f"Type： {spec.get('cont_type', '—')}　　Dimension： {spec.get('cont_size', '—')}　　Color： {spec.get('cont_color', '—')}", normal))
+        # ==================== Container ====================
+        data = [
+            ["Container (貨櫃)", ""],
+            ["Feature", "Option"],
+            ["Type (型號)： " + spec.get('cont_type', '—'), "CO Detector： " + spec.get('co_detector', '—')],
+            ["Dimension (呎吋)： " + spec.get('cont_size', '—'), "Color： " + spec.get('cont_color', '—')],
+        ]
+        t = Table(data, colWidths=[255, 255])
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0,0), (0,0), 13),
+            ('SPAN', (0,0), (1,0)),
+            ('ALIGN', (0,0), (1,0), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+            ('FONTSIZE', (0,1), (-1,-1), 10.5),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 10))
 
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Breaker (斷路器)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('breaker_model', '—')}　　Type： {spec.get('breaker_type', '—')}　　Rating： {spec.get('breaker_rating', '—')}", normal))
-        elements.append(Paragraph(f"Gear Motor： {spec.get('gear_motor', '—')}　　Shunt Trip： {spec.get('shunt_trip', '—')}　　Closing Coil： {spec.get('closing_coil', '—')}　　UV Relay： {spec.get('uv_relay', '—')}", normal))
+        # ==================== Breaker ====================
+        data = [
+            ["Breaker (斷路器)", ""],
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('breaker_model', '—'), "Gear Motor： " + spec.get('gear_motor', '—')],
+            ["Type (類型)： " + spec.get('breaker_type', '—'), "Shunt Trip： " + spec.get('shunt_trip', '—')],
+            ["Rating： " + spec.get('breaker_rating', '—'), "Closing Coil： " + spec.get('closing_coil', '—')],
+            ["", "UV Relay： " + spec.get('uv_relay', '—')],
+        ]
+        t = Table(data, colWidths=[255, 255])
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0,0), (0,0), 13),
+            ('SPAN', (0,0), (1,0)),
+            ('ALIGN', (0,0), (1,0), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+            ('FONTSIZE', (0,1), (-1,-1), 10.5),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 10))
 
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Control Panel (控制器)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('panel_model', '—')}　　Module： {spec.get('panel_module', '—')}", normal))
+        # ==================== Control Panel ====================
+        data = [
+            ["Control Panel (控制器)", ""],
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('panel_model', '—'), ""],
+            ["Module： " + spec.get('panel_module', '—'), ""],
+        ]
+        t = Table(data, colWidths=[255, 255])
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0,0), (0,0), 13),
+            ('SPAN', (0,0), (1,0)),
+            ('ALIGN', (0,0), (1,0), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+            ('FONTSIZE', (0,1), (-1,-1), 10.5),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 10))
 
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Battery (電池)", h3_style))
-        elements.append(Paragraph(f"Model： {spec.get('battery_model', '—')}　　Switch： {spec.get('battery_switch', '—')}　　Rating： {spec.get('battery_rating', '—')}", normal))
-        elements.append(Paragraph(f"Charger Model： {spec.get('charger_model', '—')}", normal))
+        # ==================== Battery ====================
+        data = [
+            ["Battery (電池)", ""],
+            ["Feature", "Option"],
+            ["Model (型號)： " + spec.get('battery_model', '—'), "Charger Model： " + spec.get('charger_model', '—')],
+            ["Battery Switch： " + spec.get('battery_switch', '—'), ""],
+            ["Rating： " + spec.get('battery_rating', '—'), ""],
+        ]
+        t = Table(data, colWidths=[255, 255])
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0,0), (0,0), 13),
+            ('SPAN', (0,0), (1,0)),
+            ('ALIGN', (0,0), (1,0), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+            ('FONTSIZE', (0,1), (-1,-1), 10.5),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 10))
 
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Fuel Tank (燃油箱)", h3_style))
-        elements.append(Paragraph(f"Volume： {spec.get('fuel_volume', '—')}　　Layer： {spec.get('fuel_layer', '—')}", normal))
-        elements.append(Paragraph(f"Fuel Water Separator： {spec.get('fuel_water_separator', '—')}", normal))
-        elements.append(Paragraph(f"Fuel Level Gauge / Switch / Sensor： {spec.get('fuel_gauge', '—')} / {spec.get('fuel_level_switch', '—')} / {spec.get('fuel_level_sensor', '—')}", normal))
-        elements.append(Paragraph(f"Donaldson Breather： {spec.get('donaldson_breather', '—')}", normal))
+        # ==================== Fuel Tank ====================
+        data = [
+            ["Fuel Tank (燃油箱)", ""],
+            ["Feature", "Option"],
+            ["Volume： " + spec.get('fuel_volume', '—'), "Fuel Level Gauge： " + spec.get('fuel_gauge', '—')],
+            ["Layer： " + spec.get('fuel_layer', '—'), "Fuel Level Switch： " + spec.get('fuel_level_switch', '—')],
+            ["Fuel Water Separator： " + spec.get('fuel_water_separator', '—'), "Fuel Level Sensor： " + spec.get('fuel_level_sensor', '—')],
+            ["", "Donaldson Breather： " + spec.get('donaldson_breather', '—')],
+        ]
+        t = Table(data, colWidths=[255, 255])
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0,0), (0,0), 13),
+            ('SPAN', (0,0), (1,0)),
+            ('ALIGN', (0,0), (1,0), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+            ('FONTSIZE', (0,1), (-1,-1), 10.5),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 10))
 
-        elements.append(Spacer(1, 6))
-        elements.append(Paragraph("Oil Tank (機油箱)", h3_style))
-        elements.append(Paragraph(f"Volume： {spec.get('oil_volume', '—')}　　Donaldson Breather： {spec.get('oil_donaldson', '—')}　　Murphy： {spec.get('murphy_oil', '—')}", normal))
+        # ==================== Oil Tank ====================
+        data = [
+            ["Oil Tank (機油箱)", ""],
+            ["Feature", "Option"],
+            ["Volume： " + spec.get('oil_volume', '—'), "Donaldson Breather： " + spec.get('oil_donaldson', '—')],
+            ["", "Murphy Coolant Level Switch： " + spec.get('murphy_oil', '—')],
+        ]
+        t = Table(data, colWidths=[255, 255])
+        t.setStyle(TableStyle([
+            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0,0), (0,0), 13),
+            ('SPAN', (0,0), (1,0)),
+            ('ALIGN', (0,0), (1,0), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+            ('FONTSIZE', (0,1), (-1,-1), 10.5),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 12))
 
         # ==================== Remarks ====================
         remarks = spec.get("remarks", "").strip()
         if remarks:
-            elements.append(Spacer(1, 10))
-            elements.append(Paragraph("Remarks / 備註", h3_style))
+            elements.append(Paragraph("Remarks / 備註", normal))   # 使用 normal 避免 h3_style 錯誤
             elements.append(Paragraph(remarks, normal))
 
     doc.build(elements)
