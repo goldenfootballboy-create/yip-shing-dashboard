@@ -93,12 +93,11 @@ def generate_overview_pdf(specs, project_info, qty):
     pdfmetrics.registerFont(TTFont('NotoSansTC-Bold', 'fonts/NotoSansTC-Bold.ttf'))
 
     buffer = BytesIO()
-    # 自動變成橫向 A4
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=landscape(letter),
-        rightMargin=25,
-        leftMargin=25,
+        pagesize=letter,
+        rightMargin=28,
+        leftMargin=28,
         topMargin=20,
         bottomMargin=25
     )
@@ -111,7 +110,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
     info_style = ParagraphStyle('Info', parent=styles['Normal'],
         fontName='NotoSansTC-Bold', fontSize=13, alignment=TA_CENTER,
-        spaceBefore=4, spaceAfter=12, textColor=HexColor('#263238'))
+        spaceBefore=4, spaceAfter=15, textColor=HexColor('#263238'))
 
     normal = ParagraphStyle('Normal', parent=styles['Normal'],
         fontName='NotoSansTC', fontSize=10.8, leading=13, spaceAfter=3)
@@ -136,11 +135,11 @@ def generate_overview_pdf(specs, project_info, qty):
             f"Code：{spec.get('product_code', '')}　｜　客戶：{customer}",
             info_style
         ))
-        elements.append(Spacer(1, 8))
+        elements.append(Spacer(1, 10))
 
         # ==================== 共用表格函數 ====================
         def create_table(data):
-            t = Table(data, colWidths=[290, 290])
+            t = Table(data, colWidths=[255, 255])
             style_commands = [
                 ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
                 ('FONTSIZE', (0,0), (0,0), 13),
@@ -152,7 +151,7 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
             ]
 
-            # Option 有內容時右格變色
+            # 僅 Option 格子有內容時變色
             for i in range(2, len(data)):
                 option_cell = str(data[i][1]).strip()
                 if '：' in option_cell:
@@ -165,7 +164,8 @@ def generate_overview_pdf(specs, project_info, qty):
             t.setStyle(TableStyle(style_commands))
             return t
 
-        # ==================== 所有區塊緊湊排列（一張橫向 A4 盡量顯示 2 台） ====================
+        # ==================== 第一頁內容 ====================
+        # Engine
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
@@ -180,8 +180,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Heater (加熱器) kW： " + (spec.get('engine_heater') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 12))
 
+        # Alternator
         data = [
             ["Alternator (電球)", ""],
             ["Feature", "Option"],
@@ -192,8 +193,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["S/N： " + (spec.get('alt_sn') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 12))
 
+        # Radiator
         data = [
             ["Radiator (水箱)", ""],
             ["Feature", "Option"],
@@ -203,8 +205,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 12))
 
+        # Base Frame
         data = [
             ["Base Frame (底架)", ""],
             ["Feature", "Option"],
@@ -212,8 +215,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Anti-Vibration Mounts (避震腳)： " + (spec.get('avm') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 12))
 
+        # Container
         data = [
             ["Container (貨櫃)", ""],
             ["Feature", "Option"],
@@ -221,8 +225,12 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 12))
 
+        # ==================== 強制換頁，從 Breaker 開始放在第二頁 ====================
+        elements.append(PageBreak())
+
+        # ==================== Breaker (第二頁開始) ====================
         data = [
             ["Breaker (斷路器)", ""],
             ["Feature", "Option"],
@@ -232,8 +240,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["", "UV Relay： " + (spec.get('uv_relay') or '')],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 12))
 
+        # ==================== Control Panel ====================
         data = [
             ["Control Panel (控制器)", ""],
             ["Feature", "Option"],
@@ -241,8 +250,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Module： " + (spec.get('panel_module') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 12))
 
+        # ==================== Battery ====================
         data = [
             ["Battery (電池)", ""],
             ["Feature", "Option"],
@@ -251,8 +261,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Rating： " + (spec.get('battery_rating') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 12))
 
+        # ==================== Fuel Tank ====================
         data = [
             ["Fuel Tank (燃油箱)", ""],
             ["Feature", "Option"],
@@ -262,8 +273,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["", "Donaldson Breather： " + (spec.get('donaldson_breather') or '')],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 12))
 
+        # ==================== Oil Tank ====================
         data = [
             ["Oil Tank (機油箱)", ""],
             ["Feature", "Option"],
@@ -271,7 +283,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["", "Murphy Coolant Level Switch： " + (spec.get('murphy_oil') or '')],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 8))
+        elements.append(Spacer(1, 12))
 
         # ==================== Remarks ====================
         remarks = spec.get("remarks", "").strip()
