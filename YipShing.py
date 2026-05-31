@@ -650,129 +650,70 @@ def save_checklist():
     time.sleep(2)
 
 # 進度計算 + 顏色 + fmt
-def calculate_progress(row):
-    p = 0
-    today = date.today()
-    if pd.notna(row.get("Parts_Arrival")) and row["Parts_Arrival"].date() < today:
-        p += 30
-    if pd.notna(row.get("Installation_Complete")) and row["Installation_Complete"].date() < today:
-        p += 40
-    if pd.notna(row.get("Testing_Complete")) and row["Testing_Complete"].date() < today:
-        p += 10
-    if pd.notna(row.get("Cleaning_Complete")) and row["Cleaning_Complete"].date() < today:
-        p += 10
-    if pd.notna(row.get("Delivery_Complete")) and row["Delivery_Complete"].date() < today:
-        p += 10
-    return min(p, 100)
 
-def get_color(pct):
-    if pct >= 100: return "#0066ff"
-    elif pct >= 90: return "#00aa00"
-    elif pct >= 70: return "#66cc66"
-    elif pct >= 30: return "#ffaa00"
-    else: return "#ff4444"
+
 
 def fmt(d):
     return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else "—"
 
 # 專案卡片渲染
+# 專案卡片渲染（簡約版 - 無進度條）
 def render_project_card(row, idx):
-    pct = calculate_progress(row)
-    color = get_color(pct)
-
     project_name = row["Project_Name"]
+    project_type = row["Project_Type"]
+
+    # 簡單的 checklist 狀態標籤
     current_check = checklist_db.get(project_name, {"purchase": [], "done_p": [], "drawing": [], "done_d": []})
     all_items = current_check["purchase"] + current_check["drawing"]
     done_items = set(current_check["done_p"]) | set(current_check["done_d"])
-    real_items = [item for item in all_items if item and str(item).strip()]
+    real_items = [item for item in all_items if str(item).strip()]
     has_missing = any(str(item).strip() and str(item) not in done_items for item in real_items)
-    all_done = len(real_items) > 0 and not has_missing
-    is_empty = len(real_items) == 0
 
-    status_tag = ""
-    if is_empty:
-        status_tag = '<span style="background:#888888; color:white; padding:4px 12px; border-radius:20px; font-weight:bold; font-size:0.8rem; margin-left:10px;">Please add checklist</span>'
-    elif all_done:
-        status_tag = '<span style="background:#F0FFFD; color:white; padding:4px 12px; border-radius:20px; font-weight:bold; font-size:1.2rem; margin-left:10px;">✅</span>'
-    elif has_missing:
-        status_tag = '<span style="background:#ff4444; color:white; padding:4px 12px; border-radius:20px; font-weight:bold; font-size:0.8rem; margin-left:10px;">Missing Submission</span>'
-
-    reminder_text = str(row.get("Progress_Reminder", "")).strip()
-    reminder_display = f'<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:bold; font-size:0.8rem; color:white; text-shadow:1px 1px 3px black; pointer-events:none; z-index:10;">{reminder_text}</div>'
+    if len(real_items) == 0:
+        status_tag = '<span style="background:#888888; color:white; padding:4px 10px; border-radius:20px; font-size:0.8rem;">待新增 Checklist</span>'
+    elif not has_missing:
+        status_tag = '<span style="background:#1fb429; color:white; padding:4px 10px; border-radius:20px; font-size:0.8rem;">✅ 完成</span>'
+    else:
+        status_tag = '<span style="background:#ff4444; color:white; padding:4px 10px; border-radius:20px; font-size:0.8rem;">待補</span>'
 
     st.markdown(f"""
-    <div style="background: linear-gradient(to right, {color} {pct}%, #f0f0f0 {pct}%); 
-                border-radius: 8px; padding: 10px 15px; margin: 10px 0; 
-                box-shadow: 0 2px 6px rgba(0,0,0,0.1); position: relative; overflow:hidden;">
-        {reminder_display}
-        <div style="display: flex; justify-content: space-between; align-items: center; position:relative; z-index:5;">
-            <div style="font-weight: bold; color:#000000;">
-                {row['Project_Name']} • {row['Project_Type']}
+    <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; margin: 12px 0;
+                background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="font-size: 1.15rem;">{project_name}</strong>
+                <span style="margin-left: 12px; color: #666; font-size: 0.95rem;">{project_type}</span>
             </div>
             <div>
                 {status_tag}
-                <span style="color:white; background:{color}; padding:4px 12px; border-radius:20px; font-weight:bold; font-size:1rem; margin-left:10px;">
-                    {pct}%
-                </span>
             </div>
         </div>
-        <div style="font-size:0.85rem; color:#121111; margin-top:6px; position:relative; z-index:5;">
-            {row.get('Customer','—')} | {row.get('Supervisor','—')} | Qty:{row.get('Qty',0)} | 
-            Lead Time: {fmt(row['Lead_Time'])}
+
+        <div style="margin-top: 12px; font-size: 0.95rem; color: #444;">
+            客戶：{row.get('Customer', '—')}　｜　
+            負責人：{row.get('Supervisor', '—')}　｜　
+            Qty：{row.get('Qty', 0)}　｜　
+            Lead Time：{fmt(row.get('Lead_Time'))}
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander(f"Details • {row['Project_Name']}", expanded=False):
-        st.markdown(f"**Year:** {row['Year']} | **Lead Time:** {fmt(row['Lead_Time'])}")
-        st.markdown(f"**Customer:** {row.get('Customer','—')} | **Supervisor:** {row.get('Supervisor','—')} | **Qty:** {row.get('Qty',0)}")
-
-        spec_text = row.get("Project_Spec", "")
-        specs = []
-        if spec_text:
-            try:
-                if "||EXTRA||" in spec_text:
-                    extra_json = spec_text.split("||EXTRA||")[1]
-                    specs = json.loads(extra_json)
-                    if not isinstance(specs, list):
-                        specs = [specs]
-                else:
-                    extra_data = json.loads(spec_text)
-                    specs = [extra_data]
-            except:
-                specs = []
-
-        qty = row.get("Qty", 1)
-        if len(specs) < qty:
-            specs += [{}] * (qty - len(specs))
-
-        if qty == 1:
-            spec = specs[0] if specs else {}
-            st.markdown("**Project Specification:**")
-            st.markdown(f"• Prime: {spec.get('prime', '—')} Standby: {spec.get('standby', '—')}")
-            st.markdown(f"• Voltage: {spec.get('voltage', '—')} Frequency: {spec.get('frequency', '—')} RPM: {spec.get('rpm', '—')}")
-            st.markdown(f"• **Genset model:** {spec.get('genset_model', '—')} | S/N: {spec.get('genset_sn', '—')}")
-            st.markdown(f"• **Alternator Model:** {spec.get('alt_model', '—')} | S/N: {spec.get('alt_sn', '—')}")
-            st.markdown(f"• **Panel model:** {spec.get('panel_model', '—')} | S/N: {spec.get('panel_sn', '—')}")
-            st.markdown(f"• **Breaker Type:** {spec.get('breaker_type', '—')} | Breaker Rating: {spec.get('breaker_rating', '—')} Poles: {spec.get('poles', '—')}")
-            st.markdown(f"• Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}")
-            st.markdown(f"**Remarks:**")
-            st.markdown(f"{spec.get('remarks', '—')}")
-        else:
-            tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
-            for i in range(qty):
-                with tabs[i]:
-                    spec = specs[i] if i < len(specs) else {}
-                    st.markdown("**Project Specification:**")
-                    st.markdown(f"• Prime: {spec.get('prime', '—')} Standby: {spec.get('standby', '—')}")
-                    st.markdown(f"• Voltage: {spec.get('voltage', '—')} Frequency: {spec.get('frequency', '—')} RPM: {spec.get('rpm', '—')}")
-                    st.markdown(f"• **Genset model:** {spec.get('genset_model', '—')} | S/N: {spec.get('genset_sn', '—')}")
-                    st.markdown(f"• **Alternator Model:** {spec.get('alt_model', '—')} | S/N: {spec.get('alt_sn', '—')}")
-                    st.markdown(f"• **Panel model:** {spec.get('panel_model', '—')} | S/N: {spec.get('panel_sn', '—')}")
-                    st.markdown(f"• **Breaker Type:** {spec.get('breaker_type', '—')} | Breaker Rating: {spec.get('breaker_rating', '—')} Poles: {spec.get('poles', '—')}")
-                    st.markdown(f"• Spring Charging: {spec.get('spring_charging', '—')} Control Voltage: {spec.get('control_voltage', '—')}")
-                    st.markdown(f"**Remarks:**")
-                    st.markdown(f"{spec.get('remarks', '—')}")
+    # 按鈕區域
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("Edit Spec", key=f"spec_btn_{idx}", use_container_width=True, type="primary"):
+            st.session_state["current_edit_idx"] = idx
+            st.session_state["show_edit_spec_dialog"] = True
+            st.rerun()
+    with col2:
+        if st.button("Edit Info", key=f"info_btn_{idx}", use_container_width=True):
+            st.session_state["current_edit_idx"] = idx
+            st.session_state["show_edit_info_dialog"] = True
+            st.rerun()
+    with col3:
+        if st.button("Delete", key=f"del_{idx}", use_container_width=True):
+            st.session_state["delete_idx"] = idx
+            st.session_state["show_delete_confirm"] = True
 
         if st.button("📊 OverView 完整規格總覽", key=f"overall_spec_btn_{idx}", use_container_width=True,
                      type="secondary"):
