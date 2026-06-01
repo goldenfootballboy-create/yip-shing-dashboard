@@ -1471,22 +1471,35 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                         height=150,
                                         key=f"edit_remarks_{idx_to_edit}_{i}")
                 # ==================== 收集資料 ====================
+
                 spec_data = {
+                    # ==================== 基本資訊 ====================
                     "so_number": e_so_number,
                     "product_category": e_product_category,
                     "product_code": e_product_code,
 
+                    # ==================== Engine ====================
                     "genset_model": e_genset_model,
                     "engine_year": e_engine_year,
                     "genset_sn": e_genset_sn,
                     "engine_color": e_engine_color,
-                    "prime_standby": e_prime_standby.strip(),
+                    "prime_standby": e_prime_standby.strip() if e_prime_standby else "",
                     "rpm": e_rpm.strip(),
                     "voltage": e_voltage.strip(),
                     "frequency": e_frequency.strip(),
                     "engine_heater": e_engine_heater,
-                    "rad_sn": s_rad_sn,
-                    "base_sn": s_base_sn,
+
+                    # Engine Option
+                    "coolant_temp_sensor": e_coolant_temp_sensor,
+                    "oil_pressure_switch": e_oil_pressure_switch,
+                    "coolant_sensor": e_coolant_sensor,
+                    "oil_pressure": e_oil_pressure,
+                    "hand_pump": e_hand_pump,
+                    "silencer": e_silencer,                    # ← 重要
+                    "flex_pipe": e_flex_pipe,                  # ← 重要
+                    "exhaust_pipe": e_exhaust_pipe,
+
+                    # ==================== Alternator ====================
                     "alt_model": e_alt_model,
                     "alt_winding": e_alt_winding,
                     "droop": e_droop,
@@ -1494,11 +1507,63 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "alt_sn": e_alt_sn,
                     "alt_heater": e_alt_heater,
                     "pmg": e_pmg,
-                    "cont_sn": s_cont_sn,
-                    "breaker_sn": s_breaker_sn,
-                    "panel_sn": s_panel_sn,
-                    "coolant_temp_sensor": e_coolant_temp_sensor,
-                    "oil_pressure_switch": e_oil_pressure_switch,
+
+                    # ==================== Radiator ====================
+                    "rad_model": e_rad_model,
+                    "rad_temp": e_rad_temp,
+                    "fan_size": e_fan_size,
+                    "radiator_guard": e_radiator_guard,
+                    "rad_sn": e_rad_sn,
+
+                    # ==================== Base Frame ====================
+                    "base_model": e_base_model,
+                    "avm": e_avm,
+                    "base_color": e_base_color,
+                    "base_sn": e_base_sn,
+
+                    # ==================== Container ====================
+                    "cont_type": e_cont_type,
+                    "cont_size": e_cont_size,
+                    "co_detector": e_co_detector,
+                    "cont_color": e_cont_color,
+                    "cont_sn": e_cont_sn,
+
+                    # ==================== Breaker ====================
+                    "breaker_model": e_breaker_model,
+                    "breaker_type": e_breaker_type,
+                    "breaker_rating": e_breaker_rating,
+                    "gear_motor": e_gear_motor,          # ← 重要
+                    "shunt_trip": e_shunt_trip,
+                    "closing_coil": e_closing_coil,
+                    "uv_relay": e_uv_relay,
+                    "breaker_sn": e_breaker_sn,
+
+                    # ==================== Control Panel ====================
+                    "panel_model": e_panel_model,
+                    "panel_module": e_panel_module,
+                    "panel_sn": e_panel_sn,
+
+                    # ==================== Battery ====================
+                    "battery_model": e_battery_model,
+                    "battery_switch": e_battery_switch,
+                    "battery_rating": e_battery_rating,
+                    "charger_model": e_charger_model,
+
+                    # ==================== Fuel Tank ====================
+                    "fuel_volume": e_fuel_volume,
+                    "fuel_layer": e_fuel_layer,
+                    "fuel_water_separator": e_fuel_water_separator,
+                    "fuel_gauge": e_fuel_gauge,
+                    "fuel_level_switch": e_fuel_level_switch,
+                    "fuel_level_sensor": e_fuel_level_sensor,
+                    "donaldson_breather": e_donaldson_breather,
+
+                    # ==================== Oil Tank ====================
+                    "oil_volume": e_oil_volume,
+                    "oil_donaldson": e_oil_donaldson,
+                    "murphy_oil": e_murphy_oil,
+
+                    # ==================== Remarks ====================
                     "remarks": e_remarks.strip()
                 }
                 new_specs.append(spec_data)
