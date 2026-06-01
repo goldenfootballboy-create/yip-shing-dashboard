@@ -262,7 +262,6 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Feature", "Option"],
             ["Model (型號)： " + (spec.get('battery_model') or ''), "Charger Model： " + (spec.get('charger_model') or '')],
             ["Battery Switch： " + (spec.get('battery_switch') or ''), ""],
-            ["Rating： " + (spec.get('battery_rating') or ''), ""],
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 8))
@@ -1459,11 +1458,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                          key=f"edit_battery_switch_{idx_to_edit}_{i}",
                                                                          label_visibility="collapsed")
 
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Rating")
-                        with col_input: e_battery_rating = st.text_input("", value=current.get("battery_rating", ""),
-                                                                         key=f"edit_battery_rating_{idx_to_edit}_{i}",
-                                                                         label_visibility="collapsed")
 
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
@@ -1616,6 +1610,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "fan_size": e_fan_size,
                     "radiator_guard": e_radiator_guard,
                     "rad_sn": e_rad_sn,
+                    "fuel_cooler": e_fuel_cooler,  # ← 新增
+                    "low_water": e_low_water,  # ← 新增
+                    "murphy_coolant": e_murphy_coolant,
 
                     # ==================== Base Frame ====================
                     "base_model": e_base_model,
@@ -1648,7 +1645,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     # ==================== Battery ====================
                     "battery_model": e_battery_model,
                     "battery_switch": e_battery_switch,
-                    "battery_rating": e_battery_rating,
                     "charger_model": e_charger_model,
 
                     # ==================== Fuel Tank ====================
@@ -2167,11 +2163,6 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input: s_battery_switch = st.text_input("", key=f"dlg_battery_switch_{i}",
                                                                          label_visibility="collapsed")
 
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Rating")
-                        with col_input: s_battery_rating = st.text_input("", key=f"dlg_battery_rating_{i}",
-                                                                         label_visibility="collapsed")
-
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
                                     unsafe_allow_html=True)
@@ -2323,7 +2314,6 @@ if st.session_state.get("spec_dialog_open", False):
                     # ==================== Battery ====================
                     "battery_model": s_battery_model,
                     "battery_switch": s_battery_switch,
-                    "battery_rating": s_battery_rating,
                     "charger_model": s_charger_model,
 
                     # ==================== Fuel Tank ====================
