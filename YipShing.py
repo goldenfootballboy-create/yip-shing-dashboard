@@ -842,11 +842,23 @@ def render_project_card(row, idx):
                         st.markdown("**Remarks：**")
                         st.caption(remarks)
 
+        # ==================== OverView 按鈕 ====================
         if st.button("📊 OverView 完整規格總覽", key=f"overall_spec_btn_{idx}", use_container_width=True,
                      type="secondary"):
+            st.session_state["show_overview_dialog"] = True
+            st.session_state["overview_row"] = row  # 把目前這筆資料傳過去
+            st.session_state["overview_qty"] = qty
+            st.rerun()
 
-            @st.dialog(f"完整規格總覽 – {row['Project_Name']} ({qty} 台)", width="large")
+        # ==================== OverView Dialog（移到最外層） ====================
+        if st.session_state.get("show_overview_dialog", False):
+            @st.dialog(
+                f"完整規格總覽 – {st.session_state['overview_row']['Project_Name']} ({st.session_state['overview_qty']} 台)",
+                width="large")
             def overall_spec_overview():
+                row = st.session_state["overview_row"]
+                qty = st.session_state["overview_qty"]
+
                 st.markdown(f"**專案：{row['Project_Name']}**　｜　**{qty} 台**　｜　**類型：{row['Project_Type']}**")
                 st.markdown("---")
 
@@ -873,7 +885,7 @@ def render_project_card(row, idx):
                     with overview_tabs[machine_idx]:
                         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
-                        # ==================== 與 Print PDF 完全一致的格式 ====================
+                        # ==================== 與 Print PDF 格式完全一致 ====================
                         st.subheader("基本資訊")
                         st.markdown(f"**SO#：** {spec.get('so_number', '—')}　　"
                                     f"**Product Category：** {spec.get('product_category', '—')}　　"
@@ -881,7 +893,6 @@ def render_project_card(row, idx):
 
                         st.divider()
 
-                        # Engine
                         st.markdown("**Engine (發動機)**")
                         st.markdown(
                             f"**Model (型號)：** {spec.get('genset_model', '—')}　　**S/N：** {spec.get('genset_sn', '—')}")
@@ -895,7 +906,6 @@ def render_project_card(row, idx):
 
                         st.divider()
 
-                        # Alternator
                         st.markdown("**Alternator (電球)**")
                         st.markdown(
                             f"**Model (型號)：** {spec.get('alt_model', '—')}　　**S/N：** {spec.get('alt_sn', '—')}")
@@ -906,7 +916,6 @@ def render_project_card(row, idx):
 
                         st.divider()
 
-                        # Radiator
                         st.markdown("**Radiator (水箱)**")
                         st.markdown(
                             f"**Model (型號)：** {spec.get('rad_model', '—')}　　**S/N：** {spec.get('rad_sn', '—')}")
@@ -916,7 +925,6 @@ def render_project_card(row, idx):
 
                         st.divider()
 
-                        # Base Frame
                         st.markdown("**Base Frame (底架)**")
                         st.markdown(
                             f"**Model (型號)：** {spec.get('base_model', '—')}　　**S/N：** {spec.get('base_sn', '—')}")
@@ -925,7 +933,6 @@ def render_project_card(row, idx):
 
                         st.divider()
 
-                        # Container
                         st.markdown("**Container (貨櫃)**")
                         st.markdown(
                             f"**Type (型號)：** {spec.get('cont_type', '—')}　　**Dimension：** {spec.get('cont_size', '—')}")
@@ -933,7 +940,6 @@ def render_project_card(row, idx):
 
                         st.divider()
 
-                        # Breaker
                         st.markdown("**Breaker (斷路器)**")
                         st.markdown(
                             f"**Model (型號)：** {spec.get('breaker_model', '—')}　　**Type：** {spec.get('breaker_type', '—')}　　**Rating：** {spec.get('breaker_rating', '—')}")
@@ -941,14 +947,13 @@ def render_project_card(row, idx):
 
                         st.divider()
 
-                        # Control Panel
                         st.markdown("**Control Panel (控制器)**")
                         st.markdown(
                             f"**Model (型號)：** {spec.get('panel_model', '—')}　　**Module：** {spec.get('panel_module', '—')}　　**S/N：** {spec.get('panel_sn', '—')}")
 
                         st.divider()
 
-                        # Battery / Fuel Tank / Oil Tank
+                        # Battery / Fuel / Oil Tank
                         st.markdown("**Battery (電池)**")
                         st.markdown(
                             f"**Model (型號)：** {spec.get('battery_model', '—')}　　**Rating：** {spec.get('battery_rating', '—')}")
@@ -967,7 +972,12 @@ def render_project_card(row, idx):
                             st.subheader("Remarks / 備註")
                             st.info(remarks)
 
-                overall_spec_overview()
+            overall_spec_overview()
+            # 關閉 dialog 後清除狀態
+            if not st.session_state.get("show_overview_dialog", False):
+                st.session_state.pop("show_overview_dialog", None)
+                st.session_state.pop("overview_row", None)
+                st.session_state.pop("overview_qty", None)
                 # ==================== PDF 下載按鈕 ====================
                 if st.button("📄 下載 PDF 版本", type="primary", use_container_width=True):
                     pdf_bytes = generate_overview_pdf(specs, row, qty)
