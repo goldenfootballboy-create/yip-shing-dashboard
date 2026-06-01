@@ -95,9 +95,9 @@ def generate_overview_pdf(specs, project_info, qty):
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=letter,
-        rightMargin=28,
-        leftMargin=28,
+        pagesize=landscape(letter),   # 維持橫向
+        rightMargin=25,
+        leftMargin=25,
         topMargin=20,
         bottomMargin=25
     )
@@ -110,7 +110,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
     info_style = ParagraphStyle('Info', parent=styles['Normal'],
         fontName='NotoSansTC-Bold', fontSize=13, alignment=TA_CENTER,
-        spaceBefore=4, spaceAfter=15, textColor=HexColor('#263238'))
+        spaceBefore=4, spaceAfter=12, textColor=HexColor('#263238'))
 
     normal = ParagraphStyle('Normal', parent=styles['Normal'],
         fontName='NotoSansTC', fontSize=10.8, leading=13, spaceAfter=3)
@@ -135,11 +135,11 @@ def generate_overview_pdf(specs, project_info, qty):
             f"Code：{spec.get('product_code', '')}　｜　客戶：{customer}",
             info_style
         ))
-        elements.append(Spacer(1, 10))
+        elements.append(Spacer(1, 8))
 
         # ==================== 共用表格函數 ====================
         def create_table(data):
-            t = Table(data, colWidths=[255, 255])
+            t = Table(data, colWidths=[290, 290])
             style_commands = [
                 ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
                 ('FONTSIZE', (0,0), (0,0), 13),
@@ -151,7 +151,7 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
             ]
 
-            # 僅 Option 格子有內容時變色
+            # Option 有內容時右格變色
             for i in range(2, len(data)):
                 option_cell = str(data[i][1]).strip()
                 if '：' in option_cell:
@@ -164,25 +164,23 @@ def generate_overview_pdf(specs, project_info, qty):
             t.setStyle(TableStyle(style_commands))
             return t
 
-        # ==================== 第一頁內容 ====================
-        # Engine
+        # ==================== Engine ====================
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
             ["Model (型號)： " + (spec.get('genset_model') or ''), "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
             ["Year (年份)： " + (spec.get('engine_year') or ''), "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
-            ["S/N (序號)： " + (spec.get('genset_sn') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
             ["Colour (顏色)： " + (spec.get('engine_color') or ''), "Silencer： " + (spec.get('silencer') or '')],
             ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''), "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
             ["RPM (轉速)： " + (spec.get('rpm') or ''), "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
-            ["Voltage (電壓)： " + (spec.get('voltage') or ''), ""],
-            ["Frequency (頻率)： " + (spec.get('frequency') or ''), ""],
-            ["Heater (加熱器) kW： " + (spec.get('engine_heater') or ''), ""],
+            ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
+            ["Frequency (頻率)： " + (spec.get('frequency') or ''),"Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
+            ["S/N (序號)： " + (spec.get('genset_sn') or ''), ""]
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
-        # Alternator
+        # ==================== Alternator ====================
         data = [
             ["Alternator (電球)", ""],
             ["Feature", "Option"],
@@ -193,9 +191,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["S/N： " + (spec.get('alt_sn') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
-        # Radiator
+        # ==================== Radiator (新增 S/N) ====================
         data = [
             ["Radiator (水箱)", ""],
             ["Feature", "Option"],
@@ -203,54 +201,55 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Degree (温度)： " + (spec.get('rad_temp') or ''), "Low Water Level Switch： " + (spec.get('low_water') or '')],
             ["Fan Size (扇呎吋)： " + (spec.get('fan_size') or ''), "Murphy Coolant Level Switch： " + (spec.get('murphy_coolant') or '')],
             ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), ""],
+            ["S/N： " + (spec.get('rad_sn') or ''), ""],                    # ← 新增
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
-        # Base Frame
+        # ==================== Base Frame (新增 S/N) ====================
         data = [
             ["Base Frame (底架)", ""],
             ["Feature", "Option"],
             ["Model (型號)： " + (spec.get('base_model') or ''), "Color： " + (spec.get('base_color') or '')],
             ["Anti-Vibration Mounts (避震腳)： " + (spec.get('avm') or ''), ""],
+            ["S/N： " + (spec.get('base_sn') or ''), ""],                   # ← 新增
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
-        # Container
+        # ==================== Container (新增 櫃號) ====================
         data = [
             ["Container (貨櫃)", ""],
             ["Feature", "Option"],
             ["Type (型號)： " + (spec.get('cont_type') or ''), "CO Detector： " + (spec.get('co_detector') or '')],
             ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
+            ["櫃號： " + (spec.get('cont_sn') or ''), ""],                  # ← 新增
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
-        # ==================== 強制換頁，從 Breaker 開始放在第二頁 ====================
-        elements.append(PageBreak())
-
-        # ==================== Breaker (第二頁開始) ====================
+        # ==================== Breaker (新增 S/N) ====================
         data = [
             ["Breaker (斷路器)", ""],
             ["Feature", "Option"],
             ["Model (型號)： " + (spec.get('breaker_model') or ''), "Gear Motor： " + (spec.get('gear_motor') or '')],
             ["Type (類型)： " + (spec.get('breaker_type') or ''), "Shunt Trip： " + (spec.get('shunt_trip') or '')],
             ["Rating： " + (spec.get('breaker_rating') or ''), "Closing Coil： " + (spec.get('closing_coil') or '')],
-            ["", "UV Relay： " + (spec.get('uv_relay') or '')],
+            ["S/N： " + (spec.get('breaker_sn') or ''), "UV Relay： " + (spec.get('uv_relay') or '')],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
-        # ==================== Control Panel ====================
+        # ==================== Control Panel (新增 S/N) ====================
         data = [
             ["Control Panel (控制器)", ""],
             ["Feature", "Option"],
             ["Model (型號)： " + (spec.get('panel_model') or ''), ""],
             ["Module： " + (spec.get('panel_module') or ''), ""],
+            ["S/N： " + (spec.get('panel_sn') or ''), ""],                 # ← 新增
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
         # ==================== Battery ====================
         data = [
@@ -261,7 +260,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Rating： " + (spec.get('battery_rating') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
         # ==================== Fuel Tank ====================
         data = [
@@ -273,7 +272,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["", "Donaldson Breather： " + (spec.get('donaldson_breather') or '')],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 8))
 
         # ==================== Oil Tank ====================
         data = [
