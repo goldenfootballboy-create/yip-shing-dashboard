@@ -2676,7 +2676,7 @@ else:
             if i + 1 < len(rows):
                 render_project_card(rows[i + 1], filtered_df.index[i + 1])
 
-# ==================== OverView Dialog（必須放在最外層） ====================
+# ==================== OverView Dialog（最外層） ====================
 if st.session_state.get("show_overview_dialog", False):
     row = st.session_state.get("overview_row")
     qty = st.session_state.get("overview_qty", 1)
@@ -2774,11 +2774,13 @@ if st.session_state.get("show_overview_dialog", False):
                     st.subheader("Remarks / 備註")
                     st.info(remarks)
 
-                # ==================== 新增：Print PDF 按鈕 ====================
+                # ==================== PDF 下載按鈕 + 關閉按鈕（已加唯一 key） ====================
                 st.markdown("---")
                 col_pdf, col_close = st.columns(2)
                 with col_pdf:
-                    if st.button("📄 下載 PDF 版本", type="primary", use_container_width=True):
+                    if st.button("📄 下載 PDF 版本",
+                                 key=f"pdf_download_{row['Project_Name']}_{machine_idx}",
+                                 type="primary", use_container_width=True):
                         pdf_bytes = generate_overview_pdf(specs, row, qty)
                         st.download_button(
                             label="點擊下載 PDF",
@@ -2788,7 +2790,9 @@ if st.session_state.get("show_overview_dialog", False):
                             use_container_width=True
                         )
                 with col_close:
-                    if st.button("關閉", type="secondary", use_container_width=True):
+                    if st.button("關閉",
+                                 key=f"close_overview_{row['Project_Name']}_{machine_idx}",
+                                 type="secondary", use_container_width=True):
                         st.rerun()
 
     overall_spec_overview()
