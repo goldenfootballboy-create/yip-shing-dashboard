@@ -169,14 +169,15 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('genset_model') or ''), "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
-            ["Year (年份)： " + (spec.get('engine_year') or ''), "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
-            ["Colour (顏色)： " + (spec.get('engine_color') or ''), "Silencer： " + (spec.get('silencer') or '')],
-            ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''), "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
-            ["RPM (轉速)： " + (spec.get('rpm') or ''), "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
-            ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
-            ["Frequency (頻率)： " + (spec.get('frequency') or ''), "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
-            ["S/N (序號)： " + (spec.get('genset_sn') or ''), ""]
+            ["Model (型號)： " + (spec.get('genset_model') or ''),"Coolant temperature sensor： " + (spec.get('coolant_temp_sensor') or '')],
+            ["Year (年份)： " + (spec.get('engine_year') or ''),"Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
+            ["Colour (顏色)： " + (spec.get('engine_color') or ''),"Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
+            ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''),"Oil pressure switch： " + (spec.get('oil_pressure_switch') or '')],
+            ["RPM (轉速)： " + (spec.get('rpm') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
+            ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Silencer： " + (spec.get('silencer') or '')],
+            ["Frequency (頻率)： " + (spec.get('frequency') or ''),"Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
+            ["S/N (序號)： " + (spec.get('genset_sn') or ''), "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
+            ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')]  # ← 強制放在 Option 欄
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 8))
@@ -1071,12 +1072,23 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>", unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Coolant temperature sensor")
+                        with col_input: e_coolant_temp_sensor = st.text_input("",
+                                                                              key=f"edit_coolant_temp_sensor_{idx_to_edit}_{i}",
+                                                                              label_visibility="collapsed")
+                        col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Oil Coolant Temp Sensor")
                         with col_input: e_coolant_sensor = st.text_input("", value=current.get("coolant_sensor", ""), key=f"edit_coolant_sensor_{idx_to_edit}_{i}", label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Oil Pressure Sensor")
                         with col_input: e_oil_pressure = st.text_input("", value=current.get("oil_pressure", ""), key=f"edit_oil_pressure_{idx_to_edit}_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Oil pressure switch")
+                        with col_input: e_oil_pressure_switch = st.text_input("",
+                                                                              key=f"edit_oil_pressure_switch_{idx_to_edit}_{i}",
+                                                                              label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Hand Swing Pump")
@@ -1485,6 +1497,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "cont_sn": s_cont_sn,
                     "breaker_sn": s_breaker_sn,
                     "panel_sn": s_panel_sn,
+                    "coolant_temp_sensor": e_coolant_temp_sensor,
+                    "oil_pressure_switch": e_oil_pressure_switch,
                     "remarks": e_remarks.strip()
                 }
                 new_specs.append(spec_data)
@@ -1678,6 +1692,11 @@ if st.session_state.get("spec_dialog_open", False):
                                     unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Coolant temperature sensor")
+                        with col_input: s_coolant_temp_sensor = st.text_input("", key=f"dlg_coolant_temp_sensor_{i}",
+                                                                              label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Oil Coolant Temp Sensor")
                         with col_input: s_coolant_sensor = st.text_input("", key=f"dlg_coolant_sensor_{i}",
                                                                          label_visibility="collapsed")
@@ -1686,6 +1705,11 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Oil Pressure Sensor")
                         with col_input: s_oil_pressure = st.text_input("", key=f"dlg_oil_pressure_{i}",
                                                                        label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Oil pressure switch")
+                        with col_input: s_oil_pressure_switch = st.text_input("", key=f"dlg_oil_pressure_switch_{i}",
+                                                                              label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Hand Swing Pump")
@@ -2148,7 +2172,8 @@ if st.session_state.get("spec_dialog_open", False):
                     "oil_volume": s_oil_volume,
                     "oil_donaldson": s_oil_donaldson,
                     "murphy_oil": s_murphy_oil,
-
+                    "coolant_temp_sensor": s_coolant_temp_sensor,
+                    "oil_pressure_switch": s_oil_pressure_switch,
                     # ==================== Remarks ====================
                     "remarks": s_remarks.strip(),
                     "so_number": s_so_number,
