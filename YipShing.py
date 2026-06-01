@@ -1196,10 +1196,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         with col_input: e_engine_year = st.text_input("", value=current.get("engine_year", ""), key=f"edit_engine_year_{idx_to_edit}_{i}", label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("S/N (序號)")
-                        with col_input: e_genset_sn = st.text_input("", value=current.get("genset_sn", ""), key=f"edit_genset_sn_{idx_to_edit}_{i}", label_visibility="collapsed")
-
-                        col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Colour (顏色)")
                         with col_input: e_engine_color = st.text_input("", value=current.get("engine_color", ""), key=f"edit_engine_color_{idx_to_edit}_{i}", label_visibility="collapsed")
 
@@ -1222,6 +1218,10 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Heater (加熱器) kW")
                         with col_input: e_engine_heater = st.text_input("", value=current.get("engine_heater", ""), key=f"edit_engine_heater_{idx_to_edit}_{i}", label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N (序號)")
+                        with col_input: e_genset_sn = st.text_input("", value=current.get("genset_sn", ""), key=f"edit_genset_sn_{idx_to_edit}_{i}", label_visibility="collapsed")
 
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>", unsafe_allow_html=True)
@@ -1319,6 +1319,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         with col_input: s_radiator_guard = st.text_input("", key=f"dlg_radiator_guard_{i}",
                                                                          label_visibility="collapsed")
 
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N")
+                        with col_input: s_rad_sn = st.text_input("", key=f"dlg_rad_sn_{i}",
+                                                                 label_visibility="collapsed")
+
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
                                     unsafe_allow_html=True)
@@ -1357,6 +1362,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         with col_label: st.markdown("Anti-Vibration Mounts (避震腳)")
                         with col_input: s_avm = st.text_input("", key=f"dlg_avm_{i}", label_visibility="collapsed")
 
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N")
+                        with col_input: s_base_sn = st.text_input("", key=f"dlg_base_sn_{i}",
+                                                                  label_visibility="collapsed")
+
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
                                     unsafe_allow_html=True)
@@ -1385,6 +1395,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         with col_label: st.markdown("Dimension (呎吋)")
                         with col_input: s_cont_size = st.text_input("", key=f"dlg_cont_size_{i}",
                                                                     label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("櫃號")
+                        with col_input: s_cont_sn = st.text_input("", key=f"dlg_cont_sn_{i}",
+                                                                  label_visibility="collapsed")
 
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
@@ -1424,6 +1439,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         with col_label: st.markdown("Rating")
                         with col_input: s_breaker_rating = st.text_input("", key=f"dlg_breaker_rating_{i}",
                                                                          label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N")
+                        with col_input: s_breaker_sn = st.text_input("", key=f"dlg_breaker_sn_{i}",
+                                                                     label_visibility="collapsed")
 
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
@@ -1468,6 +1488,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         with col_label: st.markdown("Module")
                         with col_input: s_panel_module = st.text_input("", key=f"dlg_panel_module_{i}",
                                                                        label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N")
+                        with col_input: s_panel_sn = st.text_input("", key=f"dlg_panel_sn_{i}",
+                                                                   label_visibility="collapsed")
 
                 st.markdown("---")
 
@@ -1604,7 +1629,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "voltage": e_voltage.strip(),
                     "frequency": e_frequency.strip(),
                     "engine_heater": e_engine_heater,
-
+                    "rad_sn": s_rad_sn,
+                    "base_sn": s_base_sn,
                     "alt_model": e_alt_model,
                     "alt_winding": e_alt_winding,
                     "droop": e_droop,
@@ -1612,7 +1638,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "alt_sn": e_alt_sn,
                     "alt_heater": e_alt_heater,
                     "pmg": e_pmg,
-
+                    "cont_sn": s_cont_sn,
+                    "breaker_sn": s_breaker_sn,
+                    "panel_sn": s_panel_sn,
                     "remarks": e_remarks.strip()
                 }
                 new_specs.append(spec_data)
@@ -1767,11 +1795,6 @@ if st.session_state.get("spec_dialog_open", False):
                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("S/N (序號)")
-                        with col_input: s_genset_sn = st.text_input("", key=f"dlg_genset_sn_{i}",
-                                                                    label_visibility="collapsed")
-
-                        col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Colour (顏色)")
                         with col_input: s_engine_color = st.text_input("", key=f"dlg_engine_color_{i}",
                                                                        label_visibility="collapsed")
@@ -1800,6 +1823,11 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Heater (加熱器) kW")
                         with col_input: s_engine_heater = st.text_input("", key=f"dlg_engine_heater_{i}",
                                                                         label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N (序號)")
+                        with col_input: s_genset_sn = st.text_input("", key=f"dlg_genset_sn_{i}",
+                                                                    label_visibility="collapsed")
 
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
@@ -1856,10 +1884,6 @@ if st.session_state.get("spec_dialog_open", False):
                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Droop")
-                        with col_input: s_droop = st.text_input("", key=f"dlg_droop_{i}", label_visibility="collapsed")
-
-                        col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Color")
                         with col_input: s_alt_color = st.text_input("", key=f"dlg_alt_color_{i}",
                                                                     label_visibility="collapsed")
@@ -1877,6 +1901,9 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Heater")
                         with col_input: s_alt_heater = st.text_input("", key=f"dlg_alt_heater_{i}",
                                                                      label_visibility="collapsed")
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Droop")
+                        with col_input: s_droop = st.text_input("", key=f"dlg_droop_{i}", label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("PMG")
@@ -1911,6 +1938,10 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Protection Cover (保護罩)")
                         with col_input: s_radiator_guard = st.text_input("", key=f"dlg_radiator_guard_{i}",
                                                                          label_visibility="collapsed")
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N")
+                        with col_input: s_rad_sn = st.text_input("", key=f"dlg_rad_sn_{i}",
+                                                                 label_visibility="collapsed")
 
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
@@ -1950,6 +1981,11 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Anti-Vibration Mounts (避震腳)")
                         with col_input: s_avm = st.text_input("", key=f"dlg_avm_{i}", label_visibility="collapsed")
 
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N")
+                        with col_input: s_base_sn = st.text_input("", key=f"dlg_base_sn_{i}",
+                                                                  label_visibility="collapsed")
+
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
                                     unsafe_allow_html=True)
@@ -1978,6 +2014,11 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Dimension (呎吋)")
                         with col_input: s_cont_size = st.text_input("", key=f"dlg_cont_size_{i}",
                                                                     label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("櫃號")
+                        with col_input: s_cont_sn = st.text_input("", key=f"dlg_cont_sn_{i}",
+                                                                  label_visibility="collapsed")
 
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
@@ -2017,6 +2058,11 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Rating")
                         with col_input: s_breaker_rating = st.text_input("", key=f"dlg_breaker_rating_{i}",
                                                                          label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N")
+                        with col_input: s_breaker_sn = st.text_input("", key=f"dlg_breaker_sn_{i}",
+                                                                     label_visibility="collapsed")
 
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
@@ -2061,6 +2107,10 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Module")
                         with col_input: s_panel_module = st.text_input("", key=f"dlg_panel_module_{i}",
                                                                        label_visibility="collapsed")
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("S/N")
+                        with col_input: s_panel_sn = st.text_input("", key=f"dlg_panel_sn_{i}",
+                                                                   label_visibility="collapsed")
 
                 st.markdown("---")
 
@@ -2209,18 +2259,19 @@ if st.session_state.get("spec_dialog_open", False):
                     "fuel_cooler": s_fuel_cooler,
                     "low_water": s_low_water,
                     "murphy_coolant": s_murphy_coolant,
+                    "rad_sn": s_rad_sn,
 
                     # ==================== Base Frame ====================
                     "base_model": s_base_model,
                     "avm": s_avm,
                     "base_color": s_base_color,
-
+                    "base_sn": s_base_sn,
                     # ==================== Container ====================
                     "cont_type": s_cont_type,
                     "cont_size": s_cont_size,
                     "co_detector": s_co_detector,
                     "cont_color": s_cont_color,
-
+                    "cont_sn": s_cont_sn,
                     # ==================== Breaker ====================
                     "breaker_model": s_breaker_model,
                     "breaker_type": s_breaker_type,
@@ -2229,11 +2280,11 @@ if st.session_state.get("spec_dialog_open", False):
                     "shunt_trip": s_shunt_trip,
                     "closing_coil": s_closing_coil,
                     "uv_relay": s_uv_relay,
-
+                    "breaker_sn": s_breaker_sn,
                     # ==================== Control Panel ====================
                     "panel_model": s_panel_model,
                     "panel_module": s_panel_module,
-
+                    "panel_sn": s_panel_sn,
                     # ==================== Battery ====================
                     "battery_model": s_battery_model,
                     "battery_switch": s_battery_switch,
