@@ -702,7 +702,7 @@ def render_project_card(row, idx):
                 border-radius: 8px; padding: 12px 16px; margin: 10px 0; 
                 box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-weight: bold; font-size:1.1rem;">
+            <div style="font-weight: bold; font-size:1.1rem; color: #1e3a8a;">
                 {project_name} • {row.get('Project_Type', '')}
             </div>
             <div>{status_tag}</div>
@@ -816,7 +816,7 @@ def render_project_card(row, idx):
             st.session_state["overview_qty"] = row.get("Qty", 1)
             st.rerun()
 
-            
+
         if st.button("Checklist Panel", key=f"cl_btn_{idx}", use_container_width=True):
             st.session_state[f"cl_open_{idx}"] = not st.session_state.get(f"cl_open_{idx}", False)
 
@@ -2773,6 +2773,23 @@ if st.session_state.get("show_overview_dialog", False):
                     st.divider()
                     st.subheader("Remarks / 備註")
                     st.info(remarks)
+
+                # ==================== 新增：Print PDF 按鈕 ====================
+                st.markdown("---")
+                col_pdf, col_close = st.columns(2)
+                with col_pdf:
+                    if st.button("📄 下載 PDF 版本", type="primary", use_container_width=True):
+                        pdf_bytes = generate_overview_pdf(specs, row, qty)
+                        st.download_button(
+                            label="點擊下載 PDF",
+                            data=pdf_bytes,
+                            file_name=f"{row['Project_Name']}_JobDetail.pdf",
+                            mime="application/pdf",
+                            use_container_width=True
+                        )
+                with col_close:
+                    if st.button("關閉", type="secondary", use_container_width=True):
+                        st.rerun()
 
     overall_spec_overview()
 
