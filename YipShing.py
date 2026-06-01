@@ -149,8 +149,8 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('VALIGN', (0,0), (-1,-1), 'TOP'),
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
             ]
-            if gray:
-                style_commands.append(('BACKGROUND', (0, 0), (-1, -1), HexColor('#d0d0d0')))  # 深灰色
+            if gray:#210906
+                style_commands.append(('BACKGROUND', (0, 0), (-1, -1), HexColor('#210906')))  # 深灰色
 
             for i in range(2, len(data)):
                 option_cell = str(data[i][1]).strip()
