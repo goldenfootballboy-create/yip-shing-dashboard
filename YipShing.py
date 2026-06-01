@@ -95,7 +95,7 @@ def generate_overview_pdf(specs, project_info, qty):
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=letter,          # ← 直版
+        pagesize=letter,
         rightMargin=28,
         leftMargin=28,
         topMargin=20,
@@ -103,19 +103,21 @@ def generate_overview_pdf(specs, project_info, qty):
     )
 
     styles = getSampleStyleSheet()
-
-    top_title_style = ParagraphStyle('TopTitle', parent=styles['Heading1'],
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'],
         fontName='NotoSansTC-Bold', fontSize=21, alignment=TA_CENTER,
         spaceBefore=0, spaceAfter=8, textColor=HexColor('#1e88e5'))
 
     info_style = ParagraphStyle('Info', parent=styles['Normal'],
         fontName='NotoSansTC-Bold', fontSize=13, alignment=TA_CENTER,
-        spaceBefore=4, spaceAfter=12, textColor=HexColor('#263238'))
+        spaceBefore=4, spaceAfter=12)
 
     normal = ParagraphStyle('Normal', parent=styles['Normal'],
         fontName='NotoSansTC', fontSize=10.8, leading=13, spaceAfter=3)
 
     elements = []
+
+    # 判斷是否為 Open Set
+    is_open_set = project_info.get('Project_Type', '') == "Open Set"
 
     for machine_idx in range(qty):
         if machine_idx > 0:
@@ -123,11 +125,10 @@ def generate_overview_pdf(specs, project_info, qty):
 
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
-        # ==================== 標題 ====================
+        # 標題
         project_name = project_info.get('Project_Name', '—')
         customer = project_info.get('Customer', '—')
-
-        elements.append(Paragraph(f"{project_name} ({qty} 台)  - 第 {machine_idx + 1} 台", top_title_style))
+        elements.append(Paragraph(f"{project_name} ({qty} 台)  - 第 {machine_idx + 1} 台", title_style))
         elements.append(Paragraph(
             f"SO#：{spec.get('so_number', '')}　｜　"
             f"Category：{spec.get('product_category', '')}　｜　"
@@ -135,8 +136,8 @@ def generate_overview_pdf(specs, project_info, qty):
             info_style))
         elements.append(Spacer(1, 10))
 
-        # ==================== 共用表格函數 ====================
-        def create_table(data):
+        # 共用表格函數（新增 gray 參數）
+        def create_table(data, gray=False):
             t = Table(data, colWidths=[255, 255])
             style_commands = [
                 ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
@@ -148,6 +149,9 @@ def generate_overview_pdf(specs, project_info, qty):
                 ('VALIGN', (0,0), (-1,-1), 'TOP'),
                 ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
             ]
+            if gray:
+                style_commands.append(('BACKGROUND', (0, 0), (-1, -1), HexColor('#d0d0d0')))  # 深灰色
+
             for i in range(2, len(data)):
                 option_cell = str(data[i][1]).strip()
                 if '：' in option_cell:
@@ -156,6 +160,7 @@ def generate_overview_pdf(specs, project_info, qty):
                     option_value = option_cell
                 if option_value and option_value not in ['—', '']:
                     style_commands.append(('BACKGROUND', (1, i), (1, i), HexColor('#e6e6e6')))
+
             t.setStyle(TableStyle(style_commands))
             return t
 
@@ -164,17 +169,13 @@ def generate_overview_pdf(specs, project_info, qty):
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('genset_model') or ''),
-             "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
-            ["Year (年份)： " + (spec.get('engine_year') or ''),
-             "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
+            ["Model (型號)： " + (spec.get('genset_model') or ''), "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
+            ["Year (年份)： " + (spec.get('engine_year') or ''), "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
             ["Colour (顏色)： " + (spec.get('engine_color') or ''), "Silencer： " + (spec.get('silencer') or '')],
-            ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''),
-             "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
+            ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''), "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
             ["RPM (轉速)： " + (spec.get('rpm') or ''), "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
             ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
-            ["Frequency (頻率)： " + (spec.get('frequency') or ''),
-             "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
+            ["Frequency (頻率)： " + (spec.get('frequency') or ''), "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
             ["S/N (序號)： " + (spec.get('genset_sn') or ''), ""]
         ]
         elements.append(create_table(data))
@@ -206,7 +207,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 8))
 
-        # Base Frame
+        # Base Frame（不變灰）
         data = [
             ["Base Frame (底架)", ""],
             ["Feature", "Option"],
@@ -215,13 +216,12 @@ def generate_overview_pdf(specs, project_info, qty):
             ["S/N： " + (spec.get('base_sn') or ''), ""],
         ]
         elements.append(create_table(data))
-        elements.append(Spacer(1, 12))
-
-        # ==================== 換頁 ====================
-        elements.append(PageBreak())
+        elements.append(Spacer(1, 8))
 
         # ==================== 第二頁 ====================
-        # Container
+        elements.append(PageBreak())
+
+        # Container（Open Set 時變深灰）
         data = [
             ["Container (貨櫃)", ""],
             ["Feature", "Option"],
@@ -229,7 +229,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
             ["櫃號： " + (spec.get('cont_sn') or ''), ""],
         ]
-        elements.append(create_table(data))
+        elements.append(create_table(data, gray=is_open_set))
         elements.append(Spacer(1, 8))
 
         # Breaker
@@ -266,7 +266,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 8))
 
-        # Fuel Tank
+        # Fuel Tank（Open Set 時變深灰）
         data = [
             ["Fuel Tank (燃油箱)", ""],
             ["Feature", "Option"],
@@ -275,20 +275,20 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Fuel Water Separator： " + (spec.get('fuel_water_separator') or ''), "Fuel Level Sensor： " + (spec.get('fuel_level_sensor') or '')],
             ["", "Donaldson Breather： " + (spec.get('donaldson_breather') or '')],
         ]
-        elements.append(create_table(data))
+        elements.append(create_table(data, gray=is_open_set))
         elements.append(Spacer(1, 8))
 
-        # Oil Tank
+        # Oil Tank（Open Set 時變深灰）
         data = [
             ["Oil Tank (機油箱)", ""],
             ["Feature", "Option"],
             ["Volume： " + (spec.get('oil_volume') or ''), "Donaldson Breather： " + (spec.get('oil_donaldson') or '')],
             ["", "Murphy Coolant Level Switch： " + (spec.get('murphy_oil') or '')],
         ]
-        elements.append(create_table(data))
+        elements.append(create_table(data, gray=is_open_set))
         elements.append(Spacer(1, 12))
 
-        # ==================== Remarks ====================
+        # Remarks
         remarks = spec.get("remarks", "").strip()
         if remarks:
             elements.append(Paragraph("Remarks / 備註", normal))
