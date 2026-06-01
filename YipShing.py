@@ -1014,11 +1014,14 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 st.markdown("### 基本資訊")
                 col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
                 with col1:
-                    e_so_number = st.text_input("SO#", value=current.get("so_number", ""), key=f"edit_so_number_{idx_to_edit}_{i}")
+                    e_so_number = st.text_input("SO#", value=current.get("so_number", ""),
+                                                key=f"edit_so_number_{idx_to_edit}_{i}")
                 with col2:
-                    e_product_category = st.text_input("Product Category", value=current.get("product_category", ""), key=f"edit_product_category_{idx_to_edit}_{i}")
+                    e_product_category = st.text_input("Product Category", value=current.get("product_category", ""),
+                                                       key=f"edit_product_category_{idx_to_edit}_{i}")
                 with col3:
-                    e_product_code = st.text_input("Product Code", value=current.get("product_code", ""), key=f"edit_product_code_{idx_to_edit}_{i}")
+                    e_product_code = st.text_input("Product Code", value=current.get("product_code", ""),
+                                                   key=f"edit_product_code_{idx_to_edit}_{i}")
                 with col4:
                     st.markdown("**QTY**")
                     st.markdown(f"<h3 style='margin: 0; color: #1e88e5;'>{qty}</h3>", unsafe_allow_html=True)
@@ -1030,81 +1033,119 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     col_feature, col_option = st.columns([1, 1])
 
                     with col_feature:
-                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>", unsafe_allow_html=True)
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Model (型號)")
-                        with col_input: e_genset_model = st.text_input("", value=current.get("genset_model", ""), key=f"edit_genset_model_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_genset_model = st.text_input("", value=current.get("genset_model", ""),
+                                                                       key=f"edit_genset_model_{idx_to_edit}_{i}",
+                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Year (年份)")
-                        with col_input: e_engine_year = st.text_input("", value=current.get("engine_year", ""), key=f"edit_engine_year_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_engine_year = st.text_input("", value=current.get("engine_year", ""),
+                                                                      key=f"edit_engine_year_{idx_to_edit}_{i}",
+                                                                      label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Colour (顏色)")
-                        with col_input: e_engine_color = st.text_input("", value=current.get("engine_color", ""), key=f"edit_engine_color_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_engine_color = st.text_input("", value=current.get("engine_color", ""),
+                                                                       key=f"edit_engine_color_{idx_to_edit}_{i}",
+                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Prime/Standby (kW)")
-                        with col_input: e_prime_standby = st.text_input("", placeholder="例如: 100/110", value=current.get("prime_standby", ""), key=f"edit_prime_standby_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_prime_standby = st.text_input("", placeholder="例如: 100/110",
+                                                                        value=current.get("prime_standby", ""),
+                                                                        key=f"edit_prime_standby_{idx_to_edit}_{i}",
+                                                                        label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("RPM (轉速)")
-                        with col_input: e_rpm = st.text_input("", value=current.get("rpm", ""), key=f"edit_rpm_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_rpm = st.text_input("", value=current.get("rpm", ""),
+                                                              key=f"edit_rpm_{idx_to_edit}_{i}",
+                                                              label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Voltage (電壓)")
-                        with col_input: e_voltage = st.text_input("", value=current.get("voltage", ""), key=f"edit_voltage_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_voltage = st.text_input("", value=current.get("voltage", ""),
+                                                                  key=f"edit_voltage_{idx_to_edit}_{i}",
+                                                                  label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Frequency (頻率)")
-                        with col_input: e_frequency = st.text_input("", value=current.get("frequency", ""), key=f"edit_frequency_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_frequency = st.text_input("", value=current.get("frequency", ""),
+                                                                    key=f"edit_frequency_{idx_to_edit}_{i}",
+                                                                    label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Heater (加熱器) kW")
-                        with col_input: e_engine_heater = st.text_input("", value=current.get("engine_heater", ""), key=f"edit_engine_heater_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_engine_heater = st.text_input("", value=current.get("engine_heater", ""),
+                                                                        key=f"edit_engine_heater_{idx_to_edit}_{i}",
+                                                                        label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("S/N (序號)")
-                        with col_input: e_genset_sn = st.text_input("", value=current.get("genset_sn", ""), key=f"edit_genset_sn_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_genset_sn = st.text_input("", value=current.get("genset_sn", ""),
+                                                                    key=f"edit_genset_sn_{idx_to_edit}_{i}",
+                                                                    label_visibility="collapsed")
 
                     with col_option:
-                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>", unsafe_allow_html=True)
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
+                                    unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Coolant temperature sensor")
                         with col_input: e_coolant_temp_sensor = st.text_input("",
+                                                                              value=current.get("coolant_temp_sensor",
+                                                                                                ""),
                                                                               key=f"edit_coolant_temp_sensor_{idx_to_edit}_{i}",
                                                                               label_visibility="collapsed")
+
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Oil Coolant Temp Sensor")
-                        with col_input: e_coolant_sensor = st.text_input("", value=current.get("coolant_sensor", ""), key=f"edit_coolant_sensor_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_coolant_sensor = st.text_input("", value=current.get("coolant_sensor", ""),
+                                                                         key=f"edit_coolant_sensor_{idx_to_edit}_{i}",
+                                                                         label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Oil Pressure Sensor")
-                        with col_input: e_oil_pressure = st.text_input("", value=current.get("oil_pressure", ""), key=f"edit_oil_pressure_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_oil_pressure = st.text_input("", value=current.get("oil_pressure", ""),
+                                                                       key=f"edit_oil_pressure_{idx_to_edit}_{i}",
+                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Oil pressure switch")
                         with col_input: e_oil_pressure_switch = st.text_input("",
+                                                                              value=current.get("oil_pressure_switch",
+                                                                                                ""),
                                                                               key=f"edit_oil_pressure_switch_{idx_to_edit}_{i}",
                                                                               label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Hand Swing Pump")
-                        with col_input: e_hand_pump = st.text_input("", value=current.get("hand_pump", ""), key=f"edit_hand_pump_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_hand_pump = st.text_input("", value=current.get("hand_pump", ""),
+                                                                    key=f"edit_hand_pump_{idx_to_edit}_{i}",
+                                                                    label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Silencer")
-                        with col_input: e_silencer = st.text_input("", value=current.get("silencer", ""), key=f"edit_silencer_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_silencer = st.text_input("", value=current.get("silencer", ""),
+                                                                   key=f"edit_silencer_{idx_to_edit}_{i}",
+                                                                   label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Flexible Pipe & Flange")
-                        with col_input: e_flex_pipe = st.text_input("", value=current.get("flex_pipe", ""), key=f"edit_flex_pipe_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_flex_pipe = st.text_input("", value=current.get("flex_pipe", ""),
+                                                                    key=f"edit_flex_pipe_{idx_to_edit}_{i}",
+                                                                    label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Exhaust Pipe")
-                        with col_input: e_exhaust_pipe = st.text_input("", value=current.get("exhaust_pipe", ""), key=f"edit_exhaust_pipe_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_exhaust_pipe = st.text_input("", value=current.get("exhaust_pipe", ""),
+                                                                       key=f"edit_exhaust_pipe_{idx_to_edit}_{i}",
+                                                                       label_visibility="collapsed")
 
                 st.markdown("---")
 
@@ -1113,41 +1154,58 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     col_feature, col_option = st.columns([1, 1])
 
                     with col_feature:
-                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>", unsafe_allow_html=True)
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
+                                    unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Model (型號)")
-                        with col_input: e_alt_model = st.text_input("", value=current.get("alt_model", ""), key=f"edit_alt_model_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_alt_model = st.text_input("", value=current.get("alt_model", ""),
+                                                                    key=f"edit_alt_model_{idx_to_edit}_{i}",
+                                                                    label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Winding")
-                        with col_input: e_alt_winding = st.text_input("", value=current.get("alt_winding", ""), key=f"edit_alt_winding_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_alt_winding = st.text_input("", value=current.get("alt_winding", ""),
+                                                                      key=f"edit_alt_winding_{idx_to_edit}_{i}",
+                                                                      label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Droop")
-                        with col_input: e_droop = st.text_input("", value=current.get("droop", ""), key=f"edit_droop_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_droop = st.text_input("", value=current.get("droop", ""),
+                                                                key=f"edit_droop_{idx_to_edit}_{i}",
+                                                                label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Color")
-                        with col_input: e_alt_color = st.text_input("", value=current.get("alt_color", ""), key=f"edit_alt_color_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_alt_color = st.text_input("", value=current.get("alt_color", ""),
+                                                                    key=f"edit_alt_color_{idx_to_edit}_{i}",
+                                                                    label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("S/N")
-                        with col_input: e_alt_sn = st.text_input("", value=current.get("alt_sn", ""), key=f"edit_alt_sn_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_alt_sn = st.text_input("", value=current.get("alt_sn", ""),
+                                                                 key=f"edit_alt_sn_{idx_to_edit}_{i}",
+                                                                 label_visibility="collapsed")
 
                     with col_option:
-                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>", unsafe_allow_html=True)
+                        st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
+                                    unsafe_allow_html=True)
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Heater")
-                        with col_input: e_alt_heater = st.text_input("", value=current.get("alt_heater", ""), key=f"edit_alt_heater_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_alt_heater = st.text_input("", value=current.get("alt_heater", ""),
+                                                                     key=f"edit_alt_heater_{idx_to_edit}_{i}",
+                                                                     label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("PMG")
-                        with col_input: e_pmg = st.text_input("", value=current.get("pmg", ""), key=f"edit_pmg_{idx_to_edit}_{i}", label_visibility="collapsed")
+                        with col_input: e_pmg = st.text_input("", value=current.get("pmg", ""),
+                                                              key=f"edit_pmg_{idx_to_edit}_{i}",
+                                                              label_visibility="collapsed")
 
                 st.markdown("---")
 
+                # ==================== Radiator (水箱) ====================
                 with st.expander("Radiator (水箱)", expanded=True):
                     col_feature, col_option = st.columns([1, 1])
 
@@ -1157,27 +1215,32 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Model (型號)")
-                        with col_input: s_rad_model = st.text_input("", key=f"dlg_rad_model_{i}",
+                        with col_input: e_rad_model = st.text_input("", value=current.get("rad_model", ""),
+                                                                    key=f"edit_rad_model_{idx_to_edit}_{i}",
                                                                     label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Degree (温度)")
-                        with col_input: s_rad_temp = st.text_input("", key=f"dlg_rad_temp_{i}",
+                        with col_input: e_rad_temp = st.text_input("", value=current.get("rad_temp", ""),
+                                                                   key=f"edit_rad_temp_{idx_to_edit}_{i}",
                                                                    label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Fan Size (扇呎吋)")
-                        with col_input: s_fan_size = st.text_input("", key=f"dlg_fan_size_{i}",
+                        with col_input: e_fan_size = st.text_input("", value=current.get("fan_size", ""),
+                                                                   key=f"edit_fan_size_{idx_to_edit}_{i}",
                                                                    label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Protection Cover (保護罩)")
-                        with col_input: s_radiator_guard = st.text_input("", key=f"dlg_radiator_guard_{i}",
+                        with col_input: e_radiator_guard = st.text_input("", value=current.get("radiator_guard", ""),
+                                                                         key=f"edit_radiator_guard_{idx_to_edit}_{i}",
                                                                          label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("S/N")
-                        with col_input: s_rad_sn = st.text_input("", key=f"dlg_rad_sn_{i}",
+                        with col_input: e_rad_sn = st.text_input("", value=current.get("rad_sn", ""),
+                                                                 key=f"edit_rad_sn_{idx_to_edit}_{i}",
                                                                  label_visibility="collapsed")
 
                     with col_option:
@@ -1186,17 +1249,20 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Fuel Cooler")
-                        with col_input: s_fuel_cooler = st.text_input("", key=f"dlg_fuel_cooler_{i}",
+                        with col_input: e_fuel_cooler = st.text_input("", value=current.get("fuel_cooler", ""),
+                                                                      key=f"edit_fuel_cooler_{idx_to_edit}_{i}",
                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Low Water Level Switch")
-                        with col_input: s_low_water = st.text_input("", key=f"dlg_low_water_{i}",
+                        with col_input: e_low_water = st.text_input("", value=current.get("low_water", ""),
+                                                                    key=f"edit_low_water_{idx_to_edit}_{i}",
                                                                     label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Murphy Coolant Level Switch")
-                        with col_input: s_murphy_coolant = st.text_input("", key=f"dlg_murphy_coolant_{i}",
+                        with col_input: e_murphy_coolant = st.text_input("", value=current.get("murphy_coolant", ""),
+                                                                         key=f"edit_murphy_coolant_{idx_to_edit}_{i}",
                                                                          label_visibility="collapsed")
 
                 st.markdown("---")
@@ -1211,16 +1277,20 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Model (型號)")
-                        with col_input: s_base_model = st.text_input("", key=f"dlg_base_model_{i}",
+                        with col_input: e_base_model = st.text_input("", value=current.get("base_model", ""),
+                                                                     key=f"edit_base_model_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Anti-Vibration Mounts (避震腳)")
-                        with col_input: s_avm = st.text_input("", key=f"dlg_avm_{i}", label_visibility="collapsed")
+                        with col_input: e_avm = st.text_input("", value=current.get("avm", ""),
+                                                              key=f"edit_avm_{idx_to_edit}_{i}",
+                                                              label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("S/N")
-                        with col_input: s_base_sn = st.text_input("", key=f"dlg_base_sn_{i}",
+                        with col_input: e_base_sn = st.text_input("", value=current.get("base_sn", ""),
+                                                                  key=f"edit_base_sn_{idx_to_edit}_{i}",
                                                                   label_visibility="collapsed")
 
                     with col_option:
@@ -1229,7 +1299,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Color")
-                        with col_input: s_base_color = st.text_input("", key=f"dlg_base_color_{i}",
+                        with col_input: e_base_color = st.text_input("", value=current.get("base_color", ""),
+                                                                     key=f"edit_base_color_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
                 st.markdown("---")
@@ -1244,17 +1315,20 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Type (型號)")
-                        with col_input: s_cont_type = st.text_input("", key=f"dlg_cont_type_{i}",
+                        with col_input: e_cont_type = st.text_input("", value=current.get("cont_type", ""),
+                                                                    key=f"edit_cont_type_{idx_to_edit}_{i}",
                                                                     label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Dimension (呎吋)")
-                        with col_input: s_cont_size = st.text_input("", key=f"dlg_cont_size_{i}",
+                        with col_input: e_cont_size = st.text_input("", value=current.get("cont_size", ""),
+                                                                    key=f"edit_cont_size_{idx_to_edit}_{i}",
                                                                     label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("櫃號")
-                        with col_input: s_cont_sn = st.text_input("", key=f"dlg_cont_sn_{i}",
+                        with col_input: e_cont_sn = st.text_input("", value=current.get("cont_sn", ""),
+                                                                  key=f"edit_cont_sn_{idx_to_edit}_{i}",
                                                                   label_visibility="collapsed")
 
                     with col_option:
@@ -1263,12 +1337,14 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("CO Detector")
-                        with col_input: s_co_detector = st.text_input("", key=f"dlg_co_detector_{i}",
+                        with col_input: e_co_detector = st.text_input("", value=current.get("co_detector", ""),
+                                                                      key=f"edit_co_detector_{idx_to_edit}_{i}",
                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Color")
-                        with col_input: s_cont_color = st.text_input("", key=f"dlg_cont_color_{i}",
+                        with col_input: e_cont_color = st.text_input("", value=current.get("cont_color", ""),
+                                                                     key=f"edit_cont_color_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
                 st.markdown("---")
@@ -1283,22 +1359,26 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Model (型號)")
-                        with col_input: s_breaker_model = st.text_input("", key=f"dlg_breaker_model_{i}",
+                        with col_input: e_breaker_model = st.text_input("", value=current.get("breaker_model", ""),
+                                                                        key=f"edit_breaker_model_{idx_to_edit}_{i}",
                                                                         label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Type (類型)")
-                        with col_input: s_breaker_type = st.text_input("", key=f"dlg_breaker_type_{i}",
+                        with col_input: e_breaker_type = st.text_input("", value=current.get("breaker_type", ""),
+                                                                       key=f"edit_breaker_type_{idx_to_edit}_{i}",
                                                                        label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Rating")
-                        with col_input: s_breaker_rating = st.text_input("", key=f"dlg_breaker_rating_{i}",
+                        with col_input: e_breaker_rating = st.text_input("", value=current.get("breaker_rating", ""),
+                                                                         key=f"edit_breaker_rating_{idx_to_edit}_{i}",
                                                                          label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("S/N")
-                        with col_input: s_breaker_sn = st.text_input("", key=f"dlg_breaker_sn_{i}",
+                        with col_input: e_breaker_sn = st.text_input("", value=current.get("breaker_sn", ""),
+                                                                     key=f"edit_breaker_sn_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
                     with col_option:
@@ -1307,22 +1387,26 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Gear Motor")
-                        with col_input: s_gear_motor = st.text_input("", key=f"dlg_gear_motor_{i}",
+                        with col_input: e_gear_motor = st.text_input("", value=current.get("gear_motor", ""),
+                                                                     key=f"edit_gear_motor_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Shunt Trip")
-                        with col_input: s_shunt_trip = st.text_input("", key=f"dlg_shunt_trip_{i}",
+                        with col_input: e_shunt_trip = st.text_input("", value=current.get("shunt_trip", ""),
+                                                                     key=f"edit_shunt_trip_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Closing Coil")
-                        with col_input: s_closing_coil = st.text_input("", key=f"dlg_closing_coil_{i}",
+                        with col_input: e_closing_coil = st.text_input("", value=current.get("closing_coil", ""),
+                                                                       key=f"edit_closing_coil_{idx_to_edit}_{i}",
                                                                        label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("UV Relay")
-                        with col_input: s_uv_relay = st.text_input("", key=f"dlg_uv_relay_{i}",
+                        with col_input: e_uv_relay = st.text_input("", value=current.get("uv_relay", ""),
+                                                                   key=f"edit_uv_relay_{idx_to_edit}_{i}",
                                                                    label_visibility="collapsed")
 
                 st.markdown("---")
@@ -1337,17 +1421,20 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Model (型號)")
-                        with col_input: s_panel_model = st.text_input("", key=f"dlg_panel_model_{i}",
+                        with col_input: e_panel_model = st.text_input("", value=current.get("panel_model", ""),
+                                                                      key=f"edit_panel_model_{idx_to_edit}_{i}",
                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Module")
-                        with col_input: s_panel_module = st.text_input("", key=f"dlg_panel_module_{i}",
+                        with col_input: e_panel_module = st.text_input("", value=current.get("panel_module", ""),
+                                                                       key=f"edit_panel_module_{idx_to_edit}_{i}",
                                                                        label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("S/N")
-                        with col_input: s_panel_sn = st.text_input("", key=f"dlg_panel_sn_{i}",
+                        with col_input: e_panel_sn = st.text_input("", value=current.get("panel_sn", ""),
+                                                                   key=f"edit_panel_sn_{idx_to_edit}_{i}",
                                                                    label_visibility="collapsed")
 
                 st.markdown("---")
@@ -1362,17 +1449,20 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Model (型號)")
-                        with col_input: s_battery_model = st.text_input("", key=f"dlg_battery_model_{i}",
+                        with col_input: e_battery_model = st.text_input("", value=current.get("battery_model", ""),
+                                                                        key=f"edit_battery_model_{idx_to_edit}_{i}",
                                                                         label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Battery Switch")
-                        with col_input: s_battery_switch = st.text_input("", key=f"dlg_battery_switch_{i}",
+                        with col_input: e_battery_switch = st.text_input("", value=current.get("battery_switch", ""),
+                                                                         key=f"edit_battery_switch_{idx_to_edit}_{i}",
                                                                          label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Rating")
-                        with col_input: s_battery_rating = st.text_input("", key=f"dlg_battery_rating_{i}",
+                        with col_input: e_battery_rating = st.text_input("", value=current.get("battery_rating", ""),
+                                                                         key=f"edit_battery_rating_{idx_to_edit}_{i}",
                                                                          label_visibility="collapsed")
 
                     with col_option:
@@ -1381,7 +1471,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Charger Model")
-                        with col_input: s_charger_model = st.text_input("", key=f"dlg_charger_model_{i}",
+                        with col_input: e_charger_model = st.text_input("", value=current.get("charger_model", ""),
+                                                                        key=f"edit_charger_model_{idx_to_edit}_{i}",
                                                                         label_visibility="collapsed")
 
                 st.markdown("---")
@@ -1396,17 +1487,22 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Volume")
-                        with col_input: s_fuel_volume = st.text_input("", key=f"dlg_fuel_volume_{i}",
+                        with col_input: e_fuel_volume = st.text_input("", value=current.get("fuel_volume", ""),
+                                                                      key=f"edit_fuel_volume_{idx_to_edit}_{i}",
                                                                       label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Layer")
-                        with col_input: s_fuel_layer = st.text_input("", key=f"dlg_fuel_layer_{i}",
+                        with col_input: e_fuel_layer = st.text_input("", value=current.get("fuel_layer", ""),
+                                                                     key=f"edit_fuel_layer_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Fuel Water Separator")
-                        with col_input: s_fuel_water_separator = st.text_input("", key=f"dlg_fuel_water_separator_{i}",
+                        with col_input: e_fuel_water_separator = st.text_input("",
+                                                                               value=current.get("fuel_water_separator",
+                                                                                                 ""),
+                                                                               key=f"edit_fuel_water_separator_{idx_to_edit}_{i}",
                                                                                label_visibility="collapsed")
 
                     with col_option:
@@ -1415,22 +1511,29 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Fuel Level Gauge with level")
-                        with col_input: s_fuel_gauge = st.text_input("", key=f"dlg_fuel_gauge_{i}",
+                        with col_input: e_fuel_gauge = st.text_input("", value=current.get("fuel_gauge", ""),
+                                                                     key=f"edit_fuel_gauge_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Fuel Level Switch")
-                        with col_input: s_fuel_level_switch = st.text_input("", key=f"dlg_fuel_level_switch_{i}",
+                        with col_input: e_fuel_level_switch = st.text_input("",
+                                                                            value=current.get("fuel_level_switch", ""),
+                                                                            key=f"edit_fuel_level_switch_{idx_to_edit}_{i}",
                                                                             label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Fuel Level Sensor")
-                        with col_input: s_fuel_level_sensor = st.text_input("", key=f"dlg_fuel_level_sensor_{i}",
+                        with col_input: e_fuel_level_sensor = st.text_input("",
+                                                                            value=current.get("fuel_level_sensor", ""),
+                                                                            key=f"edit_fuel_level_sensor_{idx_to_edit}_{i}",
                                                                             label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Donaldson Breather")
-                        with col_input: s_donaldson_breather = st.text_input("", key=f"dlg_donaldson_breather_{i}",
+                        with col_input: e_donaldson_breather = st.text_input("", value=current.get("donaldson_breather",
+                                                                                                   ""),
+                                                                             key=f"edit_donaldson_breather_{idx_to_edit}_{i}",
                                                                              label_visibility="collapsed")
 
                 st.markdown("---")
@@ -1445,7 +1548,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Volume")
-                        with col_input: s_oil_volume = st.text_input("", key=f"dlg_oil_volume_{i}",
+                        with col_input: e_oil_volume = st.text_input("", value=current.get("oil_volume", ""),
+                                                                     key=f"edit_oil_volume_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
                     with col_option:
@@ -1454,24 +1558,22 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Donaldson Breather")
-                        with col_input: s_oil_donaldson = st.text_input("", key=f"dlg_oil_donaldson_{i}",
+                        with col_input: e_oil_donaldson = st.text_input("", value=current.get("oil_donaldson", ""),
+                                                                        key=f"edit_oil_donaldson_{idx_to_edit}_{i}",
                                                                         label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Murphy Coolant Level Switch")
-                        with col_input: s_murphy_oil = st.text_input("", key=f"dlg_murphy_oil_{i}",
+                        with col_input: e_murphy_oil = st.text_input("", value=current.get("murphy_oil", ""),
+                                                                     key=f"edit_murphy_oil_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
                 st.markdown("---")
 
-
                 # ==================== Remarks ====================
-                e_remarks = st.text_area("Remarks",
-                                        value=current.get("remarks", ""),
-                                        height=150,
-                                        key=f"edit_remarks_{idx_to_edit}_{i}")
+                e_remarks = st.text_area("Remarks", value=current.get("remarks", ""), height=150,
+                                         key=f"edit_remarks_{idx_to_edit}_{i}")
                 # ==================== 收集資料 ====================
-
                 spec_data = {
                     # ==================== 基本資訊 ====================
                     "so_number": e_so_number,
@@ -1489,14 +1591,14 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "frequency": e_frequency.strip(),
                     "engine_heater": e_engine_heater,
 
-                    # Engine Option
+                    # Engine Option（已全部加入）
                     "coolant_temp_sensor": e_coolant_temp_sensor,
                     "oil_pressure_switch": e_oil_pressure_switch,
                     "coolant_sensor": e_coolant_sensor,
                     "oil_pressure": e_oil_pressure,
                     "hand_pump": e_hand_pump,
-                    "silencer": e_silencer,                    # ← 重要
-                    "flex_pipe": e_flex_pipe,                  # ← 重要
+                    "silencer": e_silencer,  # ← 已加入
+                    "flex_pipe": e_flex_pipe,  # ← 已加入
                     "exhaust_pipe": e_exhaust_pipe,
 
                     # ==================== Alternator ====================
@@ -1532,7 +1634,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "breaker_model": e_breaker_model,
                     "breaker_type": e_breaker_type,
                     "breaker_rating": e_breaker_rating,
-                    "gear_motor": e_gear_motor,          # ← 重要
+                    "gear_motor": e_gear_motor,  # ← 已加入
                     "shunt_trip": e_shunt_trip,
                     "closing_coil": e_closing_coil,
                     "uv_relay": e_uv_relay,
