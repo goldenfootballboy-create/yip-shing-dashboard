@@ -680,9 +680,6 @@ def fmt(d):
 
 # 專案卡片渲染
 def render_project_card(row, idx):
-    pct = calculate_progress(row)
-    color = get_color(pct)
-
     project_name = row["Project_Name"]
     current_check = checklist_db.get(project_name, {"purchase": [], "done_p": [], "drawing": [], "done_d": []})
     all_items = current_check["purchase"] + current_check["drawing"]
@@ -700,38 +697,27 @@ def render_project_card(row, idx):
     elif has_missing:
         status_tag = '<span style="background:#ff4444; color:white; padding:4px 12px; border-radius:20px; font-weight:bold; font-size:0.8rem; margin-left:10px;">Missing Submission</span>'
 
-    reminder_text = str(row.get("Progress_Reminder", "")).strip()
-    reminder_display = f'<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-weight:bold; font-size:0.8rem; color:white; text-shadow:1px 1px 3px black; pointer-events:none; z-index:10;">{reminder_text}</div>'
-
     st.markdown(f"""
-    <div style="background: linear-gradient(to right, {color} {pct}%, #f0f0f0 {pct}%); 
-                border-radius: 8px; padding: 10px 15px; margin: 10px 0; 
-                box-shadow: 0 2px 6px rgba(0,0,0,0.1); position: relative; overflow:hidden;">
-        {reminder_display}
-        <div style="display: flex; justify-content: space-between; align-items: center; position:relative; z-index:5;">
-            <div style="font-weight: bold; color:#000000;">
-                {row['Project_Name']} • {row['Project_Type']}
+    <div style="background: linear-gradient(to right, #1e88e5 0%, #f0f0f0 0%); 
+                border-radius: 8px; padding: 12px 16px; margin: 10px 0; 
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: bold; font-size:1.1rem;">
+                {project_name} • {row.get('Project_Type', '')}
             </div>
-            <div>
-                {status_tag}
-                <span style="color:white; background:{color}; padding:4px 12px; border-radius:20px; font-weight:bold; font-size:1rem; margin-left:10px;">
-                    {pct}%
-                </span>
-            </div>
+            <div>{status_tag}</div>
         </div>
-        <div style="font-size:0.85rem; color:#121111; margin-top:6px; position:relative; z-index:5;">
-            {row.get('Customer','—')} | {row.get('Supervisor','—')} | Qty:{row.get('Qty',0)} | 
-            Lead Time: {fmt(row['Lead_Time'])}
+        <div style="font-size:0.9rem; margin-top:6px; color:#444;">
+            {row.get('Customer','—')} | {row.get('Supervisor','—')} | Qty: {row.get('Qty',0)} | 
+            Lead Time: {fmt(row.get('Lead_Time')) if pd.notna(row.get('Lead_Time')) else '—'}
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     with st.expander(f"Details • {row['Project_Name']}", expanded=False):
         # 基本專案資訊
-        st.markdown(
-            f"**Year:** {row.get('Year', '—')} | **Lead Time:** {fmt(row.get('Lead_Time')) if pd.notna(row.get('Lead_Time')) else '—'}")
-        st.markdown(
-            f"**Customer:** {row.get('Customer', '—')} | **Supervisor:** {row.get('Supervisor', '—')} | **Qty:** {row.get('Qty', 0)}")
+        st.markdown(f"**Year:** {row.get('Year', '—')} | **Lead Time:** {fmt(row.get('Lead_Time')) if pd.notna(row.get('Lead_Time')) else '—'}")
+        st.markdown(f"**Customer:** {row.get('Customer','—')} | **Supervisor:** {row.get('Supervisor','—')} | **Qty:** {row.get('Qty', 0)}")
 
         st.markdown("---")
 
@@ -757,40 +743,30 @@ def render_project_card(row, idx):
         if qty == 1:
             spec = specs[0] if specs else {}
             st.markdown("**Project Specification**")
-
-            # 同一行顯示
             st.markdown(
                 f"**Prime/Standby (kW)：** {spec.get('prime_standby', '—')}　　"
                 f"**Voltage (電壓)：** {spec.get('voltage', '—')}　　"
                 f"**Frequency (頻率)：** {spec.get('frequency', '—')}"
             )
             st.markdown(
-                f"**Engine Model (型號)：** {spec.get('genset_model', '—')}　　"
-                f"**S/N (序號)：** {spec.get('genset_sn', '—')}"
+                f"**Engine Model (型號)：** {spec.get('genset_model', '—')}　　**S/N (序號)：** {spec.get('genset_sn', '—')}"
             )
             st.markdown(
-                f"**Alternator Model (型號)：** {spec.get('alt_model', '—')}　　"
-                f"**S/N (序號)：** {spec.get('alt_sn', '—')}"
+                f"**Alternator Model (型號)：** {spec.get('alt_model', '—')}　　**S/N (序號)：** {spec.get('alt_sn', '—')}"
             )
             st.markdown(
-                f"**Radiator Model (型號)：** {spec.get('rad_model', '—')}　　"
-                f"**S/N (序號)：** {spec.get('rad_sn', '—')}"
+                f"**Radiator Model (型號)：** {spec.get('rad_model', '—')}　　**S/N (序號)：** {spec.get('rad_sn', '—')}"
             )
             st.markdown(
-                f"**Base Frame (型號)：** {spec.get('base_model', '—')}　　"
-                f"**S/N (序號)：** {spec.get('base_sn', '—')}"
+                f"**Base Frame (型號)：** {spec.get('base_model', '—')}　　**S/N (序號)：** {spec.get('base_sn', '—')}"
             )
             st.markdown(
-                f"**Breaker (斷路器) Model (型號)：** {spec.get('breaker_model', '—')}　　"
-                f"**Type (類型)：** {spec.get('breaker_type', '—')}　　"
-                f"**Rating：** {spec.get('breaker_rating', '—')}"
+                f"**Breaker (斷路器) Model (型號)：** {spec.get('breaker_model', '—')}　　**Type (類型)：** {spec.get('breaker_type', '—')}　　**Rating：** {spec.get('breaker_rating', '—')}"
             )
             st.markdown(
-                f"**Control Panel (控制器) Model (型號)：** {spec.get('panel_model', '—')}　　"
-                f"**S/N：** {spec.get('panel_sn', '—')}"
+                f"**Control Panel (控制器) Model (型號)：** {spec.get('panel_model', '—')}　　**S/N：** {spec.get('panel_sn', '—')}"
             )
 
-            # Remarks
             remarks = spec.get("remarks", "").strip()
             if remarks:
                 st.markdown("---")
@@ -798,42 +774,33 @@ def render_project_card(row, idx):
                 st.caption(remarks)
 
         else:
-            # 多台機器使用 tabs
-            tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
+            tabs = st.tabs([f"第 {i+1} 台" for i in range(qty)])
             for i in range(qty):
                 with tabs[i]:
                     spec = specs[i] if i < len(specs) else {}
                     st.markdown("**Project Specification**")
-
                     st.markdown(
                         f"**Prime/Standby (kW)：** {spec.get('prime_standby', '—')}　　"
                         f"**Voltage (電壓)：** {spec.get('voltage', '—')}　　"
                         f"**Frequency (頻率)：** {spec.get('frequency', '—')}"
                     )
                     st.markdown(
-                        f"**Engine Model (型號)：** {spec.get('genset_model', '—')}　　"
-                        f"**S/N (序號)：** {spec.get('genset_sn', '—')}"
+                        f"**Engine Model (型號)：** {spec.get('genset_model', '—')}　　**S/N (序號)：** {spec.get('genset_sn', '—')}"
                     )
                     st.markdown(
-                        f"**Alternator Model (型號)：** {spec.get('alt_model', '—')}　　"
-                        f"**S/N (序號)：** {spec.get('alt_sn', '—')}"
+                        f"**Alternator Model (型號)：** {spec.get('alt_model', '—')}　　**S/N (序號)：** {spec.get('alt_sn', '—')}"
                     )
                     st.markdown(
-                        f"**Radiator Model (型號)：** {spec.get('rad_model', '—')}　　"
-                        f"**S/N (序號)：** {spec.get('rad_sn', '—')}"
+                        f"**Radiator Model (型號)：** {spec.get('rad_model', '—')}　　**S/N (序號)：** {spec.get('rad_sn', '—')}"
                     )
                     st.markdown(
-                        f"**Base Frame (型號)：** {spec.get('base_model', '—')}　　"
-                        f"**S/N (序號)：** {spec.get('base_sn', '—')}"
+                        f"**Base Frame (型號)：** {spec.get('base_model', '—')}　　**S/N (序號)：** {spec.get('base_sn', '—')}"
                     )
                     st.markdown(
-                        f"**Breaker (斷路器) Model (型號)：** {spec.get('breaker_model', '—')}　　"
-                        f"**Type (類型)：** {spec.get('breaker_type', '—')}　　"
-                        f"**Rating：** {spec.get('breaker_rating', '—')}"
+                        f"**Breaker (斷路器) Model (型號)：** {spec.get('breaker_model', '—')}　　**Type (類型)：** {spec.get('breaker_type', '—')}　　**Rating：** {spec.get('breaker_rating', '—')}"
                     )
                     st.markdown(
-                        f"**Control Panel (控制器) Model (型號)：** {spec.get('panel_model', '—')}　　"
-                        f"**S/N：** {spec.get('panel_sn', '—')}"
+                        f"**Control Panel (控制器) Model (型號)：** {spec.get('panel_model', '—')}　　**S/N：** {spec.get('panel_sn', '—')}"
                     )
 
                     remarks = spec.get("remarks", "").strip()
@@ -842,142 +809,133 @@ def render_project_card(row, idx):
                         st.markdown("**Remarks：**")
                         st.caption(remarks)
 
-        # ==================== OverView 按鈕 ====================
-        if st.button("📊 OverView 完整規格總覽", key=f"overall_spec_btn_{idx}", use_container_width=True,
-                     type="secondary"):
+        # ==================== OverView 按鈕（只負責觸發） ====================
+        if st.button("📊 OverView 完整規格總覽", key=f"overall_spec_btn_{idx}", use_container_width=True, type="secondary"):
             st.session_state["show_overview_dialog"] = True
-            st.session_state["overview_row"] = row  # 把目前這筆資料傳過去
-            st.session_state["overview_qty"] = qty
+            st.session_state["overview_row"] = row
+            st.session_state["overview_qty"] = row.get("Qty", 1)
             st.rerun()
 
-        # ==================== OverView Dialog（移到最外層） ====================
-        if st.session_state.get("show_overview_dialog", False):
-            @st.dialog(
-                f"完整規格總覽 – {st.session_state['overview_row']['Project_Name']} ({st.session_state['overview_qty']} 台)",
-                width="large")
-            def overall_spec_overview():
-                row = st.session_state["overview_row"]
-                qty = st.session_state["overview_qty"]
+            # ==================== OverView Dialog（必須放在最外層） ====================
+            if st.session_state.get("show_overview_dialog", False):
+                row = st.session_state.get("overview_row")
+                qty = st.session_state.get("overview_qty", 1)
 
-                st.markdown(f"**專案：{row['Project_Name']}**　｜　**{qty} 台**　｜　**類型：{row['Project_Type']}**")
-                st.markdown("---")
+                @st.dialog(f"完整規格總覽 – {row['Project_Name']} ({qty} 台)", width="large")
+                def overall_spec_overview():
+                    st.markdown(f"**專案：{row['Project_Name']}**　｜　**{qty} 台**　｜　**類型：{row['Project_Type']}**")
+                    st.markdown("---")
 
-                # 讀取規格資料
-                spec_text = row.get("Project_Spec", "")
-                specs = []
-                if "||EXTRA||" in spec_text:
-                    try:
-                        extra_json = spec_text.split("||EXTRA||")[1]
-                        specs = json.loads(extra_json)
-                        if not isinstance(specs, list):
-                            specs = [specs]
-                    except:
-                        specs = []
-                else:
+                    spec_text = row.get("Project_Spec", "")
                     specs = []
+                    if "||EXTRA||" in spec_text:
+                        try:
+                            extra_json = spec_text.split("||EXTRA||")[1]
+                            specs = json.loads(extra_json)
+                            if not isinstance(specs, list):
+                                specs = [specs]
+                        except:
+                            specs = []
+                    else:
+                        specs = []
 
-                if len(specs) < qty:
-                    specs += [{}] * (qty - len(specs))
+                    if len(specs) < qty:
+                        specs += [{}] * (qty - len(specs))
 
-                overview_tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
+                    overview_tabs = st.tabs([f"第 {i + 1} 台" for i in range(qty)])
 
-                for machine_idx in range(qty):
-                    with overview_tabs[machine_idx]:
-                        spec = specs[machine_idx] if machine_idx < len(specs) else {}
+                    for machine_idx in range(qty):
+                        with overview_tabs[machine_idx]:
+                            spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
-                        # ==================== 與 Print PDF 格式完全一致 ====================
-                        st.subheader("基本資訊")
-                        st.markdown(f"**SO#：** {spec.get('so_number', '—')}　　"
-                                    f"**Product Category：** {spec.get('product_category', '—')}　　"
-                                    f"**Product Code：** {spec.get('product_code', '—')}")
+                            st.subheader("基本資訊")
+                            st.markdown(
+                                f"**SO#：** {spec.get('so_number', '—')}　　**Product Category：** {spec.get('product_category', '—')}　　**Product Code：** {spec.get('product_code', '—')}")
 
-                        st.divider()
-
-                        st.markdown("**Engine (發動機)**")
-                        st.markdown(
-                            f"**Model (型號)：** {spec.get('genset_model', '—')}　　**S/N：** {spec.get('genset_sn', '—')}")
-                        st.markdown(
-                            f"**Year (年份)：** {spec.get('engine_year', '—')}　　**Colour (顏色)：** {spec.get('engine_color', '—')}")
-                        st.markdown(
-                            f"**Prime/Standby (kW)：** {spec.get('prime_standby', '—')}　　**RPM：** {spec.get('rpm', '—')}")
-                        st.markdown(
-                            f"**Voltage (電壓)：** {spec.get('voltage', '—')}　　**Frequency (頻率)：** {spec.get('frequency', '—')}")
-                        st.markdown(f"**Heater (加熱器) kW：** {spec.get('engine_heater', '—')}")
-
-                        st.divider()
-
-                        st.markdown("**Alternator (電球)**")
-                        st.markdown(
-                            f"**Model (型號)：** {spec.get('alt_model', '—')}　　**S/N：** {spec.get('alt_sn', '—')}")
-                        st.markdown(
-                            f"**Winding：** {spec.get('alt_winding', '—')}　　**Color：** {spec.get('alt_color', '—')}")
-                        st.markdown(
-                            f"**Droop：** {spec.get('droop', '—')}　　**PMG：** {spec.get('pmg', '—')}　　**Heater：** {spec.get('alt_heater', '—')}")
-
-                        st.divider()
-
-                        st.markdown("**Radiator (水箱)**")
-                        st.markdown(
-                            f"**Model (型號)：** {spec.get('rad_model', '—')}　　**S/N：** {spec.get('rad_sn', '—')}")
-                        st.markdown(
-                            f"**Degree (温度)：** {spec.get('rad_temp', '—')}　　**Fan Size：** {spec.get('fan_size', '—')}")
-                        st.markdown(f"**Protection Cover：** {spec.get('radiator_guard', '—')}")
-
-                        st.divider()
-
-                        st.markdown("**Base Frame (底架)**")
-                        st.markdown(
-                            f"**Model (型號)：** {spec.get('base_model', '—')}　　**S/N：** {spec.get('base_sn', '—')}")
-                        st.markdown(
-                            f"**Anti-Vibration Mounts：** {spec.get('avm', '—')}　　**Color：** {spec.get('base_color', '—')}")
-
-                        st.divider()
-
-                        st.markdown("**Container (貨櫃)**")
-                        st.markdown(
-                            f"**Type (型號)：** {spec.get('cont_type', '—')}　　**Dimension：** {spec.get('cont_size', '—')}")
-                        st.markdown(f"**櫃號：** {spec.get('cont_sn', '—')}　　**Color：** {spec.get('cont_color', '—')}")
-
-                        st.divider()
-
-                        st.markdown("**Breaker (斷路器)**")
-                        st.markdown(
-                            f"**Model (型號)：** {spec.get('breaker_model', '—')}　　**Type：** {spec.get('breaker_type', '—')}　　**Rating：** {spec.get('breaker_rating', '—')}")
-                        st.markdown(f"**S/N：** {spec.get('breaker_sn', '—')}")
-
-                        st.divider()
-
-                        st.markdown("**Control Panel (控制器)**")
-                        st.markdown(
-                            f"**Model (型號)：** {spec.get('panel_model', '—')}　　**Module：** {spec.get('panel_module', '—')}　　**S/N：** {spec.get('panel_sn', '—')}")
-
-                        st.divider()
-
-                        # Battery / Fuel / Oil Tank
-                        st.markdown("**Battery (電池)**")
-                        st.markdown(
-                            f"**Model (型號)：** {spec.get('battery_model', '—')}　　**Rating：** {spec.get('battery_rating', '—')}")
-
-                        st.markdown("**Fuel Tank (燃油箱)**")
-                        st.markdown(
-                            f"**Volume：** {spec.get('fuel_volume', '—')}　　**Layer：** {spec.get('fuel_layer', '—')}")
-
-                        st.markdown("**Oil Tank (機油箱)**")
-                        st.markdown(f"**Volume：** {spec.get('oil_volume', '—')}")
-
-                        # Remarks
-                        remarks = spec.get("remarks", "").strip()
-                        if remarks:
                             st.divider()
-                            st.subheader("Remarks / 備註")
-                            st.info(remarks)
 
-            overall_spec_overview()
-            # 關閉 dialog 後清除狀態
-            if not st.session_state.get("show_overview_dialog", False):
-                st.session_state.pop("show_overview_dialog", None)
-                st.session_state.pop("overview_row", None)
-                st.session_state.pop("overview_qty", None)
+                            st.markdown("**Engine (發動機)**")
+                            st.markdown(
+                                f"**Model (型號)：** {spec.get('genset_model', '—')}　　**S/N：** {spec.get('genset_sn', '—')}")
+                            st.markdown(
+                                f"**Year (年份)：** {spec.get('engine_year', '—')}　　**Colour (顏色)：** {spec.get('engine_color', '—')}")
+                            st.markdown(
+                                f"**Prime/Standby (kW)：** {spec.get('prime_standby', '—')}　　**RPM：** {spec.get('rpm', '—')}")
+                            st.markdown(
+                                f"**Voltage (電壓)：** {spec.get('voltage', '—')}　　**Frequency (頻率)：** {spec.get('frequency', '—')}")
+                            st.markdown(f"**Heater (加熱器) kW：** {spec.get('engine_heater', '—')}")
+
+                            st.divider()
+
+                            st.markdown("**Alternator (電球)**")
+                            st.markdown(
+                                f"**Model (型號)：** {spec.get('alt_model', '—')}　　**S/N：** {spec.get('alt_sn', '—')}")
+                            st.markdown(
+                                f"**Winding：** {spec.get('alt_winding', '—')}　　**Color：** {spec.get('alt_color', '—')}")
+                            st.markdown(
+                                f"**Droop：** {spec.get('droop', '—')}　　**PMG：** {spec.get('pmg', '—')}　　**Heater：** {spec.get('alt_heater', '—')}")
+
+                            st.divider()
+
+                            st.markdown("**Radiator (水箱)**")
+                            st.markdown(
+                                f"**Model (型號)：** {spec.get('rad_model', '—')}　　**S/N：** {spec.get('rad_sn', '—')}")
+                            st.markdown(
+                                f"**Degree (温度)：** {spec.get('rad_temp', '—')}　　**Fan Size：** {spec.get('fan_size', '—')}")
+                            st.markdown(f"**Protection Cover：** {spec.get('radiator_guard', '—')}")
+
+                            st.divider()
+
+                            st.markdown("**Base Frame (底架)**")
+                            st.markdown(
+                                f"**Model (型號)：** {spec.get('base_model', '—')}　　**S/N：** {spec.get('base_sn', '—')}")
+                            st.markdown(
+                                f"**Anti-Vibration Mounts：** {spec.get('avm', '—')}　　**Color：** {spec.get('base_color', '—')}")
+
+                            st.divider()
+
+                            st.markdown("**Container (貨櫃)**")
+                            st.markdown(
+                                f"**Type (型號)：** {spec.get('cont_type', '—')}　　**Dimension：** {spec.get('cont_size', '—')}")
+                            st.markdown(
+                                f"**櫃號：** {spec.get('cont_sn', '—')}　　**Color：** {spec.get('cont_color', '—')}")
+
+                            st.divider()
+
+                            st.markdown("**Breaker (斷路器)**")
+                            st.markdown(
+                                f"**Model (型號)：** {spec.get('breaker_model', '—')}　　**Type：** {spec.get('breaker_type', '—')}　　**Rating：** {spec.get('breaker_rating', '—')}")
+                            st.markdown(f"**S/N：** {spec.get('breaker_sn', '—')}")
+
+                            st.divider()
+
+                            st.markdown("**Control Panel (控制器)**")
+                            st.markdown(
+                                f"**Model (型號)：** {spec.get('panel_model', '—')}　　**Module：** {spec.get('panel_module', '—')}　　**S/N：** {spec.get('panel_sn', '—')}")
+
+                            st.divider()
+
+                            st.markdown("**Battery (電池)**")
+                            st.markdown(
+                                f"**Model (型號)：** {spec.get('battery_model', '—')}　　**Rating：** {spec.get('battery_rating', '—')}")
+
+                            st.markdown("**Fuel Tank (燃油箱)**")
+                            st.markdown(
+                                f"**Volume：** {spec.get('fuel_volume', '—')}　　**Layer：** {spec.get('fuel_layer', '—')}")
+
+                            st.markdown("**Oil Tank (機油箱)**")
+                            st.markdown(f"**Volume：** {spec.get('oil_volume', '—')}")
+
+                            remarks = spec.get("remarks", "").strip()
+                            if remarks:
+                                st.divider()
+                                st.subheader("Remarks / 備註")
+                                st.info(remarks)
+
+                overall_spec_overview()
+
+                # 關閉 dialog 後清除狀態
+                st.session_state["show_overview_dialog"] = False
                 # ==================== PDF 下載按鈕 ====================
                 if st.button("📄 下載 PDF 版本", type="primary", use_container_width=True):
                     pdf_bytes = generate_overview_pdf(specs, row, qty)
