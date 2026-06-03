@@ -143,7 +143,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # Open Set 整表變灰
         if gray:
-            style_commands.append(('BACKGROUND', (0, 0), (-1, -1), HexColor('#210906')))
+            pass
 
         # 區塊有輸入時，標題列變灰
         if header_gray:
