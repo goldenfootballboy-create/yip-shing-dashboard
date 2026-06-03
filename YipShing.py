@@ -119,6 +119,49 @@ def generate_overview_pdf(specs, project_info, qty):
     # 判斷是否為 Open Set
     is_open_set = project_info.get('Project_Type', '') == "Open Set"
 
+    # ==================== 新增：判斷區塊是否有輸入 ====================
+    def section_has_content(spec, keys):
+        for k in keys:
+            val = str(spec.get(k, "")).strip()
+            if val and val not in ["—", ""]:
+                return True
+        return False
+
+    # ==================== 共用表格函數（已支援 header_gray） ====================
+    def create_table(data, gray=False, header_gray=False):
+        t = Table(data, colWidths=[255, 255])
+        style_commands = [
+            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0,0), (0,0), 13),
+            ('SPAN', (0,0), (1,0)),
+            ('ALIGN', (0,0), (1,0), 'CENTER'),
+            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
+            ('FONTSIZE', (0,1), (-1,-1), 10.5),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ]
+
+        # Open Set 整表變灰（已修正顏色）
+        if gray:
+            style_commands.append(('BACKGROUND', (0, 0), (-1, -1), HexColor('#210906')))
+
+        # 新增：區塊有輸入時，標題列變灰
+        if header_gray:
+            style_commands.append(('BACKGROUND', (0, 0), (-1, 0), HexColor('#d0d0d0')))
+
+        # Option 欄有值時變灰（原本的邏輯保留）
+        for i in range(2, len(data)):
+            option_cell = str(data[i][1]).strip()
+            if '：' in option_cell:
+                option_value = option_cell.split('：', 1)[1].strip()
+            else:
+                option_value = option_cell
+            if option_value and option_value not in ['—', '']:
+                style_commands.append(('BACKGROUND', (1, i), (1, i), HexColor('#e6e6e6')))
+
+        t.setStyle(TableStyle(style_commands))
+        return t
+
     for machine_idx in range(qty):
         if machine_idx > 0:
             elements.append(PageBreak())
@@ -136,54 +179,28 @@ def generate_overview_pdf(specs, project_info, qty):
             info_style))
         elements.append(Spacer(1, 10))
 
-        # 共用表格函數（新增 gray 參數）
-        def create_table(data, gray=False):
-            t = Table(data, colWidths=[255, 255])
-            style_commands = [
-                ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-                ('FONTSIZE', (0,0), (0,0), 13),
-                ('SPAN', (0,0), (1,0)),
-                ('ALIGN', (0,0), (1,0), 'CENTER'),
-                ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-                ('FONTSIZE', (0,1), (-1,-1), 10.5),
-                ('VALIGN', (0,0), (-1,-1), 'TOP'),
-                ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-            ]
-            if gray:#210906
-                style_commands.append(('BACKGROUND', (0, 0), (-1, -1), HexColor('#210906')))  # 深灰色
-
-            for i in range(2, len(data)):
-                option_cell = str(data[i][1]).strip()
-                if '：' in option_cell:
-                    option_value = option_cell.split('：', 1)[1].strip()
-                else:
-                    option_value = option_cell
-                if option_value and option_value not in ['—', '']:
-                    style_commands.append(('BACKGROUND', (1, i), (1, i), HexColor('#e6e6e6')))
-
-            t.setStyle(TableStyle(style_commands))
-            return t
-
-        # ==================== 第一頁 ====================
-        # Engine
+        # ==================== Engine ====================
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('genset_model') or ''),"Coolant temperature sensor： " + (spec.get('coolant_temp_sensor') or '')],
-            ["Year (年份)： " + (spec.get('engine_year') or ''),"Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
-            ["Colour (顏色)： " + (spec.get('engine_color') or ''),"Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
-            ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''),"Oil pressure switch： " + (spec.get('oil_pressure_switch') or '')],
+            ["Model (型號)： " + (spec.get('genset_model') or ''), "Coolant temperature sensor： " + (spec.get('coolant_temp_sensor') or '')],
+            ["Year (年份)： " + (spec.get('engine_year') or ''), "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
+            ["Colour (顏色)： " + (spec.get('engine_color') or ''), "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
+            ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''), "Oil pressure switch： " + (spec.get('oil_pressure_switch') or '')],
             ["RPM (轉速)： " + (spec.get('rpm') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
             ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Silencer： " + (spec.get('silencer') or '')],
-            ["Frequency (頻率)： " + (spec.get('frequency') or ''),"Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
+            ["Frequency (頻率)： " + (spec.get('frequency') or ''), "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
             ["S/N (序號)： " + (spec.get('genset_sn') or ''), "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
-            ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],  # ← 強制放在 Option 欄
+            ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
             ["", "Fuel Water Separator： " + (spec.get('fuel_water_separator') or '')]
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 8))
 
-        # Alternator
+        # ==================== Alternator（重點修改：有輸入就標題列變灰） ====================
+        alt_keys = ["alt_model", "alt_winding", "droop", "alt_color", "alt_sn", "alt_heater", "pmg"]
+        has_alt = section_has_content(spec, alt_keys)
+
         data = [
             ["Alternator (電球)", ""],
             ["Feature", "Option"],
@@ -193,10 +210,10 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Color： " + (spec.get('alt_color') or ''), ""],
             ["S/N： " + (spec.get('alt_sn') or ''), ""],
         ]
-        elements.append(create_table(data))
+        elements.append(create_table(data, header_gray=has_alt))   # ← 這裡傳入 header_gray
         elements.append(Spacer(1, 8))
 
-        # Radiator
+        # ==================== Radiator ====================
         data = [
             ["Radiator (水箱)", ""],
             ["Feature", "Option"],
@@ -209,7 +226,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 8))
 
-        # Base Frame（不變灰）
+        # ==================== Base Frame ====================
         data = [
             ["Base Frame (底架)", ""],
             ["Feature", "Option"],
@@ -223,7 +240,7 @@ def generate_overview_pdf(specs, project_info, qty):
         # ==================== 第二頁 ====================
         elements.append(PageBreak())
 
-        # Container（Open Set 時變深灰）
+        # Container（Open Set 時整表變灰）
         data = [
             ["Container (貨櫃)", ""],
             ["Feature", "Option"],
@@ -267,19 +284,19 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(create_table(data))
         elements.append(Spacer(1, 8))
 
-        # Fuel Tank（Open Set 時變深灰）
+        # Fuel Tank（Open Set 時整表變灰）
         data = [
             ["Fuel Tank (燃油箱)", ""],
             ["Feature", "Option"],
             ["Volume： " + (spec.get('fuel_volume') or ''), "Fuel Level Gauge： " + (spec.get('fuel_gauge') or '')],
             ["Layer： " + (spec.get('fuel_layer') or ''), "Fuel Level Switch： " + (spec.get('fuel_level_switch') or '')],
-            ["Fuel Water Separator： " + (spec.get('fuel_water_separator') or ''), "Fuel Level Sensor： " + (spec.get('fuel_level_sensor') or '')],
+            ["", "Fuel Level Sensor： " + (spec.get('fuel_level_sensor') or '')],
             ["", "Donaldson Breather： " + (spec.get('donaldson_breather') or '')],
         ]
         elements.append(create_table(data, gray=is_open_set))
         elements.append(Spacer(1, 8))
 
-        # Oil Tank（Open Set 時變深灰）
+        # Oil Tank（Open Set 時整表變灰）
         data = [
             ["Oil Tank (機油箱)", ""],
             ["Feature", "Option"],
