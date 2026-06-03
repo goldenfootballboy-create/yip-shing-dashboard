@@ -1323,6 +1323,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                          key=f"edit_murphy_coolant_{idx_to_edit}_{i}",
                                                                          label_visibility="collapsed")
 
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Anti-Freezer")
+                        with col_input: e_anti_freezer = st.text_input("", value=current.get("anti_freezer", ""),
+                                                                       key=f"edit_anti_freezer_{idx_to_edit}_{i}",
+                                                                       label_visibility="collapsed")
+
                 st.markdown("---")
 
                 # ==================== Base Frame (底架) ====================
@@ -1404,6 +1410,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         with col_input: e_cont_color = st.text_input("", value=current.get("cont_color", ""),
                                                                      key=f"edit_cont_color_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Topone 貼紙")
+                        with col_input: e_topone_sticker = st.text_input("", value=current.get("topone_sticker", ""),
+                                                                         key=f"edit_topone_sticker_{idx_to_edit}_{i}",
+                                                                         label_visibility="collapsed")
 
                 st.markdown("---")
 
@@ -1581,6 +1593,11 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                                                    ""),
                                                                              key=f"edit_donaldson_breather_{idx_to_edit}_{i}",
                                                                              label_visibility="collapsed")
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("3 way Valve")
+                        with col_input: e_three_way_valve = st.text_input("", value=current.get("three_way_valve", ""),
+                                                                          key=f"edit_three_way_valve_{idx_to_edit}_{i}",
+                                                                          label_visibility="collapsed")
 
                 st.markdown("---")
 
@@ -1665,7 +1682,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "fuel_cooler": e_fuel_cooler,  # ← 新增
                     "low_water": e_low_water,  # ← 新增
                     "murphy_coolant": e_murphy_coolant,
-
+                    "anti_freezer": e_anti_freezer,
                     # ==================== Base Frame ====================
                     "base_model": e_base_model,
                     "avm": e_avm,
@@ -1678,7 +1695,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "co_detector": e_co_detector,
                     "cont_color": e_cont_color,
                     "cont_sn": e_cont_sn,
-
+                    "topone_sticker": e_topone_sticker,
                     # ==================== Breaker ====================
                     "breaker_model": e_breaker_model,
                     "breaker_type": e_breaker_type,
@@ -1707,7 +1724,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "fuel_level_switch": e_fuel_level_switch,
                     "fuel_level_sensor": e_fuel_level_sensor,
                     "donaldson_breather": e_donaldson_breather,
-
+                    "three_way_valve": e_three_way_valve,
                     # ==================== Oil Tank ====================
                     "oil_volume": e_oil_volume,
                     "oil_donaldson": e_oil_donaldson,
@@ -2051,6 +2068,11 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input: s_murphy_coolant = st.text_input("", key=f"dlg_murphy_coolant_{i}",
                                                                          label_visibility="collapsed")
 
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Anti-Freezer")
+                        with col_input: s_anti_freezer = st.text_input("", key=f"dlg_anti_freezer_{i}",
+                                                                       label_visibility="collapsed")
+
                 st.markdown("---")
 
                 # ==================== Base Frame (底架) ====================
@@ -2122,6 +2144,12 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Color")
                         with col_input: s_cont_color = st.text_input("", key=f"dlg_cont_color_{i}",
                                                                      label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Topone 貼紙")
+                        with col_input: e_topone_sticker = st.text_input("", value=current.get("topone_sticker", ""),
+                                                                         key=f"edit_topone_sticker_{idx_to_edit}_{i}",
+                                                                         label_visibility="collapsed")
 
                 st.markdown("---")
 
@@ -2275,6 +2303,11 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input: s_donaldson_breather = st.text_input("", key=f"dlg_donaldson_breather_{i}",
                                                                              label_visibility="collapsed")
 
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("3 way Valve")
+                        with col_input: s_three_way_valve = st.text_input("", key=f"dlg_three_way_valve_{i}",
+                                                                          label_visibility="collapsed")
+
                 st.markdown("---")
 
                 # ==================== Oil Tank (機油箱) ====================
@@ -2340,7 +2373,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "low_water": s_low_water,
                     "murphy_coolant": s_murphy_coolant,
                     "rad_sn": s_rad_sn,
-
+                    "anti_freezer": s_anti_freezer,
                     # ==================== Base Frame ====================
                     "base_model": s_base_model,
                     "avm": s_avm,
@@ -2352,6 +2385,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "co_detector": s_co_detector,
                     "cont_color": s_cont_color,
                     "cont_sn": s_cont_sn,
+                    "topone_sticker": s_topone_sticker,
                     # ==================== Breaker ====================
                     "breaker_model": s_breaker_model,
                     "breaker_type": s_breaker_type,
@@ -2378,6 +2412,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "fuel_level_switch": s_fuel_level_switch,
                     "fuel_level_sensor": s_fuel_level_sensor,
                     "donaldson_breather": s_donaldson_breather,
+                    "three_way_valve": s_three_way_valve,
 
                     # ==================== Oil Tank ====================
                     "oil_volume": s_oil_volume,
