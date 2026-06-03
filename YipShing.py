@@ -143,7 +143,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # Open Set 整表變灰
         if gray:
-            style_commands.append(('BACKGROUND', (0, 0), (-1, -1), HexColor('#FFFFFF')))
+            style_commands.append(('BACKGROUND', (0, 0), (-1, -1), HexColor('#171616')))
 
         # 區塊有輸入時，標題列變灰
         if header_gray:
@@ -183,20 +183,27 @@ def generate_overview_pdf(specs, project_info, qty):
         engine_keys = ["genset_model", "engine_year", "genset_sn", "engine_color", "prime_standby",
                        "rpm", "voltage", "frequency", "engine_heater",
                        "coolant_temp_sensor", "coolant_sensor", "oil_pressure", "oil_pressure_switch",
-                       "hand_pump", "silencer", "flex_pipe", "exhaust_pipe", "fuel_water_separator"]
+                       "hand_pump", "silencer", "flex_pipe", "exhaust_pipe", "fuel_water_separator","coolant_temp_switch"]
         has_engine = section_has_content(spec, engine_keys)
 
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('genset_model') or ''), "Coolant temperature sensor： " + (spec.get('coolant_temp_sensor') or '')],
-            ["Year (年份)： " + (spec.get('engine_year') or ''), "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
-            ["Colour (顏色)： " + (spec.get('engine_color') or ''), "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
-            ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''), "Oil pressure switch： " + (spec.get('oil_pressure_switch') or '')],
-            ["RPM (轉速)： " + (spec.get('rpm') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
-            ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Silencer： " + (spec.get('silencer') or '')],
-            ["Frequency (頻率)： " + (spec.get('frequency') or ''), "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
-            ["S/N (序號)： " + (spec.get('genset_sn') or ''), "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
+            ["Model (型號)： " + (spec.get('genset_model') or ''),
+             "Coolant temperature sensor： " + (spec.get('coolant_temp_sensor') or '')],
+            ["Year (年份)： " + (spec.get('engine_year') or ''),
+             "Coolant temperature switch： " + (spec.get('coolant_temp_switch') or '')],
+            ["Colour (顏色)： " + (spec.get('engine_color') or ''),
+             "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
+            ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''),
+             "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
+            ["RPM (轉速)： " + (spec.get('rpm') or ''),
+             "Oil pressure switch： " + (spec.get('oil_pressure_switch') or '')],
+            ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
+            ["Frequency (頻率)： " + (spec.get('frequency') or ''), "Silencer： " + (spec.get('silencer') or '')],
+            ["S/N (序號)： " + (spec.get('genset_sn') or ''),
+             "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
+            ["", "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
             ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
             ["", "Fuel Water Separator： " + (spec.get('fuel_water_separator') or '')]
         ]
@@ -221,7 +228,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # ==================== Radiator (水箱) ====================
         rad_keys = ["rad_model", "rad_temp", "fan_size", "radiator_guard", "rad_sn",
-                    "fuel_cooler", "low_water", "murphy_coolant"]
+                    "fuel_cooler", "low_water", "murphy_coolant","anti_freezer"]
         has_rad = section_has_content(spec, rad_keys)
 
         data = [
@@ -254,7 +261,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(PageBreak())
 
         # ==================== Container (貨櫃) ====================
-        cont_keys = ["cont_type", "cont_size", "cont_sn", "co_detector", "cont_color"]
+        cont_keys = ["cont_type", "cont_size", "cont_sn", "co_detector", "cont_color","topone_sticker"]
         has_cont = section_has_content(spec, cont_keys)
 
         data = [
@@ -311,7 +318,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Spacer(1, 8))
 
         # ==================== Fuel Tank (燃油箱) ====================
-        fuel_keys = ["fuel_volume", "fuel_layer", "fuel_gauge", "fuel_level_switch", "fuel_level_sensor", "donaldson_breather"]
+        fuel_keys = ["fuel_volume", "fuel_layer", "fuel_gauge", "fuel_level_switch", "fuel_level_sensor", "donaldson_breather","three_way_valve"]
         has_fuel = section_has_content(spec, fuel_keys)
 
         data = [
@@ -1178,6 +1185,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                               label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Coolant temperature switch")
+                        with col_input: e_coolant_temp_switch = st.text_input("", value=current.get("coolant_temp_switch", ""),
+                                                                              key=f"edit_coolant_temp_switch_{idx_to_edit}_{i}",
+                                                                              label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Oil Coolant Temp Sensor")
                         with col_input: e_coolant_sensor = st.text_input("", value=current.get("coolant_sensor", ""),
                                                                          key=f"edit_coolant_sensor_{idx_to_edit}_{i}",
@@ -1396,6 +1409,12 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         with col_input: e_base_color = st.text_input("", value=current.get("base_color", ""),
                                                                      key=f"edit_base_color_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Spring isolator")
+                        with col_input: e_spring_isolator = st.text_input("", value=current.get("spring_isolator", ""),
+                                                                          key=f"edit_spring_isolator_{idx_to_edit}_{i}",
+                                                                          label_visibility="collapsed")
 
                 st.markdown("---")
 
@@ -1683,6 +1702,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "voltage": e_voltage.strip(),
                     "frequency": e_frequency.strip(),
                     "engine_heater": e_engine_heater,
+                    "coolant_temp_switch": e_coolant_temp_switch,
 
                     # Engine Option（已全部加入）
                     "coolant_temp_sensor": e_coolant_temp_sensor,
@@ -1718,6 +1738,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "avm": e_avm,
                     "base_color": e_base_color,
                     "base_sn": e_base_sn,
+                    "spring_isolator": e_spring_isolator,
 
                     # ==================== Container ====================
                     "cont_type": e_cont_type,
@@ -1995,6 +2016,11 @@ if st.session_state.get("spec_dialog_open", False):
                                                                               label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Coolant temperature switch")
+                        with col_input: s_coolant_temp_switch = st.text_input("", key=f"dlg_coolant_temp_switch_{i}",
+                                                                              label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Oil Coolant Temp Sensor")
                         with col_input: s_coolant_sensor = st.text_input("", key=f"dlg_coolant_sensor_{i}",
                                                                          label_visibility="collapsed")
@@ -2175,6 +2201,11 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Color")
                         with col_input: s_base_color = st.text_input("", key=f"dlg_base_color_{i}",
                                                                      label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Spring isolator")
+                        with col_input: s_spring_isolator = st.text_input("", key=f"dlg_spring_isolator_{i}",
+                                                                          label_visibility="collapsed")
 
                 st.markdown("---")
 
@@ -2423,6 +2454,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "voltage": s_voltage.strip(),
                     "frequency": s_frequency.strip(),
                     "engine_heater": s_engine_heater,
+                    "coolant_temp_switch": s_coolant_temp_switch,
 
                     # ==================== Alternator ====================
                     "alt_model": s_alt_model,
@@ -2448,6 +2480,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "avm": s_avm,
                     "base_color": s_base_color,
                     "base_sn": s_base_sn,
+                    "spring_isolator": s_spring_isolator,
                     # ==================== Container ====================
                     "cont_type": s_cont_type,
                     "cont_size": s_cont_size,
