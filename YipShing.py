@@ -119,7 +119,7 @@ def generate_overview_pdf(specs, project_info, qty):
     # 判斷是否為 Open Set
     is_open_set = project_info.get('Project_Type', '') == "Open Set"
 
-    # ==================== 新增：判斷區塊是否有輸入 ====================
+    # ==================== 判斷區塊是否有輸入 ====================
     def section_has_content(spec, keys):
         for k in keys:
             val = str(spec.get(k, "")).strip()
@@ -127,7 +127,7 @@ def generate_overview_pdf(specs, project_info, qty):
                 return True
         return False
 
-    # ==================== 共用表格函數（已支援 header_gray） ====================
+    # ==================== 共用表格函數 ====================
     def create_table(data, gray=False, header_gray=False):
         t = Table(data, colWidths=[255, 255])
         style_commands = [
@@ -141,15 +141,15 @@ def generate_overview_pdf(specs, project_info, qty):
             ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
         ]
 
-        # Open Set 整表變灰（已修正顏色）
+        # Open Set 整表變灰
         if gray:
             style_commands.append(('BACKGROUND', (0, 0), (-1, -1), HexColor('#210906')))
 
-        # 新增：區塊有輸入時，標題列變灰
+        # 區塊有輸入時，標題列變灰
         if header_gray:
             style_commands.append(('BACKGROUND', (0, 0), (-1, 0), HexColor('#d0d0d0')))
 
-        # Option 欄有值時變灰（原本的邏輯保留）
+        # Option 欄有值時變灰
         for i in range(2, len(data)):
             option_cell = str(data[i][1]).strip()
             if '：' in option_cell:
@@ -179,7 +179,13 @@ def generate_overview_pdf(specs, project_info, qty):
             info_style))
         elements.append(Spacer(1, 10))
 
-        # ==================== Engine ====================
+        # ==================== Engine (發動機) ====================
+        engine_keys = ["genset_model", "engine_year", "genset_sn", "engine_color", "prime_standby",
+                       "rpm", "voltage", "frequency", "engine_heater",
+                       "coolant_temp_sensor", "coolant_sensor", "oil_pressure", "oil_pressure_switch",
+                       "hand_pump", "silencer", "flex_pipe", "exhaust_pipe", "fuel_water_separator"]
+        has_engine = section_has_content(spec, engine_keys)
+
         data = [
             ["Engine (發動機)", ""],
             ["Feature", "Option"],
@@ -194,10 +200,10 @@ def generate_overview_pdf(specs, project_info, qty):
             ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
             ["", "Fuel Water Separator： " + (spec.get('fuel_water_separator') or '')]
         ]
-        elements.append(create_table(data))
+        elements.append(create_table(data, header_gray=has_engine))
         elements.append(Spacer(1, 8))
 
-        # ==================== Alternator（重點修改：有輸入就標題列變灰） ====================
+        # ==================== Alternator (電球) ====================
         alt_keys = ["alt_model", "alt_winding", "droop", "alt_color", "alt_sn", "alt_heater", "pmg"]
         has_alt = section_has_content(spec, alt_keys)
 
@@ -210,10 +216,14 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Color： " + (spec.get('alt_color') or ''), ""],
             ["S/N： " + (spec.get('alt_sn') or ''), ""],
         ]
-        elements.append(create_table(data, header_gray=has_alt))   # ← 這裡傳入 header_gray
+        elements.append(create_table(data, header_gray=has_alt))
         elements.append(Spacer(1, 8))
 
-        # ==================== Radiator ====================
+        # ==================== Radiator (水箱) ====================
+        rad_keys = ["rad_model", "rad_temp", "fan_size", "radiator_guard", "rad_sn",
+                    "fuel_cooler", "low_water", "murphy_coolant"]
+        has_rad = section_has_content(spec, rad_keys)
+
         data = [
             ["Radiator (水箱)", ""],
             ["Feature", "Option"],
@@ -223,10 +233,13 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), ""],
             ["S/N： " + (spec.get('rad_sn') or ''), ""],
         ]
-        elements.append(create_table(data))
+        elements.append(create_table(data, header_gray=has_rad))
         elements.append(Spacer(1, 8))
 
-        # ==================== Base Frame ====================
+        # ==================== Base Frame (底架) ====================
+        base_keys = ["base_model", "avm", "base_color", "base_sn"]
+        has_base = section_has_content(spec, base_keys)
+
         data = [
             ["Base Frame (底架)", ""],
             ["Feature", "Option"],
@@ -234,13 +247,16 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Anti-Vibration Mounts (避震腳)： " + (spec.get('avm') or ''), ""],
             ["S/N： " + (spec.get('base_sn') or ''), ""],
         ]
-        elements.append(create_table(data))
+        elements.append(create_table(data, header_gray=has_base))
         elements.append(Spacer(1, 8))
 
         # ==================== 第二頁 ====================
         elements.append(PageBreak())
 
-        # Container（Open Set 時整表變灰）
+        # ==================== Container (貨櫃) ====================
+        cont_keys = ["cont_type", "cont_size", "cont_sn", "co_detector", "cont_color"]
+        has_cont = section_has_content(spec, cont_keys)
+
         data = [
             ["Container (貨櫃)", ""],
             ["Feature", "Option"],
@@ -248,10 +264,14 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
             ["櫃號： " + (spec.get('cont_sn') or ''), ""],
         ]
-        elements.append(create_table(data, gray=is_open_set))
+        elements.append(create_table(data, gray=is_open_set, header_gray=has_cont))
         elements.append(Spacer(1, 8))
 
-        # Breaker
+        # ==================== Breaker (斷路器) ====================
+        breaker_keys = ["breaker_model", "breaker_type", "breaker_rating", "breaker_sn",
+                        "gear_motor", "shunt_trip", "closing_coil", "uv_relay"]
+        has_breaker = section_has_content(spec, breaker_keys)
+
         data = [
             ["Breaker (斷路器)", ""],
             ["Feature", "Option"],
@@ -260,10 +280,13 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Rating： " + (spec.get('breaker_rating') or ''), "Closing Coil： " + (spec.get('closing_coil') or '')],
             ["S/N： " + (spec.get('breaker_sn') or ''), "UV Relay： " + (spec.get('uv_relay') or '')],
         ]
-        elements.append(create_table(data))
+        elements.append(create_table(data, header_gray=has_breaker))
         elements.append(Spacer(1, 8))
 
-        # Control Panel
+        # ==================== Control Panel (控制器) ====================
+        panel_keys = ["panel_model", "panel_module", "panel_sn"]
+        has_panel = section_has_content(spec, panel_keys)
+
         data = [
             ["Control Panel (控制器)", ""],
             ["Feature", "Option"],
@@ -271,20 +294,26 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Module： " + (spec.get('panel_module') or ''), ""],
             ["S/N： " + (spec.get('panel_sn') or ''), ""],
         ]
-        elements.append(create_table(data))
+        elements.append(create_table(data, header_gray=has_panel))
         elements.append(Spacer(1, 8))
 
-        # Battery
+        # ==================== Battery (電池) ====================
+        battery_keys = ["battery_model", "battery_switch", "battery_rating", "charger_model"]
+        has_battery = section_has_content(spec, battery_keys)
+
         data = [
             ["Battery (電池)", ""],
             ["Feature", "Option"],
             ["Model (型號)： " + (spec.get('battery_model') or ''), "Charger Model： " + (spec.get('charger_model') or '')],
             ["Battery Switch： " + (spec.get('battery_switch') or ''), ""],
         ]
-        elements.append(create_table(data))
+        elements.append(create_table(data, header_gray=has_battery))
         elements.append(Spacer(1, 8))
 
-        # Fuel Tank（Open Set 時整表變灰）
+        # ==================== Fuel Tank (燃油箱) ====================
+        fuel_keys = ["fuel_volume", "fuel_layer", "fuel_gauge", "fuel_level_switch", "fuel_level_sensor", "donaldson_breather"]
+        has_fuel = section_has_content(spec, fuel_keys)
+
         data = [
             ["Fuel Tank (燃油箱)", ""],
             ["Feature", "Option"],
@@ -293,20 +322,23 @@ def generate_overview_pdf(specs, project_info, qty):
             ["", "Fuel Level Sensor： " + (spec.get('fuel_level_sensor') or '')],
             ["", "Donaldson Breather： " + (spec.get('donaldson_breather') or '')],
         ]
-        elements.append(create_table(data, gray=is_open_set))
+        elements.append(create_table(data, gray=is_open_set, header_gray=has_fuel))
         elements.append(Spacer(1, 8))
 
-        # Oil Tank（Open Set 時整表變灰）
+        # ==================== Oil Tank (機油箱) ====================
+        oil_keys = ["oil_volume", "oil_donaldson", "murphy_oil"]
+        has_oil = section_has_content(spec, oil_keys)
+
         data = [
             ["Oil Tank (機油箱)", ""],
             ["Feature", "Option"],
             ["Volume： " + (spec.get('oil_volume') or ''), "Donaldson Breather： " + (spec.get('oil_donaldson') or '')],
             ["", "Murphy Coolant Level Switch： " + (spec.get('murphy_oil') or '')],
         ]
-        elements.append(create_table(data, gray=is_open_set))
+        elements.append(create_table(data, gray=is_open_set, header_gray=has_oil))
         elements.append(Spacer(1, 12))
 
-        # Remarks
+        # ==================== Remarks ====================
         remarks = spec.get("remarks", "").strip()
         if remarks:
             elements.append(Paragraph("Remarks / 備註", normal))
