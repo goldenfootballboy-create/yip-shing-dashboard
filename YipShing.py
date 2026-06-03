@@ -1027,21 +1027,50 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                 source_i = 0
                 static_fields = [
+                    # 基本資訊
                     "so_number", "product_category", "product_code",
-                    "genset_model", "engine_year", "genset_sn", "engine_color", "prime_standby",
-                    "rpm", "voltage", "frequency", "engine_heater",
-                    "alt_model", "alt_winding", "droop", "alt_color", "alt_sn", "alt_heater", "pmg",
-                    "rad_model", "rad_temp", "fan_size", "radiator_guard",
-                    "fuel_cooler", "low_water", "murphy_coolant",
-                    "base_model", "avm", "base_color",
-                    "cont_type", "cont_size", "co_detector", "cont_color",
-                    "breaker_model", "breaker_type", "breaker_rating",
+
+                    # Engine Feature
+                    "genset_model", "engine_year", "engine_color", "prime_standby",
+                    "rpm", "voltage", "frequency", "genset_sn",
+
+                    # Engine Option
+                    "coolant_temp_sensor", "coolant_sensor", "oil_pressure", "oil_pressure_switch",
+                    "hand_pump", "silencer", "flex_pipe", "exhaust_pipe",
+                    "engine_heater", "fuel_water_separator",
+
+                    # Alternator
+                    "alt_model", "alt_winding", "alt_color", "alt_sn",
+                    "alt_heater", "droop", "pmg",
+
+                    # Radiator
+                    "rad_model", "rad_temp", "fan_size", "radiator_guard", "rad_sn",
+                    "fuel_cooler", "low_water", "murphy_coolant", "anti_freezer",
+
+                    # Base Frame
+                    "base_model", "avm", "base_color", "base_sn",
+
+                    # Container
+                    "cont_type", "cont_size", "cont_sn", "co_detector", "cont_color", "topone_sticker",
+
+                    # Breaker
+                    "breaker_model", "breaker_type", "breaker_rating", "breaker_sn",
                     "gear_motor", "shunt_trip", "closing_coil", "uv_relay",
-                    "panel_model", "panel_module",
-                    "battery_model", "battery_switch", "battery_rating", "charger_model",
-                    "fuel_volume", "fuel_layer", "fuel_water_separator",
-                    "fuel_gauge", "fuel_level_switch", "fuel_level_sensor", "donaldson_breather",
+
+                    # Control Panel
+                    "panel_model", "panel_module", "panel_sn",
+
+                    # Battery
+                    "battery_model", "battery_switch", "charger_model",
+
+                    # Fuel Tank
+                    "fuel_volume", "fuel_layer", "fuel_gauge", "fuel_level_switch",
+                    "fuel_level_sensor", "donaldson_breather", "three_way_valve",
+
+                    # Oil Tank
                     "oil_volume", "oil_donaldson", "murphy_oil",
+
+                    # Remarks
                     "remarks"
                 ]
 
@@ -1828,10 +1857,50 @@ if st.session_state.get("spec_dialog_open", False):
 
                 source_i = 0
                 static_fields = [
-                    "prime", "standby", "voltage", "frequency", "rpm",
-                    "genset_model", "engine_color", "engine_year", "engine_heater", "engine_source",
-                    "alt_model", "alt_color", "droop", "pmg", "alt_heater", "alt_source",
-                    "coolant_sensor", "oil_pressure", "hand_pump", "silencer", "flex_pipe", "exhaust_pipe",
+                    # 基本資訊
+                    "so_number", "product_category", "product_code",
+
+                    # Engine Feature
+                    "genset_model", "engine_year", "engine_color", "prime_standby",
+                    "rpm", "voltage", "frequency", "genset_sn",
+
+                    # Engine Option
+                    "coolant_temp_sensor", "coolant_sensor", "oil_pressure", "oil_pressure_switch",
+                    "hand_pump", "silencer", "flex_pipe", "exhaust_pipe",
+                    "engine_heater", "fuel_water_separator",
+
+                    # Alternator
+                    "alt_model", "alt_winding", "alt_color", "alt_sn",
+                    "alt_heater", "droop", "pmg",
+
+                    # Radiator
+                    "rad_model", "rad_temp", "fan_size", "radiator_guard", "rad_sn",
+                    "fuel_cooler", "low_water", "murphy_coolant", "anti_freezer",
+
+                    # Base Frame
+                    "base_model", "avm", "base_color", "base_sn",
+
+                    # Container
+                    "cont_type", "cont_size", "cont_sn", "co_detector", "cont_color", "topone_sticker",
+
+                    # Breaker
+                    "breaker_model", "breaker_type", "breaker_rating", "breaker_sn",
+                    "gear_motor", "shunt_trip", "closing_coil", "uv_relay",
+
+                    # Control Panel
+                    "panel_model", "panel_module", "panel_sn",
+
+                    # Battery
+                    "battery_model", "battery_switch", "charger_model",
+
+                    # Fuel Tank
+                    "fuel_volume", "fuel_layer", "fuel_gauge", "fuel_level_switch",
+                    "fuel_level_sensor", "donaldson_breather", "three_way_valve",
+
+                    # Oil Tank
+                    "oil_volume", "oil_donaldson", "murphy_oil",
+
+                    # Remarks
                     "remarks"
                 ]
 
@@ -1843,7 +1912,7 @@ if st.session_state.get("spec_dialog_open", False):
                             target_key = f"dlg_{field}_{target_i}"
                             st.session_state[target_key] = value
 
-                st.success("已成功複製規格！")
+                st.success("已成功將第 1 台的規格複製到其他所有台！")
                 st.rerun()
 
         for i in range(qty):
