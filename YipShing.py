@@ -230,7 +230,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Model (型號)： " + (spec.get('rad_model') or ''), "Fuel Cooler： " + (spec.get('fuel_cooler') or '')],
             ["Degree (温度)： " + (spec.get('rad_temp') or ''), "Low Water Level Switch： " + (spec.get('low_water') or '')],
             ["Fan Size (扇呎吋)： " + (spec.get('fan_size') or ''), "Murphy Coolant Level Switch： " + (spec.get('murphy_coolant') or '')],
-            ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), ""],
+            ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), "Anti-Freezer： " + (spec.get('anti_freezer') or '')],
             ["S/N： " + (spec.get('rad_sn') or ''), ""],
         ]
         elements.append(create_table(data, header_gray=has_rad))
@@ -262,7 +262,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Feature", "Option"],
             ["Type (型號)： " + (spec.get('cont_type') or ''), "CO Detector： " + (spec.get('co_detector') or '')],
             ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
-            ["櫃號： " + (spec.get('cont_sn') or ''), ""],
+            ["櫃號： " + (spec.get('cont_sn') or ''), "Topone 貼紙： " + (spec.get('topone_sticker') or '')],
         ]
         elements.append(create_table(data, gray=is_open_set, header_gray=has_cont))
         elements.append(Spacer(1, 8))
@@ -321,6 +321,7 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Layer： " + (spec.get('fuel_layer') or ''), "Fuel Level Switch： " + (spec.get('fuel_level_switch') or '')],
             ["", "Fuel Level Sensor： " + (spec.get('fuel_level_sensor') or '')],
             ["", "Donaldson Breather： " + (spec.get('donaldson_breather') or '')],
+            ["", "3 way Valve： " + (spec.get('three_way_valve') or '')],
         ]
         elements.append(create_table(data, gray=is_open_set, header_gray=has_fuel))
         elements.append(Spacer(1, 8))
@@ -2147,8 +2148,7 @@ if st.session_state.get("spec_dialog_open", False):
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("Topone 貼紙")
-                        with col_input: e_topone_sticker = st.text_input("", value=current.get("topone_sticker", ""),
-                                                                         key=f"edit_topone_sticker_{idx_to_edit}_{i}",
+                        with col_input: s_topone_sticker = st.text_input("", key=f"dlg_topone_sticker_{i}",
                                                                          label_visibility="collapsed")
 
                 st.markdown("---")
