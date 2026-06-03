@@ -177,7 +177,8 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Silencer： " + (spec.get('silencer') or '')],
             ["Frequency (頻率)： " + (spec.get('frequency') or ''),"Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
             ["S/N (序號)： " + (spec.get('genset_sn') or ''), "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
-            ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')]  # ← 強制放在 Option 欄
+            ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],  # ← 強制放在 Option 欄
+            ["", "Fuel Water Separator： " + (spec.get('fuel_water_separator') or '')]
         ]
         elements.append(create_table(data))
         elements.append(Spacer(1, 8))
@@ -1078,11 +1079,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                     key=f"edit_frequency_{idx_to_edit}_{i}",
                                                                     label_visibility="collapsed")
 
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Heater (加熱器) kW")
-                        with col_input: e_engine_heater = st.text_input("", value=current.get("engine_heater", ""),
-                                                                        key=f"edit_engine_heater_{idx_to_edit}_{i}",
-                                                                        label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("S/N (序號)")
@@ -1145,6 +1141,20 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         with col_input: e_exhaust_pipe = st.text_input("", value=current.get("exhaust_pipe", ""),
                                                                        key=f"edit_exhaust_pipe_{idx_to_edit}_{i}",
                                                                        label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Heater (加熱器) kW")
+                        with col_input: e_engine_heater = st.text_input("", value=current.get("engine_heater", ""),
+                                                                        key=f"edit_engine_heater_{idx_to_edit}_{i}",
+                                                                        label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Fuel Water Separator")
+                        with col_input: e_fuel_water_separator = st.text_input("",
+                                                                               value=current.get("fuel_water_separator",
+                                                                                                 ""),
+                                                                               key=f"edit_fuel_water_separator_{idx_to_edit}_{i}",
+                                                                               label_visibility="collapsed")
 
                 st.markdown("---")
 
@@ -1491,13 +1501,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                      key=f"edit_fuel_layer_{idx_to_edit}_{i}",
                                                                      label_visibility="collapsed")
 
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Fuel Water Separator")
-                        with col_input: e_fuel_water_separator = st.text_input("",
-                                                                               value=current.get("fuel_water_separator",
-                                                                                                 ""),
-                                                                               key=f"edit_fuel_water_separator_{idx_to_edit}_{i}",
-                                                                               label_visibility="collapsed")
 
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
@@ -1840,10 +1843,6 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input: s_frequency = st.text_input("", key=f"dlg_frequency_{i}",
                                                                     label_visibility="collapsed")
 
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Heater (加熱器) kW")
-                        with col_input: s_engine_heater = st.text_input("", key=f"dlg_engine_heater_{i}",
-                                                                        label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
                         with col_label: st.markdown("S/N (序號)")
@@ -1893,6 +1892,16 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Exhaust Pipe")
                         with col_input: s_exhaust_pipe = st.text_input("", key=f"dlg_exhaust_pipe_{i}",
                                                                        label_visibility="collapsed")
+
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Heater (加熱器) kW")
+                        with col_input: s_engine_heater = st.text_input("", key=f"dlg_engine_heater_{i}",
+                                                                        label_visibility="collapsed")
+                        col_label, col_input = st.columns([2, 3])
+                        with col_label: st.markdown("Fuel Water Separator")
+                        with col_input: s_fuel_water_separator = st.text_input("", key=f"dlg_fuel_water_separator_{i}",
+                                                                               label_visibility="collapsed")
+
 
                 st.markdown("---")
 
@@ -2192,10 +2201,6 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input: s_fuel_layer = st.text_input("", key=f"dlg_fuel_layer_{i}",
                                                                      label_visibility="collapsed")
 
-                        col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Fuel Water Separator")
-                        with col_input: s_fuel_water_separator = st.text_input("", key=f"dlg_fuel_water_separator_{i}",
-                                                                               label_visibility="collapsed")
 
                     with col_option:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Option</h4>",
