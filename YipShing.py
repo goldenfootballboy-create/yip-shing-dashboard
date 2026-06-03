@@ -131,14 +131,20 @@ def generate_overview_pdf(specs, project_info, qty):
     def create_table(data, gray=False, header_gray=False):
         t = Table(data, colWidths=[255, 255])
         style_commands = [
-            ('FONTNAME', (0,0), (0,0), 'NotoSansTC-Bold'),
-            ('FONTSIZE', (0,0), (0,0), 13),
-            ('SPAN', (0,0), (1,0)),
-            ('ALIGN', (0,0), (1,0), 'CENTER'),
-            ('FONTNAME', (0,1), (-1,-1), 'NotoSansTC'),
-            ('FONTSIZE', (0,1), (-1,-1), 10.5),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+            ('FONTNAME', (0, 0), (0, 0), 'NotoSansTC-Bold'),
+            ('FONTSIZE', (0, 0), (0, 0), 13),
+            ('SPAN', (0, 0), (1, 0)),
+            ('ALIGN', (0, 0), (1, 0), 'CENTER'),
+
+            # ==================== 只讓 "Feature" 和 "Option" 置中 ====================
+            ('ALIGN', (0, 1), (0, 1), 'CENTER'),  # Feature 水平置中
+            ('ALIGN', (1, 1), (1, 1), 'CENTER'),  # Option 水平置中
+            ('VALIGN', (0, 1), (1, 1), 'MIDDLE'),  # 垂直置中
+
+            ('FONTNAME', (0, 2), (-1, -1), 'NotoSansTC'),
+            ('FONTSIZE', (0, 2), (-1, -1), 10.5),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
         ]
 
         # Open Set 整表變灰
