@@ -211,7 +211,9 @@ def generate_overview_pdf(specs, project_info, qty):
              "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
             ["", "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
             ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
-            ["", "Fuel Water Separator： " + (spec.get('fuel_water_separator') or '')]
+            ["", "Fuel Water Separator： " + (spec.get('fuel_water_separator') or '')],
+            ["", "" + (spec.get('engine_custom1') or '')],
+            ["", "" + (spec.get('engine_custom2') or '')]
         ]
         elements.append(create_table(data, header_gray=has_engine))
         elements.append(Spacer(1, 8))
@@ -281,6 +283,9 @@ def generate_overview_pdf(specs, project_info, qty):
             ["Type (型號)： " + (spec.get('cont_type') or ''), "CO Detector： " + (spec.get('co_detector') or '')],
             ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
             ["櫃號： " + (spec.get('cont_sn') or ''), "Topone 貼紙： " + (spec.get('topone_sticker') or '')],
+            ["", "" + (spec.get('container_custom1') or '')],
+            ["", "" + (spec.get('container_custom2') or '')],
+            ["", "" + (spec.get('container_custom3') or '')]
         ]
         elements.append(create_table(data, gray=is_open_set, header_gray=has_cont))
         elements.append(Spacer(1, 8))
@@ -1259,6 +1264,20 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                                key=f"edit_fuel_water_separator_{idx_to_edit}_{i}",
                                                                                label_visibility="collapsed")
 
+                        col1, col2 = st.columns([2, 3])
+                        with col1:
+                            e_engine_custom1 = st.text_input("",
+                                                             value=current.get("engine_custom1", ""),
+                                                             key=f"edit_engine_custom1_{idx_to_edit}_{i}",
+                                                             label_visibility="collapsed",
+                                                             placeholder="自訂 1")
+                        with col2:
+                            e_engine_custom2 = st.text_input("",
+                                                             value=current.get("engine_custom2", ""),
+                                                             key=f"edit_engine_custom2_{idx_to_edit}_{i}",
+                                                             label_visibility="collapsed",
+                                                             placeholder="自訂 2")
+
                 st.markdown("---")
 
                 # ==================== Alternator (電球) ====================
@@ -1491,6 +1510,29 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         with col_input: e_topone_sticker = st.text_input("", value=current.get("topone_sticker", ""),
                                                                          key=f"edit_topone_sticker_{idx_to_edit}_{i}",
                                                                          label_visibility="collapsed")
+
+                        col1, col2, col3 = st.columns([2,3])
+                        with col1:
+                            e_container_custom1 = st.text_input("",
+                                                                value=current.get("container_custom1", ""),
+                                                                key=f"edit_container_custom1_{idx_to_edit}_{i}",
+                                                                label_visibility="collapsed",
+                                                                placeholder="自訂 1")
+                        with col2:
+                            e_container_custom2 = st.text_input("",
+                                                                value=current.get("container_custom2", ""),
+                                                                key=f"edit_container_custom2_{idx_to_edit}_{i}",
+                                                                label_visibility="collapsed",
+                                                                placeholder="自訂 2")
+
+                        col1 = st.columns(2)
+                        with col1:
+                            e_container_custom3 = st.text_input("",
+                                                                value=current.get("container_custom3", ""),
+                                                                key=f"edit_container_custom3_{idx_to_edit}_{i}",
+                                                                label_visibility="collapsed",
+                                                                placeholder="自訂 3")
+
 
                 st.markdown("---")
 
@@ -1729,7 +1771,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "frequency": e_frequency.strip(),
                     "engine_heater": e_engine_heater,
                     "coolant_temp_switch": e_coolant_temp_switch,
-
+                    "engine_custom1": e_engine_custom1,
+                    "engine_custom2": e_engine_custom2,
                     # Engine Option（已全部加入）
                     "coolant_temp_sensor": e_coolant_temp_sensor,
                     "oil_pressure_switch": e_oil_pressure_switch,
@@ -1775,6 +1818,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "cont_color": e_cont_color,
                     "cont_sn": e_cont_sn,
                     "topone_sticker": e_topone_sticker,
+                    "container_custom1": e_container_custom1,
+                    "container_custom2": e_container_custom2,
+                    "container_custom3": e_container_custom3,
                     # ==================== Breaker ====================
                     "breaker_model": e_breaker_model,
                     "breaker_type": e_breaker_type,
@@ -2092,6 +2138,18 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input: s_fuel_water_separator = st.text_input("", key=f"dlg_fuel_water_separator_{i}",
                                                                                label_visibility="collapsed")
 
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            s_engine_custom1 = st.text_input("",
+                                                             key=f"dlg_engine_custom1_{i}",
+                                                             label_visibility="collapsed",
+                                                             placeholder="自訂 1")
+                        with col2:
+                            s_engine_custom2 = st.text_input("",
+                                                             key=f"dlg_engine_custom2_{i}",
+                                                             label_visibility="collapsed",
+                                                             placeholder="自訂 2")
+
 
                 st.markdown("---")
 
@@ -2290,6 +2348,25 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_label: st.markdown("Topone 貼紙")
                         with col_input: s_topone_sticker = st.text_input("", key=f"dlg_topone_sticker_{i}",
                                                                          label_visibility="collapsed")
+
+                        col1, col2 = st.columns([2,3])
+                        with col1:
+                            s_container_custom1 = st.text_input("",
+                                                                key=f"dlg_container_custom1_{i}",
+                                                                label_visibility="collapsed",
+                                                                placeholder="自訂 1")
+                        with col2:
+                            s_container_custom2 = st.text_input("",
+                                                                key=f"dlg_container_custom2_{i}",
+                                                                label_visibility="collapsed",
+                                                                placeholder="自訂 2")
+                        col13 = st.columns(2)
+                        with col3:
+                            s_container_custom3 = st.text_input("",
+                                                                key=f"dlg_container_custom3_{i}",
+                                                                label_visibility="collapsed",
+                                                                placeholder="自訂 3")
+
 
                 st.markdown("---")
 
@@ -2495,6 +2572,8 @@ if st.session_state.get("spec_dialog_open", False):
                     "frequency": s_frequency.strip(),
                     "engine_heater": s_engine_heater,
                     "coolant_temp_switch": s_coolant_temp_switch,
+                    "engine_custom1": s_engine_custom1,
+                    "engine_custom2": s_engine_custom2,
 
                     # ==================== Alternator ====================
                     "alt_model": s_alt_model,
@@ -2530,6 +2609,9 @@ if st.session_state.get("spec_dialog_open", False):
                     "cont_color": s_cont_color,
                     "cont_sn": s_cont_sn,
                     "topone_sticker": s_topone_sticker,
+                    "container_custom1": s_container_custom1,
+                    "container_custom2": s_container_custom2,
+                    "container_custom3": s_container_custom3,
                     # ==================== Breaker ====================
                     "breaker_model": s_breaker_model,
                     "breaker_type": s_breaker_type,
