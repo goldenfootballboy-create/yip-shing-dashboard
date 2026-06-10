@@ -1511,7 +1511,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                          key=f"edit_topone_sticker_{idx_to_edit}_{i}",
                                                                          label_visibility="collapsed")
 
-                        col1, col2= st.columns([2,3])
+                        col1, col2, col3 = st.columns(3)
                         with col1:
                             e_container_custom1 = st.text_input("",
                                                                 value=current.get("container_custom1", ""),
@@ -1524,8 +1524,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                 key=f"edit_container_custom2_{idx_to_edit}_{i}",
                                                                 label_visibility="collapsed",
                                                                 placeholder="自訂 2")
-
-                        col3 = st.columns(2)
                         with col3:
                             e_container_custom3 = st.text_input("",
                                                                 value=current.get("container_custom3", ""),
