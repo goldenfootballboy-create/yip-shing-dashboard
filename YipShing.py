@@ -234,17 +234,22 @@ def generate_overview_pdf(specs, project_info, qty):
 
         # ==================== Radiator (水箱) ====================
         rad_keys = ["rad_model", "rad_temp", "fan_size", "radiator_guard", "rad_sn",
-                    "fuel_cooler", "low_water", "murphy_coolant","anti_freezer"]
+                    "fuel_cooler", "low_water", "murphy_coolant", "anti_freezer",
+                    "radiator_custom1", "radiator_custom2"]  # ← 已加入新欄位
         has_rad = section_has_content(spec, rad_keys)
 
         data = [
             ["Radiator (水箱)", ""],
             ["Feature", "Option"],
             ["Model (型號)： " + (spec.get('rad_model') or ''), "Fuel Cooler： " + (spec.get('fuel_cooler') or '')],
-            ["Degree (温度)： " + (spec.get('rad_temp') or ''), "Low Water Level Switch： " + (spec.get('low_water') or '')],
-            ["Fan Size (扇呎吋)： " + (spec.get('fan_size') or ''), "Murphy Coolant Level Switch： " + (spec.get('murphy_coolant') or '')],
-            ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), "Anti-Freezer： " + (spec.get('anti_freezer') or '')],
-            ["S/N： " + (spec.get('rad_sn') or ''), ""],
+            ["Degree (温度)： " + (spec.get('rad_temp') or ''),
+             "Low Water Level Switch： " + (spec.get('low_water') or '')],
+            ["Fan Size (扇呎吋)： " + (spec.get('fan_size') or ''),
+             "Murphy Coolant Level Switch： " + (spec.get('murphy_coolant') or '')],
+            ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''),
+             "Anti-Freezer： " + (spec.get('anti_freezer') or '')],
+            ["S/N： " + (spec.get('rad_sn') or ''), "自行輸入 1： " + (spec.get('radiator_custom1') or '')],  # ← 新增
+            ["", "自行輸入 2： " + (spec.get('radiator_custom2') or '')],  # ← 新增
         ]
         elements.append(create_table(data, header_gray=has_rad))
         elements.append(Spacer(1, 8))
@@ -1378,6 +1383,21 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                        key=f"edit_anti_freezer_{idx_to_edit}_{i}",
                                                                        label_visibility="collapsed")
 
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            e_radiator_custom1 = st.text_input("",
+                                                               value=current.get("radiator_custom1", ""),
+                                                               key=f"edit_radiator_custom1_{idx_to_edit}_{i}",
+                                                               label_visibility="collapsed",
+                                                               placeholder="自行輸入 1")
+                        with col2:
+                            e_radiator_custom2 = st.text_input("",
+                                                               value=current.get("radiator_custom2", ""),
+                                                               key=f"edit_radiator_custom2_{idx_to_edit}_{i}",
+                                                               label_visibility="collapsed",
+                                                               placeholder="自行輸入 2")
+
+
                 st.markdown("---")
 
                 # ==================== Base Frame (底架) ====================
@@ -1739,6 +1759,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "low_water": e_low_water,  # ← 新增
                     "murphy_coolant": e_murphy_coolant,
                     "anti_freezer": e_anti_freezer,
+                    "radiator_custom1": e_radiator_custom1,
+                    "radiator_custom2": e_radiator_custom2,
                     # ==================== Base Frame ====================
                     "base_model": e_base_model,
                     "avm": e_avm,
@@ -2175,6 +2197,18 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input: s_anti_freezer = st.text_input("", key=f"dlg_anti_freezer_{i}",
                                                                        label_visibility="collapsed")
 
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            s_radiator_custom1 = st.text_input("",
+                                                               key=f"dlg_radiator_custom1_{i}",
+                                                               label_visibility="collapsed",
+                                                               placeholder="自行輸入 1")
+                        with col2:
+                            s_radiator_custom2 = st.text_input("",
+                                                               key=f"dlg_radiator_custom2_{i}",
+                                                               label_visibility="collapsed",
+                                                               placeholder="自行輸入 2")
+
                 st.markdown("---")
 
                 # ==================== Base Frame (底架) ====================
@@ -2481,6 +2515,8 @@ if st.session_state.get("spec_dialog_open", False):
                     "murphy_coolant": s_murphy_coolant,
                     "rad_sn": s_rad_sn,
                     "anti_freezer": s_anti_freezer,
+                    "radiator_custom1": s_radiator_custom1,
+                    "radiator_custom2": s_radiator_custom2,
                     # ==================== Base Frame ====================
                     "base_model": s_base_model,
                     "avm": s_avm,
