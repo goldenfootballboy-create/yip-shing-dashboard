@@ -1402,7 +1402,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                        key=f"edit_anti_freezer_{idx_to_edit}_{i}",
                                                                        label_visibility="collapsed")
 
-                        col1, col2 = st.columns(2)
+                        col1, col2 = st.columns([2,3])
                         with col1:
                             e_radiator_custom1 = st.text_input("",
                                                                value=current.get("radiator_custom1", ""),
@@ -1511,7 +1511,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                          key=f"edit_topone_sticker_{idx_to_edit}_{i}",
                                                                          label_visibility="collapsed")
 
-                        col1, col2, col3 = st.columns([2,3])
+                        col1, col2= st.columns([2,3])
                         with col1:
                             e_container_custom1 = st.text_input("",
                                                                 value=current.get("container_custom1", ""),
@@ -1525,8 +1525,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                 label_visibility="collapsed",
                                                                 placeholder="自訂 2")
 
-                        col1 = st.columns(2)
-                        with col1:
+                        col3 = st.columns(2)
+                        with col3:
                             e_container_custom3 = st.text_input("",
                                                                 value=current.get("container_custom3", ""),
                                                                 key=f"edit_container_custom3_{idx_to_edit}_{i}",
@@ -2138,7 +2138,7 @@ if st.session_state.get("spec_dialog_open", False):
                         with col_input: s_fuel_water_separator = st.text_input("", key=f"dlg_fuel_water_separator_{i}",
                                                                                label_visibility="collapsed")
 
-                        col1, col2 = st.columns(2)
+                        col1, col2 = st.columns([2,3])
                         with col1:
                             s_engine_custom1 = st.text_input("",
                                                              key=f"dlg_engine_custom1_{i}",
