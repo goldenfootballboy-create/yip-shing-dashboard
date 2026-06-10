@@ -248,8 +248,8 @@ def generate_overview_pdf(specs, project_info, qty):
              "Murphy Coolant Level Switch： " + (spec.get('murphy_coolant') or '')],
             ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''),
              "Anti-Freezer： " + (spec.get('anti_freezer') or '')],
-            ["S/N： " + (spec.get('rad_sn') or ''), "自行輸入 1： " + (spec.get('radiator_custom1') or '')],  # ← 新增
-            ["", "自行輸入 2： " + (spec.get('radiator_custom2') or '')],  # ← 新增
+            ["S/N： " + (spec.get('rad_sn') or ''), "" + (spec.get('radiator_custom1') or '')],  # ← 新增
+            ["", "" + (spec.get('radiator_custom2') or '')],  # ← 新增
         ]
         elements.append(create_table(data, header_gray=has_rad))
         elements.append(Spacer(1, 8))
