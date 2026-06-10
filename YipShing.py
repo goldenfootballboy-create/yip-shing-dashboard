@@ -1062,6 +1062,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
                     "hand_pump", "silencer", "flex_pipe", "exhaust_pipe",
                     "engine_heater", "fuel_water_separator",
 
+                    # ==================== 新增：Engine 自訂欄位 ====================
+                    "engine_custom1", "engine_custom2",
+
                     # Alternator
                     "alt_model", "alt_winding", "alt_color", "alt_sn",
                     "alt_heater", "droop", "pmg",
@@ -1075,6 +1078,9 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                     # Container
                     "cont_type", "cont_size", "cont_sn", "co_detector", "cont_color", "topone_sticker",
+
+                    # ==================== 新增：Container 自訂欄位 ====================
+                    "container_custom1", "container_custom2", "container_custom3",
 
                     # Breaker
                     "breaker_model", "breaker_type", "breaker_rating", "breaker_sn",
@@ -1962,6 +1968,9 @@ if st.session_state.get("spec_dialog_open", False):
                     "hand_pump", "silencer", "flex_pipe", "exhaust_pipe",
                     "engine_heater", "fuel_water_separator",
 
+                    # ==================== 新增：Engine 自訂欄位 ====================
+                    "engine_custom1", "engine_custom2",
+
                     # Alternator
                     "alt_model", "alt_winding", "alt_color", "alt_sn",
                     "alt_heater", "droop", "pmg",
@@ -1975,6 +1984,9 @@ if st.session_state.get("spec_dialog_open", False):
 
                     # Container
                     "cont_type", "cont_size", "cont_sn", "co_detector", "cont_color", "topone_sticker",
+
+                    # ==================== 新增：Container 自訂欄位 ====================
+                    "container_custom1", "container_custom2", "container_custom3",
 
                     # Breaker
                     "breaker_model", "breaker_type", "breaker_rating", "breaker_sn",
