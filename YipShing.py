@@ -2584,105 +2584,117 @@ if st.session_state.get("spec_dialog_open", False):
                 s_remarks = st.text_area("Remarks", height=150, key=f"dlg_remarks_{i}")
 
                 # ==================== 收集資料 ====================
+                # ==================== 收集資料 ====================
                 spec_data = {
-                    # ==================== Marine 專用欄位 ====================
+                    # 基本資訊（所有模式都有）
                     "so_number": s_so_number,
                     "product_category": s_product_category,
                     "product_code": s_product_code,
-
-                    # Marine 15 個自訂欄位
-                    **{f"marine_spec_{j}": marine_inputs[j - 1] for j in range(1, 16)},
-                    "genset_model": s_genset_model,
-                    "engine_year": s_engine_year,
-                    "genset_sn": s_genset_sn,
-                    "engine_color": s_engine_color,
-                    "prime_standby": s_prime_standby.strip() if 's_prime_standby' in locals() else "",
-                    "rpm": s_rpm.strip(),
-                    "voltage": s_voltage.strip(),
-                    "frequency": s_frequency.strip(),
-                    "engine_heater": s_engine_heater,
-                    "coolant_temp_switch": s_coolant_temp_switch,
-                    "engine_custom1": s_engine_custom1,
-                    "engine_custom2": s_engine_custom2,
-
-                    # ==================== Alternator ====================
-                    "alt_model": s_alt_model,
-                    "alt_winding": s_alt_winding,
-                    "droop": s_droop,
-                    "alt_color": s_alt_color,
-                    "alt_sn": s_alt_sn,
-                    "alt_heater": s_alt_heater,
-                    "pmg": s_pmg,
-
-                    # ==================== Radiator ====================
-                    "rad_model": s_rad_model,
-                    "rad_temp": s_rad_temp,
-                    "fan_size": s_fan_size,
-                    "radiator_guard": s_radiator_guard,
-                    "fuel_cooler": s_fuel_cooler,
-                    "low_water": s_low_water,
-                    "murphy_coolant": s_murphy_coolant,
-                    "rad_sn": s_rad_sn,
-                    "anti_freezer": s_anti_freezer,
-                    "radiator_custom1": s_radiator_custom1,
-                    "radiator_custom2": s_radiator_custom2,
-                    # ==================== Base Frame ====================
-                    "base_model": s_base_model,
-                    "avm": s_avm,
-                    "base_color": s_base_color,
-                    "base_sn": s_base_sn,
-                    "spring_isolator": s_spring_isolator,
-                    # ==================== Container ====================
-                    "cont_type": s_cont_type,
-                    "cont_size": s_cont_size,
-                    "co_detector": s_co_detector,
-                    "cont_color": s_cont_color,
-                    "cont_sn": s_cont_sn,
-                    "topone_sticker": s_topone_sticker,
-                    "container_custom1": s_container_custom1,
-                    "container_custom2": s_container_custom2,
-                    "container_custom3": s_container_custom3,
-                    # ==================== Breaker ====================
-                    "breaker_model": s_breaker_model,
-                    "breaker_type": s_breaker_type,
-                    "breaker_rating": s_breaker_rating,
-                    "gear_motor": s_gear_motor,
-                    "shunt_trip": s_shunt_trip,
-                    "closing_coil": s_closing_coil,
-                    "uv_relay": s_uv_relay,
-                    "breaker_sn": s_breaker_sn,
-                    # ==================== Control Panel ====================
-                    "panel_model": s_panel_model,
-                    "panel_module": s_panel_module,
-                    "panel_sn": s_panel_sn,
-                    # ==================== Battery ====================
-                    "battery_model": s_battery_model,
-                    "battery_switch": s_battery_switch,
-                    "charger_model": s_charger_model,
-
-                    # ==================== Fuel Tank ====================
-                    "fuel_volume": s_fuel_volume,
-                    "fuel_layer": s_fuel_layer,
-                    "fuel_water_separator": s_fuel_water_separator,
-                    "fuel_gauge": s_fuel_gauge,
-                    "fuel_level_switch": s_fuel_level_switch,
-                    "fuel_level_sensor": s_fuel_level_sensor,
-                    "donaldson_breather": s_donaldson_breather,
-                    "three_way_valve": s_three_way_valve,
-
-                    # ==================== Oil Tank ====================
-                    "oil_volume": s_oil_volume,
-                    "oil_donaldson": s_oil_donaldson,
-                    "murphy_oil": s_murphy_oil,
-                    "coolant_temp_sensor": s_coolant_temp_sensor,
-                    "oil_pressure_switch": s_oil_pressure_switch,
-                    # ==================== Remarks ====================
-                    "remarks": s_remarks.strip(),
-                    "so_number": s_so_number,
-                    "product_category": s_product_category,
-                    "product_code": s_product_code,
-                    "qty": qty  # 固定數量
                 }
+
+                if project_type == "Marine":
+                    # ==================== Marine 模式 ====================
+                    spec_data.update({
+                        **{f"marine_spec_{j}": marine_inputs[j-1] for j in range(1, 16)}
+                    })
+                else:
+                    # ==================== 一般模式 ====================
+                    spec_data.update({
+                        # Engine
+                        "genset_model": s_genset_model,
+                        "engine_year": s_engine_year,
+                        "genset_sn": s_genset_sn,
+                        "engine_color": s_engine_color,
+                        "prime_standby": s_prime_standby.strip() if s_prime_standby else "",
+                        "rpm": s_rpm.strip(),
+                        "voltage": s_voltage.strip(),
+                        "frequency": s_frequency.strip(),
+                        "engine_heater": s_engine_heater,
+
+                        # Engine Option
+                        "coolant_temp_sensor": s_coolant_temp_sensor,
+                        "coolant_sensor": s_coolant_sensor,
+                        "oil_pressure": s_oil_pressure,
+                        "oil_pressure_switch": s_oil_pressure_switch,
+                        "hand_pump": s_hand_pump,
+                        "silencer": s_silencer,
+                        "flex_pipe": s_flex_pipe,
+                        "exhaust_pipe": s_exhaust_pipe,
+                        "fuel_water_separator": s_fuel_water_separator,
+
+                        # Alternator
+                        "alt_model": s_alt_model,
+                        "alt_winding": s_alt_winding,
+                        "droop": s_droop,
+                        "alt_color": s_alt_color,
+                        "alt_sn": s_alt_sn,
+                        "alt_heater": s_alt_heater,
+                        "pmg": s_pmg,
+
+                        # Radiator
+                        "rad_model": s_rad_model,
+                        "rad_temp": s_rad_temp,
+                        "fan_size": s_fan_size,
+                        "radiator_guard": s_radiator_guard,
+                        "rad_sn": s_rad_sn,
+                        "fuel_cooler": s_fuel_cooler,
+                        "low_water": s_low_water,
+                        "murphy_coolant": s_murphy_coolant,
+                        "anti_freezer": s_anti_freezer,
+
+                        # Base Frame
+                        "base_model": s_base_model,
+                        "avm": s_avm,
+                        "base_color": s_base_color,
+                        "base_sn": s_base_sn,
+
+                        # Container
+                        "cont_type": s_cont_type,
+                        "cont_size": s_cont_size,
+                        "cont_sn": s_cont_sn,
+                        "co_detector": s_co_detector,
+                        "cont_color": s_cont_color,
+                        "topone_sticker": s_topone_sticker,
+
+                        # Breaker
+                        "breaker_model": s_breaker_model,
+                        "breaker_type": s_breaker_type,
+                        "breaker_rating": s_breaker_rating,
+                        "breaker_sn": s_breaker_sn,
+                        "gear_motor": s_gear_motor,
+                        "shunt_trip": s_shunt_trip,
+                        "closing_coil": s_closing_coil,
+                        "uv_relay": s_uv_relay,
+
+                        # Control Panel
+                        "panel_model": s_panel_model,
+                        "panel_module": s_panel_module,
+                        "panel_sn": s_panel_sn,
+
+                        # Battery
+                        "battery_model": s_battery_model,
+                        "battery_switch": s_battery_switch,
+                        "charger_model": s_charger_model,
+
+                        # Fuel Tank
+                        "fuel_volume": s_fuel_volume,
+                        "fuel_layer": s_fuel_layer,
+                        "fuel_water_separator": s_fuel_water_separator,
+                        "fuel_gauge": s_fuel_gauge,
+                        "fuel_level_switch": s_fuel_level_switch,
+                        "fuel_level_sensor": s_fuel_level_sensor,
+                        "donaldson_breather": s_donaldson_breather,
+                        "three_way_valve": s_three_way_valve,
+
+                        # Oil Tank
+                        "oil_volume": s_oil_volume,
+                        "oil_donaldson": s_oil_donaldson,
+                        "murphy_oil": s_murphy_oil,
+
+                        # Remarks
+                        "remarks": s_remarks.strip() if 's_remarks' in locals() else "",
+                    })
+
                 specs.append(spec_data)
         # PDF 按鈕
         if st.button("📄 Export PDF", type="secondary", use_container_width=True):
