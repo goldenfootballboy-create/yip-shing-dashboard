@@ -1803,6 +1803,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                          key=f"edit_remarks_{idx_to_edit}_{i}")
 
                 # ==================== 收集資料 ====================
+                # ==================== 收集資料 ====================
                 spec_data = {
                     "so_number": e_so_number,
                     "product_category": e_product_category,
@@ -1810,18 +1811,15 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 }
 
                 if project_type == "Marine":
-                    # Marine 模式只收集 15 個自訂欄位
+                    # ==================== Marine 模式 ====================
                     for j in range(1, 16):
                         key = f"edit_marine_spec_{j}_{idx_to_edit}_{i}"
                         spec_data[f"marine_spec_{j}"] = st.session_state.get(key, "")
-                else:
-                    spec_data.update({
-                        # ==================== 基本資訊 ====================
-                        "so_number": e_so_number,
-                        "product_category": e_product_category,
-                        "product_code": e_product_code,
 
-                        # ==================== Engine ====================
+                else:
+                    # ==================== 一般模式 ====================
+                    spec_data.update({
+                        # Engine
                         "genset_model": e_genset_model,
                         "engine_year": e_engine_year,
                         "genset_sn": e_genset_sn,
@@ -1831,20 +1829,19 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         "voltage": e_voltage.strip(),
                         "frequency": e_frequency.strip(),
                         "engine_heater": e_engine_heater,
-                        "coolant_temp_switch": e_coolant_temp_switch,
-                        "engine_custom1": e_engine_custom1,
-                        "engine_custom2": e_engine_custom2,
-                        # Engine Option（已全部加入）
+
+                        # Engine Option
                         "coolant_temp_sensor": e_coolant_temp_sensor,
-                        "oil_pressure_switch": e_oil_pressure_switch,
                         "coolant_sensor": e_coolant_sensor,
                         "oil_pressure": e_oil_pressure,
+                        "oil_pressure_switch": e_oil_pressure_switch,
                         "hand_pump": e_hand_pump,
-                        "silencer": e_silencer,  # ← 已加入
-                        "flex_pipe": e_flex_pipe,  # ← 已加入
+                        "silencer": e_silencer,
+                        "flex_pipe": e_flex_pipe,
                         "exhaust_pipe": e_exhaust_pipe,
+                        "fuel_water_separator": e_fuel_water_separator,
 
-                        # ==================== Alternator ====================
+                        # Alternator
                         "alt_model": e_alt_model,
                         "alt_winding": e_alt_winding,
                         "droop": e_droop,
@@ -1853,73 +1850,70 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         "alt_heater": e_alt_heater,
                         "pmg": e_pmg,
 
-                        # ==================== Radiator ====================
+                        # Radiator
                         "rad_model": e_rad_model,
                         "rad_temp": e_rad_temp,
                         "fan_size": e_fan_size,
                         "radiator_guard": e_radiator_guard,
                         "rad_sn": e_rad_sn,
-                        "fuel_cooler": e_fuel_cooler,  # ← 新增
-                        "low_water": e_low_water,  # ← 新增
+                        "fuel_cooler": e_fuel_cooler,
+                        "low_water": e_low_water,
                         "murphy_coolant": e_murphy_coolant,
                         "anti_freezer": e_anti_freezer,
-                        "radiator_custom1": e_radiator_custom1,
-                        "radiator_custom2": e_radiator_custom2,
-                        # ==================== Base Frame ====================
+
+                        # Base Frame
                         "base_model": e_base_model,
                         "avm": e_avm,
                         "base_color": e_base_color,
                         "base_sn": e_base_sn,
-                        "spring_isolator": e_spring_isolator,
 
-                        # ==================== Container ====================
+                        # Container
                         "cont_type": e_cont_type,
                         "cont_size": e_cont_size,
+                        "cont_sn": e_cont_sn,
                         "co_detector": e_co_detector,
                         "cont_color": e_cont_color,
-                        "cont_sn": e_cont_sn,
                         "topone_sticker": e_topone_sticker,
-                        "container_custom1": e_container_custom1,
-                        "container_custom2": e_container_custom2,
-                        "container_custom3": e_container_custom3,
-                        # ==================== Breaker ====================
+
+                        # Breaker
                         "breaker_model": e_breaker_model,
                         "breaker_type": e_breaker_type,
                         "breaker_rating": e_breaker_rating,
-                        "gear_motor": e_gear_motor,  # ← 已加入
+                        "breaker_sn": e_breaker_sn,
+                        "gear_motor": e_gear_motor,
                         "shunt_trip": e_shunt_trip,
                         "closing_coil": e_closing_coil,
                         "uv_relay": e_uv_relay,
-                        "breaker_sn": e_breaker_sn,
 
-                        # ==================== Control Panel ====================
+                        # Control Panel
                         "panel_model": e_panel_model,
                         "panel_module": e_panel_module,
                         "panel_sn": e_panel_sn,
 
-                        # ==================== Battery ====================
+                        # Battery
                         "battery_model": e_battery_model,
                         "battery_switch": e_battery_switch,
                         "charger_model": e_charger_model,
 
-                        # ==================== Fuel Tank ====================
+                        # Fuel Tank
                         "fuel_volume": e_fuel_volume,
                         "fuel_layer": e_fuel_layer,
-                        "fuel_water_separator": e_fuel_water_separator,
                         "fuel_gauge": e_fuel_gauge,
                         "fuel_level_switch": e_fuel_level_switch,
                         "fuel_level_sensor": e_fuel_level_sensor,
                         "donaldson_breather": e_donaldson_breather,
                         "three_way_valve": e_three_way_valve,
-                        # ==================== Oil Tank ====================
+
+                        # Oil Tank
                         "oil_volume": e_oil_volume,
                         "oil_donaldson": e_oil_donaldson,
                         "murphy_oil": e_murphy_oil,
 
-                        # ==================== Remarks ====================
+                        # Remarks
                         "remarks": e_remarks.strip()
                     })
-                    new_specs.append(spec_data)
+
+                new_specs.append(spec_data)
 
         # PDF 匯出 & Save & Close 按鈕（保留原本邏輯）
         if st.button("📄 Export PDF ", type="secondary", use_container_width=True):
