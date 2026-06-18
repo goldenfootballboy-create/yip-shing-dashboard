@@ -2643,8 +2643,8 @@ if st.session_state.get("spec_dialog_open", False):
 
                 # ==================== 收集資料 ====================
                 # ==================== 收集資料 ====================
+                # ==================== 收集資料 ====================
                 spec_data = {
-                    # 基本資訊（所有模式都有）
                     "so_number": s_so_number,
                     "product_category": s_product_category,
                     "product_code": s_product_code,
@@ -2652,13 +2652,12 @@ if st.session_state.get("spec_dialog_open", False):
 
                 if project_type == "Marine":
                     # ==================== Marine 模式 ====================
-                    spec_data.update({
-                        **{f"marine_spec_{j}": marine_inputs[j-1] for j in range(1, 16)}
-                    })
+                    # 這裡要用 marine_inputs（跟你 UI 部分定義的一致）
+                    for j in range(1, 16):
+                        spec_data[f"marine_spec_{j}"] = marine_inputs[j-1] if 'marine_inputs' in locals() else ""
                 else:
                     # ==================== 一般模式 ====================
                     spec_data.update({
-                        # Engine
                         "genset_model": s_genset_model,
                         "engine_year": s_engine_year,
                         "genset_sn": s_genset_sn,
@@ -2669,7 +2668,6 @@ if st.session_state.get("spec_dialog_open", False):
                         "frequency": s_frequency.strip(),
                         "engine_heater": s_engine_heater,
 
-                        # Engine Option
                         "coolant_temp_sensor": s_coolant_temp_sensor,
                         "coolant_sensor": s_coolant_sensor,
                         "oil_pressure": s_oil_pressure,
@@ -2737,7 +2735,6 @@ if st.session_state.get("spec_dialog_open", False):
                         # Fuel Tank
                         "fuel_volume": s_fuel_volume,
                         "fuel_layer": s_fuel_layer,
-                        "fuel_water_separator": s_fuel_water_separator,
                         "fuel_gauge": s_fuel_gauge,
                         "fuel_level_switch": s_fuel_level_switch,
                         "fuel_level_sensor": s_fuel_level_sensor,
