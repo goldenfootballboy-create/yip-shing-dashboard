@@ -2591,7 +2591,7 @@ if st.session_state.get("spec_dialog_open", False):
                     "product_code": s_product_code,
 
                     # Marine 15 個自訂欄位
-                    **{f"marine_spec_{j}": marine_specs[j - 1] for j in range(1, 16)},
+                    **{f"marine_spec_{j}": marine_inputs[j - 1] for j in range(1, 16)},
                     "genset_model": s_genset_model,
                     "engine_year": s_engine_year,
                     "genset_sn": s_genset_sn,
