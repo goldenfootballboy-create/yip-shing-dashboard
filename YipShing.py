@@ -2022,7 +2022,6 @@ if st.session_state.get("spec_dialog_open", False):
 
         for i in range(qty):
             with tabs[i]:
-                current = {}  # New Spec 沒有 current
 
                 # ==================== 基本資訊 ====================
                 st.markdown("### 基本資訊")
@@ -2041,18 +2040,20 @@ if st.session_state.get("spec_dialog_open", False):
 
                 # ==================== Marine 專用模式 ====================
                 if project_type == "Marine":
-                    st.markdown("### Engine Specification（Marine 專用）")
-                    st.caption("請填寫引擎相關資料，共 15 欄，可自行輸入")
+                    with st.expander("Engine (發動機)", expanded=True):
+                        st.markdown("**請填寫引擎相關資料（共 15 欄，可自行輸入）**")
 
-                    marine_specs = []
-                    for j in range(1, 16):
-                        val = st.text_input(
-                            f"項目 {j}",
-                            key=f"dlg_marine_spec_{j}_{i}",
-                            label_visibility="visible"
-                        )
-                        marine_specs.append(val)
+                        marine_inputs = []
+                        for j in range(1, 16):
+                            val = st.text_input(
+                                f"",
+                                key=f"dlg_marine_spec_{j}_{i}",
+                                label_visibility="collapsed",
+                                placeholder=f"項目 {j}"
+                            )
+                            marine_inputs.append(val)
 
+                else:
 
                     # ==================== Engine (發動機) ====================
                     with st.expander("Engine (發動機)", expanded=True):
