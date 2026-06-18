@@ -2022,28 +2022,41 @@ if st.session_state.get("spec_dialog_open", False):
 
         for i in range(qty):
             with tabs[i]:
-                # ==================== 基本資訊 (Engine 上方) ====================
+                current = {}  # New Spec 沒有 current
+
+                # ==================== 基本資訊 ====================
                 st.markdown("### 基本資訊")
-
                 col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
-
                 with col1:
                     s_so_number = st.text_input("SO#", key=f"dlg_so_number_{i}")
-
                 with col2:
                     s_product_category = st.text_input("Product Category", key=f"dlg_product_category_{i}")
-
                 with col3:
                     s_product_code = st.text_input("Product Code", key=f"dlg_product_code_{i}")
-
                 with col4:
                     st.markdown("**QTY**")
                     st.markdown(f"<h3 style='margin: 0; color: #1e88e5;'>{qty}</h3>", unsafe_allow_html=True)
 
                 st.markdown("---")
-                # ==================== Engine (發動機) ====================
-                with st.expander("Engine (發動機)", expanded=True):
-                    col_feature, col_option = st.columns([1, 1])
+
+                # ==================== Marine 專用模式 ====================
+                if project_type == "Marine":
+                    st.markdown("### Engine Specification（Marine 專用）")
+                    st.caption("請填寫引擎相關資料，共 15 欄，可自行輸入")
+
+                    marine_specs = []
+                    for j in range(1, 16):
+                        val = st.text_input(
+                            f"項目 {j}",
+                            key=f"dlg_marine_spec_{j}_{i}",
+                            label_visibility="visible"
+                        )
+                        marine_specs.append(val)
+
+
+                    # ==================== Engine (發動機) ====================
+                    with st.expander("Engine (發動機)", expanded=True):
+                        col_feature, col_option = st.columns([1, 1])
 
                     with col_feature:
                         st.markdown("<h4 style='color: #1e88e5; margin-bottom: 10px;'>Feature</h4>",
@@ -2571,7 +2584,13 @@ if st.session_state.get("spec_dialog_open", False):
 
                 # ==================== 收集資料 ====================
                 spec_data = {
-                    # ==================== Engine ====================
+                    # ==================== Marine 專用欄位 ====================
+                    "so_number": s_so_number,
+                    "product_category": s_product_category,
+                    "product_code": s_product_code,
+
+                    # Marine 15 個自訂欄位
+                    **{f"marine_spec_{j}": marine_specs[j - 1] for j in range(1, 16)},
                     "genset_model": s_genset_model,
                     "engine_year": s_engine_year,
                     "genset_sn": s_genset_sn,
