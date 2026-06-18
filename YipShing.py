@@ -203,7 +203,7 @@ def generate_overview_pdf(specs, project_info, qty):
 
             if marine_items:
                 for j, val in marine_items:
-                    elements.append(Paragraph(f"<b>項目 {j}：</b> {val}", normal))
+                    elements.append(Paragraph(val, normal))
             else:
                 elements.append(Paragraph("（未填寫任何 Engine 資料）", normal))
 
