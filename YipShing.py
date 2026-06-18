@@ -174,6 +174,9 @@ def generate_overview_pdf(specs, project_info, qty):
 
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
+        # ==================== 判斷是否為 Marine ====================
+        is_marine = project_info.get('Project_Type', '') == "Marine"
+
         # 標題
         project_name = project_info.get('Project_Name', '—')
         customer = project_info.get('Customer', '—')
@@ -181,10 +184,35 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(
             f"SO#：{spec.get('so_number', '')}　｜　"
             f"Category：{spec.get('product_category', '')}　｜　"
-            f"Code：{spec.get('product_code', '')}　｜　C-Code：{customer}",
+            f"Code：{spec.get('product_code', '')}　｜　客戶：{customer}",
             info_style))
         elements.append(Spacer(1, 10))
 
+        # ==================== Engine (發動機) ====================
+        if is_marine:
+            # ==================== Marine 專用簡化顯示 ====================
+            elements.append(Paragraph("Engine (發動機) - Marine 專用", normal))
+            elements.append(Spacer(1, 6))
+
+            marine_data = [["項目", "內容"]]
+            for j in range(1, 16):
+                val = spec.get(f"marine_spec_{j}", "")
+                marine_data.append([f"項目 {j}", val if val else "—"])
+
+            t = Table(marine_data, colWidths=[80, 430])
+            t.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, 0), 'NotoSansTC-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('BACKGROUND', (0, 0), (-1, 0), HexColor('#d0d0d0')),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ]))
+            elements.append(t)
+            elements.append(Spacer(1, 12))
         # ==================== Engine (發動機) ====================
         engine_keys = ["genset_model", "engine_year", "genset_sn", "engine_color", "prime_standby",
                        "rpm", "voltage", "frequency", "engine_heater",
