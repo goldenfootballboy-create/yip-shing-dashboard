@@ -175,6 +175,7 @@ def generate_overview_pdf(specs, project_info, qty):
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
         # ==================== 判斷是否為 Marine ====================
+        # ==================== 判斷是否為 Marine ====================
         is_marine = project_info.get('Project_Type', '') == "Marine"
 
         # 標題
@@ -188,214 +189,186 @@ def generate_overview_pdf(specs, project_info, qty):
             info_style))
         elements.append(Spacer(1, 10))
 
-        # ==================== Engine (發動機) ====================
+        # ==================== Marine 專用模式 ====================
         if is_marine:
-            # ==================== Marine 專用簡化顯示 ====================
-            elements.append(Paragraph("Engine (發動機) - Marine 專用", normal))
-            elements.append(Spacer(1, 6))
+            elements.append(Paragraph("Engine Specification（Marine）", normal))
+            elements.append(Spacer(1, 8))
 
-            marine_data = [["項目", "內容"]]
+            # 只顯示有輸入的項目（更簡潔）
+            marine_items = []
             for j in range(1, 16):
                 val = spec.get(f"marine_spec_{j}", "")
-                marine_data.append([f"項目 {j}", val if val else "—"])
+                if val and val.strip():   # 只顯示有輸入的
+                    marine_items.append((j, val))
 
-            t = Table(marine_data, colWidths=[80, 430])
-            t.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (-1, 0), 'NotoSansTC-Bold'),
-                ('FONTSIZE', (0, 0), (-1, -1), 10),
-                ('BACKGROUND', (0, 0), (-1, 0), HexColor('#d0d0d0')),
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('LEFTPADDING', (0, 0), (-1, -1), 6),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-                ('TOPPADDING', (0, 0), (-1, -1), 4),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ]))
-            elements.append(t)
+            if marine_items:
+                for j, val in marine_items:
+                    elements.append(Paragraph(f"<b>項目 {j}：</b> {val}", normal))
+            else:
+                elements.append(Paragraph("（未填寫任何 Engine 資料）", normal))
+
             elements.append(Spacer(1, 12))
-        # ==================== Engine (發動機) ====================
-        engine_keys = ["genset_model", "engine_year", "genset_sn", "engine_color", "prime_standby",
-                       "rpm", "voltage", "frequency", "engine_heater",
-                       "coolant_temp_sensor", "coolant_sensor", "oil_pressure", "oil_pressure_switch",
-                       "hand_pump", "silencer", "flex_pipe", "exhaust_pipe", "fuel_water_separator","coolant_temp_switch"]
-        has_engine = section_has_content(spec, engine_keys)
 
-        data = [
-            ["Engine (發動機)", ""],
-            ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('genset_model') or ''),
-             "Coolant temperature sensor： " + (spec.get('coolant_temp_sensor') or '')],
-            ["Year (年份)： " + (spec.get('engine_year') or ''),
-             "Coolant temperature switch： " + (spec.get('coolant_temp_switch') or '')],
-            ["Colour (顏色)： " + (spec.get('engine_color') or ''),
-             "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
-            ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''),
-             "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
-            ["RPM (轉速)： " + (spec.get('rpm') or ''),
-             "Oil pressure switch： " + (spec.get('oil_pressure_switch') or '')],
-            ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
-            ["Frequency (頻率)： " + (spec.get('frequency') or ''), "Silencer： " + (spec.get('silencer') or '')],
-            ["S/N (序號)： " + (spec.get('genset_sn') or ''),
-             "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
-            ["", "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
-            ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
-            ["", "Fuel Water Separator： " + (spec.get('fuel_water_separator') or '')],
-            ["", "" + (spec.get('engine_custom1') or '')],
-            ["", "" + (spec.get('engine_custom2') or '')]
-        ]
-        elements.append(create_table(data, header_gray=has_engine))
-        elements.append(Spacer(1, 8))
+        else:
+            # ==================== 一般模式（非 Marine） ====================
+            # Engine
+            engine_keys = ["genset_model", "engine_year", "genset_sn", "engine_color", "prime_standby",
+                           "rpm", "voltage", "frequency", "engine_heater",
+                           "coolant_temp_sensor", "coolant_sensor", "oil_pressure", "oil_pressure_switch",
+                           "hand_pump", "silencer", "flex_pipe", "exhaust_pipe", "fuel_water_separator"]
+            has_engine = section_has_content(spec, engine_keys)
 
-        # ==================== Alternator (電球) ====================
-        alt_keys = ["alt_model", "alt_winding", "droop", "alt_color", "alt_sn", "alt_heater", "pmg"]
-        has_alt = section_has_content(spec, alt_keys)
+            data = [
+                ["Engine (發動機)", ""],
+                ["Feature", "Option"],
+                ["Model (型號)： " + (spec.get('genset_model') or ''), "Coolant temperature sensor： " + (spec.get('coolant_temp_sensor') or '')],
+                ["Year (年份)： " + (spec.get('engine_year') or ''), "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
+                ["Colour (顏色)： " + (spec.get('engine_color') or ''), "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
+                ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''), "Oil pressure switch： " + (spec.get('oil_pressure_switch') or '')],
+                ["RPM (轉速)： " + (spec.get('rpm') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
+                ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Silencer： " + (spec.get('silencer') or '')],
+                ["Frequency (頻率)： " + (spec.get('frequency') or ''), "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
+                ["S/N (序號)： " + (spec.get('genset_sn') or ''), "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
+                ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
+                ["", "Fuel Water Separator： " + (spec.get('fuel_water_separator') or '')]
+            ]
+            elements.append(create_table(data, header_gray=has_engine))
+            elements.append(Spacer(1, 8))
 
-        data = [
-            ["Alternator (電球)", ""],
-            ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('alt_model') or ''), "Heater： " + (spec.get('alt_heater') or '')],
-            ["Winding： " + (spec.get('alt_winding') or ''), "PMG： " + (spec.get('pmg') or '')],
-            ["Droop： " + (spec.get('droop') or ''), ""],
-            ["Color： " + (spec.get('alt_color') or ''), ""],
-            ["S/N： " + (spec.get('alt_sn') or ''), ""],
-        ]
-        elements.append(create_table(data, header_gray=has_alt))
-        elements.append(Spacer(1, 8))
+            # ==================== 以下只有非 Marine 才顯示 ====================
+            if not is_marine:
+                # Alternator
+                alt_keys = ["alt_model", "alt_winding", "droop", "alt_color", "alt_sn", "alt_heater", "pmg"]
+                has_alt = section_has_content(spec, alt_keys)
+                data = [
+                    ["Alternator (電球)", ""],
+                    ["Feature", "Option"],
+                    ["Model (型號)： " + (spec.get('alt_model') or ''), "Heater： " + (spec.get('alt_heater') or '')],
+                    ["Winding： " + (spec.get('alt_winding') or ''), "PMG： " + (spec.get('pmg') or '')],
+                    ["Droop： " + (spec.get('droop') or ''), ""],
+                    ["Color： " + (spec.get('alt_color') or ''), ""],
+                    ["S/N： " + (spec.get('alt_sn') or ''), ""],
+                ]
+                elements.append(create_table(data, header_gray=has_alt))
+                elements.append(Spacer(1, 8))
 
-        # ==================== Radiator (水箱) ====================
-        rad_keys = ["rad_model", "rad_temp", "fan_size", "radiator_guard", "rad_sn",
-                    "fuel_cooler", "low_water", "murphy_coolant", "anti_freezer",
-                    "radiator_custom1", "radiator_custom2"]  # ← 已加入新欄位
-        has_rad = section_has_content(spec, rad_keys)
+                # Radiator
+                rad_keys = ["rad_model", "rad_temp", "fan_size", "radiator_guard", "rad_sn",
+                            "fuel_cooler", "low_water", "murphy_coolant", "anti_freezer"]
+                has_rad = section_has_content(spec, rad_keys)
+                data = [
+                    ["Radiator (水箱)", ""],
+                    ["Feature", "Option"],
+                    ["Model (型號)： " + (spec.get('rad_model') or ''), "Fuel Cooler： " + (spec.get('fuel_cooler') or '')],
+                    ["Degree (温度)： " + (spec.get('rad_temp') or ''), "Low Water Level Switch： " + (spec.get('low_water') or '')],
+                    ["Fan Size (扇呎吋)： " + (spec.get('fan_size') or ''), "Murphy Coolant Level Switch： " + (spec.get('murphy_coolant') or '')],
+                    ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), "Anti-Freezer： " + (spec.get('anti_freezer') or '')],
+                    ["S/N： " + (spec.get('rad_sn') or ''), ""],
+                ]
+                elements.append(create_table(data, header_gray=has_rad))
+                elements.append(Spacer(1, 8))
 
-        data = [
-            ["Radiator (水箱)", ""],
-            ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('rad_model') or ''), "Fuel Cooler： " + (spec.get('fuel_cooler') or '')],
-            ["Degree (温度)： " + (spec.get('rad_temp') or ''),
-             "Low Water Level Switch： " + (spec.get('low_water') or '')],
-            ["Fan Size (扇呎吋)： " + (spec.get('fan_size') or ''),
-             "Murphy Coolant Level Switch： " + (spec.get('murphy_coolant') or '')],
-            ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''),
-             "Anti-Freezer： " + (spec.get('anti_freezer') or '')],
-            ["S/N： " + (spec.get('rad_sn') or ''), "" + (spec.get('radiator_custom1') or '')],  # ← 新增
-            ["", "" + (spec.get('radiator_custom2') or '')],  # ← 新增
-        ]
-        elements.append(create_table(data, header_gray=has_rad))
-        elements.append(Spacer(1, 8))
+                # Base Frame
+                base_keys = ["base_model", "avm", "base_color", "base_sn"]
+                has_base = section_has_content(spec, base_keys)
+                data = [
+                    ["Base Frame (底架)", ""],
+                    ["Feature", "Option"],
+                    ["Model (型號)： " + (spec.get('base_model') or ''), "Color： " + (spec.get('base_color') or '')],
+                    ["Anti-Vibration Mounts (避震腳)： " + (spec.get('avm') or ''), ""],
+                    ["S/N： " + (spec.get('base_sn') or ''), ""],
+                ]
+                elements.append(create_table(data, header_gray=has_base))
+                elements.append(Spacer(1, 8))
 
-        # ==================== Base Frame (底架) ====================
-        base_keys = ["base_model", "avm", "base_color", "base_sn"]
-        has_base = section_has_content(spec, base_keys)
+                # ==================== 第二頁 ====================
+                elements.append(PageBreak())
 
-        data = [
-            ["Base Frame (底架)", ""],
-            ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('base_model') or ''), "Color： " + (spec.get('base_color') or '')],
-            ["Anti-Vibration Mounts (避震腳)： " + (spec.get('avm') or ''), "Spring isolator： " + (spec.get('spring_isolator') or '')],
-            ["S/N： " + (spec.get('base_sn') or ''), ""],
-        ]
-        elements.append(create_table(data, header_gray=has_base))
-        elements.append(Spacer(1, 8))
+                # Container
+                cont_keys = ["cont_type", "cont_size", "cont_sn", "co_detector", "cont_color"]
+                has_cont = section_has_content(spec, cont_keys)
+                data = [
+                    ["Container (貨櫃)", ""],
+                    ["Feature", "Option"],
+                    ["Type (型號)： " + (spec.get('cont_type') or ''), "CO Detector： " + (spec.get('co_detector') or '')],
+                    ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
+                    ["櫃號： " + (spec.get('cont_sn') or ''), "Topone 貼紙： " + (spec.get('topone_sticker') or '')],
+                ]
+                elements.append(create_table(data, gray=is_open_set, header_gray=has_cont))
+                elements.append(Spacer(1, 8))
 
-        # ==================== 第二頁 ====================
-        elements.append(PageBreak())
+                # Breaker
+                breaker_keys = ["breaker_model", "breaker_type", "breaker_rating", "breaker_sn",
+                                "gear_motor", "shunt_trip", "closing_coil", "uv_relay"]
+                has_breaker = section_has_content(spec, breaker_keys)
+                data = [
+                    ["Breaker (斷路器)", ""],
+                    ["Feature", "Option"],
+                    ["Model (型號)： " + (spec.get('breaker_model') or ''), "Gear Motor： " + (spec.get('gear_motor') or '')],
+                    ["Type (類型)： " + (spec.get('breaker_type') or ''), "Shunt Trip： " + (spec.get('shunt_trip') or '')],
+                    ["Rating： " + (spec.get('breaker_rating') or ''), "Closing Coil： " + (spec.get('closing_coil') or '')],
+                    ["S/N： " + (spec.get('breaker_sn') or ''), "UV Relay： " + (spec.get('uv_relay') or '')],
+                ]
+                elements.append(create_table(data, header_gray=has_breaker))
+                elements.append(Spacer(1, 8))
 
-        # ==================== Container (貨櫃) ====================
-        cont_keys = ["cont_type", "cont_size", "cont_sn", "co_detector", "cont_color","topone_sticker"]
-        has_cont = section_has_content(spec, cont_keys)
+                # Control Panel
+                panel_keys = ["panel_model", "panel_module", "panel_sn"]
+                has_panel = section_has_content(spec, panel_keys)
+                data = [
+                    ["Control Panel (控制器)", ""],
+                    ["Feature", "Option"],
+                    ["Model (型號)： " + (spec.get('panel_model') or ''), ""],
+                    ["Module： " + (spec.get('panel_module') or ''), ""],
+                    ["S/N： " + (spec.get('panel_sn') or ''), ""],
+                ]
+                elements.append(create_table(data, header_gray=has_panel))
+                elements.append(Spacer(1, 8))
 
-        data = [
-            ["Container (貨櫃)", ""],
-            ["Feature", "Option"],
-            ["Type (型號)： " + (spec.get('cont_type') or ''), "CO Detector： " + (spec.get('co_detector') or '')],
-            ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
-            ["櫃號： " + (spec.get('cont_sn') or ''), "Topone 貼紙： " + (spec.get('topone_sticker') or '')],
-            ["", "" + (spec.get('container_custom1') or '')],
-            ["", "" + (spec.get('container_custom2') or '')],
-            ["", "" + (spec.get('container_custom3') or '')]
-        ]
-        elements.append(create_table(data, gray=is_open_set, header_gray=has_cont))
-        elements.append(Spacer(1, 8))
+                # Battery
+                battery_keys = ["battery_model", "battery_switch", "battery_rating", "charger_model"]
+                has_battery = section_has_content(spec, battery_keys)
+                data = [
+                    ["Battery (電池)", ""],
+                    ["Feature", "Option"],
+                    ["Model (型號)： " + (spec.get('battery_model') or ''), "Charger Model： " + (spec.get('charger_model') or '')],
+                    ["Battery Switch： " + (spec.get('battery_switch') or ''), ""],
+                ]
+                elements.append(create_table(data, header_gray=has_battery))
+                elements.append(Spacer(1, 8))
 
-        # ==================== Breaker (斷路器) ====================
-        breaker_keys = ["breaker_model", "breaker_type", "breaker_rating", "breaker_sn",
-                        "gear_motor", "shunt_trip", "closing_coil", "uv_relay"]
-        has_breaker = section_has_content(spec, breaker_keys)
+                # Fuel Tank
+                fuel_keys = ["fuel_volume", "fuel_layer", "fuel_gauge", "fuel_level_switch", "fuel_level_sensor", "donaldson_breather"]
+                has_fuel = section_has_content(spec, fuel_keys)
+                data = [
+                    ["Fuel Tank (燃油箱)", ""],
+                    ["Feature", "Option"],
+                    ["Volume： " + (spec.get('fuel_volume') or ''), "Fuel Level Gauge： " + (spec.get('fuel_gauge') or '')],
+                    ["Layer： " + (spec.get('fuel_layer') or ''), "Fuel Level Switch： " + (spec.get('fuel_level_switch') or '')],
+                    ["", "Fuel Level Sensor： " + (spec.get('fuel_level_sensor') or '')],
+                    ["", "Donaldson Breather： " + (spec.get('donaldson_breather') or '')],
+                    ["", "3 way Valve： " + (spec.get('three_way_valve') or '')],
+                ]
+                elements.append(create_table(data, gray=is_open_set, header_gray=has_fuel))
+                elements.append(Spacer(1, 8))
 
-        data = [
-            ["Breaker (斷路器)", ""],
-            ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('breaker_model') or ''), "Gear Motor： " + (spec.get('gear_motor') or '')],
-            ["Type (類型)： " + (spec.get('breaker_type') or ''), "Shunt Trip： " + (spec.get('shunt_trip') or '')],
-            ["Rating： " + (spec.get('breaker_rating') or ''), "Closing Coil： " + (spec.get('closing_coil') or '')],
-            ["S/N： " + (spec.get('breaker_sn') or ''), "UV Relay： " + (spec.get('uv_relay') or '')],
-        ]
-        elements.append(create_table(data, header_gray=has_breaker))
-        elements.append(Spacer(1, 8))
+                # Oil Tank
+                oil_keys = ["oil_volume", "oil_donaldson", "murphy_oil"]
+                has_oil = section_has_content(spec, oil_keys)
+                data = [
+                    ["Oil Tank (機油箱)", ""],
+                    ["Feature", "Option"],
+                    ["Volume： " + (spec.get('oil_volume') or ''), "Donaldson Breather： " + (spec.get('oil_donaldson') or '')],
+                    ["", "Murphy Coolant Level Switch： " + (spec.get('murphy_oil') or '')],
+                ]
+                elements.append(create_table(data, gray=is_open_set, header_gray=has_oil))
+                elements.append(Spacer(1, 12))
 
-        # ==================== Control Panel (控制器) ====================
-        panel_keys = ["panel_model", "panel_module", "panel_sn"]
-        has_panel = section_has_content(spec, panel_keys)
-
-        data = [
-            ["Control Panel (控制器)", ""],
-            ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('panel_model') or ''), ""],
-            ["Module： " + (spec.get('panel_module') or ''), ""],
-            ["S/N： " + (spec.get('panel_sn') or ''), ""],
-        ]
-        elements.append(create_table(data, header_gray=has_panel))
-        elements.append(Spacer(1, 8))
-
-        # ==================== Battery (電池) ====================
-        battery_keys = ["battery_model", "battery_switch", "battery_rating", "charger_model"]
-        has_battery = section_has_content(spec, battery_keys)
-
-        data = [
-            ["Battery (電池)", ""],
-            ["Feature", "Option"],
-            ["Model (型號)： " + (spec.get('battery_model') or ''), "Charger Model： " + (spec.get('charger_model') or '')],
-            ["Battery Switch： " + (spec.get('battery_switch') or ''), ""],
-        ]
-        elements.append(create_table(data, header_gray=has_battery))
-        elements.append(Spacer(1, 8))
-
-        # ==================== Fuel Tank (燃油箱) ====================
-        fuel_keys = ["fuel_volume", "fuel_layer", "fuel_gauge", "fuel_level_switch", "fuel_level_sensor", "donaldson_breather","three_way_valve"]
-        has_fuel = section_has_content(spec, fuel_keys)
-
-        data = [
-            ["Fuel Tank (燃油箱)", ""],
-            ["Feature", "Option"],
-            ["Volume： " + (spec.get('fuel_volume') or ''), "Fuel Level Gauge： " + (spec.get('fuel_gauge') or '')],
-            ["Layer： " + (spec.get('fuel_layer') or ''), "Fuel Level Switch： " + (spec.get('fuel_level_switch') or '')],
-            ["", "Fuel Level Sensor： " + (spec.get('fuel_level_sensor') or '')],
-            ["", "Donaldson Breather： " + (spec.get('donaldson_breather') or '')],
-            ["", "3 way Valve： " + (spec.get('three_way_valve') or '')],
-        ]
-        elements.append(create_table(data, gray=is_open_set, header_gray=has_fuel))
-        elements.append(Spacer(1, 8))
-
-        # ==================== Oil Tank (機油箱) ====================
-        oil_keys = ["oil_volume", "oil_donaldson", "murphy_oil"]
-        has_oil = section_has_content(spec, oil_keys)
-
-        data = [
-            ["Oil Tank (機油箱)", ""],
-            ["Feature", "Option"],
-            ["Volume： " + (spec.get('oil_volume') or ''), "Donaldson Breather： " + (spec.get('oil_donaldson') or '')],
-            ["", "Murphy Coolant Level Switch： " + (spec.get('murphy_oil') or '')],
-        ]
-        elements.append(create_table(data, gray=is_open_set, header_gray=has_oil))
-        elements.append(Spacer(1, 12))
-
-        # ==================== Remarks ====================
+        # ==================== Remarks（所有模式都顯示） ====================
         remarks = spec.get("remarks", "").strip()
         if remarks:
             elements.append(Paragraph("Remarks / 備註", normal))
             elements.append(Paragraph(remarks, normal))
-
     doc.build(elements)
     pdf_bytes = buffer.getvalue()
     buffer.close()
