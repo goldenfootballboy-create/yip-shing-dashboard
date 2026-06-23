@@ -175,7 +175,7 @@ def generate_overview_pdf(specs, project_info, qty):
         spec = specs[machine_idx] if machine_idx < len(specs) else {}
 
         # ==================== 判斷是否為 Marine ====================
-        # ==================== 判斷是否為 Marine ====================
+
         is_marine = project_info.get('Project_Type', '') == "Marine"
 
         # 標題
@@ -230,7 +230,9 @@ def generate_overview_pdf(specs, project_info, qty):
                 ["Frequency (頻率)： " + (spec.get('frequency') or ''), "Flexible Pipe & Flange： " + (spec.get('flex_pipe') or '')],
                 ["S/N (序號)： " + (spec.get('genset_sn') or ''), "Exhaust Pipe： " + (spec.get('exhaust_pipe') or '')],
                 ["", "Heater (加熱器) kW： " + (spec.get('engine_heater') or '')],
-                ["", "Fuel Water Separator： " + (spec.get('fuel_water_separator') or '')]
+                ["", "Fuel Water Separator： " + (spec.get('fuel_water_separator') or '')],
+                ["" + (spec.get('engine_custom1') or '')],
+                ["" + (spec.get('engine_custom2') or '')]
             ]
             elements.append(create_table(data, header_gray=has_engine))
             elements.append(Spacer(1, 8))
@@ -263,7 +265,9 @@ def generate_overview_pdf(specs, project_info, qty):
                     ["Degree (温度)： " + (spec.get('rad_temp') or ''), "Low Water Level Switch： " + (spec.get('low_water') or '')],
                     ["Fan Size (扇呎吋)： " + (spec.get('fan_size') or ''), "Murphy Coolant Level Switch： " + (spec.get('murphy_coolant') or '')],
                     ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), "Anti-Freezer： " + (spec.get('anti_freezer') or '')],
-                    ["S/N： " + (spec.get('rad_sn') or ''), ""],
+                    ["S/N： " + (spec.get('rad_sn') or ''), "" +(spec.get('rad_custom1') or '')],
+                    ["" + (spec.get('rad_custom2') or '')]
+                    
                 ]
                 elements.append(create_table(data, header_gray=has_rad))
                 elements.append(Spacer(1, 8))
