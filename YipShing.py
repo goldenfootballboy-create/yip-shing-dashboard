@@ -265,8 +265,8 @@ def generate_overview_pdf(specs, project_info, qty):
                     ["Degree (温度)： " + (spec.get('rad_temp') or ''), "Low Water Level Switch： " + (spec.get('low_water') or '')],
                     ["Fan Size (扇呎吋)： " + (spec.get('fan_size') or ''), "Murphy Coolant Level Switch： " + (spec.get('murphy_coolant') or '')],
                     ["Protection Cover (保護罩)： " + (spec.get('radiator_guard') or ''), "Anti-Freezer： " + (spec.get('anti_freezer') or '')],
-                    ["S/N： " + (spec.get('rad_sn') or ''), "" +(spec.get('rad_custom1') or '')],
-                    ["","" + (spec.get('rad_custom2') or '')]
+                    ["S/N： " + (spec.get('rad_sn') or ''), "" +(spec.get('radiator_custom1') or '')],
+                    ["","" + (spec.get('radiator_custom2') or '')]
                 ]
                 elements.append(create_table(data, header_gray=has_rad))
                 elements.append(Spacer(1, 8))
@@ -296,6 +296,9 @@ def generate_overview_pdf(specs, project_info, qty):
                     ["Type (型號)： " + (spec.get('cont_type') or ''), "CO Detector： " + (spec.get('co_detector') or '')],
                     ["Dimension (呎吋)： " + (spec.get('cont_size') or ''), "Color： " + (spec.get('cont_color') or '')],
                     ["櫃號： " + (spec.get('cont_sn') or ''), "Topone 貼紙： " + (spec.get('topone_sticker') or '')],
+                    ["", "" + (spec.get('container_custom1') or '')],
+                    ["", "" + (spec.get('container_custom2') or '')],
+                    ["", "" + (spec.get('container_custom3') or '')]
                 ]
                 elements.append(create_table(data, gray=is_open_set, header_gray=has_cont))
                 elements.append(Spacer(1, 8))
@@ -1778,7 +1781,6 @@ if st.session_state.get("show_edit_spec_dialog", False):
                 e_remarks = st.text_area("Remarks", value=current.get("remarks", ""), height=150,
                                          key=f"edit_remarks_{idx_to_edit}_{i}")
 
-                # ==================== 收集資料 ====================
                 # ==================== 收集資料 ====================
                 spec_data = {
                     "so_number": e_so_number,
