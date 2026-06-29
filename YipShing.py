@@ -1815,7 +1815,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
 
                         # Engine Option
                         "coolant_temp_sensor": e_coolant_temp_sensor,
-                        "cool_temp_switch": e_coolant_temp_switch,
+                        "coolant_temp_switch": e_coolant_temp_switch,
                         "coolant_sensor": e_coolant_sensor,
                         "oil_pressure": e_oil_pressure,
                         "oil_pressure_switch": e_oil_pressure_switch,
