@@ -1854,7 +1854,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         "avm": e_avm,
                         "base_color": e_base_color,
                         "base_sn": e_base_sn,
-                        "sping_isolator": e_spring_isolator,
+                        "spring_isolator": e_spring_isolator,
 
                         # Container
                         "cont_type": e_cont_type,
