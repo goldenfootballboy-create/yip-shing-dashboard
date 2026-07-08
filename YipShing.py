@@ -224,7 +224,7 @@ def generate_overview_pdf(specs, project_info, qty):
                 ["Model (型號)： " + (spec.get('genset_model') or ''), "Coolant temperature sensor： " + (spec.get('coolant_temp_sensor') or '')],
                 ["Year (年份)： " + (spec.get('engine_year') or ''), "Coolant Temperature Switch： " + (spec.get('coolant_temp_switch') or '')],
                 ["Colour (顏色)： " + (spec.get('engine_color') or ''), "Oil Coolant Temp Sensor： " + (spec.get('coolant_sensor') or '')],
-                ["Prime/Standby (kW)： " + (spec.get('prime_standby') or ''), "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
+                ["Power： " + (spec.get('prime_standby') or ''), "Oil Pressure Sensor： " + (spec.get('oil_pressure') or '')],
                 ["RPM (轉速)： " + (spec.get('rpm') or ''), "Oil pressure switch： " + (spec.get('oil_pressure_switch') or '')],
                 ["Voltage (電壓)： " + (spec.get('voltage') or ''), "Hand Swing Pump： " + (spec.get('hand_pump') or '')],
                 ["Frequency (頻率)： " + (spec.get('frequency') or ''), "Silencer： " + (spec.get('silencer') or '')],
@@ -826,7 +826,7 @@ def render_project_card(row, idx):
             spec = specs[0] if specs else {}
             st.markdown("**Project Specification**")
             st.markdown(
-                f"**Prime/Standby (kW)：** {spec.get('prime_standby', '—')}　　"
+                f"**Power：** {spec.get('prime_standby', '—')}　　"
                 f"**Voltage (電壓)：** {spec.get('voltage', '—')}　　"
                 f"**Frequency (頻率)：** {spec.get('frequency', '—')}"
             )
@@ -862,7 +862,7 @@ def render_project_card(row, idx):
                     spec = specs[i] if i < len(specs) else {}
                     st.markdown("**Project Specification**")
                     st.markdown(
-                        f"**Prime/Standby (kW)：** {spec.get('prime_standby', '—')}　　"
+                        f"**Power：** {spec.get('prime_standby', '—')}　　"
                         f"**Voltage (電壓)：** {spec.get('voltage', '—')}　　"
                         f"**Frequency (頻率)：** {spec.get('frequency', '—')}"
                     )
@@ -1187,7 +1187,7 @@ if st.session_state.get("show_edit_spec_dialog", False):
                                                                            label_visibility="collapsed")
 
                             col_label, col_input = st.columns([2, 3])
-                            with col_label: st.markdown("Prime/Standby (kW)")
+                            with col_label: st.markdown("Power")
                             with col_input: e_prime_standby = st.text_input("", placeholder="例如: 100/110",
                                                                             value=current.get("prime_standby", ""),
                                                                             key=f"edit_prime_standby_{idx_to_edit}_{i}",
@@ -2125,7 +2125,7 @@ if st.session_state.get("spec_dialog_open", False):
                                                                        label_visibility="collapsed")
 
                         col_label, col_input = st.columns([2, 3])
-                        with col_label: st.markdown("Prime/Standby (kW)")
+                        with col_label: st.markdown("Power")
                         with col_input: s_prime_standby = st.text_input("", placeholder="例如: 100/110",
                                                                         key=f"dlg_prime_standby_{i}",
                                                                         label_visibility="collapsed")
@@ -3298,7 +3298,7 @@ if st.session_state.get("show_overview_dialog", False):
                 st.markdown("**Engine (發動機)**")
                 st.markdown(f"**Model (型號)：** {spec.get('genset_model', '—')}　　**S/N：** {spec.get('genset_sn', '—')}")
                 st.markdown(f"**Year (年份)：** {spec.get('engine_year', '—')}　　**Colour (顏色)：** {spec.get('engine_color', '—')}")
-                st.markdown(f"**Prime/Standby (kW)：** {spec.get('prime_standby', '—')}　　**RPM：** {spec.get('rpm', '—')}")
+                st.markdown(f"**Power：** {spec.get('prime_standby', '—')}　　**RPM：** {spec.get('rpm', '—')}")
                 st.markdown(f"**Voltage (電壓)：** {spec.get('voltage', '—')}　　**Frequency (頻率)：** {spec.get('frequency', '—')}")
                 st.markdown(f"**Heater (加熱器) kW：** {spec.get('engine_heater', '—')}")
 
