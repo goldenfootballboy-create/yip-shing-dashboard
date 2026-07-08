@@ -279,7 +279,7 @@ def generate_overview_pdf(specs, project_info, qty):
                     ["Base Frame (底架)", ""],
                     ["Feature", "Option"],
                     ["Model (型號)： " + (spec.get('base_model') or ''), "Color： " + (spec.get('base_color') or '')],
-                    ["Anti-Vibration Mounts (避震腳)： " + (spec.get('avm') or ''), "Spring isolator:" + (spec.get('spring_isolator') or '')],
+                    ["Anti-Vibration Mounts (避震腳)： " + (spec.get('avm') or ''), "Spring isolator： " + (spec.get('spring_isolator') or '')],
                     ["S/N： " + (spec.get('base_sn') or ''), ""],
                 ]
                 elements.append(create_table(data, header_gray=has_base))
