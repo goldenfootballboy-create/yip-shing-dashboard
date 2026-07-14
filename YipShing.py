@@ -1844,6 +1844,8 @@ if st.session_state.get("show_edit_spec_dialog", False):
                         "low_water": e_low_water,
                         "murphy_coolant": e_murphy_coolant,
                         "anti_freezer": e_anti_freezer,
+                        "radiator_custom1": e_radiator_custom1,
+                        "radiator_custom2": e_radiator_custom2,
 
                         # === 新增 Radiator 自定義欄位 ===
                         "rad_custom1": e_radiator_custom1,
