@@ -40,6 +40,33 @@ hkt = timezone(timedelta(hours=8))
 now_hkt = datetime.now(hkt)
 # 強制每次進入日曆頁面都重新讀取 Google Sheets（解決跳轉後不更新問題）
 st.cache_data.clear()  # 清空所有快取
+
+# ==================== 密碼保護 ====================
+def check_password():
+    """簡單密碼驗證"""
+    def password_entered():
+        if st.session_state["password"] == st.secrets["password"]:
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # 不要把密碼留在 session
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        # 第一次進來
+        st.text_input("請輸入密碼", type="password", on_change=password_entered, key="password")
+        return False
+    elif not st.session_state["password_correct"]:
+        # 密碼錯誤
+        st.text_input("請輸入密碼", type="password", on_change=password_entered, key="password")
+        st.error("密碼錯誤，請再試一次")
+        return False
+    else:
+        # 密碼正確
+        return True
+
+# 如果密碼不正確，就停止執行後面的程式
+if not check_password():
+    st.stop()
 if "calendar_refresh" not in st.session_state:
     st.session_state["calendar_refresh"] = True
     st.rerun()  # 強制重新執行一次頁面
