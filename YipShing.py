@@ -212,7 +212,7 @@ def generate_overview_pdf(specs, project_info, qty):
         elements.append(Paragraph(
             f"SO#：{spec.get('so_number', '')}　｜　"
             f"Category：{spec.get('product_category', '')}　｜　"
-            f"Code：{spec.get('product_code', '')}　｜　客戶：{customer}",
+            f"Code：{spec.get('product_code', '')}　｜　C-Code：{customer}",
             info_style))
         elements.append(Spacer(1, 10))
 
